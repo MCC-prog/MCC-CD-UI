@@ -3,7 +3,7 @@ import { Container } from 'reactstrap';
 import Breadcrumb from 'Components/Common/Breadcrumb';
 
 const Dashboard = () => {
-  document.title = "Dashboards | Skote - React Admin & Dashboard Template";
+  document.title = "Home Page | MCC - Centralized Data";
 
   return (
     <React.Fragment>
