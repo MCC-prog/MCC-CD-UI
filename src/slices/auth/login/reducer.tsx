@@ -1,11 +1,11 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 export const initialState = {
-    user: "",
-    error: "",// for error msg
+    user: localStorage.getItem("userInfo") !== 'undefined' ? JSON.parse(localStorage.getItem("userInfo") || "{}") : "null",
+    error: "",
     loading: false,
     isUserLogout: false,
-    errorMsg: false,// for error
+    errorMsg: false
 };
 
 const loginSlice = createSlice({
@@ -13,7 +13,6 @@ const loginSlice = createSlice({
     initialState,
     reducers: {
         loginSuccess(state, action) {
-
             state.user = action.payload
             state.loading = false;
             state.errorMsg = false;

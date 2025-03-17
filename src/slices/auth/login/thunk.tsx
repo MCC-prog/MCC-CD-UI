@@ -1,47 +1,38 @@
-import { getFirebaseBackend } from "helpers/firebase_helper";
-import { postFakeLogin, postJwtLogin } from "helpers/fakebackend_helper";
-import { loginSuccess, apiError, logoutUserSuccess, resetLoginFlag } from "./reducer";
+import { login } from "helpers/backend_helper"
+import { apiError, loginSuccess, logoutUserSuccess, resetLoginFlag } from "./reducer";
 
-export const loginuser = (user: any, history: any) => async (dispatch: any) => {
-    try {
-        let response: any;
-        if (process.env.REACT_APP_DEFAULTAUTH === "firebase") {
-            let fireBaseBackend = await getFirebaseBackend();
-            response = fireBaseBackend.loginUser(
-                user.email,
-                user.password
-            )
-        } else if (process.env.REACT_APP_DEFAULTAUTH === "jwt") {
-            response = await postJwtLogin({
-                user: user.email,
+export const loginuser = (user: any, navigate: any, setErrorMessage: (message: string) => void,
+    setOpen: (open: boolean) => void) => async (dispatch: any) => {
+        try {
+            let response: any;
+
+            // api call for authentication
+            response = await login({
+                username: user.username,
                 password: user.password
-            })
-        } else if (process.env.REACT_APP_DEFAULTAUTH === "fake") {
-            response = await postFakeLogin({
-                email: user.email,
-                password: user.password
-            })
-            localStorage.setItem("authUser", JSON.stringify(response));
+            });
+
+            // ✅ Dispatch login success action
             dispatch(loginSuccess(response));
+
+            // ✅ Store user details in localStorage
+            localStorage.setItem("userInfo", JSON.stringify(response));
+
+            // ✅ Navigate to dashboard
+            navigate("/dashboard");
+
+        } catch (error: any) {
+            dispatch(apiError(error));
+            setErrorMessage(error?.message || "Login failed. Please try again!");
+            setOpen(true);
         }
-        history('/dashboard');
-    } catch (error) {
-        dispatch(apiError(error));
-    }
-}
+    };
+
 
 export const logoutUser = () => async (dispatch: any) => {
     try {
         localStorage.removeItem("authUser");
-
-        const fireBaseBackend = getFirebaseBackend();
-        if (process.env.REACT_APP_DEFAULTAUTH === "firebase") {
-            const response = fireBaseBackend.logout;
-            dispatch(logoutUserSuccess(response));
-        } else {
-            dispatch(logoutUserSuccess(true));
-        }
-
+        dispatch(logoutUserSuccess(true));
     } catch (error) {
         dispatch(apiError(error));
     }
@@ -53,27 +44,5 @@ export const resetLoginMsgFlag = () => {
         return response;
     } catch (error) {
         return error;
-    }
-};
-
-
-export const socialLogin = (type: any, history: any) => async (dispatch: any) => {
-    try {
-        let response: any;
-
-        if (process.env.REACT_APP_DEFAULTAUTH === "firebase") {
-            const fireBaseBackend = getFirebaseBackend();
-            response = fireBaseBackend.socialLoginUser(type);
-        }
-
-        const socialdata = await response;
-        if (socialdata) {
-            sessionStorage.setItem("authUser", JSON.stringify(socialdata));
-            dispatch(loginSuccess(socialdata));
-            history('/dashboard');
-        }
-
-    } catch (error) {
-        dispatch(apiError(error));
     }
 };

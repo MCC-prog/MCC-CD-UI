@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { Col } from 'reactstrap';
 
 //flatpickr
-import "flatpickr/dist/themes/material_blue.css";
-import FlatPickr from "flatpickr-react";
+// import "flatpickr/dist/themes/material_blue.css";
+// import FlatPickr from "flatpickr-react";
 
 
 const JobListGlobalFilter = ({ setGlobalFilter }: any) => {
@@ -38,7 +38,7 @@ const JobListGlobalFilter = ({ setGlobalFilter }: any) => {
                 </select>
             </Col>
             <Col xxl={2} lg={4}>
-                <div id="datepicker1">
+                {/* <div id="datepicker1">
                     <FlatPickr
                         className="form-control mb-3 mb-xxl-0"
                         name="joiningDate"
@@ -49,7 +49,7 @@ const JobListGlobalFilter = ({ setGlobalFilter }: any) => {
                         value={selectDate}
                         onChange={dateChange}
                     />
-                </div>
+                </div> */}
             </Col>
             <Col xxl={2} lg={4}>
                 <div className='mb-3 mb-xxl-0'>

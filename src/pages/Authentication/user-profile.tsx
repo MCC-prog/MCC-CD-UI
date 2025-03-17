@@ -27,7 +27,6 @@ import Breadcrumb from "Components/Common/Breadcrumb";
 
 import avatar from "../../assets/images/users/avatar-1.jpg";
 
-import { editProfile, resetProfileFlag } from "slices/thunk";
 import { createSelector } from 'reselect';
 
 const UserProfile = () => {
@@ -44,7 +43,7 @@ const UserProfile = () => {
   const selectProperties = createSelector(
     (state: any) => state.Profile,
     (profile) => ({
-      user: profile.user,
+      user: profile.userInfo,
       error: profile.error,
       success: profile.success
     })
@@ -53,25 +52,11 @@ const UserProfile = () => {
   const { error, success, user } = useSelector(selectProperties);
 
   useEffect(() => {
-    if (localStorage.getItem("authUser")) {
-      const storedUser: any = localStorage.getItem("authUser");
+    if (localStorage.getItem("userInfo")) {
+      const storedUser: any = localStorage.getItem("userInfo");
       const obj = JSON.parse(storedUser);
-      if (process.env.REACT_APP_DEFAULTAUTH === "firebase") {
-
-        setName(obj.displayName);
-        setEmail(obj.email);
-        setIdx(obj.uid);
-      } else if (
-        process.env.REACT_APP_DEFAULTAUTH === "fake" ||
-        process.env.REACT_APP_DEFAULTAUTH === "jwt"
-      ) {
-        setName(user?.username);
-        setEmail(user?.email);
-        setIdx(user?.uid);
-      }
-      setTimeout(() => {
-        dispatch(resetProfileFlag());
-      }, 3000);
+      setName(obj.displayName);
+      setEmail(obj.email);
     }
   }, [dispatch, user]);
 
@@ -87,7 +72,7 @@ const UserProfile = () => {
       username: Yup.string().required("Please Enter Your UserName"),
     }),
     onSubmit: (values) => {
-      dispatch(editProfile(values));
+      
     }
   });
 

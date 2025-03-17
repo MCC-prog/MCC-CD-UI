@@ -768,3 +768,126 @@ aside.EmojiPickerReact.epr-main {
 [data-layout-mode=dark] .form-select {
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ced4da' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
 }
+
+/* App.css */
+.text-maroon {
+  color: #800000; /* Maroon color for headings */
+}
+
+.section-title {
+  color: #800000;
+  font-weight: bold;
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+}
+
+.screen-card {
+  border: 2px solid #800000; /* Maroon border */
+  transition: transform 0.2s ease;
+}
+
+.screen-card:hover {
+  transform: scale(1.03); /* Slight scale on hover */
+}
+
+.drop-zone {
+  min-height: 300px;
+  padding: 15px;
+  border: 2px dashed #800000;
+  border-radius: 8px;
+  background-color: #fdf1f0; /* Light beige background */
+  transition: background-color 0.2s ease;
+}
+
+.drop-hover {
+  background-color: #fae5e4; /* Soft beige for hover */
+}
+
+
+/* dropdown form styles */
+/* dropdownStyles.css */
+
+/* General styles for select elements */
+/* dropdownStyles.css */
+
+/* General styles for select elements */
+.select-dropdown {
+  border: none;
+  border-bottom: 2px solid #800000; 
+  background: transparent;
+  font-weight: 500;
+  padding: 8px 30px 8px 0;
+  cursor: pointer;
+  appearance: none;
+  width: 100%;
+  transition: border-color 0.3s ease; 
+}
+
+/* Styling the arrow icon */
+.select-dropdown-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #800000;
+  pointer-events: none;
+  font-size: 18px;
+}
+
+/* Label for select elements */
+.select-label {
+  color: #800000;
+  font-weight: 500;
+  display: block;
+  padding-bottom: 8px;
+  font-size: 14px;
+}
+
+/* Styling for the parent container of select elements */
+.select-container {
+  position: relative;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+/* Focus effect for dropdowns */
+.select-dropdown:focus {
+  border-color: #d40000; 
+  outline: none;
+}
+
+/* General Card Styling */
+.card {
+  border: 1px solid #f1f1f1;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background-color: #ffffff;
+  //padding: 20px;
+}
+
+/* Button styles */
+.btn {
+  font-weight: bold;
+  border-radius: 4px;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* Ensure proper spacing between buttons */
+.mt-4 {
+  margin-top: 30px;
+}
+
+.mt-2 {
+  margin-top: 10px;
+}
+
+.text-sm-end {
+  text-align: right;
+}
+
+/* Responsive adjustments for dropdowns */
+@media (max-width: 768px) {
+  .select-dropdown {
+    font-size: 14px;
+  }
+}

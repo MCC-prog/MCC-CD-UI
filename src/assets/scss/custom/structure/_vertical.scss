@@ -1045,6 +1045,17 @@ body[data-sidebar-image="img4"] {
   color: $dark !important;
 }
 
+.scrollable-mega-menu {
+  max-height: 400px; /* Adjust the height as needed */
+  overflow-y: auto;
+}
+
+.dropdown-megamenu hr {
+  border: 0;
+  border-top: 1px solid #e9ecef; /* Light gray line */
+  margin: 10px 0; /* Adjust spacing */
+}
+
 .wh-30 {
   width: 30px;
   height: 30px;
