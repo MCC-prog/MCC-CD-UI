@@ -891,3 +891,50 @@ aside.EmojiPickerReact.epr-main {
     font-size: 14px;
   }
 }
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.step-container {
+  width: 100%;
+}
+
+.step-button {
+  width: 100%;
+  padding: 10px; /* Reduced padding */
+  font-size: 16px; /* Slightly smaller font */
+  font-weight: 600; /* Adjusted weight */
+  text-align: center;
+  border: none;
+  background: #8dd8e8;
+  color: #2c3e50 ;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+
+.step-button.active {
+  background: #8dcfe8;
+}
+
+.tab-content {
+  background: #f5f5f5;
+  padding: 15px;
+  border-radius: 5px;
+  margin-top: 5px;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+      opacity: 0;
+  }
+  to {
+      opacity: 1;
+  }
+}
