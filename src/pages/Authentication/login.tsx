@@ -10,8 +10,7 @@ import { useDispatch, useSelector } from "react-redux";
 import * as Yup from "yup";
 
 // import images
-import logodark from "../../assets/images/logo-dark.png";
-import logolight from "../../assets/images/logo-light.png";
+import mccLogo from "../../assets/images/mccLogo.png";
 import CarouselPage from "./CarouselPage";
 //import thunk
 import { Alert, Snackbar } from "@mui/material";
@@ -78,21 +77,13 @@ const Login = (props: any) => {
               <div className="auth-full-page-content p-md-5 p-4">
                 <div className="w-100">
                   <div className="d-flex flex-column h-100">
-                    <div className="mb-4 mb-md-5">
-                      <Link to="/dashboard" className="d-block auth-logo">
+                    <div className= "d-flex justify-content-center" >
                         <img
-                          src={logodark}
+                          src={mccLogo}
                           alt=""
-                          height="18"
-                          className="auth-logo-dark"
-                        />
-                        <img
-                          src={logolight}
-                          alt=""
-                          height="18"
+                          height="150"
                           className="auth-logo-light"
                         />
-                      </Link>
                     </div>
                     <div className="my-auto">
                       <div>
@@ -162,7 +153,7 @@ const Login = (props: any) => {
 
                     <div className="mt-4 mt-md-5 text-center">
                       <p className="mb-0">
-                        © {new Date().getFullYear()} CND
+                        © {new Date().getFullYear()}<a href="https://mccblr.edu.in/">MCC</a>
                       </p>
                     </div>
                   </div>

@@ -58,8 +58,8 @@ const New_Programs_Introduced: React.FC = () => {
       semester: Yup.array().min(1, "Please select at least one semester").required("Please select semester"),
       stream: Yup.object().nullable().required("Please select stream"),
       department: Yup.object<{ value: string; label: string }>() .nullable().required("Please select department"),
-      programName: Yup.object().nullable().required("Please select programName"),
-      YearofIntroduction:Yup.object().nullable().required("Please select Year of Introduction"),
+      programName: Yup.string().required("Please select programName"),
+      YearofIntroduction : Yup.string().required("Please select Year of Introduction"),
       file: Yup.mixed()
         .required("Please upload a file")
         .test("fileSize", "File size is too large", (value: any) => {

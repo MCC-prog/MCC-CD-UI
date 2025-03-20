@@ -85,8 +85,8 @@ const Experimental_Learning: React.FC = () => {
             stream: Yup.object().nullable().required("Please select stream"),
             department: Yup.object<{ value: string; label: string }>().nullable().required("Please select department"),
             programType: Yup.object().nullable().required("Please select programType"),
-            courseTitile: Yup.object().nullable().required("Please enter Course Titile"),
-            programName: Yup.object().nullable().required("Please enter Program Name"),
+            courseTitile: Yup.string().required("Please enter Course Titile"),
+            programName: Yup.string().required("Please enter Program Name"),
             file: Yup.mixed()
                 .required("Please upload a file")
                 .test("fileSize", "File size is too large", (value: any) => {
@@ -359,229 +359,221 @@ const Experimental_Learning: React.FC = () => {
                                                 )}
                                         </div>
                                     </Col>
-                                    <div className="mt-3 d-grid">
-                                    <button className="btn btn-primary toggle-wizard-button" onClick={toggleWizard}>
-                                        Experimental Learning
-                                    </button>
+                                    <div className="mb-3 mt-3 d-grid">
+                                        <button className="btn btn-primary toggle-wizard-button" onClick={toggleWizard}>
+                                            Experimental Learning
+                                        </button>
                                     </div>
                                     {showWizard && (
                                         <div className="wizard clearfix">
-                                            <div className="steps">
+                                            <div className="steps" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: "10px" }}>
                                                 {[1, 2, 3, 4, 5, 6].map((tab) => (
-                                                    <div key={tab} className="step-container">
-                                                        <button
-                                                            className={`step-button ${activeTab === tab ? "active" : ""}`}
-                                                            onClick={() => toggleTab(tab)}
-                                                        >
-                                                            {tab}. {tab === 1
-                                                                ? "Pedagogy"
-                                                                : tab === 2
-                                                                    ? "Internship"
-                                                                    : tab === 3
-                                                                        ? "Field Project"
-                                                                        : tab === 4
-                                                                            ? "Projects/Dissertation"
-                                                                            : tab === 5
-                                                                                ? "Fellowship"
-                                                                                : "Bootcamp"}
-                                                        </button>
-
-                                                        {activeTab === tab && (
-                                                            <div className="tab-content">
-                                                                {tab === 1 && (
-                                                                    <Form>
-                                                                        <Row>
-                                                                            <Col sm={4}>
-                                                                                <div className="mb-3">
-                                                                                    <Label htmlFor="formFile" className="form-label">
-                                                                                        Upload file
-                                                                                    </Label>
-                                                                                    <Input
-                                                                                        className={`form-control ${validation.touched.file && validation.errors.file
-                                                                                            ? "is-invalid"
-                                                                                            : ""
-                                                                                            }`}
-                                                                                        type="file"
-                                                                                        id="syllabus"
-                                                                                        onChange={(event) => {
-                                                                                            validation.setFieldValue(
-                                                                                                "syllabus",
-                                                                                                event.currentTarget.files
-                                                                                                    ? event.currentTarget.files[0]
-                                                                                                    : null
-                                                                                            );
-                                                                                        }}
-                                                                                    />
-                                                                                    {validation.touched.file && validation.errors.file && (
-                                                                                        <div className="text-danger">
-                                                                                            {validation.errors.file}
-                                                                                        </div>
-                                                                                    )}
-                                                                                </div>
-                                                                            </Col>
-                                                                        </Row>
-                                                                    </Form>
-                                                                )}
-                                                                {tab === 2 && (
-                                                                    <Form>
-                                                                        <Row>
-                                                                            <Col lg="4">
-                                                                                <Label>Total number of joining student</Label>
-                                                                                <Input type="text" placeholder="Enter Total number of joining student" />
-                                                                            </Col>
-                                                                            <Col lg="4">
-                                                                                <Label>Organisation name</Label>
-                                                                                <Input type="text" placeholder="Enter Organisation name" />
-                                                                            </Col>
-                                                                            <Col lg="4">
-                                                                                <Label>Location of the organisation</Label>
-                                                                                <Input type="text" placeholder="Enter Location of the organisation" />
-                                                                            </Col>
-                                                                        </Row>
-                                                                    </Form>
-                                                                )}
-                                                                {tab === 3 && (
-                                                                    <Form>
-                                                                        <Row>
-                                                                            <Col lg="4">
-                                                                                <div className="mb-3">
-                                                                                    <Label>Total number of participating student</Label>
-                                                                                    <Input type="text" placeholder="Enter Total number of participating student" />
-                                                                                </div>
-                                                                            </Col>
-                                                                            <Col lg="4">
-                                                                                <div className="mb-3">
-                                                                                    <Label>Duration of field project start date</Label>
-                                                                                    <Input type="date" placeholder="Enter Duration of field project start date" />
-                                                                                </div>
-                                                                            </Col>
-                                                                            <Col lg="4">
-                                                                                <div className="mb-3">
-                                                                                    <Label>Duration of field project end date</Label>
-                                                                                    <Input type="date" placeholder="Enter Duration of field project end date" />
-                                                                                </div>
-                                                                            </Col>
-                                                                        </Row>
-                                                                        <Row>
-                                                                            <Col lg="4">
-                                                                                <Label>Location of the organisation</Label>
-                                                                                <Input type="text" placeholder="Enter Location of the organisation" />
-                                                                            </Col>
-                                                                            <Col sm={4}>
-                                                                                <div className="mb-3">
-                                                                                    <Label htmlFor="formFile" className="form-label">
-                                                                                        Field project
-                                                                                    </Label>
-                                                                                    <Input
-                                                                                        type="file"
-                                                                                    />
-                                                                                </div>
-                                                                            </Col>
-                                                                            <Col sm={4}>
-                                                                                <div className="mb-3">
-                                                                                    <Label htmlFor="formFile" className="form-label">
-                                                                                        Communication letter
-                                                                                    </Label>
-                                                                                    <Input
-                                                                                        type="file"
-                                                                                    />
-                                                                                </div>
-                                                                            </Col>
-                                                                        </Row>
-                                                                        <Row>
-                                                                            <Col sm={4}>
-                                                                                <div className="mb-3">
-                                                                                    <Label htmlFor="formFile" className="form-label">
-                                                                                        Student xlame Excel sheet
-                                                                                    </Label>
-                                                                                    <Input
-                                                                                        type="file"
-                                                                                    />
-                                                                                </div>
-                                                                            </Col>
-                                                                        </Row>
-                                                                    </Form>
-                                                                )}
-                                                                {tab === 4 && (
-                                                                    <Form>
-                                                                        <Row>
-                                                                            <Col lg="4">
-                                                                                <div className="mb-3">
-                                                                                    <Label>Total number of participating student</Label>
-                                                                                    <Input type="text" placeholder="Enter Total number of participating student" />
-                                                                                </div>
-                                                                            </Col>
-                                                                            <Col lg="4">
-                                                                                <div className="mb-3">
-                                                                                    <Label>Duration of field project start date</Label>
-                                                                                    <Input type="date" placeholder="Enter Duration of field project start date" />
-                                                                                </div>
-                                                                            </Col>
-                                                                            <Col lg="4">
-                                                                                <div className="mb-3">
-                                                                                    <Label>Duration of field project end date</Label>
-                                                                                    <Input type="date" placeholder="Enter Duration of field project end date" />
-                                                                                </div>
-                                                                            </Col>
-                                                                        </Row>
-                                                                    </Form>
-                                                                )}
-                                                                {tab === 5 && (
-                                                                    <Form>
-                                                                        <Row>
-                                                                            <Col sm={4}>
-                                                                                <div className="mb-3">
-                                                                                    <Label htmlFor="formFile" className="form-label">
-                                                                                        Student Excel sheet
-                                                                                    </Label>
-                                                                                    <Input
-                                                                                        type="file"
-                                                                                    />
-                                                                                </div>
-                                                                            </Col>
-                                                                            <Col sm={4}>
-                                                                                <div className="mb-3">
-                                                                                    <Label htmlFor="formFile" className="form-label">
-                                                                                        Fellowship
-                                                                                    </Label>
-                                                                                    <Input
-                                                                                        type="file"
-                                                                                    />
-                                                                                </div>
-                                                                            </Col>
-                                                                        </Row>
-                                                                    </Form>
-                                                                )}
-                                                                {tab === 6 && (
-                                                                    <Form>
-                                                                        <Row>
-                                                                            <Col sm={4}>
-                                                                                <div className="mb-3">
-                                                                                    <Label htmlFor="formFile" className="form-label">
-                                                                                        Student Excel sheet
-                                                                                    </Label>
-                                                                                    <Input
-                                                                                        type="file"
-                                                                                    />
-                                                                                </div>
-                                                                            </Col>
-                                                                            <Col sm={4}>
-                                                                                <div className="mb-3">
-                                                                                    <Label htmlFor="formFile" className="form-label">
-                                                                                        Bootcamp
-                                                                                    </Label>
-                                                                                    <Input
-                                                                                        type="file"
-                                                                                    />
-                                                                                </div>
-                                                                            </Col>
-                                                                        </Row>
-                                                                    </Form>
-                                                                )}
-                                                            </div>
-                                                        )}
-                                                    </div>
+                                                    <button
+                                                        key={tab}
+                                                        className={`step-button ${activeTab === tab ? "active" : ""}`}
+                                                        onClick={() => toggleTab(tab)}
+                                                    >
+                                                        {tab}.
+                                                        {tab === 1 ? "Pedagogy"
+                                                            : tab === 2 ? "Internship"
+                                                                : tab === 3 ? "Field Project"
+                                                                    : tab === 4 ? "Projects/Dissertation"
+                                                                        : tab === 5 ? "Fellowship"
+                                                                            : "Bootcamp"}
+                                                    </button>
                                                 ))}
+                                            </div>
+                                            <div className="tab-content">
+                                                {activeTab === 1 && (
+                                                    <Form>
+                                                        <Row>
+                                                            <Col sm={4}>
+                                                                <div className="mb-3">
+                                                                    <Label htmlFor="formFile" className="form-label">
+                                                                        Upload file
+                                                                    </Label>
+                                                                    <Input
+                                                                        className={`form-control ${validation.touched.file && validation.errors.file
+                                                                            ? "is-invalid"
+                                                                            : ""
+                                                                            }`}
+                                                                        type="file"
+                                                                        id="syllabus"
+                                                                        onChange={(event) => {
+                                                                            validation.setFieldValue(
+                                                                                "syllabus",
+                                                                                event.currentTarget.files
+                                                                                    ? event.currentTarget.files[0]
+                                                                                    : null
+                                                                            );
+                                                                        }}
+                                                                    />
+                                                                    {validation.touched.file && validation.errors.file && (
+                                                                        <div className="text-danger">
+                                                                            {validation.errors.file}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </Col>
+                                                        </Row>
+                                                    </Form>
+                                                )}
+                                                {activeTab === 2 && (
+                                                    <Form>
+                                                        <Row>
+                                                            <Col lg="4">
+                                                                <Label>Total number of joining student</Label>
+                                                                <Input type="text" placeholder="Enter Total number of joining student" />
+                                                            </Col>
+                                                            <Col lg="4">
+                                                                <Label>Organisation name</Label>
+                                                                <Input type="text" placeholder="Enter Organisation name" />
+                                                            </Col>
+                                                            <Col lg="4">
+                                                                <Label>Location of the organisation</Label>
+                                                                <Input type="text" placeholder="Enter Location of the organisation" />
+                                                            </Col>
+                                                        </Row>
+                                                    </Form>
+                                                )}
+                                                {activeTab === 3 && (
+                                                    <Form>
+                                                        <Row>
+                                                            <Col lg="4">
+                                                                <div className="mb-3">
+                                                                    <Label>Total number of participating student</Label>
+                                                                    <Input type="text" placeholder="Enter Total number of participating student" />
+                                                                </div>
+                                                            </Col>
+                                                            <Col lg="4">
+                                                                <div className="mb-3">
+                                                                    <Label>Duration of field project start date</Label>
+                                                                    <Input type="date" placeholder="Enter Duration of field project start date" />
+                                                                </div>
+                                                            </Col>
+                                                            <Col lg="4">
+                                                                <div className="mb-3">
+                                                                    <Label>Duration of field project end date</Label>
+                                                                    <Input type="date" placeholder="Enter Duration of field project end date" />
+                                                                </div>
+                                                            </Col>
+                                                        </Row>
+                                                        <Row>
+                                                            <Col lg="4">
+                                                                <Label>Location of the organisation</Label>
+                                                                <Input type="text" placeholder="Enter Location of the organisation" />
+                                                            </Col>
+                                                            <Col sm={4}>
+                                                                <div className="mb-3">
+                                                                    <Label htmlFor="formFile" className="form-label">
+                                                                        Field project
+                                                                    </Label>
+                                                                    <Input
+                                                                        type="file"
+                                                                    />
+                                                                </div>
+                                                            </Col>
+                                                            <Col sm={4}>
+                                                                <div className="mb-3">
+                                                                    <Label htmlFor="formFile" className="form-label">
+                                                                        Communication letter
+                                                                    </Label>
+                                                                    <Input
+                                                                        type="file"
+                                                                    />
+                                                                </div>
+                                                            </Col>
+                                                        </Row>
+                                                        <Row>
+                                                            <Col sm={4}>
+                                                                <div className="mb-3">
+                                                                    <Label htmlFor="formFile" className="form-label">
+                                                                        Student xlame Excel sheet
+                                                                    </Label>
+                                                                    <Input
+                                                                        type="file"
+                                                                    />
+                                                                </div>
+                                                            </Col>
+                                                        </Row>
+                                                    </Form>
+                                                )}
+                                                {activeTab === 4 && (
+                                                    <Form>
+                                                        <Row>
+                                                            <Col lg="4">
+                                                                <div className="mb-3">
+                                                                    <Label>Total number of participating student</Label>
+                                                                    <Input type="text" placeholder="Enter Total number of participating student" />
+                                                                </div>
+                                                            </Col>
+                                                            <Col lg="4">
+                                                                <div className="mb-3">
+                                                                    <Label>Duration of field project start date</Label>
+                                                                    <Input type="date" placeholder="Enter Duration of field project start date" />
+                                                                </div>
+                                                            </Col>
+                                                            <Col lg="4">
+                                                                <div className="mb-3">
+                                                                    <Label>Duration of field project end date</Label>
+                                                                    <Input type="date" placeholder="Enter Duration of field project end date" />
+                                                                </div>
+                                                            </Col>
+                                                        </Row>
+                                                    </Form>
+                                                )}
+                                                {activeTab === 5 && (
+                                                    <Form>
+                                                        <Row>
+                                                            <Col sm={4}>
+                                                                <div className="mb-3">
+                                                                    <Label htmlFor="formFile" className="form-label">
+                                                                        Student Excel sheet
+                                                                    </Label>
+                                                                    <Input
+                                                                        type="file"
+                                                                    />
+                                                                </div>
+                                                            </Col>
+                                                            <Col sm={4}>
+                                                                <div className="mb-3">
+                                                                    <Label htmlFor="formFile" className="form-label">
+                                                                        Fellowship
+                                                                    </Label>
+                                                                    <Input
+                                                                        type="file"
+                                                                    />
+                                                                </div>
+                                                            </Col>
+                                                        </Row>
+                                                    </Form>
+                                                )}
+                                                {activeTab === 6 && (
+                                                    <Form>
+                                                        <Row>
+                                                            <Col sm={4}>
+                                                                <div className="mb-3">
+                                                                    <Label htmlFor="formFile" className="form-label">
+                                                                        Student Excel sheet
+                                                                    </Label>
+                                                                    <Input
+                                                                        type="file"
+                                                                    />
+                                                                </div>
+                                                            </Col>
+                                                            <Col sm={4}>
+                                                                <div className="mb-3">
+                                                                    <Label htmlFor="formFile" className="form-label">
+                                                                        Bootcamp
+                                                                    </Label>
+                                                                    <Input
+                                                                        type="file"
+                                                                    />
+                                                                </div>
+                                                            </Col>
+                                                        </Row>
+                                                    </Form>
+                                                )}
                                             </div>
                                         </div>
                                     )}
