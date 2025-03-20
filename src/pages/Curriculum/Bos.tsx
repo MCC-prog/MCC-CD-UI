@@ -1,6 +1,6 @@
 import Breadcrumb from 'Components/Common/Breadcrumb';
 import { useFormik } from 'formik';
-import React, { useState } from 'react';
+import React from 'react';
 import Select from 'react-select';
 import * as Yup from "yup";
 import { Card, CardBody, Col, Container, Input, Label, Row } from 'reactstrap';
@@ -18,7 +18,8 @@ const Bos: React.FC = () => {
         { value: "2024", label: "2023-2024" },
         { value: "2025", label: "2024-2025" },
     ];
-    const semester:any = [
+
+    const semesterType: any = [
         { value: "1", label: "I" },
         { value: "2", label: "II" },
         { value: "3", label: "III" },
@@ -26,30 +27,66 @@ const Bos: React.FC = () => {
         { value: "5", label: "V" },
         { value: "6", label: "VI" },
     ];
+
+    const semesterNo: any = [
+        { value: "1", label: "I" },
+        { value: "2", label: "II" },
+        { value: "3", label: "III" },
+        { value: "4", label: "IV" },
+        { value: "5", label: "V" },
+        { value: "6", label: "VI" },
+    ];
+
     const stream = [
         { value: "School of Humanities & Social Sciences", label: "School of Humanities & Social Sciences" },
         { value: "School of Commerce", label: "School of Commerce" },
         { value: "School of Management", label: "School of Management" },
         { value: "School of Natural & Applied Sciences", label: "School of Natural & Applied Sciences" },
     ];
+
     const department = [
         { value: "Others", label: "Others" },
         { value: "Science", label: "Science" },
         { value: "Arts", label: "Arts" },
     ];
 
+    const programTypeOptions = [
+        { value: "Undergraduate", label: "Undergraduate" },
+        { value: "Postgraduate", label: "Postgraduate" },
+    ];
+
+    const degreeOptions = [
+        { value: "B.Sc", label: "B.Sc" },
+        { value: "B.A", label: "B.A" },
+        { value: "M.Sc", label: "M.Sc" },
+        { value: "M.A", label: "M.A" },
+    ];
+
+    const programOptions = [
+        { value: "Computer Science", label: "Computer Science" },
+        { value: "Mathematics", label: "Mathematics" },
+        { value: "Physics", label: "Physics" },
+    ];
+
     const validation = useFormik({
         initialValues: {
             academicYear: null,
-            semester: [],
+            semesterType: [],
+            semesterNo: [],
             stream: null,
             department: null as { value: string; label: string } | null,
             otherDepartment: "",
             file: null,
+            programType: null,
+            degree: null,
+            program: null,
+            revisionPercentage: "",
+            conductedDate: "",
         },
         validationSchema: Yup.object({
             academicYear: Yup.object().nullable().required("Please select academic year"),
-            semester: Yup.array().min(1, "Please select at least one semester").required("Please select semester"),
+            semesterType: Yup.array().min(1, "Please select at least one semester").required("Please select semester"),
+            semesterNo: Yup.array().min(1, "Please select at least one semester").required("Please select semester"),
             stream: Yup.object().nullable().required("Please select stream"),
             department: Yup.object<{ value: string; label: string }>().nullable().required("Please select department"),
             otherDepartment: Yup.string().when("department", (department: any, schema) => {
@@ -59,12 +96,21 @@ const Bos: React.FC = () => {
             }),
             file: Yup.mixed()
                 .required("Please upload a file")
-                .test("fileSize", "File size is too large", (value:any) => {
+                .test("fileSize", "File size is too large", (value: any) => {
                     return value && value.size <= 2 * 1024 * 1024; // 2MB limit
                 })
-                .test("fileType", "Unsupported file format", (value:any) => {
+                .test("fileType", "Unsupported file format", (value: any) => {
                     return value && ["application/pdf", "image/jpeg", "image/png"].includes(value.type);
                 }),
+            programType: Yup.object().nullable().required("Please select program type"),
+            degree: Yup.object().nullable().required("Please select degree"),
+            program: Yup.object().nullable().required("Please select program"),
+            revisionPercentage: Yup.number()
+                .typeError("Please enter a valid number")
+                .min(0, "Percentage cannot be less than 0")
+                .max(100, "Percentage cannot be more than 100")
+                .required("Please enter revision percentage"),
+            conductedDate: Yup.date().required("Please select conducted date"),
         }),
         onSubmit: (values) => {
             console.log("Submitting form...", values);
@@ -99,19 +145,37 @@ const Bos: React.FC = () => {
                                     </Col>
                                     <Col lg={4}>
                                         <div className="mb-3">
-                                            <Label>Semester</Label>
+                                            <Label>Semester Type</Label>
                                             <Select
-                                                options={semester}
-                                                value={validation.values.semester}
-                                                onChange={(selectedOptions) => validation.setFieldValue("semester", selectedOptions)}
-                                                placeholder="Select Semesters"
+                                                options={semesterType}
+                                                value={validation.values.semesterType}
+                                                onChange={(selectedOptions) => validation.setFieldValue("semesterType", selectedOptions)}
+                                                placeholder="Select Semester Type"
                                                 isMulti
                                                 styles={dropdownStyles}
                                                 menuPortalTarget={document.body}
-                                                className={validation.touched.semester && validation.errors.semester ? "select-error" : ""}
+                                                className={validation.touched.semesterType && validation.errors.semesterType ? "select-error" : ""}
                                             />
-                                            {validation.touched.semester && validation.errors.semester && (
-                                                <div className="text-danger">{validation.errors.semester}</div>
+                                            {validation.touched.semesterType && validation.errors.semesterType && (
+                                                <div className="text-danger">{validation.errors.semesterType}</div>
+                                            )}
+                                        </div>
+                                    </Col>
+                                    <Col lg={4}>
+                                        <div className="mb-3">
+                                            <Label>Semester No.</Label>
+                                            <Select
+                                                options={semesterNo}
+                                                value={validation.values.semesterNo}
+                                                onChange={(selectedOptions) => validation.setFieldValue("semesterNo", selectedOptions)}
+                                                placeholder="Select Semester No."
+                                                isMulti
+                                                styles={dropdownStyles}
+                                                menuPortalTarget={document.body}
+                                                className={validation.touched.semesterNo && validation.errors.semesterNo ? "select-error" : ""}
+                                            />
+                                            {validation.touched.semesterNo && validation.errors.semesterNo && (
+                                                <div className="text-danger">{validation.errors.semesterNo}</div>
                                             )}
                                         </div>
                                     </Col>
@@ -167,9 +231,89 @@ const Bos: React.FC = () => {
                                             </div>
                                         </Col>
                                     )}
+                                    <Col lg={4}>
+                                        <div className="mb-3">
+                                            <Label>Program Type</Label>
+                                            <Select
+                                                options={programTypeOptions}
+                                                value={validation.values.programType}
+                                                onChange={(selectedOption) => validation.setFieldValue("programType", selectedOption)}
+                                                placeholder="Select Program Type"
+                                                styles={dropdownStyles}
+                                                menuPortalTarget={document.body}
+                                                className={validation.touched.programType && validation.errors.programType ? "select-error" : ""}
+                                            />
+                                            {validation.touched.programType && validation.errors.programType && (
+                                                <div className="text-danger">{validation.errors.programType}</div>
+                                            )}
+                                        </div>
+                                    </Col>
+                                    <Col lg={4}>
+                                        <div className="mb-3">
+                                            <Label>Degree</Label>
+                                            <Select
+                                                options={degreeOptions}
+                                                value={validation.values.degree}
+                                                onChange={(selectedOption) => validation.setFieldValue("degree", selectedOption)}
+                                                placeholder="Select Degree"
+                                                styles={dropdownStyles}
+                                                menuPortalTarget={document.body}
+                                                className={validation.touched.degree && validation.errors.degree ? "select-error" : ""}
+                                            />
+                                            {validation.touched.degree && validation.errors.degree && (
+                                                <div className="text-danger">{validation.errors.degree}</div>
+                                            )}
+                                        </div>
+                                    </Col>
+                                    <Col lg={4}>
+                                        <div className="mb-3">
+                                            <Label>Program</Label>
+                                            <Select
+                                                options={programOptions}
+                                                value={validation.values.program}
+                                                onChange={(selectedOption) => validation.setFieldValue("program", selectedOption)}
+                                                placeholder="Select Program"
+                                                styles={dropdownStyles}
+                                                menuPortalTarget={document.body}
+                                                className={validation.touched.program && validation.errors.program ? "select-error" : ""}
+                                            />
+                                            {validation.touched.program && validation.errors.program && (
+                                                <div className="text-danger">{validation.errors.program}</div>
+                                            )}
+                                        </div>
+                                    </Col>
+                                    <Col lg={4}>
+                                        <div className="mb-3">
+                                            <Label>Conducted Date</Label>
+                                            <Input
+                                                type="date"
+                                                className={`form-control ${validation.touched.conductedDate && validation.errors.conductedDate ? "is-invalid" : ""}`}
+                                                value={validation.values.conductedDate}
+                                                onChange={(e) => validation.setFieldValue("conductedDate", e.target.value)}
+                                            />
+                                            {validation.touched.conductedDate && validation.errors.conductedDate && (
+                                                <div className="text-danger">{validation.errors.conductedDate}</div>
+                                            )}
+                                        </div>
+                                    </Col>
+                                    <Col lg={4}>
+                                        <div className="mb-3">
+                                            <Label>Revision Percentage</Label>
+                                            <Input
+                                                type="number"
+                                                className={`form-control ${validation.touched.revisionPercentage && validation.errors.revisionPercentage ? "is-invalid" : ""}`}
+                                                value={validation.values.revisionPercentage}
+                                                onChange={(e) => validation.setFieldValue("revisionPercentage", e.target.value)}
+                                                placeholder="Enter Revision Percentage"
+                                            />
+                                            {validation.touched.revisionPercentage && validation.errors.revisionPercentage && (
+                                                <div className="text-danger">{validation.errors.revisionPercentage}</div>
+                                            )}
+                                        </div>
+                                    </Col>
                                     <Col sm={4}>
                                         <div className="mb-3">
-                                            <Label htmlFor="formFile" className="form-label">New Course Upload</Label>
+                                            <Label htmlFor="formFile" className="form-label">Upload MOM</Label>
                                             <Input
                                                 className={`form-control ${validation.touched.file && validation.errors.file ? "is-invalid" : ""}`}
                                                 type="file"
@@ -183,10 +327,20 @@ const Bos: React.FC = () => {
                                             )}
                                         </div>
                                     </Col>
+                                    <Col lg={4}>
+                                        <div className="mb-3">
+                                            <Label>Download Template</Label>
+                                            <div>
+                                                <a href="/templateFiles/bos.pdf" download className="btn btn-primary btn-sm" >
+                                                    PDF File
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </Col>
                                 </Row>
                                 <div className="mt-3 d-grid">
                                     <button className="btn btn-primary btn-block" type="submit">
-                                        Submit Application
+                                        Save Application
                                     </button>
                                 </div>
                             </form>

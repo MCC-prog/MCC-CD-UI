@@ -1,5 +1,4 @@
 import BootstrapTheme from "@fullcalendar/bootstrap";
-import allLocales from '@fullcalendar/core/locales-all';
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin, { Draggable } from "@fullcalendar/interaction";
 import listPlugin from '@fullcalendar/list';
@@ -8,11 +7,8 @@ import { isEmpty } from "lodash";
 import React, { useEffect, useState } from "react";
 
 import { useFormik } from "formik";
-import { Button, Card, CardBody, Col, Container, Form, FormFeedback, Input, Label, Modal, ModalBody, ModalHeader, Row } from "reactstrap";
+import { Card, CardBody, Col, Container, Form, FormFeedback, Input, Label, Modal, ModalBody, ModalHeader, Row } from "reactstrap";
 import * as Yup from "yup";
-
-//import Images
-import verification from "../../assets/images/verification-img.png";
 
 //import 
 import {
@@ -52,9 +48,6 @@ const Calender = (props: any) => {
   useEffect(() => {
     dispatch(onGetCategories());
     dispatch(onGetEvents());
-    new Draggable(document.getElementById("external-events"), {
-      itemSelector: ".external-event",
-    });
   }, [dispatch]);
 
   const [event, setEvent] = useState<any>({});
@@ -247,194 +240,133 @@ const Calender = (props: any) => {
       <Container fluid={true}>
         <Row>
           <Col className="col-12">
-            <Row>
-              <Col xl={3}>
-                <Card>
-                  <CardBody>
-                    <div className="d-flex gap-2">
-                      <div className="flex-grow-1">
-                        <select
-                          id="locale-selector"
-                          className="form-select"
-                          defaultValue={isLocal}
-                          onChange={(event) => {
-                            const selectedValue: any = event.target.value;
-                            const selectedLocale: any =
-                              allLocales.find((locale) => locale.code === selectedValue);
-                            handleChangeLocals(selectedLocale);
-                          }}
-                        >
-                          {(allLocales || []).map((localeCode, key) => (
-                            <option key={key} value={localeCode.code}>
-                              {localeCode.code}
-                            </option>
-                          ))}
-                        </select>
+            {/* fullcalendar control */}
+            <Card style={{ height: "522px", overflow: "hidden" }}>
+              <CardBody style={{ height: "100%", padding: "10px" }}>
+                <FullCalendar
+                  plugins={[
+                    BootstrapTheme,
+                    dayGridPlugin,
+                    listPlugin,
+                    interactionPlugin,
+                  ]}
+                  initialView="dayGridMonth"
+                  slotDuration={"00:15:00"}
+                  handleWindowResize={true}
+                  themeSystem="bootstrap"
+                  locale={isLocal}
+                  headerToolbar={{
+                    left: "prev,next today",
+                    center: "title",
+                    right: "dayGridMonth,dayGridWeek,dayGridDay,listWeek",
+                  }}
+                  events={events}
+                  editable={true}
+                  droppable={true}
+                  selectable={true}
+                  dateClick={handleDateClick}
+                  eventClick={handleEventClick}
+                  drop={onDrop}
+                  contentHeight="100%" // Ensures the calendar fits within the CardBody
+                  height="100%" // Ensures the calendar adjusts to the card height
+                />
+              </CardBody>
+            </Card>
+
+            {/* New/Edit event modal */}
+            <Modal
+              isOpen={modalCategory}
+              className={props.className}
+              centered
+            >
+              <ModalHeader toggle={toggle}>
+                <h5 className="modal-title" id="modal-title">
+                  {!!isEdit ? "Edit Event" : "Add Event"}
+                </h5>
+              </ModalHeader>
+              <ModalBody className="p-4">
+                <Form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    categoryValidation.handleSubmit();
+                    return false;
+                  }}
+                >
+                  <Row>
+                    <Col className="col-12">
+                      <div className="mb-3">
+                        <Label>Event Name</Label>
+                        <Input
+                          name="title"
+                          type="text"
+                          placeholder="Insert Event Name"
+                          onChange={categoryValidation.handleChange}
+                          onBlur={categoryValidation.handleBlur}
+                          value={categoryValidation.values.title || ""}
+                          invalid={
+                            categoryValidation.touched.title && categoryValidation.errors.title ? true : false
+                          }
+                        />
+                        {categoryValidation.touched.title && categoryValidation.errors.title ? (
+                          <FormFeedback type="invalid">{categoryValidation.errors.title}</FormFeedback>
+                        ) : null}
                       </div>
-                      <Button
-                        color="primary"
-                        className="font-16"
+                    </Col>
+                    <Col className="col-12">
+                      <div className="mb-3">
+                        <Label>Category</Label>
+                        <Input
+                          type="select"
+                          name="category"
+                          placeholder="All Day Event"
+                          onChange={categoryValidation.handleChange}
+                          onBlur={categoryValidation.handleBlur}
+                          value={categoryValidation.values.category || ""}
+                          invalid={
+                            categoryValidation.touched.category && categoryValidation.errors.category ? true : false
+                          }
+                        >
+                          <option value="bg-danger">Danger</option>
+                          <option value="bg-success">Success</option>
+                          <option value="bg-primary">Primary</option>
+                          <option value="bg-info">Info</option>
+                          <option value="bg-dark">Dark</option>
+                          <option value="bg-warning">Warning</option>
+                        </Input>
+                        {categoryValidation.touched.category && categoryValidation.errors.category ? (
+                          <FormFeedback type="invalid">{categoryValidation.errors.category}</FormFeedback>
+                        ) : null}
+                      </div>
+                    </Col>
+                  </Row>
+
+                  <Row className="mt-2">
+                    <Col className="col-6">
+                      {isEdit &&
+                        <button type="button" className="btn btn-danger" id="btn-delete-event" onClick={() => { toggle(); setDeleteModal(true) }}>Delete</button>
+                      }
+                    </Col>
+
+                    <Col className="col-6 text-end">
+                      <button
+                        type="button"
+                        className="btn btn-light me-1"
                         onClick={toggle}
                       >
-                        <i className="mdi mdi-plus-circle-outline me-1" />
-                        Create New Event
-                      </Button>
-                    </div>
-
-                    <div id="external-events" className="mt-2">
-                      <br />
-                      <p className="text-muted">
-                        Drag and drop your event or click in the calendar
-                      </p>
-                      {categories &&
-                        (categories || []).map((category: any) => (
-                          <div
-                            className={`${category.type} external-event fc-event text-white`}
-                            key={"cat-" + category.id}
-                            draggable
-                            onDrag={event => onDrag(event, category)}
-                          >
-                            <i className="mdi mdi-checkbox-blank-circle font-size-11 me-2" />
-                            {category.title}
-                          </div>
-                        ))}
-                    </div>
-
-                    <Row className="justify-content-center mt-5">
-                      <img src={verification} alt="" className="img-fluid d-block" />
-                    </Row>
-                  </CardBody>
-                </Card>
-              </Col>
-
-              <Col className="col-xl-9">
-                {/* fullcalendar control */}
-                <Card>
-                  <CardBody>
-                    <FullCalendar
-                      plugins={[
-                        BootstrapTheme,
-                        dayGridPlugin,
-                        listPlugin,
-                        interactionPlugin,
-                      ]}
-                      initialView="dayGridMonth"
-                      slotDuration={"00:15:00"}
-                      handleWindowResize={true}
-                      themeSystem="bootstrap"
-                      locale={isLocal}
-                      headerToolbar={{
-                        left: "prev,next today",
-                        center: "title",
-                        right: "dayGridMonth,dayGridWeek,dayGridDay,listWeek",
-                      }}
-                      events={events}
-                      editable={true}
-                      droppable={true}
-                      selectable={true}
-                      dateClick={handleDateClick}
-                      eventClick={handleEventClick}
-                      drop={onDrop}
-                    />
-                  </CardBody>
-                </Card>
-
-                {/* New/Edit event modal */}
-                <Modal
-                  isOpen={modalCategory}
-                  className={props.className}
-                  centered
-                >
-                  <ModalHeader toggle={toggle}>
-                    <h5 className="modal-title" id="modal-title">
-                      {!!isEdit ? "Edit Event" : "Add Event"}
-                    </h5>
-                  </ModalHeader>
-                  <ModalBody className="p-4">
-                    <Form
-                      onSubmit={(e) => {
-                        e.preventDefault();
-                        categoryValidation.handleSubmit();
-                        return false;
-                      }}
-                    >
-                      <Row>
-                        <Col className="col-12">
-                          <div className="mb-3">
-                            <Label>Event Name</Label>
-                            <Input
-                              name="title"
-                              type="text"
-                              placeholder="Insert Event Name"
-                              onChange={categoryValidation.handleChange}
-                              onBlur={categoryValidation.handleBlur}
-                              value={categoryValidation.values.title || ""}
-                              invalid={
-                                categoryValidation.touched.title && categoryValidation.errors.title ? true : false
-                              }
-                            />
-                            {categoryValidation.touched.title && categoryValidation.errors.title ? (
-                              <FormFeedback type="invalid">{categoryValidation.errors.title}</FormFeedback>
-                            ) : null}
-                          </div>
-                        </Col>
-                        <Col className="col-12">
-                          <div className="mb-3">
-                            <Label>Category</Label>
-                            <Input
-                              type="select"
-                              name="category"
-                              placeholder="All Day Event"
-                              onChange={categoryValidation.handleChange}
-                              onBlur={categoryValidation.handleBlur}
-                              value={categoryValidation.values.category || ""}
-                              invalid={
-                                categoryValidation.touched.category && categoryValidation.errors.category ? true : false
-                              }
-                            >
-                              <option value="bg-danger">Danger</option>
-                              <option value="bg-success">Success</option>
-                              <option value="bg-primary">Primary</option>
-                              <option value="bg-info">Info</option>
-                              <option value="bg-dark">Dark</option>
-                              <option value="bg-warning">Warning</option>
-                            </Input>
-                            {categoryValidation.touched.category && categoryValidation.errors.category ? (
-                              <FormFeedback type="invalid">{categoryValidation.errors.category}</FormFeedback>
-                            ) : null}
-                          </div>
-                        </Col>
-                      </Row>
-
-                      <Row className="mt-2">
-                        <Col className="col-6">
-                          {isEdit &&
-                            <button type="button" className="btn btn-danger" id="btn-delete-event" onClick={() => { toggle(); setDeleteModal(true) }}>Delete</button>
-                          }
-                        </Col>
-
-                        <Col className="col-6 text-end">
-                          <button
-                            type="button"
-                            className="btn btn-light me-1"
-                            onClick={toggle}
-                          >
-                            Close
-                          </button>
-                          <button
-                            type="submit"
-                            className="btn btn-success"
-                            id="btn-save-event"
-                          >
-                            Save
-                          </button>
-                        </Col>
-                      </Row>
-                    </Form>
-                  </ModalBody>
-                </Modal>
-              </Col>
-            </Row>
+                        Close
+                      </button>
+                      <button
+                        type="submit"
+                        className="btn btn-success"
+                        id="btn-save-event"
+                      >
+                        Save
+                      </button>
+                    </Col>
+                  </Row>
+                </Form>
+              </ModalBody>
+            </Modal>
           </Col>
         </Row>
       </Container>
