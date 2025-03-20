@@ -149,40 +149,43 @@ const SidebarContent = (props: any) => {
             </li>
             <li>
               <Link to="/#" className="has-arrow">
-              <i className="bx bx-book"></i>
+                <i className="bx bx-book"></i>
                 <span>{props.t("CURRICULUM")}</span>
               </Link>
               <ul className="sub-menu">
                 <li>
-                  <Link to="/Bos_Data">{props.t("1.	BoS Minutes ")}</Link>
+                  <Link to="/Bos_Data">{props.t("1.	BoS ")}</Link>
                 </li>
                 <li>
-                  <Link to="/CND">{props.t("2. Courses with focus on Gender")}</Link>
+                  <Link to="/Courses_With_Focus">{props.t("2. Courses with focus")}</Link>
                 </li>
                 <li>
-                  <Link to="/CND2">{props.t("3. New Programs introduced ")}</Link>
+                  <Link to="/New_Programs_Introduced">{props.t("3. New Programs Introduced ")}</Link>
                 </li>
                 <li>
-                  <Link to="/CND2">{props.t("4. New Courses introduced – MOM & Syllabus")}</Link>
+                  <Link to="/New_Courses_Introduced">{props.t("4. New Courses Introduced ")}</Link>
                 </li>
                 <li>
-                  <Link to="/CND3">
+                  <Link to="/Value_Added_Program">{props.t("5. Value Added Program ")}</Link>
+                </li>
+                <li>
+                  <Link to="/Experimental_Learning">
                     <span className="badge rounded-pill text-bg-success float-end" key="t-new">New</span>
-                    {props.t("5. Experiential Learning ")}
+                    {props.t("6. Experiential Learning ")}
                   </Link>
                 </li>
                 <li>
-                  <Link to="/CND4">{props.t("6. Innovative Teaching Methodologies ")}</Link>
+                  <Link to="/Innovative_Teaching_Methodologies">{props.t("7. Innovative Teaching Methodologies ")}</Link>
                 </li>
                 <li>
-                  <Link to="/CND5">{props.t("7. AC & GB MoM ")}</Link>
+                  <Link to="/AC_GB_MoM">{props.t("8. AC & GB MoM ")}</Link>
                 </li>
               </ul>
             </li>
 
             <li>
               <Link to="/#" className="has-arrow">
-              <i className="bx bx-chalkboard"></i>
+                <i className="bx bx-chalkboard"></i>
                 <span>{props.t("TEACHING & LEARNING")}</span>
               </Link>
               <ul className="sub-menu">
@@ -203,7 +206,7 @@ const SidebarContent = (props: any) => {
 
             <li>
               <Link to="/#" className="has-arrow">
-              <i className="bx bx-user"></i>
+                <i className="bx bx-user"></i>
                 <span>{props.t("STUDENT DETAILS")}</span>
               </Link>
               <ul className="sub-menu">
@@ -221,7 +224,7 @@ const SidebarContent = (props: any) => {
 
             <li>
               <Link to="/#" className="has-arrow">
-              <i className="bx bx-group"></i>
+                <i className="bx bx-group"></i>
                 <span>{props.t("STAFF PROFILE")}</span>
               </Link>
               <ul className="sub-menu">
@@ -239,7 +242,7 @@ const SidebarContent = (props: any) => {
 
             <li>
               <Link to="/#" className="has-arrow">
-              <i className="bx bx-building"></i>
+                <i className="bx bx-building"></i>
                 <span>{props.t("DEPARTMENT PROFILE")}</span>
               </Link>
               <ul className="sub-menu">
@@ -260,7 +263,7 @@ const SidebarContent = (props: any) => {
 
             <li>
               <Link to="/#" className="has-arrow">
-              <i className="bx bx-file"></i>
+                <i className="bx bx-file"></i>
                 <span>{props.t("EXAMINATION")}</span>
               </Link>
               <ul className="sub-menu">
@@ -278,7 +281,7 @@ const SidebarContent = (props: any) => {
 
             <li>
               <Link to="/#" className="has-arrow">
-              <i className="bx bx-search"></i>
+                <i className="bx bx-search"></i>
                 <span>{props.t("RESEARCH")}</span>
               </Link>
               <ul className="sub-menu">
@@ -308,7 +311,7 @@ const SidebarContent = (props: any) => {
 
             <li>
               <Link to="/#" className="has-arrow">
-              <i className="bx bx-briefcase"></i>
+                <i className="bx bx-briefcase"></i>
                 <span>{props.t("INDUSTRY COLLABORATION")}</span>
               </Link>
               <ul className="sub-menu">
@@ -329,7 +332,7 @@ const SidebarContent = (props: any) => {
 
             <li>
               <Link to="/#" className="has-arrow">
-              <i className="bx bx-bulb"></i>
+                <i className="bx bx-bulb"></i>
                 <span>{props.t("INNOVATION & ENTREPRENUERSHIP")}</span>
               </Link>
               <ul className="sub-menu">
@@ -350,7 +353,7 @@ const SidebarContent = (props: any) => {
 
             <li>
               <Link to="/#" className="has-arrow">
-              <i className="bx bx-extension"></i>
+                <i className="bx bx-extension"></i>
                 <span>{props.t("EXTENSION ACTIVITIES")}</span>
               </Link>
               <ul className="sub-menu">
@@ -377,7 +380,7 @@ const SidebarContent = (props: any) => {
 
             <li>
               <Link to="/#" className="has-arrow">
-              <i className="bx bx-support"></i>
+                <i className="bx bx-support"></i>
                 <span>{props.t("STUDENT ACTIVITIES/ SUPPORT")}</span>
               </Link>
               <ul className="sub-menu">
@@ -419,7 +422,7 @@ const SidebarContent = (props: any) => {
 
             <li>
               <Link to="/#" className="has-arrow">
-              <i className="mdi mdi-bookshelf"></i>
+                <i className="mdi mdi-bookshelf"></i>
                 <span>{props.t("LIBRARY")}</span>
               </Link>
               <ul className="sub-menu">
@@ -440,7 +443,7 @@ const SidebarContent = (props: any) => {
 
             <li>
               <Link to="/#" className="has-arrow">
-              <i className="bx bx-briefcase-alt"></i>
+                <i className="bx bx-briefcase-alt"></i>
                 <span>{props.t("PLACEMENT")}</span>
               </Link>
               <ul className="sub-menu">
@@ -464,7 +467,7 @@ const SidebarContent = (props: any) => {
 
             <li>
               <Link to="/#" className="has-arrow">
-              <i className="bx bx-user-check"></i>
+                <i className="bx bx-user-check"></i>
                 <span>{props.t("STAFF ENHANCEMENT PROGRAMS")}</span>
               </Link>
               <ul className="sub-menu">
@@ -482,7 +485,7 @@ const SidebarContent = (props: any) => {
 
             <li>
               <Link to="/#" className="has-arrow">
-              <i className="bx bx-group"></i>
+                <i className="bx bx-group"></i>
                 <span>{props.t("ALUMNI")}</span>
               </Link>
               <ul className="sub-menu">
@@ -503,7 +506,7 @@ const SidebarContent = (props: any) => {
 
             <li>
               <Link to="/#" className="has-arrow">
-              <i className="bx bx-globe"></i>
+                <i className="bx bx-globe"></i>
                 <span>{props.t("INSTITUTIONAL VALUES")}</span>
               </Link>
               <ul className="sub-menu">
@@ -527,7 +530,7 @@ const SidebarContent = (props: any) => {
 
             <li>
               <Link to="/#" className="has-arrow">
-              <i className="bx bx-building-house"></i>
+                <i className="bx bx-building-house"></i>
                 <span>{props.t("INFRASTRUCTURE")}</span>
               </Link>
               <ul className="sub-menu">
@@ -557,7 +560,7 @@ const SidebarContent = (props: any) => {
 
             <li>
               <Link to="/#" className="has-arrow">
-              <i className="bx bx-cog"></i>
+                <i className="bx bx-cog"></i>
                 <span>{props.t("GOVERNANCE")}</span>
               </Link>
               <ul className="sub-menu">
