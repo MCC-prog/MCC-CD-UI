@@ -15,7 +15,7 @@ const authProtectedRoutes = [
 ];
 
 const publicRoutes = [
-  { path: "/", exact: true, component: <Navigate to="/login" /> },
+  { path: "", exact: true, component: <Navigate to="/login" /> },
   { path: "/login", component: <Login /> },
   { path: "/logout", component: <Logout /> },
 ]

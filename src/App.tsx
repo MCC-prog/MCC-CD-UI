@@ -14,6 +14,7 @@ import {
 
 import { useSelector } from "react-redux";
 import { createSelector } from 'reselect';
+import AuthProtected from "Routes/AuthProtected";
 
 
 const getLayout = (layoutType: any) => {
