@@ -56,14 +56,14 @@ function App() {
             key={idx}
             element={
               <React.Fragment>
-                {/* <AuthProtected>
+                <AuthProtected>
                   <Layout>
                     {route.component}
                   </Layout>
-                </AuthProtected> */}
-                <Layout>
+                </AuthProtected>
+                {/* <Layout>
                   {route.component}
-                </Layout>
+                </Layout> */}
               </React.Fragment>
             }
           />

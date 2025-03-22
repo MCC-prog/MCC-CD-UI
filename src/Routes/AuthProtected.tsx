@@ -2,7 +2,7 @@ import React from "react";
 import { Navigate } from "react-router-dom";
 
 const AuthProtected = (props) => {
-  if (!localStorage.getItem("authUser")) {
+  if (!localStorage.getItem("userInfo")) {
     return (
       <Navigate to={{ pathname: "/login" }} />
     );

@@ -1,72 +1,25 @@
 import Breadcrumb from 'Components/Common/Breadcrumb';
+import AcademicYearDropdown from 'Components/DropDowns/AcademicYearDropdown';
+import DegreeDropdown from 'Components/DropDowns/DegreeDropdown';
+import DepartmentDropdown from 'Components/DropDowns/DepartmentDropdown';
+import ProgramDropdown from 'Components/DropDowns/ProgramDropdown';
+import ProgramTypeDropdown from 'Components/DropDowns/ProgramTypeDropdown';
+import SemesterNoDropdown from 'Components/DropDowns/SemesterNoDropdown';
+import SemesterTypeDropdown from 'Components/DropDowns/SemesterTypeDropdown';
+import StreamDropdown from 'Components/DropDowns/StreamDropdown';
 import { useFormik } from 'formik';
 import React from 'react';
-import Select from 'react-select';
-import * as Yup from "yup";
 import { Card, CardBody, Col, Container, Input, Label, Row } from 'reactstrap';
+import * as Yup from "yup";
 
 const Bos: React.FC = () => {
     const dropdownStyles = {
         menu: (provided: any) => ({
             ...provided,
-            overflowY: "auto", // Enable scrolling for additional options
+            overflowY: "auto",
         }),
-        menuPortal: (base: any) => ({ ...base, zIndex: 9999 }), // Ensure the menu is above other elements
+        menuPortal: (base: any) => ({ ...base, zIndex: 9999 })
     };
-
-    const academicYear = [
-        { value: "2024", label: "2023-2024" },
-        { value: "2025", label: "2024-2025" },
-    ];
-
-    const semesterType: any = [
-        { value: "1", label: "I" },
-        { value: "2", label: "II" },
-        { value: "3", label: "III" },
-        { value: "4", label: "IV" },
-        { value: "5", label: "V" },
-        { value: "6", label: "VI" },
-    ];
-
-    const semesterNo: any = [
-        { value: "1", label: "I" },
-        { value: "2", label: "II" },
-        { value: "3", label: "III" },
-        { value: "4", label: "IV" },
-        { value: "5", label: "V" },
-        { value: "6", label: "VI" },
-    ];
-
-    const stream = [
-        { value: "School of Humanities & Social Sciences", label: "School of Humanities & Social Sciences" },
-        { value: "School of Commerce", label: "School of Commerce" },
-        { value: "School of Management", label: "School of Management" },
-        { value: "School of Natural & Applied Sciences", label: "School of Natural & Applied Sciences" },
-    ];
-
-    const department = [
-        { value: "Others", label: "Others" },
-        { value: "Science", label: "Science" },
-        { value: "Arts", label: "Arts" },
-    ];
-
-    const programTypeOptions = [
-        { value: "Undergraduate", label: "Undergraduate" },
-        { value: "Postgraduate", label: "Postgraduate" },
-    ];
-
-    const degreeOptions = [
-        { value: "B.Sc", label: "B.Sc" },
-        { value: "B.A", label: "B.A" },
-        { value: "M.Sc", label: "M.Sc" },
-        { value: "M.A", label: "M.A" },
-    ];
-
-    const programOptions = [
-        { value: "Computer Science", label: "Computer Science" },
-        { value: "Mathematics", label: "Mathematics" },
-        { value: "Physics", label: "Physics" },
-    ];
 
     const validation = useFormik({
         initialValues: {
@@ -126,35 +79,40 @@ const Bos: React.FC = () => {
                         <CardBody>
                             <form onSubmit={validation.handleSubmit}>
                                 <Row>
+                                    {/* Academic Year Dropdown */}
                                     <Col lg={4}>
                                         <div className="mb-3">
                                             <Label>Academic Year</Label>
-                                            <Select
-                                                options={academicYear}
+                                            <AcademicYearDropdown
                                                 value={validation.values.academicYear}
-                                                onChange={(selectedOption) => validation.setFieldValue("academicYear", selectedOption)}
-                                                placeholder="Select Academic Year"
-                                                styles={dropdownStyles}
-                                                menuPortalTarget={document.body}
-                                                className={validation.touched.academicYear && validation.errors.academicYear ? "select-error" : ""}
+                                                onChange={(selectedOption) =>
+                                                    validation.setFieldValue("academicYear", selectedOption)
+                                                }
+                                                isInvalid={
+                                                    validation.touched.academicYear &&
+                                                    !!validation.errors.academicYear
+                                                }
                                             />
-                                            {validation.touched.academicYear && validation.errors.academicYear && (
-                                                <div className="text-danger">{validation.errors.academicYear}</div>
-                                            )}
+                                            {validation.touched.academicYear &&
+                                                validation.errors.academicYear && (
+                                                    <div className="text-danger">
+                                                        {validation.errors.academicYear}
+                                                    </div>
+                                                )}
                                         </div>
                                     </Col>
                                     <Col lg={4}>
                                         <div className="mb-3">
                                             <Label>Semester Type</Label>
-                                            <Select
-                                                options={semesterType}
+                                            <SemesterTypeDropdown
                                                 value={validation.values.semesterType}
-                                                onChange={(selectedOptions) => validation.setFieldValue("semesterType", selectedOptions)}
-                                                placeholder="Select Semester Type"
-                                                isMulti
-                                                styles={dropdownStyles}
-                                                menuPortalTarget={document.body}
-                                                className={validation.touched.semesterType && validation.errors.semesterType ? "select-error" : ""}
+                                                onChange={(selectedOption) =>
+                                                    validation.setFieldValue("semesterType", selectedOption)
+                                                }
+                                                isInvalid={
+                                                    validation.touched.semesterType &&
+                                                    !!validation.errors.semesterType
+                                                }
                                             />
                                             {validation.touched.semesterType && validation.errors.semesterType && (
                                                 <div className="text-danger">{validation.errors.semesterType}</div>
@@ -164,15 +122,15 @@ const Bos: React.FC = () => {
                                     <Col lg={4}>
                                         <div className="mb-3">
                                             <Label>Semester No.</Label>
-                                            <Select
-                                                options={semesterNo}
+                                            <SemesterNoDropdown
                                                 value={validation.values.semesterNo}
-                                                onChange={(selectedOptions) => validation.setFieldValue("semesterNo", selectedOptions)}
-                                                placeholder="Select Semester No."
-                                                isMulti
-                                                styles={dropdownStyles}
-                                                menuPortalTarget={document.body}
-                                                className={validation.touched.semesterNo && validation.errors.semesterNo ? "select-error" : ""}
+                                                onChange={(selectedOption) =>
+                                                    validation.setFieldValue("semesterNo", selectedOption)
+                                                }
+                                                isInvalid={
+                                                    validation.touched.semesterNo &&
+                                                    !!validation.errors.semesterNo
+                                                }
                                             />
                                             {validation.touched.semesterNo && validation.errors.semesterNo && (
                                                 <div className="text-danger">{validation.errors.semesterNo}</div>
@@ -182,14 +140,15 @@ const Bos: React.FC = () => {
                                     <Col lg={4}>
                                         <div className="mb-3">
                                             <Label>Stream</Label>
-                                            <Select
-                                                options={stream}
+                                            <StreamDropdown
                                                 value={validation.values.stream}
-                                                onChange={(selectedOption) => validation.setFieldValue("stream", selectedOption)}
-                                                placeholder="Select Stream"
-                                                styles={dropdownStyles}
-                                                menuPortalTarget={document.body}
-                                                className={validation.touched.stream && validation.errors.stream ? "select-error" : ""}
+                                                onChange={(selectedOption) =>
+                                                    validation.setFieldValue("stream", selectedOption)
+                                                }
+                                                isInvalid={
+                                                    validation.touched.stream &&
+                                                    !!validation.errors.stream
+                                                }
                                             />
                                             {validation.touched.stream && validation.errors.stream && (
                                                 <div className="text-danger">{validation.errors.stream}</div>
@@ -199,14 +158,15 @@ const Bos: React.FC = () => {
                                     <Col lg={4}>
                                         <div className="mb-3">
                                             <Label>Department</Label>
-                                            <Select
-                                                options={department}
+                                            <DepartmentDropdown
                                                 value={validation.values.department}
-                                                onChange={(selectedOption) => validation.setFieldValue("department", selectedOption)}
-                                                placeholder="Select Department"
-                                                styles={dropdownStyles}
-                                                menuPortalTarget={document.body}
-                                                className={validation.touched.department && validation.errors.department ? "select-error" : ""}
+                                                onChange={(selectedOption) =>
+                                                    validation.setFieldValue("department", selectedOption)
+                                                }
+                                                isInvalid={
+                                                    validation.touched.department &&
+                                                    !!validation.errors.department
+                                                }
                                             />
                                             {validation.touched.department && validation.errors.department && (
                                                 <div className="text-danger">{validation.errors.department}</div>
@@ -234,14 +194,15 @@ const Bos: React.FC = () => {
                                     <Col lg={4}>
                                         <div className="mb-3">
                                             <Label>Program Type</Label>
-                                            <Select
-                                                options={programTypeOptions}
+                                            <ProgramTypeDropdown
                                                 value={validation.values.programType}
-                                                onChange={(selectedOption) => validation.setFieldValue("programType", selectedOption)}
-                                                placeholder="Select Program Type"
-                                                styles={dropdownStyles}
-                                                menuPortalTarget={document.body}
-                                                className={validation.touched.programType && validation.errors.programType ? "select-error" : ""}
+                                                onChange={(selectedOption) =>
+                                                    validation.setFieldValue("programType", selectedOption)
+                                                }
+                                                isInvalid={
+                                                    validation.touched.programType &&
+                                                    !!validation.errors.programType
+                                                }
                                             />
                                             {validation.touched.programType && validation.errors.programType && (
                                                 <div className="text-danger">{validation.errors.programType}</div>
@@ -251,14 +212,15 @@ const Bos: React.FC = () => {
                                     <Col lg={4}>
                                         <div className="mb-3">
                                             <Label>Degree</Label>
-                                            <Select
-                                                options={degreeOptions}
+                                            <DegreeDropdown
                                                 value={validation.values.degree}
-                                                onChange={(selectedOption) => validation.setFieldValue("degree", selectedOption)}
-                                                placeholder="Select Degree"
-                                                styles={dropdownStyles}
-                                                menuPortalTarget={document.body}
-                                                className={validation.touched.degree && validation.errors.degree ? "select-error" : ""}
+                                                onChange={(selectedOption) =>
+                                                    validation.setFieldValue("degree", selectedOption)
+                                                }
+                                                isInvalid={
+                                                    validation.touched.degree &&
+                                                    !!validation.errors.degree
+                                                }
                                             />
                                             {validation.touched.degree && validation.errors.degree && (
                                                 <div className="text-danger">{validation.errors.degree}</div>
@@ -268,14 +230,15 @@ const Bos: React.FC = () => {
                                     <Col lg={4}>
                                         <div className="mb-3">
                                             <Label>Program</Label>
-                                            <Select
-                                                options={programOptions}
+                                            <ProgramDropdown
                                                 value={validation.values.program}
-                                                onChange={(selectedOption) => validation.setFieldValue("program", selectedOption)}
-                                                placeholder="Select Program"
-                                                styles={dropdownStyles}
-                                                menuPortalTarget={document.body}
-                                                className={validation.touched.program && validation.errors.program ? "select-error" : ""}
+                                                onChange={(selectedOption) =>
+                                                    validation.setFieldValue("program", selectedOption)
+                                                }
+                                                isInvalid={
+                                                    validation.touched.program &&
+                                                    !!validation.errors.program
+                                                }
                                             />
                                             {validation.touched.program && validation.errors.program && (
                                                 <div className="text-danger">{validation.errors.program}</div>

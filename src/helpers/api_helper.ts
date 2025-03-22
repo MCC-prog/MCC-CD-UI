@@ -1,12 +1,28 @@
 import axios from "axios";
 
 // default
-axios.defaults.baseURL = "";
+axios.defaults.baseURL = process.env.REACT_APP_BASE_API_URL;
 
 // content type
 axios.defaults.headers.post["Content-Type"] = "application/json";
-// content type
-// let authUser: any = (localStorage.getItem("authUser"));
+
+// Add a request interceptor to include the Bearer token from sessionStorage
+axios.interceptors.request.use(
+  function (config: any) {
+    // Retrieve the token from sessionStorage
+    let userInfo = localStorage.getItem("userInfo");
+    console.log("userInfo", userInfo);
+    let token = userInfo ? JSON.parse(userInfo).token : null;
+    if (token) {
+      config.headers["Authorization"] = `Bearer ${token}`;
+    }
+    return config;
+  },
+  function (error: any) {
+    // Handle request error
+    return Promise.reject(error);
+  }
+);
 
 // intercepting to capture errors
 axios.interceptors.response.use(
@@ -14,9 +30,9 @@ axios.interceptors.response.use(
     return response.data ? response.data : response;
   },
   function (error: any) {
-    // Any status codes that falls outside the range of 2xx cause this function to trigger
+    // Any status codes that fall outside the range of 2xx cause this function to trigger
     let message: any;
-    switch (error.status) {
+    switch (error.response?.status) {
       case 500:
         message = "Internal Server Error";
         break;
@@ -24,7 +40,7 @@ axios.interceptors.response.use(
         message = "Invalid credentials";
         break;
       case 404:
-        message = "Sorry! the data you are looking for could not be found";
+        message = "Sorry! The data you are looking for could not be found";
         break;
       default:
         message = error.message || error;
@@ -32,11 +48,13 @@ axios.interceptors.response.use(
     return Promise.reject(message);
   }
 );
+
 /**
- * Sets the default authorization
+ * Sets the default authorization (optional utility function)
  * @param {*} token
  */
 const setAuthorization = (token: any) => {
+  sessionStorage.setItem("authToken", token); // Store the token in sessionStorage
   axios.defaults.headers.common["Authorization"] = "Bearer " + token;
 };
 
@@ -44,35 +62,18 @@ class APIClient {
   /**
    * Fetches data from given url
    */
-
-  //  get = (url, params) => {
-  //   return axios.get(url, params);
-  // };
   get = (url: any, params: any) => {
-    let response: any;
-
-    let paramKeys: any = [];
-
-    if (params) {
-      Object.keys(params).map(key => {
-        paramKeys.push(key + '=' + params[key]);
-        return paramKeys;
-      });
-
-      const queryString = paramKeys && paramKeys.length ? paramKeys.join('&') : "";
-      response = axios.get(`${url}?${queryString}`, params);
-    } else {
-      response = axios.get(`${url}`, params);
-    }
-
-    return response;
+    console.log("Base URL:", process.env.REACT_APP_BASE_API_URL);
+    return axios.get(url, params);
   };
+
   /**
-   * post given data to url
+   * Post given data to url
    */
   create = (url: any, data: any) => {
     return axios.post(url, data);
   };
+
   /**
    * Updates data
    */
@@ -83,6 +84,7 @@ class APIClient {
   put = (url: any, data: any) => {
     return axios.put(url, data);
   };
+
   /**
    * Delete
    */

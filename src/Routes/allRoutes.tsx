@@ -18,12 +18,12 @@ const authProtectedRoutes = [
   { path: "/dashboard", component: <Dashboard /> },
   { path: "/profile", component: <UserProfile /> },
   { path: "/Bos_Data", component: <Bos /> },
-  {path: "/New_Programs_Introduced", component: <New_Programs_Introduced/>},
-  {path: "/New_Courses_Introduced", component: <New_Courses_Introduced/>},
-  {path: "/Experimental_Learning", component: <Experimental_Learning/>},
-  {path:"/Courses_With_Focus", component: <Courses_With_Focus/>},
-  {path: "/Innovative_Teaching_Methodologies", component : <Innovative_Teaching_Methodologies/>},
-  {path: "/AC_GB_MoM", component : <AC_GB_MoM/>}
+  { path: "/New_Programs_Introduced", component: <New_Programs_Introduced /> },
+  { path: "/New_Courses_Introduced", component: <New_Courses_Introduced /> },
+  { path: "/Experimental_Learning", component: <Experimental_Learning /> },
+  { path: "/Courses_With_Focus", component: <Courses_With_Focus /> },
+  { path: "/Innovative_Teaching_Methodologies", component: <Innovative_Teaching_Methodologies /> },
+  { path: "/AC_GB_MoM", component: <AC_GB_MoM /> }
 ];
 
 const publicRoutes = [
