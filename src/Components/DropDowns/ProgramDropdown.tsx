@@ -4,49 +4,50 @@ import { APIClient } from "../../helpers/api_helper";
 
 const api = new APIClient();
 
-interface AcademicYearDropdownProps {
+interface ProgramDropdownProps {
+  degreeId: string | null; // Degree ID passed from the parent
   value: any;
   onChange: (selectedOption: any) => void;
   placeholder?: string;
   isInvalid?: boolean;
 }
 
-const AcademicYearDropdown: React.FC<AcademicYearDropdownProps> = ({
+const ProgramDropdown: React.FC<ProgramDropdownProps> = ({
+  degreeId,
   value,
   onChange,
   placeholder = "Select Program",
   isInvalid = false,
 }) => {
   const [options, setOptions] = useState<any[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const program = [
-    { value: "Computer Science", label: "Computer Science" },
-    { value: "Mathematics", label: "Mathematics" },
-    { value: "Physics", label: "Physics" },
-  ];
-
   useEffect(() => {
-    const fetchAcademicYears = async () => {
+    if (!degreeId) {
+      setOptions([]);
+      return;
+    }
+
+    const fetchPrograms = async () => {
+      setLoading(true);
       try {
-        // Fetch data from API
-        //const response = await api.get("/api/academic-years", '');
-        const response = program;
-        const data = response.map((year: any) => ({
-          value: year.value,
-          label: year.label,
+        // Fetch programs based on the selected degree ID
+        const response = await api.get(`getCourseByProgramId?programId=${degreeId}`, "");
+        const programsList = response.map((program: any) => ({
+          value: program.id,
+          label: program.courseName,
         }));
-        setOptions(data);
+        setOptions(programsList);
         setLoading(false);
       } catch (err) {
-        setError("Failed to fetch academic years");
+        setError("Failed to fetch programs");
         setLoading(false);
       }
     };
 
-    fetchAcademicYears();
-  }, []);
+    fetchPrograms();
+  }, [degreeId]);
 
   if (loading) {
     return <div>Loading...</div>;
@@ -65,9 +66,14 @@ const AcademicYearDropdown: React.FC<AcademicYearDropdownProps> = ({
       className={isInvalid ? "select-error" : ""}
       styles={{
         menu: (provided) => ({ ...provided, zIndex: 9999 }),
+        menuList: (provided) => ({
+          ...provided,
+          maxHeight: "200px",
+          overflowY: "auto",
+        }),
       }}
     />
   );
 };
 
-export default AcademicYearDropdown;
+export default ProgramDropdown;

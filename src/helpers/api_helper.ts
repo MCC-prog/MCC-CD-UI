@@ -11,7 +11,6 @@ axios.interceptors.request.use(
   function (config: any) {
     // Retrieve the token from sessionStorage
     let userInfo = localStorage.getItem("userInfo");
-    console.log("userInfo", userInfo);
     let token = userInfo ? JSON.parse(userInfo).token : null;
     if (token) {
       config.headers["Authorization"] = `Bearer ${token}`;
@@ -63,7 +62,6 @@ class APIClient {
    * Fetches data from given url
    */
   get = (url: any, params: any) => {
-    console.log("Base URL:", process.env.REACT_APP_BASE_API_URL);
     return axios.get(url, params);
   };
 

@@ -4,19 +4,17 @@ import { APIClient } from "../../helpers/api_helper";
 
 const api = new APIClient();
 
-interface AcademicYearDropdownProps {
+interface SemesterTypeDropdownProps {
   value: any;
   onChange: (selectedOption: any) => void;
   placeholder?: string;
-  isMulti?: boolean;
   isInvalid?: boolean;
 }
 
-const AcademicYearDropdown: React.FC<AcademicYearDropdownProps> = ({
+const SemesterTypeDropdown: React.FC<SemesterTypeDropdownProps> = ({
   value,
   onChange,
   placeholder = "Select Semester Type",
-  isMulti = true,
   isInvalid = false,
 }) => {
   const [options, setOptions] = useState<any[]>([]);
@@ -24,19 +22,13 @@ const AcademicYearDropdown: React.FC<AcademicYearDropdownProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   const semesterType: any = [
-    { value: "1", label: "I" },
-    { value: "2", label: "II" },
-    { value: "3", label: "III" },
-    { value: "4", label: "IV" },
-    { value: "5", label: "V" },
-    { value: "6", label: "VI" },
+    { value: "even", label: "EVEN" },
+    { value: "odd", label: "ODD" }
   ];
 
   useEffect(() => {
-    const fetchAcademicYears = async () => {
+    const fetchSemesterType = async () => {
       try {
-        // Fetch data from API
-        //const response = await api.get("/api/academic-years", '');
         const response = semesterType;
         const data = response.map((year: any) => ({
           value: year.value,
@@ -45,12 +37,12 @@ const AcademicYearDropdown: React.FC<AcademicYearDropdownProps> = ({
         setOptions(data);
         setLoading(false);
       } catch (err) {
-        setError("Failed to fetch academic years");
+        setError("Failed to fetch semester types");
         setLoading(false);
       }
     };
 
-    fetchAcademicYears();
+    fetchSemesterType();
   }, []);
 
   if (loading) {
@@ -67,7 +59,6 @@ const AcademicYearDropdown: React.FC<AcademicYearDropdownProps> = ({
       value={value}
       onChange={onChange}
       placeholder={placeholder}
-      isMulti={isMulti}
       className={isInvalid ? "select-error" : ""}
       styles={{
         menu: (provided) => ({ ...provided, zIndex: 9999 }),
@@ -76,4 +67,4 @@ const AcademicYearDropdown: React.FC<AcademicYearDropdownProps> = ({
   );
 };
 
-export default AcademicYearDropdown;
+export default SemesterTypeDropdown;

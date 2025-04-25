@@ -21,22 +21,24 @@ const AcademicYearDropdown: React.FC<AcademicYearDropdownProps> = ({
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
-    const academicYear = [
-        { value: "2024", label: "2023-2024" },
-        { value: "2025", label: "2024-2025" },
-    ];
-
     useEffect(() => {
         const fetchAcademicYears = async () => {
             try {
                 // Fetch data from API
-                //const response = await api.get("/api/academic-years", '');
-                const response = academicYear;
-                const data = response.map((year: any) => ({
-                    value: year.value,
-                    label: year.label,
+                const response = await api.get("/getAllAcademicYear", "");
+
+                // Filter the response where isCurrent or isCurrentForAdmission is true
+                const filteredAcademicYearList = response.filter(
+                    (year: any) => year.isCurrent || year.isCurrentForAdmission
+                );
+
+                // Map the filtered data to the required format
+                const academicYearList = filteredAcademicYearList.map((year: any) => ({
+                    value: year.year,
+                    label: year.display
                 }));
-                setOptions(data);
+
+                setOptions(academicYearList);
                 setLoading(false);
             } catch (err) {
                 setError("Failed to fetch academic years");

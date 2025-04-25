@@ -47,7 +47,6 @@ const Login = (props: any) => {
       password: Yup.string().required("Please enter your password"),
     }),
     onSubmit: async (values) => {
-      console.log("Submitting login form...", values);
       // ✅ Instead of calling API here, dispatch Redux action
       dispatch(loginuser(values, navigate, setErrorMessage, setOpen));
     },

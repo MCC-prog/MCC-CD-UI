@@ -4,57 +4,53 @@ import { APIClient } from "../../helpers/api_helper";
 
 const api = new APIClient();
 
-interface AcademicYearDropdownProps {
+interface DepartmentDropdownProps {
+  streamId: string | null;
   value: any;
   onChange: (selectedOption: any) => void;
   placeholder?: string;
   isInvalid?: boolean;
 }
 
-const AcademicYearDropdown: React.FC<AcademicYearDropdownProps> = ({
+const DepartmentDropdown: React.FC<DepartmentDropdownProps> = ({
+  streamId,
   value,
   onChange,
   placeholder = "Select Department",
   isInvalid = false,
 }) => {
   const [options, setOptions] = useState<any[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const department = [
-    { value: "Others", label: "Others" },
-    { value: "Science", label: "Science" },
-    { value: "Arts", label: "Arts" },
-  ];
-
   useEffect(() => {
-    const fetchAcademicYears = async () => {
+    if (!streamId) {
+      setOptions([]);
+      return;
+    }
+
+    const fetchDepartments = async () => {
+      setLoading(true);
       try {
-        // Fetch data from API
-        //const response = await api.get("/api/academic-years", '');
-        const response = department;
-        const data = response.map((year: any) => ({
-          value: year.value,
-          label: year.label,
+        const response = await api.get(`/getDepartmentByStream?streamId=${streamId}`, "");
+        console.log("response",response);
+        const departments = response.map((department: any) => ({
+          value: department.id,
+          label: department.name,
         }));
-        setOptions(data);
+        setOptions(departments);
         setLoading(false);
       } catch (err) {
-        setError("Failed to fetch academic years");
+        setError("Failed to fetch departments");
         setLoading(false);
       }
     };
 
-    fetchAcademicYears();
-  }, []);
+    fetchDepartments();
+  }, [streamId]);
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div className="text-danger">{error}</div>;
-  }
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div className="text-danger">{error}</div>;
 
   return (
     <Select
@@ -63,11 +59,8 @@ const AcademicYearDropdown: React.FC<AcademicYearDropdownProps> = ({
       onChange={onChange}
       placeholder={placeholder}
       className={isInvalid ? "select-error" : ""}
-      styles={{
-        menu: (provided) => ({ ...provided, zIndex: 9999 }),
-      }}
     />
   );
 };
 
-export default AcademicYearDropdown;
+export default DepartmentDropdown;

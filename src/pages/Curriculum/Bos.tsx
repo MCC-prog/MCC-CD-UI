@@ -1,30 +1,60 @@
+import axios from 'axios';
 import Breadcrumb from 'Components/Common/Breadcrumb';
 import AcademicYearDropdown from 'Components/DropDowns/AcademicYearDropdown';
 import DegreeDropdown from 'Components/DropDowns/DegreeDropdown';
 import DepartmentDropdown from 'Components/DropDowns/DepartmentDropdown';
 import ProgramDropdown from 'Components/DropDowns/ProgramDropdown';
 import ProgramTypeDropdown from 'Components/DropDowns/ProgramTypeDropdown';
-import SemesterNoDropdown from 'Components/DropDowns/SemesterNoDropdown';
-import SemesterTypeDropdown from 'Components/DropDowns/SemesterTypeDropdown';
+import SemesterDropdowns from 'Components/DropDowns/SemesterDropdowns';
 import StreamDropdown from 'Components/DropDowns/StreamDropdown';
 import { useFormik } from 'formik';
-import React from 'react';
-import { Card, CardBody, Col, Container, Input, Label, Row } from 'reactstrap';
+import React, { useState } from 'react';
+import { Card, CardBody, Col, Container, Input, Label, Modal, ModalBody, ModalHeader, Row, Table } from 'reactstrap';
 import * as Yup from "yup";
 
 const Bos: React.FC = () => {
-    const dropdownStyles = {
-        menu: (provided: any) => ({
-            ...provided,
-            overflowY: "auto",
-        }),
-        menuPortal: (base: any) => ({ ...base, zIndex: 9999 })
+
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [bosData, setBosData] = useState<any[]>([]);
+    const [selectedStream, setSelectedStream] = useState<any>(null);
+    const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
+    const [selectedProgramType, setSelectedProgramType] = useState<any>(null);
+    const [selectedDegree, setSelectedDegree] = useState<any>(null);
+
+    const toggleModal = () => {
+        setIsModalOpen(!isModalOpen);
+    };
+
+    // Fetch BOS data from the backend
+    const fetchBosData = async () => {
+        try {
+            const response = await axios.get("/api/bos"); // Replace with your backend API endpoint
+            setBosData(response.data);
+        } catch (error) {
+            console.error("Error fetching BOS data:", error);
+        }
+    };
+
+    // Open the modal and fetch data
+    const handleListBosClick = () => {
+        toggleModal();
+        fetchBosData();
+    };
+
+    const handleEdit = (id: string) => {
+        console.log("Edit BOS with ID:", id);
+        // Add your edit logic here
+    };
+
+    const handleDelete = (id: string) => {
+        console.log("Delete BOS with ID:", id);
+        // Add your delete logic here
     };
 
     const validation = useFormik({
         initialValues: {
             academicYear: null,
-            semesterType: [],
+            semesterType: null,
             semesterNo: [],
             stream: null,
             department: null as { value: string; label: string } | null,
@@ -38,9 +68,13 @@ const Bos: React.FC = () => {
         },
         validationSchema: Yup.object({
             academicYear: Yup.object().nullable().required("Please select academic year"),
-            semesterType: Yup.array().min(1, "Please select at least one semester").required("Please select semester"),
-            semesterNo: Yup.array().min(1, "Please select at least one semester").required("Please select semester"),
-            stream: Yup.object().nullable().required("Please select stream"),
+            semesterType: Yup.object()
+                .nullable()
+                .required("Please select a semester type"), // Single object for single-select
+            semesterNo: Yup.array()
+                .min(1, "Please select at least one semester number")
+                .required("Please select semester numbers"),
+            stream: Yup.object().nullable().required("Please select school"),
             department: Yup.object<{ value: string; label: string }>().nullable().required("Please select department"),
             otherDepartment: Yup.string().when("department", (department: any, schema) => {
                 return department?.value === "Others"
@@ -101,53 +135,55 @@ const Bos: React.FC = () => {
                                                 )}
                                         </div>
                                     </Col>
-                                    <Col lg={4}>
-                                        <div className="mb-3">
-                                            <Label>Semester Type</Label>
-                                            <SemesterTypeDropdown
-                                                value={validation.values.semesterType}
-                                                onChange={(selectedOption) =>
-                                                    validation.setFieldValue("semesterType", selectedOption)
-                                                }
-                                                isInvalid={
-                                                    validation.touched.semesterType &&
-                                                    !!validation.errors.semesterType
-                                                }
-                                            />
-                                            {validation.touched.semesterType && validation.errors.semesterType && (
-                                                <div className="text-danger">{validation.errors.semesterType}</div>
-                                            )}
-                                        </div>
+                                    {/* Semester Dropdowns */}
+                                    <Col lg={8}>
+                                        <SemesterDropdowns
+                                            semesterTypeValue={validation.values.semesterType} // Single object for single-select
+                                            semesterNoValue={validation.values.semesterNo} // Array for multiselect
+                                            onSemesterTypeChange={(selectedOption) =>
+                                                validation.setFieldValue("semesterType", selectedOption) // Single object
+                                            }
+                                            onSemesterNoChange={(selectedOptions) =>
+                                                validation.setFieldValue("semesterNo", selectedOptions) // Array of selected values
+                                            }
+                                            isSemesterTypeInvalid={
+                                                validation.touched.semesterType && !!validation.errors.semesterType
+                                            }
+                                            isSemesterNoInvalid={
+                                                validation.touched.semesterNo && !!validation.errors.semesterNo
+                                            }
+                                            semesterTypeError={
+                                                validation.touched.semesterType
+                                                    ? Array.isArray(validation.errors.semesterType)
+                                                        ? validation.errors.semesterType.join(", ")
+                                                        : validation.errors.semesterType
+                                                    : null
+                                            }
+                                            semesterNoError={
+                                                validation.touched.semesterNo
+                                                    ? Array.isArray(validation.errors.semesterNo)
+                                                        ? validation.errors.semesterNo.join(", ")
+                                                        : validation.errors.semesterNo
+                                                    : null
+                                            }
+                                            semesterTypeTouched={!!validation.touched.semesterType}
+                                            semesterNoTouched={!!validation.touched.semesterNo}
+                                        />
                                     </Col>
+
                                     <Col lg={4}>
                                         <div className="mb-3">
-                                            <Label>Semester No.</Label>
-                                            <SemesterNoDropdown
-                                                value={validation.values.semesterNo}
-                                                onChange={(selectedOption) =>
-                                                    validation.setFieldValue("semesterNo", selectedOption)
-                                                }
-                                                isInvalid={
-                                                    validation.touched.semesterNo &&
-                                                    !!validation.errors.semesterNo
-                                                }
-                                            />
-                                            {validation.touched.semesterNo && validation.errors.semesterNo && (
-                                                <div className="text-danger">{validation.errors.semesterNo}</div>
-                                            )}
-                                        </div>
-                                    </Col>
-                                    <Col lg={4}>
-                                        <div className="mb-3">
-                                            <Label>Stream</Label>
+                                            <Label>School</Label>
                                             <StreamDropdown
                                                 value={validation.values.stream}
-                                                onChange={(selectedOption) =>
-                                                    validation.setFieldValue("stream", selectedOption)
-                                                }
+                                                onChange={(selectedOption) => {
+                                                    validation.setFieldValue("stream", selectedOption);
+                                                    setSelectedStream(selectedOption);
+                                                    validation.setFieldValue("department", null);
+                                                    setSelectedDepartment(null);
+                                                }}
                                                 isInvalid={
-                                                    validation.touched.stream &&
-                                                    !!validation.errors.stream
+                                                    validation.touched.stream && !!validation.errors.stream
                                                 }
                                             />
                                             {validation.touched.stream && validation.errors.stream && (
@@ -155,22 +191,31 @@ const Bos: React.FC = () => {
                                             )}
                                         </div>
                                     </Col>
+
+                                    {/* Department Dropdown */}
                                     <Col lg={4}>
                                         <div className="mb-3">
                                             <Label>Department</Label>
                                             <DepartmentDropdown
+                                                streamId={selectedStream?.value}
                                                 value={validation.values.department}
-                                                onChange={(selectedOption) =>
-                                                    validation.setFieldValue("department", selectedOption)
-                                                }
+                                                onChange={(selectedOption) => {
+                                                    validation.setFieldValue("department", selectedOption);
+                                                    setSelectedDepartment(selectedOption);
+                                                    validation.setFieldValue("programType", null);
+                                                    setSelectedProgramType(null);
+                                                }}
                                                 isInvalid={
                                                     validation.touched.department &&
                                                     !!validation.errors.department
                                                 }
                                             />
-                                            {validation.touched.department && validation.errors.department && (
-                                                <div className="text-danger">{validation.errors.department}</div>
-                                            )}
+                                            {validation.touched.department &&
+                                                validation.errors.department && (
+                                                    <div className="text-danger">
+                                                        {validation.errors.department}
+                                                    </div>
+                                                )}
                                         </div>
                                     </Col>
                                     {validation.values.department?.value === "Others" && (
@@ -191,32 +236,42 @@ const Bos: React.FC = () => {
                                             </div>
                                         </Col>
                                     )}
+                                    {/* Program Type Dropdown */}
                                     <Col lg={4}>
                                         <div className="mb-3">
                                             <Label>Program Type</Label>
                                             <ProgramTypeDropdown
+                                                deptId={selectedDepartment?.value} // Pass the selected department ID
                                                 value={validation.values.programType}
-                                                onChange={(selectedOption) =>
-                                                    validation.setFieldValue("programType", selectedOption)
-                                                }
+                                                onChange={(selectedOption) => {
+                                                    validation.setFieldValue("programType", selectedOption);
+                                                    setSelectedProgramType(selectedOption);
+                                                    validation.setFieldValue("degree", null);
+                                                }}
                                                 isInvalid={
                                                     validation.touched.programType &&
                                                     !!validation.errors.programType
                                                 }
                                             />
-                                            {validation.touched.programType && validation.errors.programType && (
-                                                <div className="text-danger">{validation.errors.programType}</div>
-                                            )}
+                                            {validation.touched.programType &&
+                                                validation.errors.programType && (
+                                                    <div className="text-danger">
+                                                        {validation.errors.programType}
+                                                    </div>
+                                                )}
                                         </div>
                                     </Col>
                                     <Col lg={4}>
                                         <div className="mb-3">
                                             <Label>Degree</Label>
                                             <DegreeDropdown
+                                                programTypeId={selectedProgramType?.value}
                                                 value={validation.values.degree}
-                                                onChange={(selectedOption) =>
-                                                    validation.setFieldValue("degree", selectedOption)
-                                                }
+                                                onChange={(selectedOption) => {
+                                                    validation.setFieldValue("degree", selectedOption);
+                                                    setSelectedDegree(selectedOption);
+                                                    validation.setFieldValue("program", null);
+                                                }}
                                                 isInvalid={
                                                     validation.touched.degree &&
                                                     !!validation.errors.degree
@@ -231,6 +286,7 @@ const Bos: React.FC = () => {
                                         <div className="mb-3">
                                             <Label>Program</Label>
                                             <ProgramDropdown
+                                                degreeId={selectedDegree?.value}
                                                 value={validation.values.program}
                                                 onChange={(selectedOption) =>
                                                     validation.setFieldValue("program", selectedOption)
@@ -295,21 +351,79 @@ const Bos: React.FC = () => {
                                             <Label>Download Template</Label>
                                             <div>
                                                 <a href="/templateFiles/bos.pdf" download className="btn btn-primary btn-sm" >
-                                                    PDF File
+                                                    Sample BOS Template
                                                 </a>
                                             </div>
                                         </div>
                                     </Col>
                                 </Row>
-                                <div className="mt-3 d-grid">
-                                    <button className="btn btn-primary btn-block" type="submit">
-                                        Save Application
-                                    </button>
-                                </div>
+                                <Row>
+                                    <Col lg={12}>
+                                        <div className="mt-3 d-flex justify-content-between">
+                                            <button className="btn btn-primary" type="submit">
+                                                Save
+                                            </button>
+                                            <button
+                                                className="btn btn-primary"
+                                                type="button"
+                                                onClick={handleListBosClick}
+                                            >
+                                                List BOS
+                                            </button>
+                                        </div>
+                                    </Col>
+                                </Row>
                             </form>
                         </CardBody>
                     </Card>
                 </Container>
+                {/* Modal for Listing BOS */}
+                <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg">
+                    <ModalHeader toggle={toggleModal}>List BOS</ModalHeader>
+                    <ModalBody>
+                        <Table bordered>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Degree</th>
+                                    <th>Program</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {bosData.length > 0 ? (
+                                    bosData.map((bos, index) => (
+                                        <tr key={bos.id}>
+                                            <td>{index + 1}</td>
+                                            <td>{bos.degree}</td>
+                                            <td>{bos.program}</td>
+                                            <td>
+                                                <button
+                                                    className="btn btn-sm btn-warning me-2"
+                                                    onClick={() => handleEdit(bos.id)}
+                                                >
+                                                    Edit
+                                                </button>
+                                                <button
+                                                    className="btn btn-sm btn-danger"
+                                                    onClick={() => handleDelete(bos.id)}
+                                                >
+                                                    Delete
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan={4} className="text-center">
+                                            No BOS data available.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </Table>
+                    </ModalBody>
+                </Modal>
             </div>
         </React.Fragment>
     );

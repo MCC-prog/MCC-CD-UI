@@ -8,11 +8,10 @@ const api = new APIClient();
 // Login Method
 export const login = async (userData: any) => {
   try {
-      console.log("🚀 Sending login request...", userData);
       const response = await axios.post(process.env.REACT_APP_BASE_API_URL + url.POST_LOGIN_API_URL, userData);
       return response;
   } catch (error) {
-      console.error("❌ API Error:");
+      console.error("❌ API Error:" + error);
       throw error; 
   }
 };

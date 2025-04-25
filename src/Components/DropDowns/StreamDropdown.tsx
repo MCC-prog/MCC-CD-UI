@@ -4,49 +4,49 @@ import { APIClient } from "../../helpers/api_helper";
 
 const api = new APIClient();
 
-interface AcademicYearDropdownProps {
+interface StreamDropdownProps {
   value: any;
   onChange: (selectedOption: any) => void;
   placeholder?: string;
   isInvalid?: boolean;
 }
 
-const AcademicYearDropdown: React.FC<AcademicYearDropdownProps> = ({
+const StreamDropdown: React.FC<StreamDropdownProps> = ({
   value,
   onChange,
-  placeholder = "Select Stream",
+  placeholder = "Select School",
   isInvalid = false,
 }) => {
   const [options, setOptions] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const stream = [
-    { value: "School of Humanities & Social Sciences", label: "School of Humanities & Social Sciences" },
-    { value: "School of Commerce", label: "School of Commerce" },
-    { value: "School of Management", label: "School of Management" },
-    { value: "School of Natural & Applied Sciences", label: "School of Natural & Applied Sciences" },
-  ];
-
   useEffect(() => {
-    const fetchAcademicYears = async () => {
+    const fetchStreams = async () => {
       try {
         // Fetch data from API
-        //const response = await api.get("/api/academic-years", '');
-        const response = stream;
-        const data = response.map((year: any) => ({
-          value: year.value,
-          label: year.label,
+        const response = await api.get("/getAllStream", '');
+        
+        // Filter the response where isActive is true
+        const filteredStreamList = response.filter(
+          (stream: any) => stream.isActive
+        );
+
+        // Map the filtered data to the required format
+        const streamList = filteredStreamList.map((stream: any) => ({
+          value: stream.id,
+          label: stream.name
         }));
-        setOptions(data);
+       
+        setOptions(streamList);
         setLoading(false);
       } catch (err) {
-        setError("Failed to fetch academic years");
+        setError("Failed to fetch all schools");
         setLoading(false);
       }
     };
 
-    fetchAcademicYears();
+    fetchStreams();
   }, []);
 
   if (loading) {
@@ -71,4 +71,4 @@ const AcademicYearDropdown: React.FC<AcademicYearDropdownProps> = ({
   );
 };
 
-export default AcademicYearDropdown;
+export default StreamDropdown;

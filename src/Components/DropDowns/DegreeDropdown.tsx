@@ -4,58 +4,54 @@ import { APIClient } from "../../helpers/api_helper";
 
 const api = new APIClient();
 
-interface AcademicYearDropdownProps {
+interface DegreeDropdownProps {
+  programTypeId: string | null; // Program Type ID passed from the parent
   value: any;
   onChange: (selectedOption: any) => void;
   placeholder?: string;
   isInvalid?: boolean;
 }
 
-const AcademicYearDropdown: React.FC<AcademicYearDropdownProps> = ({
+const DegreeDropdown: React.FC<DegreeDropdownProps> = ({
+  programTypeId,
   value,
   onChange,
   placeholder = "Select Degree",
   isInvalid = false,
 }) => {
   const [options, setOptions] = useState<any[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const degree = [
-    { value: "B.Sc", label: "B.Sc" },
-    { value: "B.A", label: "B.A" },
-    { value: "M.Sc", label: "M.Sc" },
-    { value: "M.A", label: "M.A" },
-  ];
-
   useEffect(() => {
-    const fetchAcademicYears = async () => {
+    if (!programTypeId) {
+      setOptions([]);
+      return;
+    }
+
+    const fetchDegrees = async () => {
+      setLoading(true);
       try {
-        // Fetch data from API
-        //const response = await api.get("/api/academic-years", '');
-        const response = degree;
-        const data = response.map((year: any) => ({
-          value: year.value,
-          label: year.label,
-        }));
-        setOptions(data);
+        // Fetch degrees based on the selected program type ID
+        const response = await api.get(`/getProgramById/${programTypeId}`, "");
+        console.log("response",response);
+        const degree = {
+          value: response.id,
+          label: response.name,
+        };
+        setOptions([degree]);
         setLoading(false);
       } catch (err) {
-        setError("Failed to fetch academic years");
+        setError("Failed to fetch degrees");
         setLoading(false);
       }
     };
 
-    fetchAcademicYears();
-  }, []);
+    fetchDegrees();
+  }, [programTypeId]);
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div className="text-danger">{error}</div>;
-  }
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div className="text-danger">{error}</div>;
 
   return (
     <Select
@@ -71,4 +67,4 @@ const AcademicYearDropdown: React.FC<AcademicYearDropdownProps> = ({
   );
 };
 
-export default AcademicYearDropdown;
+export default DegreeDropdown;
