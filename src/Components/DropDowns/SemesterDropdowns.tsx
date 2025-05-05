@@ -39,17 +39,17 @@ const SemesterDropdowns: React.FC<SemesterDropdownsProps> = ({
 
     if (selectedOption?.value === "odd") {
       options.push(
-        { value: "I", label: "I" },
-        { value: "III", label: "III" },
-        { value: "V", label: "V" }
+        { value: "1", label: "I" },
+        { value: "3", label: "III" },
+        { value: "5", label: "V" }
       );
     }
 
     if (selectedOption?.value === "even") {
       options.push(
-        { value: "II", label: "II" },
-        { value: "IV", label: "IV" },
-        { value: "VI", label: "VI" }
+        { value: "2", label: "II" },
+        { value: "4", label: "IV" },
+        { value: "6", label: "VI" }
       );
     }
 

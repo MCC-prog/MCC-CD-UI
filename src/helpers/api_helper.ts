@@ -4,7 +4,7 @@ import axios from "axios";
 axios.defaults.baseURL = process.env.REACT_APP_BASE_API_URL;
 
 // content type
-axios.defaults.headers.post["Content-Type"] = "application/json";
+//axios.defaults.headers.post["Content-Type"] = "application/json";
 
 // Add a request interceptor to include the Bearer token from sessionStorage
 axios.interceptors.request.use(
@@ -68,7 +68,7 @@ class APIClient {
   /**
    * Post given data to url
    */
-  create = (url: any, data: any) => {
+  create = (url: any, data: any, headers: any = {}) => {
     return axios.post(url, data);
   };
 

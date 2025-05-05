@@ -33,13 +33,12 @@ const DegreeDropdown: React.FC<DegreeDropdownProps> = ({
       setLoading(true);
       try {
         // Fetch degrees based on the selected program type ID
-        const response = await api.get(`/getProgramById/${programTypeId}`, "");
-        console.log("response",response);
-        const degree = {
-          value: response.id,
-          label: response.name,
-        };
-        setOptions([degree]);
+        const degreeList = await api.get(`/ProgramsByProgramTypeId?programTypeId=${programTypeId}`, "");
+        const degree = degreeList.map((deg: any) => ({
+          value: deg.id,
+          label: deg.name,
+        }));
+        setOptions(degree);
         setLoading(false);
       } catch (err) {
         setError("Failed to fetch degrees");
