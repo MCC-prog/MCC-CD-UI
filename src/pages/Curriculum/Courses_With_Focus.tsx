@@ -6,10 +6,21 @@ import * as Yup from "yup";
 import { Card, CardBody, Col, Container, Form, Input, Label, NavItem, NavLink, Row, TabContent, TabPane } from "reactstrap";
 import { Link } from "react-router-dom";
 import classNames from "classnames";
+import AcademicYearDropdown from "Components/DropDowns/AcademicYearDropdown";
+import SemesterDropdowns from "Components/DropDowns/SemesterDropdowns";
+import StreamDropdown from "Components/DropDowns/StreamDropdown";
+import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
+import ProgramTypeDropdown from "Components/DropDowns/ProgramTypeDropdown";
+import DegreeDropdown from "Components/DropDowns/DegreeDropdown";
+import ProgramDropdown from "Components/DropDowns/ProgramDropdown";
 
 const Courses_With_Focus: React.FC = () => {
   const [activeTab, setActiveTab] = useState(null);
   const [showWizard, setShowWizard] = useState(false);
+    const [selectedStream, setSelectedStream] = useState<any>(null);
+    const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
+    const [selectedProgramType, setSelectedProgramType] = useState<any>(null);
+    const [selectedDegree, setSelectedDegree] = useState<any>(null);
 
   const toggleTab = (tab) => {
     setActiveTab(activeTab === tab ? null : tab); // Collapse if clicked again
@@ -27,50 +38,6 @@ const Courses_With_Focus: React.FC = () => {
     menuPortal: (base: any) => ({ ...base, zIndex: 9999 }), // Ensure the menu is above other elements
   };
 
-  const academicYear = [
-    { value: "2024", label: "2023-2024" },
-    { value: "2025", label: "2024-2025" },
-  ];
-  const semType = [
-    { value: "T", label: "ODD" },
-    { value: "P", label: "EVEN" },
-  ];
-  const programType = [
-    { value: "T", label: "UG" },
-    { value: "P", label: "PG" },
-  ];
-  const program = [
-    { value: "T", label: "BA" },
-    { value: "P", label: "BCOM" },
-  ];
-  const courses = [
-    { value: "T", label: "HEP" },
-    { value: "P", label: "HES" },
-  ];
-  const semester: any = [
-    { value: "1", label: "I" },
-    { value: "2", label: "II" },
-    { value: "3", label: "III" },
-    { value: "4", label: "IV" },
-    { value: "5", label: "V" },
-    { value: "6", label: "VI" },
-  ];
-  const stream = [
-    {
-      value: "School of Humanities & Social Sciences",
-      label: "School of Humanities & Social Sciences",
-    },
-    { value: "School of Commerce", label: "School of Commerce" },
-    { value: "School of Management", label: "School of Management" },
-    {
-      value: "School of Natural & Applied Sciences",
-      label: "School of Natural & Applied Sciences",
-    },
-  ];
-  const department = [
-    { value: "Science", label: "Science" },
-    { value: "Arts", label: "Arts" },
-  ];
   const courseType = [
     { value: "T", label: "Core" },
     { value: "P", label: "Elective" },
@@ -80,16 +47,18 @@ const Courses_With_Focus: React.FC = () => {
   const validation = useFormik({
     initialValues: {
       academicYear: null,
-      semType: null,
-      semester: [],
+      semesterType: null,
+      semesterNo: [],
       stream: null,
       department: null as { value: string; label: string } | null,
+      otherDepartment: "",
+      file: null,
       programType: null,
+      degree: null,
       program: null,
       courses: null,
       courseType: null,
       courseTitile: "",
-      file: null,
     },
     validationSchema: Yup.object({ academicYear: Yup.object().nullable().required("Please select academic year"),
       semType: Yup.object().nullable().required("Please select semester type"),
@@ -130,228 +99,194 @@ const Courses_With_Focus: React.FC = () => {
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
                 <Row>
-                  <Col lg={4}>
-                    <div className="mb-3">
-                      <Label>Academic Year</Label>
-                      <Select
-                        options={academicYear}
-                        value={validation.values.academicYear}
-                        onChange={(selectedOption) =>
-                          validation.setFieldValue(
-                            "academicYear",
-                            selectedOption
-                          )
-                        }
-                        placeholder="Select Academic Year"
-                        styles={dropdownStyles}
-                        menuPortalTarget={document.body}
-                        className={
-                          validation.touched.academicYear &&
-                          validation.errors.academicYear
-                            ? "select-error"
-                            : ""
-                        }
-                      />
-                      {validation.touched.academicYear &&
-                        validation.errors.academicYear && (
-                          <div className="text-danger">
-                            {validation.errors.academicYear}
-                          </div>
-                        )}
-                    </div>
-                  </Col>
-                  <Col lg={4}>
-                    <div className="mb-3">
-                      <Label>Semester Type</Label>
-                      <Select
-                        options={semType}
-                        value={validation.values.semType}
-                        onChange={(selectedOption) =>
-                          validation.setFieldValue("semType", selectedOption)
-                        }
-                        placeholder="Select Semester Type"
-                        styles={dropdownStyles}
-                        menuPortalTarget={document.body}
-                        className={
-                          validation.touched.semType &&
-                          validation.errors.semType
-                            ? "select-error"
-                            : ""
-                        }
-                      />
-                      {validation.touched.semType &&
-                        validation.errors.semType && (
-                          <div className="text-danger">
-                            {validation.errors.semType}
-                          </div>
-                        )}
-                    </div>
-                  </Col>
-                  <Col lg={4}>
-                    <div className="mb-3">
-                      <Label>Semester</Label>
-                      <Select
-                        options={semester}
-                        value={validation.values.semester}
-                        onChange={(selectedOptions) =>
-                          validation.setFieldValue("semester", selectedOptions)
-                        }
-                        placeholder="Select Semesters"
-                        isMulti
-                        styles={dropdownStyles}
-                        menuPortalTarget={document.body}
-                        className={
-                          validation.touched.semester &&
-                          validation.errors.semester
-                            ? "select-error"
-                            : ""
-                        }
-                      />
-                      {validation.touched.semester &&
-                        validation.errors.semester && (
-                          <div className="text-danger">
-                            {validation.errors.semester}
-                          </div>
-                        )}
-                    </div>
-                  </Col>
-                  <Col lg={4}>
-                    <div className="mb-3">
-                      <Label>Stream</Label>
-                      <Select
-                        options={stream}
-                        value={validation.values.stream}
-                        onChange={(selectedOption) =>
-                          validation.setFieldValue("stream", selectedOption)
-                        }
-                        placeholder="Select Stream"
-                        styles={dropdownStyles}
-                        menuPortalTarget={document.body}
-                        className={
-                          validation.touched.stream && validation.errors.stream
-                            ? "select-error"
-                            : ""
-                        }
-                      />
-                      {validation.touched.stream &&
-                        validation.errors.stream && (
-                          <div className="text-danger">
-                            {validation.errors.stream}
-                          </div>
-                        )}
-                    </div>
-                  </Col>
-                  <Col lg={4}>
-                    <div className="mb-3">
-                      <Label>Department</Label>
-                      <Select
-                        options={department}
-                        value={validation.values.department}
-                        onChange={(selectedOption) =>
-                          validation.setFieldValue("department", selectedOption)
-                        }
-                        placeholder="Select Department"
-                        styles={dropdownStyles}
-                        menuPortalTarget={document.body}
-                        className={
-                          validation.touched.department &&
-                          validation.errors.department
-                            ? "select-error"
-                            : ""
-                        }
-                      />
-                      {validation.touched.department &&
-                        validation.errors.department && (
-                          <div className="text-danger">
-                            {validation.errors.department}
-                          </div>
-                        )}
-                    </div>
-                  </Col>
-                  <Col lg={4}>
-                    <div className="mb-3">
-                      <Label>Program Type</Label>
-                      <Select
-                        options={programType}
-                        value={validation.values.programType}
-                        onChange={(selectedOption) =>
-                          validation.setFieldValue(
-                            "programType",
-                            selectedOption
-                          )
-                        }
-                        placeholder="Select Program Type"
-                        styles={dropdownStyles}
-                        menuPortalTarget={document.body}
-                        className={
-                          validation.touched.programType &&
-                          validation.errors.programType
-                            ? "select-error"
-                            : ""
-                        }
-                      />
-                      {validation.touched.programType &&
-                        validation.errors.programType && (
-                          <div className="text-danger">
-                            {validation.errors.programType}
-                          </div>
-                        )}
-                    </div>
-                  </Col>
-                  <Col lg={4}>
-                    <div className="mb-3">
-                      <Label>Degree</Label>
-                      <Select
-                        options={program}
-                        value={validation.values.program}
-                        onChange={(selectedOption) =>
-                          validation.setFieldValue("program", selectedOption)
-                        }
-                        placeholder="Select Degree"
-                        styles={dropdownStyles}
-                        menuPortalTarget={document.body}
-                        className={
-                          validation.touched.program &&
-                          validation.errors.program
-                            ? "select-error"
-                            : ""
-                        }
-                      />
-                      {validation.touched.program &&
-                        validation.errors.program && (
-                          <div className="text-danger">
-                            {validation.errors.program}
-                          </div>
-                        )}
-                    </div>
-                  </Col>
-                  <Col lg={4}>
-                    <div className="mb-3">
-                      <Label>Program</Label>
-                      <Select
-                        options={courses}
-                        value={validation.values.courses}
-                        onChange={(selectedOption) =>
-                          validation.setFieldValue("courses", selectedOption)
-                        }
-                        placeholder="Select Program"
-                        styles={dropdownStyles}
-                        menuPortalTarget={document.body}
-                        className={
-                          validation.touched.courses &&
-                          validation.errors.courses
-                            ? "select-error"
-                            : ""
-                        }
-                      />
-                      {validation.touched.courses &&
-                        validation.errors.courses && (
-                          <div className="text-danger">
-                            {validation.errors.courses}
-                          </div>
-                        )}
-                    </div>
-                  </Col>
+                {/* Academic Year Dropdown */}
+                <Col lg={4}>
+                                        <div className="mb-3">
+                                            <Label>Academic Year</Label>
+                                            <AcademicYearDropdown
+                                                value={validation.values.academicYear}
+                                                onChange={(selectedOption) =>
+                                                    validation.setFieldValue("academicYear", selectedOption)
+                                                }
+                                                isInvalid={
+                                                    validation.touched.academicYear &&
+                                                    !!validation.errors.academicYear
+                                                }
+                                            />
+                                            {validation.touched.academicYear &&
+                                                validation.errors.academicYear && (
+                                                    <div className="text-danger">
+                                                        {validation.errors.academicYear}
+                                                    </div>
+                                                )}
+                                        </div>
+                                    </Col>
+                                    {/* Semester Dropdowns */}
+                                    <Col lg={8}>
+                                        <SemesterDropdowns
+                                            semesterTypeValue={validation.values.semesterType} // Single object for single-select
+                                            semesterNoValue={validation.values.semesterNo} // Array for multiselect
+                                            onSemesterTypeChange={(selectedOption) =>
+                                                validation.setFieldValue("semesterType", selectedOption) // Single object
+                                            }
+                                            onSemesterNoChange={(selectedOptions) =>
+                                                validation.setFieldValue("semesterNo", selectedOptions) // Array of selected values
+                                            }
+                                            isSemesterTypeInvalid={
+                                                validation.touched.semesterType && !!validation.errors.semesterType
+                                            }
+                                            isSemesterNoInvalid={
+                                                validation.touched.semesterNo && !!validation.errors.semesterNo
+                                            }
+                                            semesterTypeError={
+                                                validation.touched.semesterType
+                                                    ? Array.isArray(validation.errors.semesterType)
+                                                        ? validation.errors.semesterType.join(", ")
+                                                        : validation.errors.semesterType
+                                                    : null
+                                            }
+                                            semesterNoError={
+                                                validation.touched.semesterNo
+                                                    ? Array.isArray(validation.errors.semesterNo)
+                                                        ? validation.errors.semesterNo.join(", ")
+                                                        : validation.errors.semesterNo
+                                                    : null
+                                            }
+                                            semesterTypeTouched={!!validation.touched.semesterType}
+                                            semesterNoTouched={!!validation.touched.semesterNo}
+                                        />
+                                    </Col>
+
+                                    <Col lg={4}>
+                                        <div className="mb-3">
+                                            <Label>School</Label>
+                                            <StreamDropdown
+                                                value={validation.values.stream}
+                                                onChange={(selectedOption) => {
+                                                    validation.setFieldValue("stream", selectedOption);
+                                                    setSelectedStream(selectedOption);
+                                                    validation.setFieldValue("department", null);
+                                                    setSelectedDepartment(null);
+                                                }}
+                                                isInvalid={
+                                                    validation.touched.stream && !!validation.errors.stream
+                                                }
+                                            />
+                                            {validation.touched.stream && validation.errors.stream && (
+                                                <div className="text-danger">{validation.errors.stream}</div>
+                                            )}
+                                        </div>
+                                    </Col>
+
+                                    {/* Department Dropdown */}
+                                    <Col lg={4}>
+                                        <div className="mb-3">
+                                            <Label>Department</Label>
+                                            <DepartmentDropdown
+                                                streamId={selectedStream?.value}
+                                                value={validation.values.department}
+                                                onChange={(selectedOption) => {
+                                                    validation.setFieldValue("department", selectedOption);
+                                                    setSelectedDepartment(selectedOption);
+                                                    validation.setFieldValue("programType", null);
+                                                    setSelectedProgramType(null);
+                                                }}
+                                                isInvalid={
+                                                    validation.touched.department &&
+                                                    !!validation.errors.department
+                                                }
+                                            />
+                                            {validation.touched.department &&
+                                                validation.errors.department && (
+                                                    <div className="text-danger">
+                                                        {validation.errors.department}
+                                                    </div>
+                                                )}
+                                        </div>
+                                    </Col>
+                                    {validation.values.department?.value === "Others" && (
+                                        <Col lg={4}>
+                                            <div className="mb-3">
+                                                <Label>Specify Department</Label>
+                                                <Input
+                                                    type="text"
+                                                    className={`form-control ${validation.touched.otherDepartment && validation.errors.otherDepartment ? "is-invalid" : ""
+                                                        }`}
+                                                    value={validation.values.otherDepartment}
+                                                    onChange={(e) => validation.setFieldValue("otherDepartment", e.target.value)}
+                                                    placeholder="Enter Department Name"
+                                                />
+                                                {validation.touched.otherDepartment && validation.errors.otherDepartment && (
+                                                    <div className="text-danger">{validation.errors.otherDepartment}</div>
+                                                )}
+                                            </div>
+                                        </Col>
+                                    )}
+                                    {/* Program Type Dropdown */}
+                                    <Col lg={4}>
+                                        <div className="mb-3">
+                                            <Label>Program Type</Label>
+                                            <ProgramTypeDropdown
+                                                deptId={selectedDepartment?.value} // Pass the selected department ID
+                                                value={validation.values.programType}
+                                                onChange={(selectedOption) => {
+                                                    validation.setFieldValue("programType", selectedOption);
+                                                    setSelectedProgramType(selectedOption);
+                                                    validation.setFieldValue("degree", null);
+                                                }}
+                                                isInvalid={
+                                                    validation.touched.programType &&
+                                                    !!validation.errors.programType
+                                                }
+                                            />
+                                            {validation.touched.programType &&
+                                                validation.errors.programType && (
+                                                    <div className="text-danger">
+                                                        {validation.errors.programType}
+                                                    </div>
+                                                )}
+                                        </div>
+                                    </Col>
+                                    <Col lg={4}>
+                                        <div className="mb-3">
+                                            <Label>Degree</Label>
+                                            <DegreeDropdown
+                                                programTypeId={selectedProgramType?.value}
+                                                value={validation.values.degree}
+                                                onChange={(selectedOption) => {
+                                                    validation.setFieldValue("degree", selectedOption);
+                                                    setSelectedDegree(selectedOption);
+                                                    validation.setFieldValue("program", null);
+                                                }}
+                                                isInvalid={
+                                                    validation.touched.degree &&
+                                                    !!validation.errors.degree
+                                                }
+                                            />
+                                            {validation.touched.degree && validation.errors.degree && (
+                                                <div className="text-danger">{validation.errors.degree}</div>
+                                            )}
+                                        </div>
+                                    </Col>
+                                    <Col lg={4}>
+                                        <div className="mb-3">
+                                            <Label>Program</Label>
+                                            <ProgramDropdown
+                                                degreeId={selectedDegree?.value}
+                                                value={validation.values.program}
+                                                onChange={(selectedOption) =>
+                                                    validation.setFieldValue("program", selectedOption)
+                                                }
+                                                isInvalid={
+                                                    validation.touched.program &&
+                                                    !!validation.errors.program
+                                                }
+                                            />
+                                            {validation.touched.program && validation.errors.program && (
+                                                <div className="text-danger">{validation.errors.program}</div>
+                                            )}
+                                        </div>
+                                    </Col>
                   <div className="mb-3 mt-3 d-grid">
                     <button
                       className="btn btn-primary toggle-wizard-button"
