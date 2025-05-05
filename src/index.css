@@ -11,3 +11,19 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.custom-table {
+  border-collapse: collapse;
+}
+
+.custom-table tbody tr {
+  border-bottom: 1px solid #a9a9a9; /* Dark gray border for rows */
+}
+
+.custom-table thead th {
+  border-bottom: 2px solid #a9a9a9; /* Slightly thicker border for the header */
+}
+
+.custom-table tbody tr:hover {
+  background-color: #f8f9fa; /* Light gray background on hover */
+}

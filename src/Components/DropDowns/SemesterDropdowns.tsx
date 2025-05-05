@@ -5,9 +5,9 @@ import Select from "react-select";
 
 interface SemesterDropdownsProps {
   semesterTypeValue: any; // Single object for single-select
-  semesterNoValue: any[]; // Array for multiselect
+  semesterNoValue: any; // Single object for single-select
   onSemesterTypeChange: (selectedOption: any) => void;
-  onSemesterNoChange: (selectedOptions: any[]) => void;
+  onSemesterNoChange: (selectedOption: any) => void; // Single object
   isSemesterTypeInvalid?: boolean;
   isSemesterNoInvalid?: boolean;
   semesterTypeError?: string | null;
@@ -56,7 +56,7 @@ const SemesterDropdowns: React.FC<SemesterDropdownsProps> = ({
     setSemesterNoOptions(options);
 
     // Reset the SemesterNo field when SemesterType changes
-    onSemesterNoChange([]);
+    onSemesterNoChange(null);
   };
 
   return (
@@ -66,7 +66,7 @@ const SemesterDropdowns: React.FC<SemesterDropdownsProps> = ({
         <div className="mb-3">
           <Label>Semester Type</Label>
           <SemesterTypeDropdown
-            value={semesterTypeValue} // Single object for single-select
+            value={semesterTypeValue}
             onChange={handleSemesterTypeChange}
             isInvalid={isSemesterTypeInvalid}
           />
@@ -82,12 +82,9 @@ const SemesterDropdowns: React.FC<SemesterDropdownsProps> = ({
           <Label>Semester No.</Label>
           <Select
             options={semesterNoOptions}
-            value={semesterNoValue} // Array of selected options for multiselect
-            onChange={(selectedOptions) =>
-              onSemesterNoChange(Array.isArray(selectedOptions) ? [...selectedOptions] : [])
-            }
-            isMulti // Enable multiselect
-            placeholder="Select Semester Numbers"
+            value={semesterNoValue}
+            onChange={(selectedOption) => onSemesterNoChange(selectedOption)}
+            placeholder="Select Semester Number"
             className={isSemesterNoInvalid ? "select-error" : ""}
           />
           {semesterNoTouched && semesterNoError && (

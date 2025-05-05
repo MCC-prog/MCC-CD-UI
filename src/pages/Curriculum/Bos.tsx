@@ -9,7 +9,7 @@ import StreamDropdown from 'Components/DropDowns/StreamDropdown';
 import { ToastContainer } from "react-toastify";
 import { useFormik } from 'formik';
 import React, { useState } from 'react';
-import { Card, CardBody, Col, Container, Input, Label, Modal, ModalBody, ModalHeader, Row, Table } from 'reactstrap';
+import { Button, Card, CardBody, Col, Container, Input, Label, Modal, ModalBody, ModalHeader, Row, Table } from 'reactstrap';
 import * as Yup from "yup";
 import { APIClient } from "../../helpers/api_helper";
 import { toast } from "react-toastify";
@@ -25,6 +25,63 @@ const Bos: React.FC = () => {
     const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
     const [selectedProgramType, setSelectedProgramType] = useState<any>(null);
     const [selectedDegree, setSelectedDegree] = useState<any>(null);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const rowsPerPage = 10;
+
+    const [filters, setFilters] = useState({
+        academicYear: "",
+        semesterType: "",
+        semesterNo: "",
+        stream: "",
+        department: "",
+        programType: "",
+        program: "",
+        yearOfIntroduction: "",
+        percentage: "",
+    });
+
+    const [filteredData, setFilteredData] = useState(bosData);
+
+    // Handle global search
+    const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value.toLowerCase();
+        setSearchTerm(value);
+
+        const filtered = bosData.filter((row) =>
+            Object.values(row).some((val) =>
+                String(val || "").toLowerCase().includes(value)
+            )
+        );
+        setFilteredData(filtered);
+    };
+
+    // Handle column-specific filters
+    const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>, column: string) => {
+        const value = e.target.value.toLowerCase();
+        const updatedFilters = { ...filters, [column]: value };
+        setFilters(updatedFilters);
+
+        const filtered = bosData.filter((row) =>
+            Object.values(row).some((val) =>
+                String(val || "").toLowerCase().includes(value)
+            )
+        );
+        setFilteredData(filtered);
+    };
+
+    // Calculate the paginated data
+    const indexOfLastRow = currentPage * rowsPerPage;
+    const indexOfFirstRow = indexOfLastRow - rowsPerPage;
+    const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
+
+    // Handle page change
+    const handlePageChange = (pageNumber: number) => {
+        setCurrentPage(pageNumber);
+    };
+
+    // Calculate total pages
+    const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
     const toggleModal = () => {
         setIsModalOpen(!isModalOpen);
@@ -34,8 +91,9 @@ const Bos: React.FC = () => {
     const fetchBosData = async () => {
         try {
             const response = await api.get("/bos/getAllBos", '');
-            setBosData(response.data);
-            console.log("BOS data fetched successfully:", response.data);
+            setBosData(response);
+            setFilteredData(response);
+            console.log("BOS data fetched successfully:", response);
         } catch (error) {
             console.error("Error fetching BOS data:", error);
         }
@@ -69,14 +127,14 @@ const Bos: React.FC = () => {
         initialValues: {
             academicYear: null as { value: string; label: string } | null,
             semesterType: null as { value: string; label: string } | null,
-            semesterNo: [] as { value: string; label: string }[],
+            semesterNo: null as { value: string; label: string } | null,
             stream: null as { value: string; label: string } | null,
             department: null as { value: string; label: string } | null,
             otherDepartment: "",
             file: null,
             programType: null as { value: string; label: string } | null,
             degree: null as { value: string; label: string } | null,
-            program: null as { value: string; label: string } | null,
+            program: [] as { value: string; label: string }[],
             revisionPercentage: "",
             conductedDate: "",
         },
@@ -85,9 +143,9 @@ const Bos: React.FC = () => {
             semesterType: Yup.object<{ value: string; label: string }>()
                 .nullable()
                 .required("Please select a semester type"), // Single object for single-select
-            semesterNo: Yup.array()
-                .min(1, "Please select at least one semester number")
-                .required("Please select semester numbers"),
+            semesterNo: Yup.object<{ value: string; label: string }>()
+                .nullable()
+                .required("Please select a semester number"),
             stream: Yup.object<{ value: string; label: string }>().nullable().required("Please select school"),
             department: Yup.object<{ value: string; label: string }>().nullable().required("Please select department"),
             otherDepartment: Yup.string().when("department", (department: any, schema) => {
@@ -105,7 +163,9 @@ const Bos: React.FC = () => {
                 }),
             programType: Yup.object<{ value: string; label: string }>().nullable().required("Please select program type"),
             degree: Yup.object().nullable().required("Please select degree"),
-            program: Yup.object<{ value: string; label: string }>().nullable().required("Please select program"),
+            program: Yup.array()
+                .min(1, "Please select at least one program")
+                .required("Please select programs"),
             revisionPercentage: Yup.number()
                 .typeError("Please enter a valid number")
                 .min(0, "Percentage cannot be less than 0")
@@ -123,11 +183,11 @@ const Bos: React.FC = () => {
             formData.append("departmentId", values.department?.value || "");
             formData.append("yearOfIntroduction", formatDate(values.conductedDate) || "");
             formData.append("semType", values.semesterType?.value || "");
-            formData.append("semesterNo", values.semesterNo.map((option) => option.value).join(",") || "");
+            formData.append("semesterNo", values.semesterNo?.value || "");
             formData.append("programTypeId", values.programType?.value || "");
             formData.append("percentage", values.revisionPercentage || "");
             formData.append("streamId", values.stream?.value || "");
-            formData.append("courseIds", "1,2");
+            formData.append("courseIds", values.program.map((option) => option.value).join(",") || "");
             formData.append("programId", values.degree?.value || "");
 
             // Append the file
@@ -188,13 +248,13 @@ const Bos: React.FC = () => {
                                     {/* Semester Dropdowns */}
                                     <Col lg={8}>
                                         <SemesterDropdowns
-                                            semesterTypeValue={validation.values.semesterType} // Single object for single-select
-                                            semesterNoValue={validation.values.semesterNo} // Array for multiselect
+                                            semesterTypeValue={validation.values.semesterType}
+                                            semesterNoValue={validation.values.semesterNo}
                                             onSemesterTypeChange={(selectedOption) =>
-                                                validation.setFieldValue("semesterType", selectedOption) // Single object
+                                                validation.setFieldValue("semesterType", selectedOption)
                                             }
-                                            onSemesterNoChange={(selectedOptions) =>
-                                                validation.setFieldValue("semesterNo", selectedOptions) // Array of selected values
+                                            onSemesterNoChange={(selectedOption) =>
+                                                validation.setFieldValue("semesterNo", selectedOption)
                                             }
                                             isSemesterTypeInvalid={
                                                 validation.touched.semesterType && !!validation.errors.semesterType
@@ -204,16 +264,12 @@ const Bos: React.FC = () => {
                                             }
                                             semesterTypeError={
                                                 validation.touched.semesterType
-                                                    ? Array.isArray(validation.errors.semesterType)
-                                                        ? validation.errors.semesterType.join(", ")
-                                                        : validation.errors.semesterType
+                                                    ? validation.errors.semesterType
                                                     : null
                                             }
                                             semesterNoError={
                                                 validation.touched.semesterNo
-                                                    ? Array.isArray(validation.errors.semesterNo)
-                                                        ? validation.errors.semesterNo.join(", ")
-                                                        : validation.errors.semesterNo
+                                                    ? validation.errors.semesterNo
                                                     : null
                                             }
                                             semesterTypeTouched={!!validation.touched.semesterType}
@@ -335,16 +391,17 @@ const Bos: React.FC = () => {
                                             <ProgramDropdown
                                                 degreeId={selectedDegree?.value}
                                                 value={validation.values.program}
-                                                onChange={(selectedOption) =>
-                                                    validation.setFieldValue("program", selectedOption)
+                                                onChange={(selectedOptions) =>
+                                                    validation.setFieldValue("program", selectedOptions)
                                                 }
-                                                isInvalid={
-                                                    validation.touched.program &&
-                                                    !!validation.errors.program
-                                                }
+                                                isInvalid={validation.touched.program && !!validation.errors.program}
                                             />
                                             {validation.touched.program && validation.errors.program && (
-                                                <div className="text-danger">{validation.errors.program}</div>
+                                                <div className="text-danger">
+                                                    {Array.isArray(validation.errors.program)
+                                                        ? validation.errors.program.join(", ")
+                                                        : validation.errors.program}
+                                                </div>
                                             )}
                                         </div>
                                     </Col>
@@ -425,31 +482,113 @@ const Bos: React.FC = () => {
                     </Card>
                 </Container>
                 {/* Modal for Listing BOS */}
-                <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg"
-                    style={{ maxWidth: "100%", width: "auto" }} >
+                <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg" style={{ maxWidth: "100%", width: "auto" }}>
                     <ModalHeader toggle={toggleModal}>List BOS</ModalHeader>
                     <ModalBody>
-                        <Table bordered>
+                        {/* Global Search */}
+                        <div className="mb-3">
+                            <Input
+                                type="text"
+                                placeholder="Search..."
+                                value={searchTerm}
+                                onChange={handleSearch}
+                            />
+                        </div>
+
+                        {/* Table with Pagination */}
+                        <Table className="table-hover custom-table">
                             <thead>
                                 <tr>
                                     <th>#</th>
-                                    <th>Academic Year</th>
-                                    <th>Semester Type</th>
-                                    <th>Semester No</th>
-                                    <th>Stream</th>
-                                    <th>Department</th>
-                                    <th>Program Type</th>
-                                    <th>Program</th>
-                                    <th>Year of Introduction</th>
-                                    <th>Percentage</th>
+                                    <th>
+                                        Academic Year
+                                        <Input
+                                            type="text"
+                                            placeholder="Filter"
+                                            value={filters.academicYear}
+                                            onChange={(e) => handleFilterChange(e, "academicYear")}
+                                        />
+                                    </th>
+                                    <th>
+                                        Semester Type
+                                        <Input
+                                            type="text"
+                                            placeholder="Filter"
+                                            value={filters.semesterType}
+                                            onChange={(e) => handleFilterChange(e, "semesterType")}
+                                        />
+                                    </th>
+                                    <th>
+                                        Semester No
+                                        <Input
+                                            type="text"
+                                            placeholder="Filter"
+                                            value={filters.semesterNo}
+                                            onChange={(e) => handleFilterChange(e, "semesterNo")}
+                                        />
+                                    </th>
+                                    <th>
+                                        Stream
+                                        <Input
+                                            type="text"
+                                            placeholder="Filter"
+                                            value={filters.stream}
+                                            onChange={(e) => handleFilterChange(e, "stream")}
+                                        />
+                                    </th>
+                                    <th>
+                                        Department
+                                        <Input
+                                            type="text"
+                                            placeholder="Filter"
+                                            value={filters.department}
+                                            onChange={(e) => handleFilterChange(e, "department")}
+                                        />
+                                    </th>
+                                    <th>
+                                        Program Type
+                                        <Input
+                                            type="text"
+                                            placeholder="Filter"
+                                            value={filters.programType}
+                                            onChange={(e) => handleFilterChange(e, "programType")}
+                                        />
+                                    </th>
+                                    <th>
+                                        Program
+                                        <Input
+                                            type="text"
+                                            placeholder="Filter"
+                                            value={filters.program}
+                                            onChange={(e) => handleFilterChange(e, "program")}
+                                        />
+                                    </th>
+                                    <th>
+                                        Year of Introduction
+                                        <Input
+                                            type="text"
+                                            placeholder="Filter"
+                                            value={filters.yearOfIntroduction}
+                                            onChange={(e) => handleFilterChange(e, "yearOfIntroduction")}
+                                        />
+                                    </th>
+                                    <th>
+                                        Percentage
+                                        <Input
+                                            type="text"
+                                            placeholder="Filter"
+                                            value={filters.percentage}
+                                            onChange={(e) => handleFilterChange(e, "percentage")}
+                                        />
+                                    </th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {bosData.length > 0 ? (
-                                    bosData.map((bos, index) => (
+                                {currentRows.length > 0 ? (
+                                    currentRows.map((bos, index) => (
                                         <tr key={bos.bosDataId}>
-                                            <td>{index + 1}</td>
+                                            <td>{indexOfFirstRow + index + 1}</td>
                                             <td>{bos.academicYear}</td>
                                             <td>{bos.semType}</td>
                                             <td>{bos.semesterNo}</td>
@@ -460,18 +599,20 @@ const Bos: React.FC = () => {
                                             <td>{bos.yearOfIntroduction}</td>
                                             <td>{bos.percentage}</td>
                                             <td>
-                                                <button
-                                                    className="btn btn-sm btn-warning me-2"
-                                                    onClick={() => handleEdit(bos.bosDataId)}
-                                                >
-                                                    Edit
-                                                </button>
-                                                <button
-                                                    className="btn btn-sm btn-danger"
-                                                    onClick={() => handleDelete(bos.bosDataId)}
-                                                >
-                                                    Delete
-                                                </button>
+                                                <div className="d-flex justify-content-center gap-2">
+                                                    <button
+                                                        className="btn btn-sm btn-warning"
+                                                        onClick={() => handleEdit(bos.bosDataId)}
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                    <button
+                                                        className="btn btn-sm btn-danger"
+                                                        onClick={() => handleDelete(bos.bosDataId)}
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))
@@ -484,6 +625,26 @@ const Bos: React.FC = () => {
                                 )}
                             </tbody>
                         </Table>
+                        {/* Pagination Controls */}
+                        <div className="d-flex justify-content-between align-items-center mt-3">
+                            <Button
+                                color="primary"
+                                disabled={currentPage === 1}
+                                onClick={() => handlePageChange(currentPage - 1)}
+                            >
+                                Previous
+                            </Button>
+                            <div>
+                                Page {currentPage} of {totalPages}
+                            </div>
+                            <Button
+                                color="primary"
+                                disabled={currentPage === totalPages}
+                                onClick={() => handlePageChange(currentPage + 1)}
+                            >
+                                Next
+                            </Button>
+                        </div>
                     </ModalBody>
                 </Modal>
             </div>

@@ -6,8 +6,8 @@ const api = new APIClient();
 
 interface ProgramDropdownProps {
   degreeId: string | null; // Degree ID passed from the parent
-  value: any;
-  onChange: (selectedOption: any) => void;
+  value: any[]; // Array for multi-select
+  onChange: (selectedOptions: any[]) => void; // Array of selected options
   placeholder?: string;
   isInvalid?: boolean;
 }
@@ -16,7 +16,7 @@ const ProgramDropdown: React.FC<ProgramDropdownProps> = ({
   degreeId,
   value,
   onChange,
-  placeholder = "Select Program",
+  placeholder = "Select Programs",
   isInvalid = false,
 }) => {
   const [options, setOptions] = useState<any[]>([]);
@@ -61,8 +61,9 @@ const ProgramDropdown: React.FC<ProgramDropdownProps> = ({
     <Select
       options={options}
       value={value}
-      onChange={onChange}
+      onChange={(selectedOptions) => onChange(Array.isArray(selectedOptions) ? [...selectedOptions] : [])}
       placeholder={placeholder}
+      isMulti
       className={isInvalid ? "select-error" : ""}
       styles={{
         menu: (provided) => ({ ...provided, zIndex: 9999 }),
