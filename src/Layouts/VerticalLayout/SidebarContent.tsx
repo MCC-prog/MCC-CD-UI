@@ -190,16 +190,16 @@ const SidebarContent = (props: any) => {
               </Link>
               <ul className="sub-menu">
                 <li>
-                  <Link to="/#">{props.t("1. Remedial Classes")}</Link>
+                  <Link to="/Remedial_Classes">{props.t("1. Remedial Classes")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("2. Advanced Learners")}</Link>
+                  <Link to="/Advanced_Learners">{props.t("2. Advanced Learners")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("3. Student Centric Teaching Methodology")}</Link>
+                  <Link to="/Student_Centric_Teaching">{props.t("3. Student Centric Teaching Methodology")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("4. Usage of ICT tools in classroom")}</Link>
+                  <Link to="/UsageOf_ICT_Tools">{props.t("4. Usage of ICT tools in classroom")}</Link>
                 </li>
               </ul>
             </li>
@@ -211,13 +211,13 @@ const SidebarContent = (props: any) => {
               </Link>
               <ul className="sub-menu">
                 <li>
-                  <Link to="/#">{props.t("1. Number of Students enrolled")}</Link>
+                  <Link to="/NumberOfStudents_Enrolled">{props.t("1. Number of Students enrolled")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("2. Total Student Strength (UG & PG separate)")}</Link>
+                  <Link to="/TotalStudentsStrength">{props.t("2. Total Student Strength (UG & PG separate)")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("3. Student Strength Program-wise")}</Link>
+                  <Link to="/StudentStrengthProgram">{props.t("3. Student Strength Program-wise")}</Link>
                 </li>
               </ul>
             </li>
@@ -229,13 +229,13 @@ const SidebarContent = (props: any) => {
               </Link>
               <ul className="sub-menu">
                 <li>
-                  <Link to="/#">{props.t("1. Teachers' details")}</Link>
+                  <Link to="/Teachers_Details">{props.t("1. Teachers' details")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("2. Part-time/Guest faculty")}</Link>
+                  <Link to="/PartTime_Guest">{props.t("2. Part-time/Guest faculty")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("3. Professor of Practice")}</Link>
+                  <Link to="/Professor_Practice">{props.t("3. Professor of Practice")}</Link>
                 </li>
               </ul>
             </li>
@@ -247,16 +247,16 @@ const SidebarContent = (props: any) => {
               </Link>
               <ul className="sub-menu">
                 <li>
-                  <Link to="/#">{props.t("1. Year of Establishment")}</Link>
+                  <Link to="/Year_Of_Establishment">{props.t("1. Year of Establishment")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("2. Staff Profile")}</Link>
+                  <Link to="/Staff_Profile">{props.t("2. Staff Profile")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("3. Programs offered by the Department")}</Link>
+                  <Link to="/Program_By_Dept">{props.t("3. Programs offered by the Department")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("4. Number of Books in Department library")}</Link>
+                  <Link to="/Number_OfBooks_Dept">{props.t("4. Number of Books in Department library")}</Link>
                 </li>
               </ul>
             </li>
