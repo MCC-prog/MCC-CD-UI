@@ -55,7 +55,7 @@ const Courses_With_Focus: React.FC = () => {
       file: null,
       programType: null,
       degree: null,
-      program: null,
+      program: [],
       courses: null,
       courseType: null,
       courseTitile: "",
