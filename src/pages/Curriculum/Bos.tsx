@@ -1,4 +1,3 @@
-import axios from 'axios';
 import Breadcrumb from 'Components/Common/Breadcrumb';
 import AcademicYearDropdown from 'Components/DropDowns/AcademicYearDropdown';
 import DegreeDropdown from 'Components/DropDowns/DegreeDropdown';
@@ -7,10 +6,16 @@ import ProgramDropdown from 'Components/DropDowns/ProgramDropdown';
 import ProgramTypeDropdown from 'Components/DropDowns/ProgramTypeDropdown';
 import SemesterDropdowns from 'Components/DropDowns/SemesterDropdowns';
 import StreamDropdown from 'Components/DropDowns/StreamDropdown';
+import { ToastContainer } from "react-toastify";
 import { useFormik } from 'formik';
 import React, { useState } from 'react';
 import { Card, CardBody, Col, Container, Input, Label, Modal, ModalBody, ModalHeader, Row, Table } from 'reactstrap';
 import * as Yup from "yup";
+import { APIClient } from "../../helpers/api_helper";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+const api = new APIClient();
 
 const Bos: React.FC = () => {
 
@@ -28,8 +33,9 @@ const Bos: React.FC = () => {
     // Fetch BOS data from the backend
     const fetchBosData = async () => {
         try {
-            const response = await axios.get("/api/bos"); // Replace with your backend API endpoint
+            const response = await api.get("/bos/getAllBos", '');
             setBosData(response.data);
+            console.log("BOS data fetched successfully:", response.data);
         } catch (error) {
             console.error("Error fetching BOS data:", error);
         }
@@ -51,30 +57,38 @@ const Bos: React.FC = () => {
         // Add your delete logic here
     };
 
+    const formatDate = (date: string): string => {
+        const d = new Date(date);
+        const day = String(d.getDate()).padStart(2, "0");
+        const month = String(d.getMonth() + 1).padStart(2, "0"); // Months are 0-based
+        const year = d.getFullYear();
+        return `${day}/${month}/${year}`;
+    };
+
     const validation = useFormik({
         initialValues: {
-            academicYear: null,
-            semesterType: null,
-            semesterNo: [],
-            stream: null,
+            academicYear: null as { value: string; label: string } | null,
+            semesterType: null as { value: string; label: string } | null,
+            semesterNo: [] as { value: string; label: string }[],
+            stream: null as { value: string; label: string } | null,
             department: null as { value: string; label: string } | null,
             otherDepartment: "",
             file: null,
-            programType: null,
-            degree: null,
-            program: null,
+            programType: null as { value: string; label: string } | null,
+            degree: null as { value: string; label: string } | null,
+            program: null as { value: string; label: string } | null,
             revisionPercentage: "",
             conductedDate: "",
         },
         validationSchema: Yup.object({
-            academicYear: Yup.object().nullable().required("Please select academic year"),
-            semesterType: Yup.object()
+            academicYear: Yup.object<{ value: string; label: string }>().nullable().required("Please select academic year"),
+            semesterType: Yup.object<{ value: string; label: string }>()
                 .nullable()
                 .required("Please select a semester type"), // Single object for single-select
             semesterNo: Yup.array()
                 .min(1, "Please select at least one semester number")
                 .required("Please select semester numbers"),
-            stream: Yup.object().nullable().required("Please select school"),
+            stream: Yup.object<{ value: string; label: string }>().nullable().required("Please select school"),
             department: Yup.object<{ value: string; label: string }>().nullable().required("Please select department"),
             otherDepartment: Yup.string().when("department", (department: any, schema) => {
                 return department?.value === "Others"
@@ -89,9 +103,9 @@ const Bos: React.FC = () => {
                 .test("fileType", "Unsupported file format", (value: any) => {
                     return value && ["application/pdf", "image/jpeg", "image/png"].includes(value.type);
                 }),
-            programType: Yup.object().nullable().required("Please select program type"),
+            programType: Yup.object<{ value: string; label: string }>().nullable().required("Please select program type"),
             degree: Yup.object().nullable().required("Please select degree"),
-            program: Yup.object().nullable().required("Please select program"),
+            program: Yup.object<{ value: string; label: string }>().nullable().required("Please select program"),
             revisionPercentage: Yup.number()
                 .typeError("Please enter a valid number")
                 .min(0, "Percentage cannot be less than 0")
@@ -99,9 +113,45 @@ const Bos: React.FC = () => {
                 .required("Please enter revision percentage"),
             conductedDate: Yup.date().required("Please select conducted date"),
         }),
-        onSubmit: (values) => {
-            console.log("Submitting form...", values);
-        },
+        onSubmit: async (values, { resetForm }) => {
+
+            // Create FormData object
+            const formData = new FormData();
+
+            // Append fields to FormData
+            formData.append("academicYear", values.academicYear?.value || "");
+            formData.append("departmentId", values.department?.value || "");
+            formData.append("yearOfIntroduction", formatDate(values.conductedDate) || "");
+            formData.append("semType", values.semesterType?.value || "");
+            formData.append("semesterNo", values.semesterNo.map((option) => option.value).join(",") || "");
+            formData.append("programTypeId", values.programType?.value || "");
+            formData.append("percentage", values.revisionPercentage || "");
+            formData.append("streamId", values.stream?.value || "");
+            formData.append("courseIds", "1,2");
+            formData.append("programId", values.degree?.value || "");
+
+            // Append the file
+            if (values.file) {
+                formData.append("mom", values.file);
+            } else {
+                console.error("No file selected");
+            }
+
+            try {
+                const response = await api.create("/bos/saveCurriculumBos", formData);
+                // Display success message
+                toast.success(response.message || "Curriculum BOS added successfully!");
+                console.log("BOS created successfully:", response.data);
+                // Reset the form fields
+                resetForm();
+                // display the BOS List
+                handleListBosClick();
+            } catch (error) {
+                // Display error message
+                toast.error("Failed to save Curriculum BOS. Please try again.");
+                console.error("Error creating BOS:", error);
+            }
+        }
     });
 
     return (
@@ -272,10 +322,7 @@ const Bos: React.FC = () => {
                                                     setSelectedDegree(selectedOption);
                                                     validation.setFieldValue("program", null);
                                                 }}
-                                                isInvalid={
-                                                    validation.touched.degree &&
-                                                    !!validation.errors.degree
-                                                }
+                                                isInvalid={validation.touched.degree && !!validation.errors.degree}
                                             />
                                             {validation.touched.degree && validation.errors.degree && (
                                                 <div className="text-danger">{validation.errors.degree}</div>
@@ -378,35 +425,50 @@ const Bos: React.FC = () => {
                     </Card>
                 </Container>
                 {/* Modal for Listing BOS */}
-                <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg">
+                <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg"
+                    style={{ maxWidth: "100%", width: "auto" }} >
                     <ModalHeader toggle={toggleModal}>List BOS</ModalHeader>
                     <ModalBody>
                         <Table bordered>
                             <thead>
                                 <tr>
                                     <th>#</th>
-                                    <th>Degree</th>
+                                    <th>Academic Year</th>
+                                    <th>Semester Type</th>
+                                    <th>Semester No</th>
+                                    <th>Stream</th>
+                                    <th>Department</th>
+                                    <th>Program Type</th>
                                     <th>Program</th>
+                                    <th>Year of Introduction</th>
+                                    <th>Percentage</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {bosData.length > 0 ? (
                                     bosData.map((bos, index) => (
-                                        <tr key={bos.id}>
+                                        <tr key={bos.bosDataId}>
                                             <td>{index + 1}</td>
-                                            <td>{bos.degree}</td>
-                                            <td>{bos.program}</td>
+                                            <td>{bos.academicYear}</td>
+                                            <td>{bos.semType}</td>
+                                            <td>{bos.semesterNo}</td>
+                                            <td>{bos.streamName}</td>
+                                            <td>{bos.departmentName}</td>
+                                            <td>{bos.programTypeName}</td>
+                                            <td>{bos.programName}</td>
+                                            <td>{bos.yearOfIntroduction}</td>
+                                            <td>{bos.percentage}</td>
                                             <td>
                                                 <button
                                                     className="btn btn-sm btn-warning me-2"
-                                                    onClick={() => handleEdit(bos.id)}
+                                                    onClick={() => handleEdit(bos.bosDataId)}
                                                 >
                                                     Edit
                                                 </button>
                                                 <button
                                                     className="btn btn-sm btn-danger"
-                                                    onClick={() => handleDelete(bos.id)}
+                                                    onClick={() => handleDelete(bos.bosDataId)}
                                                 >
                                                     Delete
                                                 </button>
@@ -415,7 +477,7 @@ const Bos: React.FC = () => {
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={4} className="text-center">
+                                        <td colSpan={11} className="text-center">
                                             No BOS data available.
                                         </td>
                                     </tr>
@@ -425,6 +487,7 @@ const Bos: React.FC = () => {
                     </ModalBody>
                 </Modal>
             </div>
+            <ToastContainer />
         </React.Fragment>
     );
 };

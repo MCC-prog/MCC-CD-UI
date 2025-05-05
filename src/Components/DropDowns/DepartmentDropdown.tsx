@@ -33,7 +33,6 @@ const DepartmentDropdown: React.FC<DepartmentDropdownProps> = ({
       setLoading(true);
       try {
         const response = await api.get(`/getDepartmentByStream?streamId=${streamId}`, "");
-        console.log("response",response);
         const departments = response.map((department: any) => ({
           value: department.id,
           label: department.name,
