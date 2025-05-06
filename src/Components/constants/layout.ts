@@ -45,6 +45,15 @@ enum LEFTBAR_THEME_IMAGES_TYPES {
   IMG4 = "img4",
 }
 
+const SEMESTER_NO_OPTIONS = [
+  { value: "1", label: "I" },
+  { value: "2", label: "II" },
+  { value: "3", label: "III" },
+  { value: "4", label: "IV" },
+  { value: "5", label: "V" },
+  { value: "6", label: "VI" },
+];
+
 const megaMenuContents = [
   {
     title: "CURRICULUM",
@@ -205,5 +214,6 @@ export {
   LEFT_SIDEBAR_TYPES,
   LEFT_SIDEBAR_THEME_TYPES,
   LEFTBAR_THEME_IMAGES_TYPES,
+  SEMESTER_NO_OPTIONS,
   megaMenuContents
 }

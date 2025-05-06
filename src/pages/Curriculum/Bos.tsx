@@ -14,6 +14,7 @@ import * as Yup from "yup";
 import { APIClient } from "../../helpers/api_helper";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { SEMESTER_NO_OPTIONS } from "../../Components/constants/layout";
 
 const api = new APIClient();
 
@@ -105,9 +106,77 @@ const Bos: React.FC = () => {
         fetchBosData();
     };
 
-    const handleEdit = (id: string) => {
+    const mapValueToLabel = (value: string | number | null, options: { value: string | number; label: string }[]): { value: string | number; label: string } | null => {
+        if (!value) return null;
+        console.log("Mapping value to label:", value, options);
+        const matchedOption = options.find((option) => option.value === value);
+        return matchedOption ? matchedOption : { value, label: String(value) };
+    };
+
+    const handleEdit = async (id: string) => {
         console.log("Edit BOS with ID:", id);
-        // Add your edit logic here
+        try {
+            const response = await api.get(`/bos/edit?bosId=${id}`, '');
+            console.log("BOS data fetched successfully By ID:", response);
+
+            const academicYearOptions = await api.get("/getAllAcademicYear", "");
+            // Filter the response where isCurrent or isCurrentForAdmission is true
+            const filteredAcademicYearList = academicYearOptions.filter(
+                (year: any) => year.isCurrent || year.isCurrentForAdmission
+            );
+            // Map the filtered data to the required format
+            const academicYearList = filteredAcademicYearList.map((year: any) => ({
+                value: year.year,
+                label: year.display
+            }));
+
+            const semesterNoOptions = SEMESTER_NO_OPTIONS
+
+            // Map API response to Formik values
+            const mappedValues = {
+                academicYear: mapValueToLabel(response.academicYear, academicYearList),
+                semesterType: response.semType
+                    ? { value: response.semType, label: response.semType.toUpperCase() }
+                    : null,
+                semesterNo: mapValueToLabel(String(response.semesterNo), semesterNoOptions) as { value: string; label: string } | null,
+                stream: response.streamId
+                    ? { value: response.streamId.toString(), label: response.streamName }
+                    : null,
+                department: response.departmentId
+                    ? { value: response.departmentId.toString(), label: response.departmentName }
+                    : null,
+                programType: response.programTypeId
+                    ? { value: response.programTypeId.toString(), label: response.programTypeName }
+                    : null,
+                degree: response.programId
+                    ? { value: response.programId.toString(), label: response.programName }
+                    : null,
+                program: response.courses
+                    ? Object.entries(response.courses).map(([key, value]) => ({
+                        value: key,
+                        label: String(value),
+                    }))
+                    : [],
+                revisionPercentage: response.percentage || "",
+                conductedDate: response.yearOfIntroduction ? editFormatDate(response.yearOfIntroduction) : "",
+                otherDepartment: "", // Add default value for otherDepartment
+                file: null, // Files cannot be pre-filled in input fields for security reasons
+            };
+
+            // Update Formik values
+            validation.setValues({
+                            ...mappedValues,
+                            academicYear: mappedValues.academicYear
+                                ? { ...mappedValues.academicYear, value: String(mappedValues.academicYear.value) }
+                                : null,
+                            semesterNo: mappedValues.semesterNo
+                                ? { ...mappedValues.semesterNo, value: String(mappedValues.semesterNo.value) }
+                                : null,
+                        });
+            toggleModal();
+        } catch (error) {
+            console.error("Error fetching BOS data by ID:", error);
+        }
     };
 
     const handleDelete = (id: string) => {
@@ -121,6 +190,33 @@ const Bos: React.FC = () => {
         const month = String(d.getMonth() + 1).padStart(2, "0"); // Months are 0-based
         const year = d.getFullYear();
         return `${day}/${month}/${year}`;
+    };
+
+    const editFormatDate = (date: string): string => {
+        if (!date) {
+            console.error("Invalid date:", date);
+            return ""; // Return an empty string for invalid dates
+        }
+
+        // Parse the date in dd/mm/yyyy format
+        const [day, month, year] = date.split("/");
+        if (!day || !month || !year) {
+            console.error("Invalid date format:", date);
+            return ""; // Return an empty string for invalid formats
+        }
+
+        // Create a new Date object
+        const parsedDate = new Date(`${year}-${month}-${day}`);
+        if (isNaN(parsedDate.getTime())) {
+            console.error("Invalid parsed date:", date);
+            return ""; // Return an empty string for invalid parsed dates
+        }
+
+        // Format the date as dd-mm-yyyy
+        const formattedDay = String(parsedDate.getDate()).padStart(2, "0");
+        const formattedMonth = String(parsedDate.getMonth() + 1).padStart(2, "0"); // Months are 0-based
+        const formattedYear = parsedDate.getFullYear();
+        return `${formattedDay}-${formattedMonth}-${formattedYear}`;
     };
 
     const validation = useFormik({
@@ -183,7 +279,7 @@ const Bos: React.FC = () => {
             formData.append("departmentId", values.department?.value || "");
             formData.append("yearOfIntroduction", formatDate(values.conductedDate) || "");
             formData.append("semType", values.semesterType?.value || "");
-            formData.append("semesterNo", values.semesterNo?.value || "");
+            formData.append("semesterNo", String(values.semesterNo?.value || ""));
             formData.append("programTypeId", values.programType?.value || "");
             formData.append("percentage", values.revisionPercentage || "");
             formData.append("streamId", values.stream?.value || "");
