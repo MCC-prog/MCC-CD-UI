@@ -9,7 +9,7 @@ import StreamDropdown from 'Components/DropDowns/StreamDropdown';
 import { ToastContainer } from "react-toastify";
 import { useFormik } from 'formik';
 import React, { useState } from 'react';
-import { Button, Card, CardBody, Col, Container, Input, Label, Modal, ModalBody, ModalHeader, Row, Table } from 'reactstrap';
+import { Button, Card, CardBody, Col, Container, Input, Label, Modal, ModalBody, ModalFooter, ModalHeader, Row, Table } from 'reactstrap';
 import * as Yup from "yup";
 import { APIClient } from "../../helpers/api_helper";
 import { toast } from "react-toastify";
@@ -19,17 +19,26 @@ import { SEMESTER_NO_OPTIONS } from "../../Components/constants/layout";
 const api = new APIClient();
 
 const Bos: React.FC = () => {
-
+    // State variables for managing modal, edit mode, and delete confirmation
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [editId, setEditId] = useState<string | null>(null);
+    // State variable for managing delete confirmation modal
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [deleteId, setDeleteId] = useState<string | null>(null);
+    // State variable for managing the modal for listing BOS
     const [isModalOpen, setIsModalOpen] = useState(false);
+    // State variable for managing the list of BOS data
     const [bosData, setBosData] = useState<any[]>([]);
+    // State variables for managing selected options in dropdowns
     const [selectedStream, setSelectedStream] = useState<any>(null);
     const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
     const [selectedProgramType, setSelectedProgramType] = useState<any>(null);
     const [selectedDegree, setSelectedDegree] = useState<any>(null);
+    // State variable for managing search term and pagination
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const rowsPerPage = 10;
-
+    // State variable for managing filters
     const [filters, setFilters] = useState({
         academicYear: "",
         semesterType: "",
@@ -41,7 +50,6 @@ const Bos: React.FC = () => {
         yearOfIntroduction: "",
         percentage: "",
     });
-
     const [filteredData, setFilteredData] = useState(bosData);
 
     // Handle global search
@@ -84,6 +92,7 @@ const Bos: React.FC = () => {
     // Calculate total pages
     const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
+    // Toggle the modal for listing BOS
     const toggleModal = () => {
         setIsModalOpen(!isModalOpen);
     };
@@ -94,7 +103,6 @@ const Bos: React.FC = () => {
             const response = await api.get("/bos/getAllBos", '');
             setBosData(response);
             setFilteredData(response);
-            console.log("BOS data fetched successfully:", response);
         } catch (error) {
             console.error("Error fetching BOS data:", error);
         }
@@ -106,19 +114,18 @@ const Bos: React.FC = () => {
         fetchBosData();
     };
 
+    // Map value to label for dropdowns
     const mapValueToLabel = (value: string | number | null, options: { value: string | number; label: string }[]): { value: string | number; label: string } | null => {
         if (!value) return null;
-        console.log("Mapping value to label:", value, options);
         const matchedOption = options.find((option) => option.value === value);
         return matchedOption ? matchedOption : { value, label: String(value) };
     };
 
+    // Handle edit action
+    // Fetch the data for the selected BOS ID and populate the form fields
     const handleEdit = async (id: string) => {
-        console.log("Edit BOS with ID:", id);
         try {
             const response = await api.get(`/bos/edit?bosId=${id}`, '');
-            console.log("BOS data fetched successfully By ID:", response);
-
             const academicYearOptions = await api.get("/getAllAcademicYear", "");
             // Filter the response where isCurrent or isCurrentForAdmission is true
             const filteredAcademicYearList = academicYearOptions.filter(
@@ -165,25 +172,49 @@ const Bos: React.FC = () => {
 
             // Update Formik values
             validation.setValues({
-                            ...mappedValues,
-                            academicYear: mappedValues.academicYear
-                                ? { ...mappedValues.academicYear, value: String(mappedValues.academicYear.value) }
-                                : null,
-                            semesterNo: mappedValues.semesterNo
-                                ? { ...mappedValues.semesterNo, value: String(mappedValues.semesterNo.value) }
-                                : null,
-                        });
+                ...mappedValues,
+                academicYear: mappedValues.academicYear
+                    ? { ...mappedValues.academicYear, value: String(mappedValues.academicYear.value) }
+                    : null,
+                semesterNo: mappedValues.semesterNo
+                    ? { ...mappedValues.semesterNo, value: String(mappedValues.semesterNo.value) }
+                    : null,
+            });
+            setIsEditMode(true); // Set edit mode
+            setEditId(id); // Store the ID of the record being edited
             toggleModal();
         } catch (error) {
             console.error("Error fetching BOS data by ID:", error);
         }
     };
 
+    // Handle delete action
+    // Set the ID of the record to be deleted and open the confirmation modal
     const handleDelete = (id: string) => {
-        console.log("Delete BOS with ID:", id);
-        // Add your delete logic here
+        setDeleteId(id);
+        setIsDeleteModalOpen(true);
     };
 
+    // Confirm deletion of the record
+    // Call the delete API and refresh the BOS data
+    const confirmDelete = async (id: string) => {
+        if (deleteId) {
+            try {
+                const response = await api.delete(`/bos/deleteBos?bosId=${id}`, '');
+                toast.success(response.message || "Curriculum BOS removed successfully!");
+                fetchBosData();
+            } catch (error) {
+                toast.error("Failed to remove Curriculum BOS. Please try again.");
+                console.error("Error deleting BOS:", error);
+            } finally {
+                setIsDeleteModalOpen(false);
+                setDeleteId(null);
+            }
+        }
+    };
+
+    // Format date from yyyy-mm-dd to dd/mm/yyyy
+    // and handle invalid date formats
     const formatDate = (date: string): string => {
         const d = new Date(date);
         const day = String(d.getDate()).padStart(2, "0");
@@ -192,6 +223,8 @@ const Bos: React.FC = () => {
         return `${day}/${month}/${year}`;
     };
 
+    // Format date from dd/mm/yyyy to dd-mm-yyyy
+    // and handle invalid date formats
     const editFormatDate = (date: string): string => {
         if (!date) {
             console.error("Invalid date:", date);
@@ -219,6 +252,8 @@ const Bos: React.FC = () => {
         return `${formattedDay}-${formattedMonth}-${formattedYear}`;
     };
 
+    // Formik validation and submission
+    // Initialize Formik with validation schema and initial values
     const validation = useFormik({
         initialValues: {
             academicYear: null as { value: string; label: string } | null,
@@ -285,6 +320,8 @@ const Bos: React.FC = () => {
             formData.append("streamId", values.stream?.value || "");
             formData.append("courseIds", values.program.map((option) => option.value).join(",") || "");
             formData.append("programId", values.degree?.value || "");
+            formData.append("bosId", editId || "");
+            formData.append("otherDepartment", values.otherDepartment || "");
 
             // Append the file
             if (values.file) {
@@ -294,12 +331,19 @@ const Bos: React.FC = () => {
             }
 
             try {
-                const response = await api.create("/bos/saveCurriculumBos", formData);
-                // Display success message
-                toast.success(response.message || "Curriculum BOS added successfully!");
-                console.log("BOS created successfully:", response.data);
+                if (isEditMode && editId) {
+                    // Call the update API
+                    const response = await api.put(`/bos/updateCurriculumBos`, formData);
+                    toast.success(response.message || "Curriculum BOS updated successfully!");
+                } else {
+                    // Call the save API
+                    const response = await api.create("/bos/saveCurriculumBos", formData);
+                    toast.success(response.message || "Curriculum BOS added successfully!");
+                }
                 // Reset the form fields
                 resetForm();
+                setIsEditMode(false); // Reset edit mode
+                setEditId(null); // Clear the edit ID
                 // display the BOS List
                 handleListBosClick();
             } catch (error) {
@@ -561,7 +605,7 @@ const Bos: React.FC = () => {
                                     <Col lg={12}>
                                         <div className="mt-3 d-flex justify-content-between">
                                             <button className="btn btn-primary" type="submit">
-                                                Save
+                                                {isEditMode ? "Update" : "Save"}
                                             </button>
                                             <button
                                                 className="btn btn-primary"
@@ -743,6 +787,21 @@ const Bos: React.FC = () => {
                         </div>
                     </ModalBody>
                 </Modal>
+                {/* Confirmation Modal */}
+                <Modal isOpen={isDeleteModalOpen} toggle={() => setIsDeleteModalOpen(false)}>
+                    <ModalHeader toggle={() => setIsDeleteModalOpen(false)}>Confirm Deletion</ModalHeader>
+                    <ModalBody>
+                        Are you sure you want to delete this record? This action cannot be undone.
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button color="danger" onClick={() => confirmDelete(deleteId!)}>
+                            Delete
+                        </Button>
+                        <Button color="secondary" onClick={() => setIsDeleteModalOpen(false)}>
+                            Cancel
+                        </Button>
+                    </ModalFooter>
+                </Modal>;
             </div>
             <ToastContainer />
         </React.Fragment>
