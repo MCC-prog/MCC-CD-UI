@@ -268,7 +268,7 @@ const Bos: React.FC = () => {
                 });
 
                 // Create a Blob from the response data
-                const blob = new Blob([response], { type: "application/octet-stream" });
+                const blob = new Blob([response], { type: "*/*" });
 
                 // Create a URL for the Blob
                 const url = window.URL.createObjectURL(blob);
@@ -388,7 +388,7 @@ const Bos: React.FC = () => {
             if (values.file) {
                 formData.append("mom", values.file);
             } else {
-                console.error("No file selected");
+                formData.append("mom", "");
             }
 
             try {
