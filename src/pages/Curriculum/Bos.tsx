@@ -15,6 +15,8 @@ import { APIClient } from "../../helpers/api_helper";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { SEMESTER_NO_OPTIONS } from "../../Components/constants/layout";
+import axios from 'axios';
+import { head } from 'lodash';
 
 const api = new APIClient();
 
@@ -25,6 +27,8 @@ const Bos: React.FC = () => {
     // State variable for managing delete confirmation modal
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [deleteId, setDeleteId] = useState<string | null>(null);
+    // State variable for managing file upload status
+    const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
     // State variable for managing the modal for listing BOS
     const [isModalOpen, setIsModalOpen] = useState(false);
     // State variable for managing the list of BOS data
@@ -167,12 +171,13 @@ const Bos: React.FC = () => {
                 revisionPercentage: response.percentage || "",
                 conductedDate: response.yearOfIntroduction ? editFormatDate(response.yearOfIntroduction) : "",
                 otherDepartment: "", // Add default value for otherDepartment
-                file: null, // Files cannot be pre-filled in input fields for security reasons
+                file: response.documents?.mom || null
             };
 
             // Update Formik values
             validation.setValues({
                 ...mappedValues,
+                file: response.documents?.mom || null,
                 academicYear: mappedValues.academicYear
                     ? { ...mappedValues.academicYear, value: String(mappedValues.academicYear.value) }
                     : null,
@@ -182,6 +187,8 @@ const Bos: React.FC = () => {
             });
             setIsEditMode(true); // Set edit mode
             setEditId(id); // Store the ID of the record being edited
+            // Disable the file upload button if a file exists
+            setIsFileUploadDisabled(!!response.documents?.mom);
             toggleModal();
         } catch (error) {
             console.error("Error fetching BOS data by ID:", error);
@@ -228,7 +235,7 @@ const Bos: React.FC = () => {
     const editFormatDate = (date: string): string => {
         if (!date) {
             console.error("Invalid date:", date);
-            return ""; // Return an empty string for invalid dates
+            return "" // Return an empty string for invalid dates
         }
 
         // Parse the date in dd/mm/yyyy format
@@ -251,6 +258,60 @@ const Bos: React.FC = () => {
         const formattedYear = parsedDate.getFullYear();
         return `${formattedDay}-${formattedMonth}-${formattedYear}`;
     };
+    // Handle file download actions
+    const handleDownloadFile = async (fileName: string) => {
+        if (fileName) {
+            try {
+                // Ensure you set responseType to 'blob' to handle binary data
+                const response = await axios.get(`/bos/download/${fileName}`, {
+                    responseType: 'blob'
+                });
+
+                // Create a Blob from the response data
+                const blob = new Blob([response], { type: "application/octet-stream" });
+
+                // Create a URL for the Blob
+                const url = window.URL.createObjectURL(blob);
+
+                // Create a temporary anchor element to trigger the download
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = fileName; // Set the file name for the download
+                document.body.appendChild(link);
+                link.click();
+
+                // Clean up the URL and remove the anchor element
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+
+                toast.success("File downloaded successfully!");
+            } catch (error) {
+                toast.error("Failed to download MOM file. Please try again.");
+                console.error("Error downloading file:", error);
+            }
+        } else {
+            toast.error("No file available for download.");
+        }
+    };
+
+
+    // Handle file deletion
+    // Clear the file from the form and show success message
+    const handleDeleteFile = async () => {
+        try {
+            // Call the delete API
+            const response = await api.delete(`/bos/deleteBosDocument?bosDocumentId=${editId}`, '');
+            // Show success message
+            toast.success(response.message || "File deleted successfully!");
+            // Remove the file from the form
+            validation.setFieldValue("file", null); // Clear the file from Formik state
+            setIsFileUploadDisabled(false); // Enable the file upload button
+        } catch (error) {
+            // Show error message
+            toast.error("Failed to delete the file. Please try again.");
+            console.error("Error deleting file:", error);
+        }
+    };
 
     // Formik validation and submission
     // Initialize Formik with validation schema and initial values
@@ -262,7 +323,7 @@ const Bos: React.FC = () => {
             stream: null as { value: string; label: string } | null,
             department: null as { value: string; label: string } | null,
             otherDepartment: "",
-            file: null,
+            file: null as File | string | null,
             programType: null as { value: string; label: string } | null,
             degree: null as { value: string; label: string } | null,
             program: [] as { value: string; label: string }[],
@@ -487,7 +548,7 @@ const Bos: React.FC = () => {
                                         <div className="mb-3">
                                             <Label>Program Type</Label>
                                             <ProgramTypeDropdown
-                                                deptId={selectedDepartment?.value} // Pass the selected department ID
+                                                deptId={selectedDepartment?.value}
                                                 value={validation.values.programType}
                                                 onChange={(selectedOption) => {
                                                     validation.setFieldValue("programType", selectedOption);
@@ -584,9 +645,40 @@ const Bos: React.FC = () => {
                                                 onChange={(event) => {
                                                     validation.setFieldValue("file", event.currentTarget.files ? event.currentTarget.files[0] : null);
                                                 }}
+                                                disabled={isFileUploadDisabled} // Disable the button if a file exists
                                             />
                                             {validation.touched.file && validation.errors.file && (
                                                 <div className="text-danger">{validation.errors.file}</div>
+                                            )}
+                                            {/* Show a message if the file upload button is disabled */}
+                                            {isFileUploadDisabled && (
+                                                <div className="text-warning mt-2">
+                                                    Please remove the existing file to upload a new one.
+                                                </div>
+                                            )}
+                                            {/* Only show the file name if it is a string (from the edit API) */}
+                                            {typeof validation.values.file === "string" && (
+                                                <div className="mt-2 d-flex align-items-center">
+                                                    <span className="me-2" style={{ fontWeight: "bold", color: "green" }}>
+                                                        {validation.values.file}
+                                                    </span>
+                                                    <Button
+                                                        color="link"
+                                                        className="text-primary"
+                                                        onClick={() => handleDownloadFile(validation.values.file as string)}
+                                                        title="Download File"
+                                                    >
+                                                        <i className="bi bi-download"></i>
+                                                    </Button>
+                                                    <Button
+                                                        color="link"
+                                                        className="text-danger"
+                                                        onClick={() => handleDeleteFile()}
+                                                        title="Delete File"
+                                                    >
+                                                        <i className="bi bi-trash"></i>
+                                                    </Button>
+                                                </div>
                                             )}
                                         </div>
                                     </Col>
@@ -801,7 +893,7 @@ const Bos: React.FC = () => {
                             Cancel
                         </Button>
                     </ModalFooter>
-                </Modal>;
+                </Modal>
             </div>
             <ToastContainer />
         </React.Fragment>
