@@ -6,6 +6,7 @@ import HorizontalLayout from "./Layouts/HorizontalLayout/index";
 import NonAuthLayout from "./Layouts/NonLayout";
 import VerticalLayout from "./Layouts/VerticalLayout";
 import { authProtectedRoutes, publicRoutes } from "./Routes/allRoutes";
+import "bootstrap-icons/font/bootstrap-icons.css";
 
 //constants
 import {
