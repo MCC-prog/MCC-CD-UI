@@ -345,16 +345,32 @@ const Bos: React.FC = () => {
                     ? schema.required("Please specify the department")
                     : schema;
             }),
-            file: Yup.mixed()
-                .required("Please upload a file")
-                .test("fileSize", "File size is too large", (value: any) => {
-                    return value && value.size <= 2 * 1024 * 1024; // 2MB limit
-                })
-                .test("fileType", "Unsupported file format", (value: any) => {
-                    return value && ["application/pdf", "image/jpeg", "image/png"].includes(value.type);
-                }),
+            file: Yup.mixed().test(
+                "fileValidation",
+                "Please upload a valid file",
+                function (value) {
+                    // Skip validation if the file upload is disabled (file exists)
+                    if (isFileUploadDisabled) {
+                        return true;
+                    }
+                    // Perform validation if the file upload is enabled (file doesn't exist)
+                    if (!value) {
+                        return this.createError({ message: "Please upload a file" });
+                    }
+                    // Check file size (2MB limit)
+                    if (value instanceof File && value.size > 2 * 1024 * 1024) {
+                        return this.createError({ message: "File size is too large" });
+                    }
+                    // Check file type
+                    const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
+                    if (value instanceof File && !allowedTypes.includes(value.type)) {
+                        return this.createError({ message: "Unsupported file format" });
+                    }
+                    return true;
+                }
+            ),
             programType: Yup.object<{ value: string; label: string }>().nullable().required("Please select program type"),
-            degree: Yup.object().nullable().required("Please select degree"),
+            degree: Yup.object<{ value: string; label: string }>().nullable().required("Please select degree"),
             program: Yup.array()
                 .min(1, "Please select at least one program")
                 .required("Please select programs"),
@@ -385,10 +401,12 @@ const Bos: React.FC = () => {
             formData.append("otherDepartment", values.otherDepartment || "");
 
             // Append the file
-            if (values.file) {
+            if (typeof values.file === "string") {
+                // If the file is just a name, send null
+                formData.append("mom", "null");
+            } else if (values.file instanceof File) {
+                // If the file is a File object, send the file
                 formData.append("mom", values.file);
-            } else {
-                formData.append("mom", "");
             }
 
             try {
