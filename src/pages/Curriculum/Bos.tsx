@@ -16,7 +16,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { SEMESTER_NO_OPTIONS } from "../../Components/constants/layout";
 import axios from 'axios';
-import { head } from 'lodash';
+import moment from "moment";
 
 const api = new APIClient();
 
@@ -169,7 +169,7 @@ const Bos: React.FC = () => {
                     }))
                     : [],
                 revisionPercentage: response.percentage || "",
-                conductedDate: response.yearOfIntroduction ? editFormatDate(response.yearOfIntroduction) : "",
+                conductedDate: response.yearOfIntroduction ? response.yearOfIntroduction : "",
                 otherDepartment: "", // Add default value for otherDepartment
                 file: response.documents?.mom || null
             };
@@ -220,44 +220,6 @@ const Bos: React.FC = () => {
         }
     };
 
-    // Format date from yyyy-mm-dd to dd/mm/yyyy
-    // and handle invalid date formats
-    const formatDate = (date: string): string => {
-        const d = new Date(date);
-        const day = String(d.getDate()).padStart(2, "0");
-        const month = String(d.getMonth() + 1).padStart(2, "0"); // Months are 0-based
-        const year = d.getFullYear();
-        return `${day}/${month}/${year}`;
-    };
-
-    // Format date from dd/mm/yyyy to dd-mm-yyyy
-    // and handle invalid date formats
-    const editFormatDate = (date: string): string => {
-        if (!date) {
-            console.error("Invalid date:", date);
-            return "" // Return an empty string for invalid dates
-        }
-
-        // Parse the date in dd/mm/yyyy format
-        const [day, month, year] = date.split("/");
-        if (!day || !month || !year) {
-            console.error("Invalid date format:", date);
-            return ""; // Return an empty string for invalid formats
-        }
-
-        // Create a new Date object
-        const parsedDate = new Date(`${year}-${month}-${day}`);
-        if (isNaN(parsedDate.getTime())) {
-            console.error("Invalid parsed date:", date);
-            return ""; // Return an empty string for invalid parsed dates
-        }
-
-        // Format the date as dd-mm-yyyy
-        const formattedDay = String(parsedDate.getDate()).padStart(2, "0");
-        const formattedMonth = String(parsedDate.getMonth() + 1).padStart(2, "0"); // Months are 0-based
-        const formattedYear = parsedDate.getFullYear();
-        return `${formattedDay}-${formattedMonth}-${formattedYear}`;
-    };
     // Handle file download actions
     const handleDownloadFile = async (fileName: string) => {
         if (fileName) {
@@ -389,7 +351,7 @@ const Bos: React.FC = () => {
             // Append fields to FormData
             formData.append("academicYear", values.academicYear?.value || "");
             formData.append("departmentId", values.department?.value || "");
-            formData.append("yearOfIntroduction", formatDate(values.conductedDate) || "");
+            formData.append("yearOfIntroduction", values.conductedDate || "");
             formData.append("semType", values.semesterType?.value || "");
             formData.append("semesterNo", String(values.semesterNo?.value || ""));
             formData.append("programTypeId", values.programType?.value || "");
@@ -432,6 +394,7 @@ const Bos: React.FC = () => {
             }
         }
     });
+
 
     return (
         <React.Fragment>
@@ -628,10 +591,18 @@ const Bos: React.FC = () => {
                                         <div className="mb-3">
                                             <Label>Conducted Date</Label>
                                             <Input
-                                                type="date"
+                                                type="date" // Use native date input
                                                 className={`form-control ${validation.touched.conductedDate && validation.errors.conductedDate ? "is-invalid" : ""}`}
-                                                value={validation.values.conductedDate}
-                                                onChange={(e) => validation.setFieldValue("conductedDate", e.target.value)}
+                                                value={
+                                                    validation.values.conductedDate
+                                                        ? moment(validation.values.conductedDate, "DD/MM/YYYY").format("YYYY-MM-DD") // Convert to yyyy-mm-dd for the input
+                                                        : ""
+                                                }
+                                                onChange={(e) => {
+                                                    const formattedDate = moment(e.target.value, "YYYY-MM-DD").format("DD/MM/YYYY"); // Convert to dd/mm/yyyy
+                                                    validation.setFieldValue("conductedDate", formattedDate);
+                                                }}
+                                                placeholder="dd/mm/yyyy"
                                             />
                                             {validation.touched.conductedDate && validation.errors.conductedDate && (
                                                 <div className="text-danger">{validation.errors.conductedDate}</div>
