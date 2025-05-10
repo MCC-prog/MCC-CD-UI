@@ -15,6 +15,8 @@ import { APIClient } from "../../helpers/api_helper";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { SEMESTER_NO_OPTIONS } from "../../Components/constants/layout";
+import axios from 'axios';
+import moment from "moment";
 
 const api = new APIClient();
 
@@ -25,6 +27,8 @@ const Bos: React.FC = () => {
     // State variable for managing delete confirmation modal
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [deleteId, setDeleteId] = useState<string | null>(null);
+    // State variable for managing file upload status
+    const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
     // State variable for managing the modal for listing BOS
     const [isModalOpen, setIsModalOpen] = useState(false);
     // State variable for managing the list of BOS data
@@ -165,14 +169,15 @@ const Bos: React.FC = () => {
                     }))
                     : [],
                 revisionPercentage: response.percentage || "",
-                conductedDate: response.yearOfIntroduction ? editFormatDate(response.yearOfIntroduction) : "",
+                conductedDate: response.yearOfIntroduction ? response.yearOfIntroduction : "",
                 otherDepartment: "", // Add default value for otherDepartment
-                file: null, // Files cannot be pre-filled in input fields for security reasons
+                file: response.documents?.mom || null
             };
 
             // Update Formik values
             validation.setValues({
                 ...mappedValues,
+                file: response.documents?.mom || null,
                 academicYear: mappedValues.academicYear
                     ? { ...mappedValues.academicYear, value: String(mappedValues.academicYear.value) }
                     : null,
@@ -182,6 +187,8 @@ const Bos: React.FC = () => {
             });
             setIsEditMode(true); // Set edit mode
             setEditId(id); // Store the ID of the record being edited
+            // Disable the file upload button if a file exists
+            setIsFileUploadDisabled(!!response.documents?.mom);
             toggleModal();
         } catch (error) {
             console.error("Error fetching BOS data by ID:", error);
@@ -213,43 +220,59 @@ const Bos: React.FC = () => {
         }
     };
 
-    // Format date from yyyy-mm-dd to dd/mm/yyyy
-    // and handle invalid date formats
-    const formatDate = (date: string): string => {
-        const d = new Date(date);
-        const day = String(d.getDate()).padStart(2, "0");
-        const month = String(d.getMonth() + 1).padStart(2, "0"); // Months are 0-based
-        const year = d.getFullYear();
-        return `${day}/${month}/${year}`;
+    // Handle file download actions
+    const handleDownloadFile = async (fileName: string) => {
+        if (fileName) {
+            try {
+                // Ensure you set responseType to 'blob' to handle binary data
+                const response = await axios.get(`/bos/download/${fileName}`, {
+                    responseType: 'blob'
+                });
+
+                // Create a Blob from the response data
+                const blob = new Blob([response], { type: "*/*" });
+
+                // Create a URL for the Blob
+                const url = window.URL.createObjectURL(blob);
+
+                // Create a temporary anchor element to trigger the download
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = fileName; // Set the file name for the download
+                document.body.appendChild(link);
+                link.click();
+
+                // Clean up the URL and remove the anchor element
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+
+                toast.success("File downloaded successfully!");
+            } catch (error) {
+                toast.error("Failed to download MOM file. Please try again.");
+                console.error("Error downloading file:", error);
+            }
+        } else {
+            toast.error("No file available for download.");
+        }
     };
 
-    // Format date from dd/mm/yyyy to dd-mm-yyyy
-    // and handle invalid date formats
-    const editFormatDate = (date: string): string => {
-        if (!date) {
-            console.error("Invalid date:", date);
-            return ""; // Return an empty string for invalid dates
-        }
 
-        // Parse the date in dd/mm/yyyy format
-        const [day, month, year] = date.split("/");
-        if (!day || !month || !year) {
-            console.error("Invalid date format:", date);
-            return ""; // Return an empty string for invalid formats
+    // Handle file deletion
+    // Clear the file from the form and show success message
+    const handleDeleteFile = async () => {
+        try {
+            // Call the delete API
+            const response = await api.delete(`/bos/deleteBosDocument?bosDocumentId=${editId}`, '');
+            // Show success message
+            toast.success(response.message || "File deleted successfully!");
+            // Remove the file from the form
+            validation.setFieldValue("file", null); // Clear the file from Formik state
+            setIsFileUploadDisabled(false); // Enable the file upload button
+        } catch (error) {
+            // Show error message
+            toast.error("Failed to delete the file. Please try again.");
+            console.error("Error deleting file:", error);
         }
-
-        // Create a new Date object
-        const parsedDate = new Date(`${year}-${month}-${day}`);
-        if (isNaN(parsedDate.getTime())) {
-            console.error("Invalid parsed date:", date);
-            return ""; // Return an empty string for invalid parsed dates
-        }
-
-        // Format the date as dd-mm-yyyy
-        const formattedDay = String(parsedDate.getDate()).padStart(2, "0");
-        const formattedMonth = String(parsedDate.getMonth() + 1).padStart(2, "0"); // Months are 0-based
-        const formattedYear = parsedDate.getFullYear();
-        return `${formattedDay}-${formattedMonth}-${formattedYear}`;
     };
 
     // Formik validation and submission
@@ -262,7 +285,7 @@ const Bos: React.FC = () => {
             stream: null as { value: string; label: string } | null,
             department: null as { value: string; label: string } | null,
             otherDepartment: "",
-            file: null,
+            file: null as File | string | null,
             programType: null as { value: string; label: string } | null,
             degree: null as { value: string; label: string } | null,
             program: [] as { value: string; label: string }[],
@@ -284,16 +307,32 @@ const Bos: React.FC = () => {
                     ? schema.required("Please specify the department")
                     : schema;
             }),
-            file: Yup.mixed()
-                .required("Please upload a file")
-                .test("fileSize", "File size is too large", (value: any) => {
-                    return value && value.size <= 2 * 1024 * 1024; // 2MB limit
-                })
-                .test("fileType", "Unsupported file format", (value: any) => {
-                    return value && ["application/pdf", "image/jpeg", "image/png"].includes(value.type);
-                }),
+            file: Yup.mixed().test(
+                "fileValidation",
+                "Please upload a valid file",
+                function (value) {
+                    // Skip validation if the file upload is disabled (file exists)
+                    if (isFileUploadDisabled) {
+                        return true;
+                    }
+                    // Perform validation if the file upload is enabled (file doesn't exist)
+                    if (!value) {
+                        return this.createError({ message: "Please upload a file" });
+                    }
+                    // Check file size (2MB limit)
+                    if (value instanceof File && value.size > 2 * 1024 * 1024) {
+                        return this.createError({ message: "File size is too large" });
+                    }
+                    // Check file type
+                    const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
+                    if (value instanceof File && !allowedTypes.includes(value.type)) {
+                        return this.createError({ message: "Unsupported file format" });
+                    }
+                    return true;
+                }
+            ),
             programType: Yup.object<{ value: string; label: string }>().nullable().required("Please select program type"),
-            degree: Yup.object().nullable().required("Please select degree"),
+            degree: Yup.object<{ value: string; label: string }>().nullable().required("Please select degree"),
             program: Yup.array()
                 .min(1, "Please select at least one program")
                 .required("Please select programs"),
@@ -312,7 +351,7 @@ const Bos: React.FC = () => {
             // Append fields to FormData
             formData.append("academicYear", values.academicYear?.value || "");
             formData.append("departmentId", values.department?.value || "");
-            formData.append("yearOfIntroduction", formatDate(values.conductedDate) || "");
+            formData.append("yearOfIntroduction", values.conductedDate || "");
             formData.append("semType", values.semesterType?.value || "");
             formData.append("semesterNo", String(values.semesterNo?.value || ""));
             formData.append("programTypeId", values.programType?.value || "");
@@ -324,10 +363,12 @@ const Bos: React.FC = () => {
             formData.append("otherDepartment", values.otherDepartment || "");
 
             // Append the file
-            if (values.file) {
+            if (typeof values.file === "string") {
+                // If the file is just a name, send null
+                formData.append("mom", "null");
+            } else if (values.file instanceof File) {
+                // If the file is a File object, send the file
                 formData.append("mom", values.file);
-            } else {
-                console.error("No file selected");
             }
 
             try {
@@ -353,6 +394,7 @@ const Bos: React.FC = () => {
             }
         }
     });
+
 
     return (
         <React.Fragment>
@@ -487,7 +529,7 @@ const Bos: React.FC = () => {
                                         <div className="mb-3">
                                             <Label>Program Type</Label>
                                             <ProgramTypeDropdown
-                                                deptId={selectedDepartment?.value} // Pass the selected department ID
+                                                deptId={selectedDepartment?.value}
                                                 value={validation.values.programType}
                                                 onChange={(selectedOption) => {
                                                     validation.setFieldValue("programType", selectedOption);
@@ -549,10 +591,18 @@ const Bos: React.FC = () => {
                                         <div className="mb-3">
                                             <Label>Conducted Date</Label>
                                             <Input
-                                                type="date"
+                                                type="date" // Use native date input
                                                 className={`form-control ${validation.touched.conductedDate && validation.errors.conductedDate ? "is-invalid" : ""}`}
-                                                value={validation.values.conductedDate}
-                                                onChange={(e) => validation.setFieldValue("conductedDate", e.target.value)}
+                                                value={
+                                                    validation.values.conductedDate
+                                                        ? moment(validation.values.conductedDate, "DD/MM/YYYY").format("YYYY-MM-DD") // Convert to yyyy-mm-dd for the input
+                                                        : ""
+                                                }
+                                                onChange={(e) => {
+                                                    const formattedDate = moment(e.target.value, "YYYY-MM-DD").format("DD/MM/YYYY"); // Convert to dd/mm/yyyy
+                                                    validation.setFieldValue("conductedDate", formattedDate);
+                                                }}
+                                                placeholder="dd/mm/yyyy"
                                             />
                                             {validation.touched.conductedDate && validation.errors.conductedDate && (
                                                 <div className="text-danger">{validation.errors.conductedDate}</div>
@@ -584,9 +634,40 @@ const Bos: React.FC = () => {
                                                 onChange={(event) => {
                                                     validation.setFieldValue("file", event.currentTarget.files ? event.currentTarget.files[0] : null);
                                                 }}
+                                                disabled={isFileUploadDisabled} // Disable the button if a file exists
                                             />
                                             {validation.touched.file && validation.errors.file && (
                                                 <div className="text-danger">{validation.errors.file}</div>
+                                            )}
+                                            {/* Show a message if the file upload button is disabled */}
+                                            {isFileUploadDisabled && (
+                                                <div className="text-warning mt-2">
+                                                    Please remove the existing file to upload a new one.
+                                                </div>
+                                            )}
+                                            {/* Only show the file name if it is a string (from the edit API) */}
+                                            {typeof validation.values.file === "string" && (
+                                                <div className="mt-2 d-flex align-items-center">
+                                                    <span className="me-2" style={{ fontWeight: "bold", color: "green" }}>
+                                                        {validation.values.file}
+                                                    </span>
+                                                    <Button
+                                                        color="link"
+                                                        className="text-primary"
+                                                        onClick={() => handleDownloadFile(validation.values.file as string)}
+                                                        title="Download File"
+                                                    >
+                                                        <i className="bi bi-download"></i>
+                                                    </Button>
+                                                    <Button
+                                                        color="link"
+                                                        className="text-danger"
+                                                        onClick={() => handleDeleteFile()}
+                                                        title="Delete File"
+                                                    >
+                                                        <i className="bi bi-trash"></i>
+                                                    </Button>
+                                                </div>
                                             )}
                                         </div>
                                     </Col>
@@ -801,7 +882,7 @@ const Bos: React.FC = () => {
                             Cancel
                         </Button>
                     </ModalFooter>
-                </Modal>;
+                </Modal>
             </div>
             <ToastContainer />
         </React.Fragment>
