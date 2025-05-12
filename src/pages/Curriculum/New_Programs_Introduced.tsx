@@ -21,7 +21,9 @@ import {
 } from "reactstrap";
 import { SEMESTER_NO_OPTIONS } from "Components/constants/layout";
 import { toast } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import axios from "axios";
+import moment from "moment";
 const api = new APIClient();
 
 const New_Programs_Introduced: React.FC = () => {
@@ -226,8 +228,8 @@ const New_Programs_Introduced: React.FC = () => {
         otherDepartment: "", // Add default value for otherDepartment
         file: response.documents?.mom || null,
         syllabusFile: response.documents?.syllabus || null,
-        YearofIntroduction: response.yearOfIntroduction
-          ? editFormatDate(response.yearOfIntroduction)
+        YearofIntroduction: response.introductionYear
+          ? response.introductionYear
           : "",
       };
 
@@ -235,6 +237,7 @@ const New_Programs_Introduced: React.FC = () => {
       validation.setValues({
         ...mappedValues,
         file: response.documents?.mom || null,
+        syllabusFile: response.documents?.syllabus || null,
         academicYear: mappedValues.academicYear
           ? {
               ...mappedValues.academicYear,
@@ -327,7 +330,7 @@ const New_Programs_Introduced: React.FC = () => {
 
   // Handle file deletion
   // Clear the file from the form and show success message
-  const handleDeleteFile = async () => {
+  const handleDeleteFile = async (fieldName: "file" | "syllabusFile") => {
     try {
       // Call the delete API
       const response = await api.delete(
@@ -337,7 +340,7 @@ const New_Programs_Introduced: React.FC = () => {
       // Show success message
       toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
-      validation.setFieldValue("file", null); // Clear the file from Formik state
+      validation.setFieldValue(fieldName, null); // Clear the file from Formik state
       setIsFileUploadDisabled(false); // Enable the file upload button
     } catch (error) {
       // Show error message
@@ -358,8 +361,8 @@ const New_Programs_Introduced: React.FC = () => {
       degree: null as { value: string; label: string } | null,
       programName: "",
       YearofIntroduction: "",
-      file: null,
-      syllabusFile: null,
+      file: null as File | string | null,
+      syllabusFile: null as File | string | null,
     },
     validationSchema: Yup.object({
       academicYear: Yup.object()
@@ -384,28 +387,54 @@ const New_Programs_Introduced: React.FC = () => {
         .required("Please select program type"),
       degree: Yup.object().nullable().required("Please select degree"),
 
-      file: Yup.mixed()
-        .required("Please upload a file")
-        .test("fileSize", "File size is too large", (value: any) => {
-          return value && value.size <= 2 * 1024 * 1024; // 2MB limit
-        })
-        .test("fileType", "Unsupported file format", (value: any) => {
-          return (
-            value &&
-            ["application/pdf", "image/jpeg", "image/png"].includes(value.type)
-          );
-        }),
-      syllabusFile: Yup.mixed()
-        .required("Please upload a file")
-        .test("fileSize", "File size is too large", (value: any) => {
-          return value && value.size <= 2 * 1024 * 1024; // 2MB limit
-        })
-        .test("fileType", "Unsupported file format", (value: any) => {
-          return (
-            value &&
-            ["application/pdf", "image/jpeg", "image/png"].includes(value.type)
-          );
-        }),
+      file: Yup.mixed().test(
+        "fileValidation",
+        "Please upload a valid file",
+        function (value) {
+          // Skip validation if the file upload is disabled (file exists)
+          if (isFileUploadDisabled) {
+            return true;
+          }
+          // Perform validation if the file upload is enabled (file doesn't exist)
+          if (!value) {
+            return this.createError({ message: "Please upload a file" });
+          }
+          // Check file size (2MB limit)
+          if (value instanceof File && value.size > 2 * 1024 * 1024) {
+            return this.createError({ message: "File size is too large" });
+          }
+          // Check file type
+          const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
+          if (value instanceof File && !allowedTypes.includes(value.type)) {
+            return this.createError({ message: "Unsupported file format" });
+          }
+          return true;
+        }
+      ),
+      syllabusFile: Yup.mixed().test(
+        "fileValidation",
+        "Please upload a valid file",
+        function (value) {
+          // Skip validation if the file upload is disabled (file exists)
+          if (isFileUploadDisabled) {
+            return true;
+          }
+          // Perform validation if the file upload is enabled (file doesn't exist)
+          if (!value) {
+            return this.createError({ message: "Please upload a file" });
+          }
+          // Check file size (2MB limit)
+          if (value instanceof File && value.size > 2 * 1024 * 1024) {
+            return this.createError({ message: "File size is too large" });
+          }
+          // Check file type
+          const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
+          if (value instanceof File && !allowedTypes.includes(value.type)) {
+            return this.createError({ message: "Unsupported file format" });
+          }
+          return true;
+        }
+      ),
     }),
     onSubmit: async (values, { resetForm }) => {
       // Create FormData object
@@ -414,10 +443,7 @@ const New_Programs_Introduced: React.FC = () => {
       // Append fields to FormData
       formData.append("academicYear", String(values.academicYear?.value || ""));
       formData.append("departmentId", String(values.department?.value || ""));
-      formData.append(
-        "yearOfIntroduction",
-        formatDateForInput(values.YearofIntroduction) || ""
-      );
+      formData.append("yearOfIntroduction", values.YearofIntroduction || "");
       formData.append("semType", values.semesterType?.value || "");
       formData.append("semesterNo", String(values.semesterNo?.value || ""));
       formData.append("programTypeId", String(values.programType?.value || ""));
@@ -705,8 +731,26 @@ const New_Programs_Introduced: React.FC = () => {
                       <Input
                         type="date"
                         name="YearofIntroduction"
-                        value={validation.values.YearofIntroduction}
-                        onChange={validation.handleChange}
+                        // value={validation.values.YearofIntroduction}
+                        value={
+                          validation.values.YearofIntroduction
+                            ? moment(
+                                validation.values.YearofIntroduction,
+                                "DD/MM/YYYY"
+                              ).format("YYYY-MM-DD") // Convert to yyyy-mm-dd for the input
+                            : ""
+                        }
+                        // onChange={validation.handleChange}
+                        onChange={(e) => {
+                          const formattedDate = moment(
+                            e.target.value,
+                            "YYYY-MM-DD"
+                          ).format("DD/MM/YYYY"); // Convert to dd/mm/yyyy
+                          validation.setFieldValue(
+                            "YearofIntroduction",
+                            formattedDate
+                          );
+                        }}
                         placeholder="Enter Year of Introduction"
                         className={
                           validation.touched.YearofIntroduction &&
@@ -783,7 +827,7 @@ const New_Programs_Introduced: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
-                            onClick={() => handleDeleteFile()}
+                            onClick={() => handleDeleteFile("file")}
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>
@@ -853,7 +897,7 @@ const New_Programs_Introduced: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
-                            onClick={() => handleDeleteFile()}
+                            onClick={() => handleDeleteFile("syllabusFile")}
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>
@@ -1083,6 +1127,7 @@ const New_Programs_Introduced: React.FC = () => {
           </ModalFooter>
         </Modal>
       </div>
+      <ToastContainer />
     </React.Fragment>
   );
 };

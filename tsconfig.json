@@ -16,24 +16,7 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "module": "esnext",
-    "baseUrl": "src", // This must be specified if "paths" is.
-    "paths": {
-      "@component/*": [
-        "Components/views/*"
-      ],
-      "@common/*": [
-        "src/Components/Common/*"
-      ],
-      "@assets/*": [
-        "Components/assets/*"
-      ],
-      "@shared/*": [
-        "app/_shared/*"
-      ],
-      "@helpers/*": [
-        "helpers/*"
-      ]
-    },
+    "baseUrl": "src",
     "types": [
       "notistack",
       "node"
