@@ -605,11 +605,11 @@ const Innovative_Teaching_Methodologies: React.FC = () => {
                         {isEditMode ? "Update" : "Save"}
                       </button>
                       <button
-                        className="btn btn-primary"
+                        className="btn btn-secondary"
                         type="button"
                         onClick={handleListBosClick}
                       >
-                        List ITM
+                        List of Innovative Teaching Methodologies
                       </button>
                     </div>
                   </Col>
