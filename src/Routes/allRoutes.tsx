@@ -27,6 +27,15 @@ import Year_Of_Establishment from "pages/Department Profile/Year_Of_Establishmen
 import Staff_Profile from "pages/Department Profile/Staff_Profile";
 import Program_By_Dept from "pages/Department Profile/Program_By_Dept";
 import Number_OfBooks_Dept from "pages/Department Profile/Number_OfBooks_Dept";
+import Fdps from "pages/Staff Enhancement Programs/Fdps";
+import Moocs from "pages/Staff Enhancement Programs/Moocs";
+import Skill_Development_Work from "pages/Staff Enhancement Programs/Skill_Development_Work";
+import Cdp_Activites from "pages/Extension Activity/Cdp_Activity";
+import Nss_Yrc from "pages/Extension Activity/Nss_Yrc";
+import Ncc from "pages/Extension Activity/Ncc";
+import Isrc from "pages/Extension Activity/Isrc";
+import Iks from "pages/Extension Activity/Iks";
+import Teacher_Student_Award from "pages/Extension Activity/Teacher_Student_Award";
 
 
 const authProtectedRoutes = [
@@ -62,6 +71,19 @@ const authProtectedRoutes = [
   { path: "/Staff_Profile", component: <Staff_Profile /> },
   { path: "/Program_By_Dept", component: <Program_By_Dept /> },
   { path: "/Number_OfBooks_Dept", component: <Number_OfBooks_Dept /> },
+
+  //__________Staff Enhancement__________//
+  { path: "/Fdps", component: <Fdps/> },
+  { path: "/Moocs", component: <Moocs/> },
+  { path: "/Skill_Development_Workshops", component: <Skill_Development_Work/> },
+
+   //__________Extension Activites__________//
+ { path: "/Cdp_Activites", component: <Cdp_Activites /> },
+ { path: "/Nss_Yrc", component: <Nss_Yrc /> },
+ { path: "/Ncc", component: <Ncc /> },
+ { path: "/Isrc", component: <Isrc /> },
+  { path: "/Iks", component: <Iks /> },
+  { path: "/Teacher_Student_Award", component: <Teacher_Student_Award /> },
 ];
 
 const publicRoutes = [

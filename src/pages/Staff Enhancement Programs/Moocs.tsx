@@ -1,45 +1,63 @@
 import Breadcrumb from "Components/Common/Breadcrumb";
-import { useFormik } from "formik";
-import React, { useState } from "react";
-import Select from "react-select";
-import * as Yup from "yup";
-import { Card, CardBody, Col, Container, Input, Label, Row } from "reactstrap";
-import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
 import AcademicYearDropdown from "Components/DropDowns/AcademicYearDropdown";
+import DegreeDropdown from "Components/DropDowns/DegreeDropdown";
+import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
+import ProgramDropdown from "Components/DropDowns/ProgramDropdown";
+import ProgramTypeDropdown from "Components/DropDowns/ProgramTypeDropdown";
 import SemesterDropdowns from "Components/DropDowns/SemesterDropdowns";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
-import DegreeDropdown from "Components/DropDowns/DegreeDropdown";
-import ProgramTypeDropdown from "Components/DropDowns/ProgramTypeDropdown";
-import { APIClient } from "../../helpers/api_helper";
+import { ToastContainer } from "react-toastify";
+import { useFormik } from "formik";
+import React, { useState } from "react";
 import {
   Button,
+  Card,
+  CardBody,
+  Col,
+  Container,
+  Input,
+  Label,
   Modal,
   ModalBody,
   ModalFooter,
   ModalHeader,
+  Row,
   Table,
 } from "reactstrap";
-import { SEMESTER_NO_OPTIONS } from "Components/constants/layout";
+import * as Yup from "yup";
+import { APIClient } from "../../helpers/api_helper";
 import { toast } from "react-toastify";
-import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { SEMESTER_NO_OPTIONS } from "../../Components/constants/layout";
 import axios from "axios";
 import moment from "moment";
+import Select from "react-select";
+
 const api = new APIClient();
 
-const New_Programs_Introduced: React.FC = () => {
+const Moocs: React.FC = () => {
+  // State variables for managing modal, edit mode, and delete confirmation
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  // State variable for managing delete confirmation modal
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  // State variable for managing file upload status
+  const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
+  // State variable for managing the modal for listing BOS
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  // State variable for managing the list of BOS data
+  const [bosData, setBosData] = useState<any[]>([]);
+  // State variables for managing selected options in dropdowns
   const [selectedStream, setSelectedStream] = useState<any>(null);
   const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
   const [selectedProgramType, setSelectedProgramType] = useState<any>(null);
   const [selectedDegree, setSelectedDegree] = useState<any>(null);
-  const [editId, setEditId] = useState<string | null>(null);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [deleteId, setDeleteId] = useState<string | null>(null);
-  // State variable for managing the list of BOS data
-  const [bosData, setBosData] = useState<any[]>([]);
-  const [filteredData, setFilteredData] = useState(bosData);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
+  // State variable for managing search term and pagination
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 10;
+  // State variable for managing filters
   const [filters, setFilters] = useState({
     academicYear: "",
     semesterType: "",
@@ -51,9 +69,20 @@ const New_Programs_Introduced: React.FC = () => {
     yearOfIntroduction: "",
     percentage: "",
   });
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 10;
+  const [filteredData, setFilteredData] = useState(bosData);
+
+  const dropdownStyles = {
+    menu: (provided: any) => ({
+      ...provided,
+      overflowY: "auto", // Enable scrolling for additional options
+    }),
+    menuPortal: (base: any) => ({ ...base, zIndex: 9999 }), // Ensure the menu is above other elements
+  };
+
+  const Type = [
+    { value: "National", label: "National" },
+    { value: "International", label: "International" },
+  ];
 
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -110,7 +139,7 @@ const New_Programs_Introduced: React.FC = () => {
   // Fetch BOS data from the backend
   const fetchBosData = async () => {
     try {
-      const response = await api.get("/newProgram/getAllNewProgram", "");
+      const response = await api.get("/bos/getAllBos", "");
       setBosData(response);
       setFilteredData(response);
     } catch (error) {
@@ -118,7 +147,8 @@ const New_Programs_Introduced: React.FC = () => {
     }
   };
 
-  const handleListNPIClick = () => {
+  // Open the modal and fetch data
+  const handleListBosClick = () => {
     toggleModal();
     fetchBosData();
   };
@@ -133,48 +163,11 @@ const New_Programs_Introduced: React.FC = () => {
     return matchedOption ? matchedOption : { value, label: String(value) };
   };
 
-  const formatDateForInput = (date: string): string => {
-    const d = new Date(date);
-    const day = String(d.getDate()).padStart(2, "0");
-    const month = String(d.getMonth() + 1).padStart(2, "0"); // Months are 0-based
-    const year = d.getFullYear();
-    return `${day}/${month}/${year}`;
-  };
-
-  // Format date from dd/mm/yyyy to dd-mm-yyyy
-  // and handle invalid date formats
-  const editFormatDate = (date: string): string => {
-    if (!date) {
-      console.error("Invalid date:", date);
-      return ""; // Return an empty string for invalid dates
-    }
-
-    // Parse the date in dd/mm/yyyy format
-    const [day, month, year] = date.split("/");
-    if (!day || !month || !year) {
-      console.error("Invalid date format:", date);
-      return ""; // Return an empty string for invalid formats
-    }
-
-    // Create a new Date object
-    const parsedDate = new Date(`${year}-${month}-${day}`);
-    if (isNaN(parsedDate.getTime())) {
-      console.error("Invalid parsed date:", date);
-      return ""; // Return an empty string for invalid parsed dates
-    }
-
-    // Format the date as dd-mm-yyyy
-    const formattedDay = String(parsedDate.getDate()).padStart(2, "0");
-    const formattedMonth = String(parsedDate.getMonth() + 1).padStart(2, "0"); // Months are 0-based
-    const formattedYear = parsedDate.getFullYear();
-    return `${formattedDay}-${formattedMonth}-${formattedYear}`;
-  };
-
   // Handle edit action
   // Fetch the data for the selected BOS ID and populate the form fields
   const handleEdit = async (id: string) => {
     try {
-      const response = await api.get(`/newProgram/edit?newProgramId=${id}`, "");
+      const response = await api.get(`/bos/edit?bosId=${id}`, "");
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
       // Filter the response where isCurrent or isCurrentForAdmission is true
       const filteredAcademicYearList = academicYearOptions.filter(
@@ -191,13 +184,6 @@ const New_Programs_Introduced: React.FC = () => {
       // Map API response to Formik values
       const mappedValues = {
         academicYear: mapValueToLabel(response.academicYear, academicYearList),
-        semesterType: response.semType
-          ? { value: response.semType, label: response.semType.toUpperCase() }
-          : null,
-        semesterNo: mapValueToLabel(
-          String(response.semesterNo),
-          semesterNoOptions
-        ) as { value: string; label: string } | null,
         stream: response.streamId
           ? { value: response.streamId.toString(), label: response.streamName }
           : null,
@@ -207,50 +193,32 @@ const New_Programs_Introduced: React.FC = () => {
               label: response.departmentName,
             }
           : null,
-        programType: response.programTypeId
-          ? {
-              value: response.programTypeId.toString(),
-              label: response.programTypeName,
-            }
-          : null,
-        degree: response.degreeId
-          ? {
-              value: response.degreeId.toString(),
-              label: response.degreeName,
-            }
-          : null,
-        program: response.courses
-          ? Object.entries(response.courses).map(([key, value]) => ({
-              value: key,
-              label: String(value),
-            }))
-          : [],
+        startDate: response.startDate
+          ? moment(response.startDate).format("DD/MM/YYYY")
+          : "",
+        endDate: response.endDate
+          ? moment(response.endDate).format("DD/MM/YYYY")
+          : "",
         otherDepartment: "", // Add default value for otherDepartment
         file: response.documents?.mom || null,
-        syllabusFile: response.documents?.syllabus || null,
-        YearofIntroduction: response.introductionYear
-          ? response.introductionYear
-          : "",
+        titleOfFdp: response.titleOfFdp || "",
+        orgInst: response.orgInst || "",
+        type: response.type
+          ? { value: response.type, label: response.type }
+          : null,
       };
 
       // Update Formik values
       validation.setValues({
         ...mappedValues,
         file: response.documents?.mom || null,
-        syllabusFile: response.documents?.syllabus || null,
         academicYear: mappedValues.academicYear
           ? {
               ...mappedValues.academicYear,
               value: String(mappedValues.academicYear.value),
             }
           : null,
-        semesterNo: mappedValues.semesterNo
-          ? {
-              ...mappedValues.semesterNo,
-              value: String(mappedValues.semesterNo.value),
-            }
-          : null,
-        programName: response.programName || "",
+        facultyName: response.facultyName || "", // Ensure facultyName is included
       });
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
@@ -274,10 +242,7 @@ const New_Programs_Introduced: React.FC = () => {
   const confirmDelete = async (id: string) => {
     if (deleteId) {
       try {
-        const response = await api.delete(
-          `/newProgram/deleteNewProgram?newProgramId=${id}`,
-          ""
-        );
+        const response = await api.delete(`/bos/deleteBos?bosId=${id}`, "");
         toast.success(
           response.message || "Curriculum BOS removed successfully!"
         );
@@ -297,7 +262,7 @@ const New_Programs_Introduced: React.FC = () => {
     if (fileName) {
       try {
         // Ensure you set responseType to 'blob' to handle binary data
-        const response = await axios.get(`/newProgram/download/${fileName}`, {
+        const response = await axios.get(`/bos/download/${fileName}`, {
           responseType: "blob",
         });
 
@@ -330,17 +295,17 @@ const New_Programs_Introduced: React.FC = () => {
 
   // Handle file deletion
   // Clear the file from the form and show success message
-  const handleDeleteFile = async (fieldName: "file" | "syllabusFile") => {
+  const handleDeleteFile = async () => {
     try {
       // Call the delete API
       const response = await api.delete(
-        `/newProgram/deleteNewProgramDocument?newProgramId=${editId}`,
+        `/bos/deleteBosDocument?bosDocumentId=${editId}`,
         ""
       );
       // Show success message
       toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
-      validation.setFieldValue(fieldName, null); // Clear the file from Formik state
+      validation.setFieldValue("file", null); // Clear the file from Formik state
       setIsFileUploadDisabled(false); // Enable the file upload button
     } catch (error) {
       // Show error message
@@ -349,44 +314,46 @@ const New_Programs_Introduced: React.FC = () => {
     }
   };
 
+  // Formik validation and submission
+  // Initialize Formik with validation schema and initial values
   const validation = useFormik({
     initialValues: {
       academicYear: null as { value: string; label: string } | null,
-      semesterType: null as { value: string; label: string } | null,
-      semesterNo: null as { value: string; label: string } | null,
+      facultyName: "",
       stream: null as { value: string; label: string } | null,
       department: null as { value: string; label: string } | null,
       otherDepartment: "",
-      programType: null as { value: string; label: string } | null,
-      degree: null as { value: string; label: string } | null,
-      programName: "",
-      YearofIntroduction: "",
       file: null as File | string | null,
-      syllabusFile: null as File | string | null,
+      startDate: "",
+      endDate: "",
+      titleOfFdp: "",
+      orgInst: "",
+      type: null as { value: string; label: string } | null,
     },
     validationSchema: Yup.object({
-      academicYear: Yup.object()
+      academicYear: Yup.object<{ value: string; label: string }>()
         .nullable()
         .required("Please select academic year"),
       semesterType: Yup.object<{ value: string; label: string }>()
         .nullable()
-        .required("Please select a semester type"),
-      semesterNo: Yup.object()
+        .required("Please select a semester type"), // Single object for single-select
+      semesterNo: Yup.object<{ value: string; label: string }>()
         .nullable()
-        .required("Please select semester number"),
-      stream: Yup.object().nullable().required("Please select stream"),
+        .required("Please select a semester number"),
+      stream: Yup.object<{ value: string; label: string }>()
+        .nullable()
+        .required("Please select school"),
       department: Yup.object<{ value: string; label: string }>()
         .nullable()
         .required("Please select department"),
-      programName: Yup.string().required("Please select programName"),
-      YearofIntroduction: Yup.string().required(
-        "Please select Year of Introduction"
+      otherDepartment: Yup.string().when(
+        "department",
+        (department: any, schema) => {
+          return department?.value === "Others"
+            ? schema.required("Please specify the department")
+            : schema;
+        }
       ),
-      programType: Yup.object<{ value: string; label: string }>()
-        .nullable()
-        .required("Please select program type"),
-      degree: Yup.object().nullable().required("Please select degree"),
-
       file: Yup.mixed().test(
         "fileValidation",
         "Please upload a valid file",
@@ -411,71 +378,54 @@ const New_Programs_Introduced: React.FC = () => {
           return true;
         }
       ),
-      syllabusFile: Yup.mixed().test(
-        "fileValidation",
-        "Please upload a valid file",
-        function (value) {
-          // Skip validation if the file upload is disabled (file exists)
-          if (isFileUploadDisabled) {
-            return true;
-          }
-          // Perform validation if the file upload is enabled (file doesn't exist)
-          if (!value) {
-            return this.createError({ message: "Please upload a file" });
-          }
-          // Check file size (2MB limit)
-          if (value instanceof File && value.size > 2 * 1024 * 1024) {
-            return this.createError({ message: "File size is too large" });
-          }
-          // Check file type
-          const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
-          if (value instanceof File && !allowedTypes.includes(value.type)) {
-            return this.createError({ message: "Unsupported file format" });
-          }
-          return true;
-        }
-      ),
+      programType: Yup.object<{ value: string; label: string }>()
+        .nullable()
+        .required("Please select program type"),
+      degree: Yup.object<{ value: string; label: string }>()
+        .nullable()
+        .required("Please select degree"),
+      program: Yup.array()
+        .min(1, "Please select at least one program")
+        .required("Please select programs"),
+      revisionPercentage: Yup.number()
+        .typeError("Please enter a valid number")
+        .min(0, "Percentage cannot be less than 0")
+        .max(100, "Percentage cannot be more than 100")
+        .required("Please enter revision percentage"),
+      conductedDate: Yup.date().required("Please select conducted date"),
     }),
     onSubmit: async (values, { resetForm }) => {
       // Create FormData object
       const formData = new FormData();
 
       // Append fields to FormData
-      formData.append("academicYear", String(values.academicYear?.value || ""));
-      formData.append("departmentId", String(values.department?.value || ""));
-      formData.append("yearOfIntroduction", values.YearofIntroduction || "");
-      formData.append("semType", values.semesterType?.value || "");
-      formData.append("semesterNo", String(values.semesterNo?.value || ""));
-      formData.append("programTypeId", String(values.programType?.value || ""));
-      formData.append("streamId", String(values.stream?.value || ""));
-      formData.append("programId", String(values.degree?.value || ""));
-      formData.append("newProgramId", String(editId || ""));
+      formData.append("academicYear", values.academicYear?.value || "");
+      formData.append("departmentId", values.department?.value || "");
+      formData.append("startDate", values.startDate || "");
+      formData.append("endDate", values.endDate || "");
+      formData.append("streamId", values.stream?.value || "");
+      formData.append("bosId", editId || "");
       formData.append("otherDepartment", values.otherDepartment || "");
-      formData.append("programName", values.programName || "");
 
-      if (values.file) {
+      // Append the file
+      if (typeof values.file === "string") {
+        // If the file is just a name, send null
+        formData.append("mom", "null");
+      } else if (values.file instanceof File) {
+        // If the file is a File object, send the file
         formData.append("mom", values.file);
-      }
-      if (values.syllabusFile) {
-        formData.append("syllabus", values.syllabusFile);
       }
 
       try {
         if (isEditMode && editId) {
           // Call the update API
-          const response = await api.put(
-            `/newProgram/updateCurriculumBos`,
-            formData
-          );
+          const response = await api.put(`/bos/updateCurriculumBos`, formData);
           toast.success(
             response.message || "Curriculum BOS updated successfully!"
           );
         } else {
           // Call the save API
-          const response = await api.create(
-            "/newProgram/saveProgram",
-            formData
-          );
+          const response = await api.create("/bos/saveCurriculumBos", formData);
           toast.success(
             response.message || "Curriculum BOS added successfully!"
           );
@@ -485,7 +435,7 @@ const New_Programs_Introduced: React.FC = () => {
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         // display the BOS List
-        handleListNPIClick();
+        handleListBosClick();
       } catch (error) {
         // Display error message
         toast.error("Failed to save Curriculum BOS. Please try again.");
@@ -498,14 +448,39 @@ const New_Programs_Introduced: React.FC = () => {
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <Breadcrumb
-            title="New Program Introduced"
-            breadcrumbItem="New Program Introduced"
-          />
+          <Breadcrumb title="Staff Enhancement Programs" breadcrumbItem="Moocs" />
           <Card>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
                 <Row>
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Faculty name</Label>
+                      <Input
+                        type="text"
+                        className={`form-control ${
+                          validation.touched.facultyName &&
+                          validation.errors.facultyName
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        value={validation.values.facultyName}
+                        onChange={(e) =>
+                          validation.setFieldValue(
+                            "facultyName",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Enter Student name"
+                      />
+                      {validation.touched.facultyName &&
+                        validation.errors.facultyName && (
+                          <div className="text-danger">
+                            {validation.errors.facultyName}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
                   {/* Academic Year Dropdown */}
                   <Col lg={4}>
                     <div className="mb-3">
@@ -530,39 +505,6 @@ const New_Programs_Introduced: React.FC = () => {
                           </div>
                         )}
                     </div>
-                  </Col>
-                  {/* Semester Dropdowns */}
-                  <Col lg={8}>
-                    <SemesterDropdowns
-                      semesterTypeValue={validation.values.semesterType}
-                      semesterNoValue={validation.values.semesterNo}
-                      onSemesterTypeChange={(selectedOption) =>
-                        validation.setFieldValue("semesterType", selectedOption)
-                      }
-                      onSemesterNoChange={(selectedOption) =>
-                        validation.setFieldValue("semesterNo", selectedOption)
-                      }
-                      isSemesterTypeInvalid={
-                        validation.touched.semesterType &&
-                        !!validation.errors.semesterType
-                      }
-                      isSemesterNoInvalid={
-                        validation.touched.semesterNo &&
-                        !!validation.errors.semesterNo
-                      }
-                      semesterTypeError={
-                        validation.touched.semesterType
-                          ? validation.errors.semesterType
-                          : null
-                      }
-                      semesterNoError={
-                        validation.touched.semesterNo
-                          ? validation.errors.semesterNo
-                          : null
-                      }
-                      semesterTypeTouched={!!validation.touched.semesterType}
-                      semesterNoTouched={!!validation.touched.semesterNo}
-                    />
                   </Col>
 
                   <Col lg={4}>
@@ -650,30 +592,27 @@ const New_Programs_Introduced: React.FC = () => {
                     </Col>
                   )}
 
-                  {/* Program Type Dropdown */}
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>Program Type</Label>
-                      <ProgramTypeDropdown
-                        deptId={selectedDepartment?.value}
-                        value={validation.values.programType}
-                        onChange={(selectedOption) => {
-                          validation.setFieldValue(
-                            "programType",
-                            selectedOption
-                          );
-                          setSelectedProgramType(selectedOption);
-                          validation.setFieldValue("degree", null);
-                        }}
-                        isInvalid={
-                          validation.touched.programType &&
-                          !!validation.errors.programType
+                      <Label>Title of Moocs</Label>
+                      <Input
+                        type="text"
+                        className={`form-control ${
+                          validation.touched.titleOfFdp &&
+                          validation.errors.titleOfFdp
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        value={validation.values.titleOfFdp}
+                        onChange={(e) =>
+                          validation.setFieldValue("titleOfFdp", e.target.value)
                         }
+                        placeholder="Enter Title of Moocs"
                       />
-                      {validation.touched.programType &&
-                        validation.errors.programType && (
+                      {validation.touched.titleOfFdp &&
+                        validation.errors.titleOfFdp && (
                           <div className="text-danger">
-                            {validation.errors.programType}
+                            {validation.errors.titleOfFdp}
                           </div>
                         )}
                     </div>
@@ -681,100 +620,134 @@ const New_Programs_Introduced: React.FC = () => {
 
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>Degree</Label>
-                      <DegreeDropdown
-                        programTypeId={selectedProgramType?.value}
-                        value={validation.values.degree}
-                        onChange={(selectedOption) => {
-                          validation.setFieldValue("degree", selectedOption);
-                          setSelectedDegree(selectedOption);
-                          validation.setFieldValue("program", null);
-                        }}
-                        isInvalid={
-                          validation.touched.degree &&
-                          !!validation.errors.degree
-                        }
-                      />
-                      {validation.touched.degree &&
-                        validation.errors.degree && (
-                          <div className="text-danger">
-                            {validation.errors.degree}
-                          </div>
-                        )}
-                    </div>
-                  </Col>
-                  
-                  <Col lg={4}>
-                    <div className="mb-3">
-                      <Label>Program Name</Label>
-                      <Input
-                        type="text"
-                        name="programName"
-                        value={validation.values.programName}
-                        onChange={validation.handleChange}
-                        placeholder="Enter Program Name"
-                        className={
-                          validation.touched.programName &&
-                          validation.errors.programName
-                            ? "is-invalid"
-                            : ""
-                        }
-                      />
-                      {validation.touched.programName &&
-                        validation.errors.programName && (
-                          <div className="text-danger">
-                            {validation.errors.programName}
-                          </div>
-                        )}
-                    </div>
-                  </Col>
-                  <Col lg={4}>
-                    <div className="mb-3">
-                      <Label>Year of Introduction</Label>
+                      <Label>Start date </Label>
                       <Input
                         type="date"
-                        name="YearofIntroduction"
-                        // value={validation.values.YearofIntroduction}
+                        className={`form-control ${
+                          validation.touched.startDate &&
+                          validation.errors.startDate
+                            ? "is-invalid"
+                            : ""
+                        }`}
                         value={
-                          validation.values.YearofIntroduction
+                          validation.values.startDate
                             ? moment(
-                                validation.values.YearofIntroduction,
+                                validation.values.startDate,
+                                "DD/MM/YYYY"
+                              ).format("YYYY-MM-DD")
+                            : ""
+                        }
+                        onChange={(e) => {
+                          const formattedDate = moment(
+                            e.target.value,
+                            "YYYY-MM-DD"
+                          ).format("DD/MM/YYYY");
+                          validation.setFieldValue("startDate", formattedDate);
+                        }}
+                        placeholder="dd/mm/yyyy"
+                      />
+                      {validation.touched.startDate &&
+                        validation.errors.startDate && (
+                          <div className="text-danger">
+                            {validation.errors.startDate}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>End date </Label>
+                      <Input
+                        type="date"
+                        className={`form-control ${
+                          validation.touched.endDate &&
+                          validation.errors.endDate
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        value={
+                          validation.values.endDate
+                            ? moment(
+                                validation.values.endDate,
                                 "DD/MM/YYYY"
                               ).format("YYYY-MM-DD") // Convert to yyyy-mm-dd for the input
                             : ""
                         }
-                        // onChange={validation.handleChange}
                         onChange={(e) => {
                           const formattedDate = moment(
                             e.target.value,
                             "YYYY-MM-DD"
                           ).format("DD/MM/YYYY"); // Convert to dd/mm/yyyy
-                          validation.setFieldValue(
-                            "YearofIntroduction",
-                            formattedDate
-                          );
+                          validation.setFieldValue("endDate", formattedDate);
                         }}
-                        placeholder="Enter Year of Introduction"
-                        className={
-                          validation.touched.YearofIntroduction &&
-                          validation.errors.YearofIntroduction
+                        placeholder="dd/mm/yyyy"
+                      />
+                      {validation.touched.endDate &&
+                        validation.errors.endDate && (
+                          <div className="text-danger">
+                            {validation.errors.endDate}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Organizing Institution</Label>
+                      <Input
+                        type="text"
+                        className={`form-control ${
+                          validation.touched.orgInst &&
+                          validation.errors.orgInst
                             ? "is-invalid"
+                            : ""
+                        }`}
+                        value={validation.values.orgInst}
+                        onChange={(e) =>
+                          validation.setFieldValue("orgInst", e.target.value)
+                        }
+                        placeholder="Enter Organizing Institution"
+                      />
+                      {validation.touched.orgInst &&
+                        validation.errors.orgInst && (
+                          <div className="text-danger">
+                            {validation.errors.orgInst}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Type</Label>
+                      <Select
+                        options={Type}
+                        value={validation.values.type}
+                        onChange={(selectedOption) =>
+                          validation.setFieldValue("type", selectedOption)
+                        }
+                        placeholder="Select Program Type"
+                        styles={dropdownStyles}
+                        menuPortalTarget={document.body}
+                        className={
+                          validation.touched.type && validation.errors.type
+                            ? "select-error"
                             : ""
                         }
                       />
-                      {validation.touched.YearofIntroduction &&
-                        validation.errors.YearofIntroduction && (
-                          <div className="text-danger">
-                            {validation.errors.YearofIntroduction}
-                          </div>
-                        )}
+                      {validation.touched.type && validation.errors.type && (
+                        <div className="text-danger">
+                          {validation.errors.type}
+                        </div>
+                      )}
                     </div>
                   </Col>
 
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
-                        Upload MOM
+                        Upload Certificate of Completion/Participation of MOOCS
                       </Label>
                       <Input
                         className={`form-control ${
@@ -783,7 +756,7 @@ const New_Programs_Introduced: React.FC = () => {
                             : ""
                         }`}
                         type="file"
-                        id="mom"
+                        id="formFile"
                         onChange={(event) => {
                           validation.setFieldValue(
                             "file",
@@ -792,6 +765,7 @@ const New_Programs_Introduced: React.FC = () => {
                               : null
                           );
                         }}
+                        disabled={isFileUploadDisabled} // Disable the button if a file exists
                       />
                       {validation.touched.file && validation.errors.file && (
                         <div className="text-danger">
@@ -818,9 +792,7 @@ const New_Programs_Introduced: React.FC = () => {
                             className="text-primary"
                             onClick={() =>
                               handleDownloadFile(
-                                validation.values.file
-                                  ? (validation.values.file as string)
-                                  : ""
+                                validation.values.file as string
                               )
                             }
                             title="Download File"
@@ -830,77 +802,7 @@ const New_Programs_Introduced: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
-                            onClick={() => handleDeleteFile("file")}
-                            title="Delete File"
-                          >
-                            <i className="bi bi-trash"></i>
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  </Col>
-                  <Col sm={4}>
-                    <div className="mb-3">
-                      <Label htmlFor="formFile" className="form-label">
-                        Upload Syllabus
-                      </Label>
-                      <Input
-                        className={`form-control ${
-                          validation.touched.syllabusFile &&
-                          validation.errors.syllabusFile
-                            ? "is-invalid"
-                            : ""
-                        }`}
-                        type="file"
-                        id="syllabusFile"
-                        onChange={(event) => {
-                          validation.setFieldValue(
-                            "syllabusFile",
-                            event.currentTarget.files
-                              ? event.currentTarget.files[0]
-                              : null
-                          );
-                        }}
-                      />
-                      {validation.touched.syllabusFile &&
-                        validation.errors.syllabusFile && (
-                          <div className="text-danger">
-                            {validation.errors.syllabusFile}
-                          </div>
-                        )}
-                      {/* Show a message if the file upload button is disabled */}
-                      {isFileUploadDisabled && (
-                        <div className="text-warning mt-2">
-                          Please remove the existing file to upload a new one.
-                        </div>
-                      )}
-                      {/* Only show the file name if it is a string (from the edit API) */}
-                      {typeof validation.values.syllabusFile === "string" && (
-                        <div className="mt-2 d-flex align-items-center">
-                          <span
-                            className="me-2"
-                            style={{ fontWeight: "bold", color: "green" }}
-                          >
-                            {validation.values.syllabusFile}
-                          </span>
-                          <Button
-                            color="link"
-                            className="text-primary"
-                            onClick={() =>
-                              handleDownloadFile(
-                                validation.values.syllabusFile
-                                  ? (validation.values.syllabusFile as string)
-                                  : ""
-                              )
-                            }
-                            title="Download File"
-                          >
-                            <i className="bi bi-download"></i>
-                          </Button>
-                          <Button
-                            color="link"
-                            className="text-danger"
-                            onClick={() => handleDeleteFile("syllabusFile")}
+                            onClick={() => handleDeleteFile()}
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>
@@ -914,16 +816,14 @@ const New_Programs_Introduced: React.FC = () => {
                   <Col lg={12}>
                     <div className="mt-3 d-flex justify-content-between">
                       <button className="btn btn-primary" type="submit">
-                        {isEditMode
-                          ? "Update New Program Introduced"
-                          : "Save New Program Introduced"}
+                        {isEditMode ? "Update MOOCS" : "Save MOOCS"}
                       </button>
                       <button
                         className="btn btn-secondary"
                         type="button"
-                        onClick={handleListNPIClick}
+                        onClick={handleListBosClick}
                       >
-                        List New Program Introduced
+                        List MOOCS
                       </button>
                     </div>
                   </Col>
@@ -1011,16 +911,7 @@ const New_Programs_Introduced: React.FC = () => {
                     />
                   </th>
                   <th>
-                    Degree
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.programType}
-                      onChange={(e) => handleFilterChange(e, "programType")}
-                    />
-                  </th>
-                  <th>
-                    Program Name
+                    Program
                     <Input
                       type="text"
                       placeholder="Filter"
@@ -1029,7 +920,7 @@ const New_Programs_Introduced: React.FC = () => {
                     />
                   </th>
                   <th>
-                    Introduction Year
+                    Year of Introduction
                     <Input
                       type="text"
                       placeholder="Filter"
@@ -1039,34 +930,43 @@ const New_Programs_Introduced: React.FC = () => {
                       }
                     />
                   </th>
+                  <th>
+                    Percentage
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.percentage}
+                      onChange={(e) => handleFilterChange(e, "percentage")}
+                    />
+                  </th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {currentRows.length > 0 ? (
-                  currentRows.map((npi, index) => (
-                    <tr key={npi.newProgramId}>
+                  currentRows.map((bos, index) => (
+                    <tr key={bos.bosDataId}>
                       <td>{indexOfFirstRow + index + 1}</td>
-                      <td>{npi.academicYear}</td>
-                      <td>{npi.semType}</td>
-                      <td>{npi.semesterNo}</td>
-                      <td>{npi.streamName}</td>
-                      <td>{npi.departmentName}</td>
-                      <td>{npi.programTypeName}</td>
-                      <td>{npi.degreeName}</td>
-                      <td>{npi.programName}</td>
-                      <td>{npi.introductionYear}</td>
+                      <td>{bos.academicYear}</td>
+                      <td>{bos.semType}</td>
+                      <td>{bos.semesterNo}</td>
+                      <td>{bos.streamName}</td>
+                      <td>{bos.departmentName}</td>
+                      <td>{bos.programTypeName}</td>
+                      <td>{bos.programName}</td>
+                      <td>{bos.yearOfIntroduction}</td>
+                      <td>{bos.percentage}</td>
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
                             className="btn btn-sm btn-warning"
-                            onClick={() => handleEdit(npi.newProgramId)}
+                            onClick={() => handleEdit(bos.bosDataId)}
                           >
                             Edit
                           </button>
                           <button
                             className="btn btn-sm btn-danger"
-                            onClick={() => handleDelete(npi.newProgramId)}
+                            onClick={() => handleDelete(bos.bosDataId)}
                           >
                             Delete
                           </button>
@@ -1135,4 +1035,4 @@ const New_Programs_Introduced: React.FC = () => {
   );
 };
 
-export default New_Programs_Introduced;
+export default Moocs;

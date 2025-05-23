@@ -122,7 +122,7 @@ const SidebarContent = (props: any) => {
   }, []);
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
     activeMenu();
   }, [activeMenu]);
 
@@ -142,7 +142,7 @@ const SidebarContent = (props: any) => {
           <ul className="metismenu list-unstyled" id="side-menu">
             <li className="menu-title">{props.t("Menu")} </li>
             <li>
-              <Link to="/dashboard" >
+              <Link to="/dashboard">
                 <i className="bx bx-home-circle"></i>
                 <span>{props.t("Dashboard")}</span>
               </Link>
@@ -157,25 +157,40 @@ const SidebarContent = (props: any) => {
                   <Link to="/Bos_Data">{props.t("1.	BoS ")}</Link>
                 </li>
                 <li>
-                  <Link to="/Courses_With_Focus">{props.t("2. Courses with focus")}</Link>
+                  <Link to="/Courses_With_Focus">
+                    {props.t("2. Courses with focus")}
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/New_Programs_Introduced">{props.t("3. New Programs Introduced ")}</Link>
+                  <Link to="/New_Programs_Introduced">
+                    {props.t("3. New Programs Introduced ")}
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/New_Courses_Introduced">{props.t("4. New Courses Introduced ")}</Link>
+                  <Link to="/New_Courses_Introduced">
+                    {props.t("4. New Courses Introduced ")}
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/Value_Added_Program">{props.t("5. Value Added Program ")}</Link>
+                  <Link to="/Value_Added_Program">
+                    {props.t("5. Value Added Program ")}
+                  </Link>
                 </li>
                 <li>
                   <Link to="/Experimental_Learning">
-                    <span className="badge rounded-pill text-bg-success float-end" key="t-new">New</span>
+                    <span
+                      className="badge rounded-pill text-bg-success float-end"
+                      key="t-new"
+                    >
+                      New
+                    </span>
                     {props.t("6. Experiential Learning ")}
                   </Link>
                 </li>
                 <li>
-                  <Link to="/Innovative_Teaching_Methodologies">{props.t("7. Innovative Teaching Methodologies ")}</Link>
+                  <Link to="/Innovative_Teaching_Methodologies">
+                    {props.t("7. Innovative Teaching Methodologies ")}
+                  </Link>
                 </li>
                 <li>
                   <Link to="/AC_GB_MoM">{props.t("8. AC & GB MoM ")}</Link>
@@ -190,16 +205,24 @@ const SidebarContent = (props: any) => {
               </Link>
               <ul className="sub-menu">
                 <li>
-                  <Link to="/Remedial_Classes">{props.t("1. Remedial Classes")}</Link>
+                  <Link to="/Remedial_Classes">
+                    {props.t("1. Remedial Classes")}
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/Advanced_Learners">{props.t("2. Advanced Learners")}</Link>
+                  <Link to="/Advanced_Learners">
+                    {props.t("2. Advanced Learners")}
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/Student_Centric_Teaching">{props.t("3. Student Centric Teaching Methodology")}</Link>
+                  <Link to="/Student_Centric_Teaching">
+                    {props.t("3. Student Centric Teaching Methodology")}
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/UsageOf_ICT_Tools">{props.t("4. Usage of ICT tools in classroom")}</Link>
+                  <Link to="/UsageOf_ICT_Tools">
+                    {props.t("4. Usage of ICT tools in classroom")}
+                  </Link>
                 </li>
               </ul>
             </li>
@@ -211,13 +234,19 @@ const SidebarContent = (props: any) => {
               </Link>
               <ul className="sub-menu">
                 <li>
-                  <Link to="/NumberOfStudents_Enrolled">{props.t("1. Number of Students enrolled")}</Link>
+                  <Link to="/NumberOfStudents_Enrolled">
+                    {props.t("1. Number of Students enrolled")}
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/TotalStudentsStrength">{props.t("2. Total Student Strength (UG & PG separate)")}</Link>
+                  <Link to="/TotalStudentsStrength">
+                    {props.t("2. Total Student Strength (UG & PG separate)")}
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/StudentStrengthProgram">{props.t("3. Student Strength Program-wise")}</Link>
+                  <Link to="/StudentStrengthProgram">
+                    {props.t("3. Student Strength Program-wise")}
+                  </Link>
                 </li>
               </ul>
             </li>
@@ -229,13 +258,19 @@ const SidebarContent = (props: any) => {
               </Link>
               <ul className="sub-menu">
                 <li>
-                  <Link to="/Teachers_Details">{props.t("1. Teachers' details")}</Link>
+                  <Link to="/Teachers_Details">
+                    {props.t("1. Teachers' details")}
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/PartTime_Guest">{props.t("2. Part-time/Guest faculty")}</Link>
+                  <Link to="/PartTime_Guest">
+                    {props.t("2. Part-time/Guest faculty")}
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/Professor_Practice">{props.t("3. Professor of Practice")}</Link>
+                  <Link to="/Professor_Practice">
+                    {props.t("3. Professor of Practice")}
+                  </Link>
                 </li>
               </ul>
             </li>
@@ -247,16 +282,22 @@ const SidebarContent = (props: any) => {
               </Link>
               <ul className="sub-menu">
                 <li>
-                  <Link to="/Year_Of_Establishment">{props.t("1. Year of Establishment")}</Link>
+                  <Link to="/Year_Of_Establishment">
+                    {props.t("1. Year of Establishment")}
+                  </Link>
                 </li>
                 <li>
                   <Link to="/Staff_Profile">{props.t("2. Staff Profile")}</Link>
                 </li>
                 <li>
-                  <Link to="/Program_By_Dept">{props.t("3. Programs offered by the Department")}</Link>
+                  <Link to="/Program_By_Dept">
+                    {props.t("3. Programs offered by the Department")}
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/Number_OfBooks_Dept">{props.t("4. Number of Books in Department library")}</Link>
+                  <Link to="/Number_OfBooks_Dept">
+                    {props.t("4. Number of Books in Department library")}
+                  </Link>
                 </li>
               </ul>
             </li>
@@ -268,13 +309,19 @@ const SidebarContent = (props: any) => {
               </Link>
               <ul className="sub-menu">
                 <li>
-                  <Link to="/#">{props.t("1. Program –wise Exam Results")}</Link>
+                  <Link to="/#">
+                    {props.t("1. Program –wise Exam Results")}
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("2. Student Grievances w.r.t Exam & Action taken")}</Link>
+                  <Link to="/#">
+                    {props.t("2. Student Grievances w.r.t Exam & Action taken")}
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("3. Malpractice Committee report")}</Link>
+                  <Link to="/#">
+                    {props.t("3. Malpractice Committee report")}
+                  </Link>
                 </li>
               </ul>
             </li>
@@ -289,10 +336,16 @@ const SidebarContent = (props: any) => {
                   <Link to="/#">{props.t("1. Management funded Project")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("2. Government/ NGO funded projects")}</Link>
+                  <Link to="/#">
+                    {props.t("2. Government/ NGO funded projects")}
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("3. Fellowships awarded for advanced learning & research")}</Link>
+                  <Link to="/#">
+                    {props.t(
+                      "3. Fellowships awarded for advanced learning & research"
+                    )}
+                  </Link>
                 </li>
                 <li>
                   <Link to="/#">{props.t("4. Research Guides")}</Link>
@@ -304,7 +357,11 @@ const SidebarContent = (props: any) => {
                   <Link to="/#">{props.t("6. Books/Chapters")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("7. Faculty participation & presentation of Research Papers in Conference/Seminars and going as Resource Persons")}</Link>
+                  <Link to="/#">
+                    {props.t(
+                      "7. Faculty participation & presentation of Research Papers in Conference/Seminars and going as Resource Persons"
+                    )}
+                  </Link>
                 </li>
               </ul>
             </li>
@@ -316,16 +373,26 @@ const SidebarContent = (props: any) => {
               </Link>
               <ul className="sub-menu">
                 <li>
-                  <Link to="/#">{props.t("1. MoUs – Agreement Copy & Activities conducted")}</Link>
+                  <Link to="/#">
+                    {props.t("1. MoUs – Agreement Copy & Activities conducted")}
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("2. Consultancy undertaken by Staff")}</Link>
+                  <Link to="/#">
+                    {props.t("2. Consultancy undertaken by Staff")}
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("3. Details of Programs offered/ Courses delivered in collaboration with Industry")}</Link>
+                  <Link to="/#">
+                    {props.t(
+                      "3. Details of Programs offered/ Courses delivered in collaboration with Industry"
+                    )}
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("4. Skill development Workshops")}</Link>
+                  <Link to="/#">
+                    {props.t("4. Skill development Workshops")}
+                  </Link>
                 </li>
               </ul>
             </li>
@@ -337,7 +404,11 @@ const SidebarContent = (props: any) => {
               </Link>
               <ul className="sub-menu">
                 <li>
-                  <Link to="/#">{props.t("1. Workshops/Seminars conducted on Research Methodology, Intellectual Property Rights (IPR), Entrepreneurship and Skills development")}</Link>
+                  <Link to="/#">
+                    {props.t(
+                      "1. Workshops/Seminars conducted on Research Methodology, Intellectual Property Rights (IPR), Entrepreneurship and Skills development"
+                    )}
+                  </Link>
                 </li>
                 <li>
                   <Link to="/#">{props.t("2. Innovation")}</Link>
@@ -346,7 +417,9 @@ const SidebarContent = (props: any) => {
                   <Link to="/#">{props.t("3. Patents filed")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("4. Activities conducted by MCCIIE")}</Link>
+                  <Link to="/#">
+                    {props.t("4. Activities conducted by MCCIIE")}
+                  </Link>
                 </li>
               </ul>
             </li>
@@ -358,22 +431,26 @@ const SidebarContent = (props: any) => {
               </Link>
               <ul className="sub-menu">
                 <li>
-                  <Link to="/#">{props.t("1. CDP Activity")}</Link>
+                  <Link to="/Cdp_Activites">{props.t("1. CDP Activity")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("2. NSS /YRC")}</Link>
+                  <Link to="/Nss_Yrc">{props.t("2. NSS /YRC")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("3. NCC")}</Link>
+                  <Link to="/Ncc">{props.t("3. NCC")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("4. ISRC")}</Link>
+                  <Link to="/Isrc">{props.t("4. ISRC")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("5. IKS")}</Link>
+                  <Link to="/Iks">{props.t("5. IKS")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("6. Teacher/Student Award for Extension Activities")}</Link>
+                  <Link to="/Teacher_Student_Award">
+                    {props.t(
+                      "6. Teacher/Student Award for Extension Activities"
+                    )}
+                  </Link>
                 </li>
               </ul>
             </li>
@@ -385,37 +462,59 @@ const SidebarContent = (props: any) => {
               </Link>
               <ul className="sub-menu">
                 <li>
-                  <Link to="/#">{props.t("1. Capacity Development & Skills Enhancement")}</Link>
+                  <Link to="/#">
+                    {props.t("1. Capacity Development & Skills Enhancement")}
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("2. Conferences/Seminars/Workshops")}</Link>
+                  <Link to="/#">
+                    {props.t("2. Conferences/Seminars/Workshops")}
+                  </Link>
                 </li>
                 <li>
                   <Link to="/#">{props.t("3. Guest Lectures")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("4. Career Counseling & Guidance")}</Link>
+                  <Link to="/#">
+                    {props.t("4. Career Counseling & Guidance")}
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("5. Student Progression – Competitive Exams")}</Link>
+                  <Link to="/#">
+                    {props.t("5. Student Progression – Competitive Exams")}
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("6. Student Progression - Higher Education")}</Link>
+                  <Link to="/#">
+                    {props.t("6. Student Progression - Higher Education")}
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("7. Details of Students enrolled for MOOC")}</Link>
+                  <Link to="/#">
+                    {props.t("7. Details of Students enrolled for MOOC")}
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("8. Intercollegiate events and awards won")}</Link>
+                  <Link to="/#">
+                    {props.t("8. Intercollegiate events and awards won")}
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("9. Cultural & Co-Curricular activities conducted in the college")}</Link>
+                  <Link to="/#">
+                    {props.t(
+                      "9. Cultural & Co-Curricular activities conducted in the college"
+                    )}
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("10. Sports Events conducted in the college")}</Link>
+                  <Link to="/#">
+                    {props.t("10. Sports Events conducted in the college")}
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("11. Internal Complaints Committee (ICC)")}</Link>
+                  <Link to="/#">
+                    {props.t("11. Internal Complaints Committee (ICC)")}
+                  </Link>
                 </li>
               </ul>
             </li>
@@ -427,10 +526,14 @@ const SidebarContent = (props: any) => {
               </Link>
               <ul className="sub-menu">
                 <li>
-                  <Link to="/#">{props.t("1. Databases which are subscribed")}</Link>
+                  <Link to="/#">
+                    {props.t("1. Databases which are subscribed")}
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("2. National/International Journals (hard copy)")}</Link>
+                  <Link to="/#">
+                    {props.t("2. National/International Journals (hard copy)")}
+                  </Link>
                 </li>
                 <li>
                   <Link to="/#">{props.t("3. Books (Volumes/Titles)")}</Link>
@@ -454,7 +557,9 @@ const SidebarContent = (props: any) => {
                   <Link to="/#">{props.t("2. Off campus placement data")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("3. Training programs & Workshops")}</Link>
+                  <Link to="/#">
+                    {props.t("3. Training programs & Workshops")}
+                  </Link>
                 </li>
                 <li>
                   <Link to="/#">{props.t("4. Internships")}</Link>
@@ -472,13 +577,15 @@ const SidebarContent = (props: any) => {
               </Link>
               <ul className="sub-menu">
                 <li>
-                  <Link to="/#">{props.t("1. FDPs")}</Link>
+                  <Link to="/Fdps">{props.t("1. FDPs")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("2. MOOCs")}</Link>
+                  <Link to="/Moocs">{props.t("2. MOOCs")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("3. Skill Development Workshops")}</Link>
+                  <Link to="/Skill_Development_Workshops">
+                    {props.t("3. Skill Development Workshops")}
+                  </Link>
                 </li>
               </ul>
             </li>
@@ -493,13 +600,19 @@ const SidebarContent = (props: any) => {
                   <Link to="/#">{props.t("1. Association Activities")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("2. Scholarships provided by Alumni Association")}</Link>
+                  <Link to="/#">
+                    {props.t("2. Scholarships provided by Alumni Association")}
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("3. Financial Contribution by Alumni")}</Link>
+                  <Link to="/#">
+                    {props.t("3. Financial Contribution by Alumni")}
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("4. Distinguished Alumni of the last five years")}</Link>
+                  <Link to="/#">
+                    {props.t("4. Distinguished Alumni of the last five years")}
+                  </Link>
                 </li>
               </ul>
             </li>
@@ -511,16 +624,30 @@ const SidebarContent = (props: any) => {
               </Link>
               <ul className="sub-menu">
                 <li>
-                  <Link to="/#">{props.t("1. Activities hosted to build universal values of peace, truth & harmony")}</Link>
+                  <Link to="/#">
+                    {props.t(
+                      "1. Activities hosted to build universal values of peace, truth & harmony"
+                    )}
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("2. Gender sensitization & equity programs")}</Link>
+                  <Link to="/#">
+                    {props.t("2. Gender sensitization & equity programs")}
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("3. Programs for imbibing Constitutional Values among students")}</Link>
+                  <Link to="/#">
+                    {props.t(
+                      "3. Programs for imbibing Constitutional Values among students"
+                    )}
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("4. Commemoration of major National/International Days")}</Link>
+                  <Link to="/#">
+                    {props.t(
+                      "4. Commemoration of major National/International Days"
+                    )}
+                  </Link>
                 </li>
                 <li>
                   <Link to="/#">{props.t("5. Best Practices")}</Link>
@@ -541,7 +668,9 @@ const SidebarContent = (props: any) => {
                   <Link to="/#">{props.t("2. Labs")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("3. Computer labs / Simulation lab")}</Link>
+                  <Link to="/#">
+                    {props.t("3. Computer labs / Simulation lab")}
+                  </Link>
                 </li>
                 <li>
                   <Link to="/#">{props.t("4. Auditorium")}</Link>
@@ -553,7 +682,9 @@ const SidebarContent = (props: any) => {
                   <Link to="/#">{props.t("6. Amphitheatre")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("7. Seminar halls - infrastructure")}</Link>
+                  <Link to="/#">
+                    {props.t("7. Seminar halls - infrastructure")}
+                  </Link>
                 </li>
               </ul>
             </li>
