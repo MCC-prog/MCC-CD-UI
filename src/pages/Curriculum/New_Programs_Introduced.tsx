@@ -232,7 +232,10 @@ const New_Programs_Introduced: React.FC = () => {
           ? response.introductionYear
           : "",
       };
-
+      const streamOption = mapValueToLabel(response.streamId, []); // Replace [] with stream options array if available
+      const departmentOption = mapValueToLabel(response.departmentId, []); // Replace [] with department options array if available
+      const programTypeOption = mapValueToLabel(response.programTypeId, []); // Replace [] with program type options array if available
+      const degreeOption = mapValueToLabel(response.programId, []);
       // Update Formik values
       validation.setValues({
         ...mappedValues,
@@ -252,6 +255,10 @@ const New_Programs_Introduced: React.FC = () => {
           : null,
         programName: response.programName || "",
       });
+      setSelectedStream(streamOption);
+      setSelectedDepartment(departmentOption);
+      setSelectedProgramType(programTypeOption);
+      setSelectedDegree(degreeOption);
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       // Disable the file upload button if a file exists
@@ -703,7 +710,7 @@ const New_Programs_Introduced: React.FC = () => {
                         )}
                     </div>
                   </Col>
-                  
+
                   <Col lg={4}>
                     <div className="mb-3">
                       <Label>Program Name</Label>

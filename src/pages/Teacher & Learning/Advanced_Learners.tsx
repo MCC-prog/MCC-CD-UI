@@ -54,14 +54,6 @@ const Advanced_Learners: React.FC = () => {
     menuPortal: (base: any) => ({ ...base, zIndex: 9999 }), // Ensure the menu is above other elements
   };
 
-  const academicYear = [
-    { value: "2024", label: "2023-2024" },
-    { value: "2025", label: "2024-2025" },
-  ];
-  const semType = [
-    { value: "T", label: "Theory" },
-    { value: "P", label: "Practical" },
-  ];
   const projectType = [
     { value: "In", label: "Internal" },
     { value: "Ex", label: "External" },
@@ -70,34 +62,7 @@ const Advanced_Learners: React.FC = () => {
     { value: "Funded", label: "Funded" },
     { value: "Non-Funded", label: "Non-Funded" },
   ];
-  const programType = [
-    { value: "T", label: "UG" },
-    { value: "P", label: "PG" },
-  ];
-  const semester: any = [
-    { value: "1", label: "I" },
-    { value: "2", label: "II" },
-    { value: "3", label: "III" },
-    { value: "4", label: "IV" },
-    { value: "5", label: "V" },
-    { value: "6", label: "VI" },
-  ];
-  const stream = [
-    {
-      value: "School of Humanities & Social Sciences",
-      label: "School of Humanities & Social Sciences",
-    },
-    { value: "School of Commerce", label: "School of Commerce" },
-    { value: "School of Management", label: "School of Management" },
-    {
-      value: "School of Natural & Applied Sciences",
-      label: "School of Natural & Applied Sciences",
-    },
-  ];
-  const department = [
-    { value: "Science", label: "Science" },
-    { value: "Arts", label: "Arts" },
-  ];
+
   const courseTitile = [
     { value: "G", label: "B.COM.General" },
     { value: "P", label: "B.COM.Professional" },
@@ -582,13 +547,13 @@ const Advanced_Learners: React.FC = () => {
                                   }
                                   placeholder="Enter Project Title"
                                 />
+                                {formik.touched.researchProjectTitle &&
+                                  formik.errors.researchProjectTitle && (
+                                    <div className="text-danger">
+                                      {formik.errors.researchProjectTitle}
+                                    </div>
+                                  )}
                               </div>
-                              {formik.touched.researchProjectTitle &&
-                                formik.errors.researchProjectTitle && (
-                                  <div className="text-danger">
-                                    {formik.errors.researchProjectTitle}
-                                  </div>
-                                )}
                             </Col>
                             <Col lg="4">
                               <div className="mb-3">
@@ -1003,7 +968,9 @@ const Advanced_Learners: React.FC = () => {
                   <Col lg={12}>
                     <div className="mt-3 d-flex justify-content-between">
                       <button className="btn btn-primary" type="submit">
-                        {isEditMode ? "Update Advanced Learners" : "Save Advanced Learners" }
+                        {isEditMode
+                          ? "Update Advanced Learners"
+                          : "Save Advanced Learners"}
                       </button>
                       <button className="btn btn-secondary" type="button">
                         List Advanced Learners

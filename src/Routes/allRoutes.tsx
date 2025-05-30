@@ -36,6 +36,10 @@ import Ncc from "pages/Extension Activity/Ncc";
 import Isrc from "pages/Extension Activity/Isrc";
 import Iks from "pages/Extension Activity/Iks";
 import Teacher_Student_Award from "pages/Extension Activity/Teacher_Student_Award";
+import Mous_AgreementCopy_Activities from "pages/Industry Collaboration/Mous_AgreementCopy_Activities";
+import Details_of_Programs_offered from "pages/Industry Collaboration/Details_of_Programs_offered";
+import Consultancy_Undertaken_by_Staff from "pages/Industry Collaboration/Consultancy_Undertaken_by_Staff";
+import Skill_Development_Workshop from "pages/Industry Collaboration/Skill_Development_Workshop";
 
 
 const authProtectedRoutes = [
@@ -84,6 +88,12 @@ const authProtectedRoutes = [
  { path: "/Isrc", component: <Isrc /> },
   { path: "/Iks", component: <Iks /> },
   { path: "/Teacher_Student_Award", component: <Teacher_Student_Award /> },
+
+    //__________Industry Collaboration__________//
+{ path: "/Mous_AgreementCopy_Activities", component: <Mous_AgreementCopy_Activities /> },
+{ path: "/Consultancy_Undertaken_by_Staff", component: <Consultancy_Undertaken_by_Staff /> },
+{ path: "/Details_of_Programs_offered", component: <Details_of_Programs_offered /> },
+{ path: "/Skill_Development_Workshop", component: <Skill_Development_Workshop /> },
 ];
 
 const publicRoutes = [

@@ -213,7 +213,10 @@ const Remedial_Classes: React.FC = () => {
         remidialClassNotice: response.documents?.remidialClassNotice || null,
         courseTitle: response.courseTitle || "",
       };
-
+      const streamOption = mapValueToLabel(response.streamId, []); // Replace [] with stream options array if available
+      const departmentOption = mapValueToLabel(response.departmentId, []); // Replace [] with department options array if available
+      const programTypeOption = mapValueToLabel(response.programTypeId, []); // Replace [] with program type options array if available
+      const degreeOption = mapValueToLabel(response.programId, []); // Replace [] with degree options array if available
       // Update Formik values
       validation.setValues({
         ...mappedValues,
@@ -232,6 +235,10 @@ const Remedial_Classes: React.FC = () => {
             }
           : null,
       });
+      setSelectedStream(streamOption);
+      setSelectedDepartment(departmentOption);
+      setSelectedProgramType(programTypeOption);
+      setSelectedDegree(degreeOption);
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       // Disable the file upload button if a file exists
@@ -436,10 +443,38 @@ const Remedial_Classes: React.FC = () => {
       formData.append("remidialClassId", editId || "");
 
       // Append the file
-      if (values.attendanceEntry) {
+      // if (values.attendanceEntry) {
+      //   formData.append("attendanceEntry", values.attendanceEntry);
+      // }
+      // if (values.remidialClassNotice) {
+      //   formData.append("remidialEntry", values.remidialClassNotice);
+      // }
+
+      // ATTENDANCE ENTRY
+      if (isEditMode) {
+        if (
+          typeof values.attendanceEntry === "string" || // still the original file path
+          values.attendanceEntry === null // or explicitly cleared
+        ) {
+          formData.append("attendanceEntry", new Blob([]), "empty.txt");
+        } else if (values.attendanceEntry instanceof File) {
+          formData.append("attendanceEntry", values.attendanceEntry);
+        }
+      } else if (values.attendanceEntry instanceof File) {
         formData.append("attendanceEntry", values.attendanceEntry);
       }
-      if (values.remidialClassNotice) {
+
+      // REMEDIAL CLASS NOTICE
+      if (isEditMode) {
+        if (
+          typeof values.remidialClassNotice === "string" ||
+          values.remidialClassNotice === null
+        ) {
+          formData.append("remidialEntry", new Blob([]), "empty.txt");
+        } else if (values.remidialClassNotice instanceof File) {
+          formData.append("remidialEntry", values.remidialClassNotice);
+        }
+      } else if (values.remidialClassNotice instanceof File) {
         formData.append("remidialEntry", values.remidialClassNotice);
       }
 

@@ -152,7 +152,7 @@ const Login = (props: any) => {
 
                     <div className="mt-4 mt-md-5 text-center">
                       <p className="mb-0">
-                        © {new Date().getFullYear()}<a href="https://mccblr.edu.in/">MCC</a>
+                       <a href="https://mccblr.edu.in/">MCC</a> © {new Date().getFullYear()}
                       </p>
                     </div>
                   </div>

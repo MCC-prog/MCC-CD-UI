@@ -125,6 +125,15 @@ const UsageOf_Ict_Tools: React.FC = () => {
     fetchBosData();
   };
 
+  const mapValueToLabel = (
+    value: string | number | null,
+    options: { value: string | number; label: string }[]
+  ): { value: string | number; label: string } | null => {
+    if (!value) return null;
+    const matchedOption = options.find((option) => option.value === value);
+    return matchedOption ? matchedOption : { value, label: String(value) };
+  };
+
   const handleEdit = async (id: string) => {
     try {
       const response = await api.get(
@@ -144,7 +153,8 @@ const UsageOf_Ict_Tools: React.FC = () => {
           : null,
         nameOfTool: response.toolName || "",
       };
-
+      const streamOption = mapValueToLabel(response.streamId, []); // Replace [] with stream options array if available
+      const departmentOption = mapValueToLabel(response.departmentId, []); // Replace [] with department options array if available
       // Update Formik values
       validation.setValues({
         ...mappedValues,
@@ -160,6 +170,8 @@ const UsageOf_Ict_Tools: React.FC = () => {
 
         nameOfTool: response.toolName || "",
       });
+      setSelectedStream(streamOption);
+      setSelectedDepartment(departmentOption);
       setIsEditMode(true); // Set edit mode
       setEditId(id);
       toggleModal();

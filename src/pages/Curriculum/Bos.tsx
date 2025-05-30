@@ -400,7 +400,7 @@ const Bos: React.FC = () => {
         <React.Fragment>
             <div className="page-content">
                 <Container fluid>
-                    <Breadcrumb title="BOS" breadcrumbItem="BOS" />
+                    <Breadcrumb title="Curricuum" breadcrumbItem="BOS" />
                     <Card>
                         <CardBody>
                             <form onSubmit={validation.handleSubmit}>
@@ -689,7 +689,7 @@ const Bos: React.FC = () => {
                                                 {isEditMode ? "Update" : "Save"}
                                             </button>
                                             <button
-                                                className="btn btn-primary"
+                                                className="btn btn-secondary"
                                                 type="button"
                                                 onClick={handleListBosClick}
                                             >

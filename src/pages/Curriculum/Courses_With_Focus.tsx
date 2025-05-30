@@ -426,7 +426,7 @@ const Courses_With_Focus: React.FC = () => {
       <div className="page-content">
         <Container fluid>
           <Breadcrumb
-            title="Courses With Focus"
+            title="Curricuum"
             breadcrumbItem="Courses With Focus"
           />
           <Card>

@@ -373,24 +373,24 @@ const SidebarContent = (props: any) => {
               </Link>
               <ul className="sub-menu">
                 <li>
-                  <Link to="/#">
+                  <Link to="/Mous_AgreementCopy_Activities">
                     {props.t("1. MoUs – Agreement Copy & Activities conducted")}
                   </Link>
                 </li>
                 <li>
-                  <Link to="/#">
+                  <Link to="/Consultancy_Undertaken_by_Staff">
                     {props.t("2. Consultancy undertaken by Staff")}
                   </Link>
                 </li>
                 <li>
-                  <Link to="/#">
+                  <Link to="/Details_of_Programs_offered">
                     {props.t(
                       "3. Details of Programs offered/ Courses delivered in collaboration with Industry"
                     )}
                   </Link>
                 </li>
                 <li>
-                  <Link to="/#">
+                  <Link to="/Skill_Development_Workshop">
                     {props.t("4. Skill development Workshops")}
                   </Link>
                 </li>

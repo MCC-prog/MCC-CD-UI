@@ -1,6 +1,6 @@
 import Breadcrumb from "Components/Common/Breadcrumb";
 import { useFormik } from "formik";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Select from "react-select";
 import * as Yup from "yup";
 import {
@@ -362,15 +362,19 @@ const Innovative_Teaching_Methodologies: React.FC = () => {
       formData.append("courseTitle", values.courseName || "");
       formData.append("innovativeTeachingMethodologyId", editId || "");
 
-      // Append the file
-      if (typeof values.file === "string") {
-        // If the file is just a name, send null
-        formData.append("innovativePedagogy", "null");
+     
+      if (isEditMode) {
+        if (
+          typeof values.file === "string" || // still the original file path
+          values.file === null // or explicitly cleared
+        ) {
+          formData.append("innovativePedagogy", new Blob([]), "empty.txt");
+        } else if (values.file instanceof File) {
+          formData.append("innovativePedagogy", values.file);
+        }
       } else if (values.file instanceof File) {
-        // If the file is a File object, send the file
         formData.append("innovativePedagogy", values.file);
       }
-
       try {
         if (isEditMode && editId) {
           // Call the update API
