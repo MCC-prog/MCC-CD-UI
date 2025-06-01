@@ -162,7 +162,6 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
   // Open the modal and fetch data
   const handleListMFPClick = () => {
     toggleModal();
-
   };
 
   const renderPrincipalInvestigatorDepartmentDropdown = () => (
