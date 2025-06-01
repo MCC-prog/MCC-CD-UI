@@ -458,7 +458,8 @@ const Bos: React.FC = () => {
                                             semesterNoTouched={!!validation.touched.semesterNo}
                                         />
                                     </Col>
-
+                                    
+                                    {/* Stream Dropdown */}
                                     <Col lg={4}>
                                         <div className="mb-3">
                                             <Label>School</Label>

@@ -40,6 +40,13 @@ import Mous_AgreementCopy_Activities from "pages/Industry Collaboration/Mous_Agr
 import Details_of_Programs_offered from "pages/Industry Collaboration/Details_of_Programs_offered";
 import Consultancy_Undertaken_by_Staff from "pages/Industry Collaboration/Consultancy_Undertaken_by_Staff";
 import Skill_Development_Workshop from "pages/Industry Collaboration/Skill_Development_Workshop";
+import Management_Funded_Project from "pages/Research/Management_Funded_Project";
+import Books_Chapters from "pages/Research/Books_Chapters";
+import Fellowships_Awarded_For_AL_And_Research from "pages/Research/Fellowships_Awarded_For_AL_And_Research";
+import FP_And_Presentation_Research_Papers from "pages/Research/FP_And_Presentation_Research_Papers";
+import Government_Or_NGO_Funded_Projects from "pages/Research/Government_Or_NGO_Funded_Projects";
+import Research_Guides from "pages/Research/Research_Guides";
+import Research_Publications from "pages/Research/Research_Publications";
 
 
 const authProtectedRoutes = [
@@ -82,18 +89,27 @@ const authProtectedRoutes = [
   { path: "/Skill_Development_Workshops", component: <Skill_Development_Work/> },
 
    //__________Extension Activites__________//
- { path: "/Cdp_Activites", component: <Cdp_Activites /> },
- { path: "/Nss_Yrc", component: <Nss_Yrc /> },
- { path: "/Ncc", component: <Ncc /> },
- { path: "/Isrc", component: <Isrc /> },
+  { path: "/Cdp_Activites", component: <Cdp_Activites /> },
+  { path: "/Nss_Yrc", component: <Nss_Yrc /> },
+  { path: "/Ncc", component: <Ncc /> },
+  { path: "/Isrc", component: <Isrc /> },
   { path: "/Iks", component: <Iks /> },
   { path: "/Teacher_Student_Award", component: <Teacher_Student_Award /> },
 
     //__________Industry Collaboration__________//
-{ path: "/Mous_AgreementCopy_Activities", component: <Mous_AgreementCopy_Activities /> },
-{ path: "/Consultancy_Undertaken_by_Staff", component: <Consultancy_Undertaken_by_Staff /> },
-{ path: "/Details_of_Programs_offered", component: <Details_of_Programs_offered /> },
-{ path: "/Skill_Development_Workshop", component: <Skill_Development_Workshop /> },
+  { path: "/Mous_AgreementCopy_Activities", component: <Mous_AgreementCopy_Activities /> },
+  { path: "/Consultancy_Undertaken_by_Staff", component: <Consultancy_Undertaken_by_Staff /> },
+  { path: "/Details_of_Programs_offered", component: <Details_of_Programs_offered /> },
+  { path: "/Skill_Development_Workshop", component: <Skill_Development_Workshop /> },
+
+    //__________Research__________//
+  { path: "/Management_Funded_Project", component: <Management_Funded_Project /> },
+  { path: "/Books_Chapters", component: <Books_Chapters /> },
+  { path: "/Felloships_Awarded", component: <Fellowships_Awarded_For_AL_And_Research /> },
+  { path: "/FP_And_Presentation_Research_Papers", component: <FP_And_Presentation_Research_Papers /> },
+  { path: "/Government_Or_NGO_Funded_Projects", component: <Government_Or_NGO_Funded_Projects /> },
+  { path: "/Research_Guides", component: <Research_Guides /> },
+  { path: "/Research_Publications", component: <Research_Publications /> }
 ];
 
 const publicRoutes = [
