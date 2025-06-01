@@ -333,31 +333,31 @@ const SidebarContent = (props: any) => {
               </Link>
               <ul className="sub-menu">
                 <li>
-                  <Link to="/#">{props.t("1. Management funded Project")}</Link>
+                  <Link to="/Management_Funded_Project">{props.t("1. Management funded Project")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">
+                  <Link to="/Government_Or_NGO_Funded_Projects">
                     {props.t("2. Government/ NGO funded projects")}
                   </Link>
                 </li>
                 <li>
-                  <Link to="/#">
+                  <Link to="/Felloships_Awarded">
                     {props.t(
                       "3. Fellowships awarded for advanced learning & research"
                     )}
                   </Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("4. Research Guides")}</Link>
+                  <Link to="/Research_Guides">{props.t("4. Research Guides")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("5. Research Publications")}</Link>
+                  <Link to="/Research_Publications">{props.t("5. Research Publications")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("6. Books/Chapters")}</Link>
+                  <Link to="/Books_Chapters">{props.t("6. Books/Chapters")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">
+                  <Link to="/FP_And_Presentation_Research_Papers">
                     {props.t(
                       "7. Faculty participation & presentation of Research Papers in Conference/Seminars and going as Resource Persons"
                     )}
