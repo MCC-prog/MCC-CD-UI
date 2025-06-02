@@ -467,7 +467,7 @@ const GovernmentOrNGOFundedProjects = () => {
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <Breadcrumb title="Research" breadcrumbItem="Management_Funded_Project" />
+          <Breadcrumb title="Research" breadcrumbItem="Government/NGO Funded Projects" />
           <Card>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
