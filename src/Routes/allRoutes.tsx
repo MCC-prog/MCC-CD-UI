@@ -47,6 +47,8 @@ import FP_And_Presentation_Research_Papers from "pages/Research/FP_And_Presentat
 import Government_Or_NGO_Funded_Projects from "pages/Research/Government_Or_NGO_Funded_Projects";
 import Research_Guides from "pages/Research/Research_Guides";
 import Research_Publications from "pages/Research/Research_Publications";
+import CapacityDevelopment_Skills from "pages/Student Activities & Support/CapacityDevelopment_Skills";
+import Conference_Seminars_Workshops from "pages/Student Activities & Support/Conference_Seminars_Workshops";
 
 
 const authProtectedRoutes = [
@@ -109,7 +111,12 @@ const authProtectedRoutes = [
   { path: "/FP_And_Presentation_Research_Papers", component: <FP_And_Presentation_Research_Papers /> },
   { path: "/Government_Or_NGO_Funded_Projects", component: <Government_Or_NGO_Funded_Projects /> },
   { path: "/Research_Guides", component: <Research_Guides /> },
-  { path: "/Research_Publications", component: <Research_Publications /> }
+  { path: "/Research_Publications", component: <Research_Publications /> },
+
+  //_______Student Activities/Support_________//
+  { path: "/CapacityDevelopment_Skills", component: <CapacityDevelopment_Skills /> },
+  { path: "/Conference_Seminars_Workshops", component: <Conference_Seminars_Workshops /> },
+
 ];
 
 const publicRoutes = [

@@ -462,13 +462,13 @@ const SidebarContent = (props: any) => {
               </Link>
               <ul className="sub-menu">
                 <li>
-                  <Link to="/#">
+                  <Link to="/CapacityDevelopment_Skills">
                     {props.t("1. Capacity Development & Skills Enhancement")}
                   </Link>
                 </li>
                 <li>
-                  <Link to="/#">
-                    {props.t("2. Conferences/Seminars/Workshops")}
+                  <Link to="/Conference_Seminars_Workshops">
+                    {props.t("2. Conferences/ Seminars/ Workshops")}
                   </Link>
                 </li>
                 <li>

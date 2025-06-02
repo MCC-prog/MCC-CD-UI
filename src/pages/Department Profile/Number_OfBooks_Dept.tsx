@@ -70,7 +70,7 @@ const Number_OfBooks_Dept: React.FC = () => {
         <React.Fragment>
             <div className="page-content">
                 <Container fluid>
-                    <Breadcrumb title="Number of books in the department library" breadcrumbItem="Number of books in the department library" />
+                    <Breadcrumb title="Department Profile" breadcrumbItem="Number of books in the department library" />
                     <Card>
                         <CardBody>
                             <form onSubmit={validation.handleSubmit}>
