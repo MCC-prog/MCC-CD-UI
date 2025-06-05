@@ -49,6 +49,14 @@ import Research_Guides from "pages/Research/Research_Guides";
 import Research_Publications from "pages/Research/Research_Publications";
 import CapacityDevelopment_Skills from "pages/Student Activities & Support/CapacityDevelopment_Skills";
 import Conference_Seminars_Workshops from "pages/Student Activities & Support/Conference_Seminars_Workshops";
+import Career_Counseling_Guidance from "pages/Student Activities & Support/Career_Counseling_Guidance";
+import Guest_Lectures from "pages/Student Activities & Support/Guest_Lectures";
+import StudentProgression_Higher_Education from "pages/Student Activities & Support/StudentProgression_Higher_Education";
+import StudentProgression_Competitive_Exams from "pages/Student Activities & Support/StudentProgression_Competitive_Exams";
+import DetailsOfStudents_MOOC from "pages/Student Activities & Support/DetailsOfStudents_MOOC";
+import Intercollegiate_Events_Awards_Won from "pages/Student Activities & Support/Intercollegiate_Events_Awards_Won";
+import Cultural_CoCurricularActivities_Conducted from "pages/Student Activities & Support/Cultural_CoCurricularActivities_Conducted";
+import SportsEvents_Conducted_College from "pages/Student Activities & Support/SportsEvents_Conducted_College";
 
 
 const authProtectedRoutes = [
@@ -116,6 +124,14 @@ const authProtectedRoutes = [
   //_______Student Activities/Support_________//
   { path: "/CapacityDevelopment_Skills", component: <CapacityDevelopment_Skills /> },
   { path: "/Conference_Seminars_Workshops", component: <Conference_Seminars_Workshops /> },
+  { path: "/Career_Counseling_Guidance", component: <Career_Counseling_Guidance /> },
+  { path: "/Guest_Lectures", component: <Guest_Lectures /> },
+  { path: "/StudentProgression_Higher_Education", component: <StudentProgression_Higher_Education /> },
+  { path: "/StudentProgression_Competitive_Exams", component: <StudentProgression_Competitive_Exams /> },
+  { path: "/DetailsOfStudents_MOOC", component: <DetailsOfStudents_MOOC /> },
+  { path: "/Intercollegiate_Events_Awards_Won", component: <Intercollegiate_Events_Awards_Won /> },
+  { path: "/Cultural_CoCurricularActivities_Conducted", component: <Cultural_CoCurricularActivities_Conducted /> },
+  { path: "/SportsEvents_Conducted_College", component: <SportsEvents_Conducted_College /> },
 
 ];
 

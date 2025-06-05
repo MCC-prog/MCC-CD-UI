@@ -103,7 +103,7 @@ const RightSidebar = ({ toggleCanvas, show }: sidebar) => {
                 <label className="me-1" htmlFor="radioHorizontal">Horizontal</label>
               </div>
               <hr className="mt-1" />
-              <div className="radio-toolbar">
+              {/* <div className="radio-toolbar">
                 <span className="mb-2 d-block">Layouts Mode</span>
                 <input type="radio"
                   id="radioLight"
@@ -130,7 +130,7 @@ const RightSidebar = ({ toggleCanvas, show }: sidebar) => {
                   }}
                 />
                 <label htmlFor="radioDark">Dark</label>
-              </div>
+              </div> */}
               <hr className="mt-1" />
               <div className="radio-toolbar">
                 <span className="mb-2 d-block" id="radio-title">Layout Width</span>
@@ -175,7 +175,7 @@ const RightSidebar = ({ toggleCanvas, show }: sidebar) => {
                 /><label htmlFor="radioscrollable">Scrollable</label>
               </div>
               <hr className="mt-1" />
-              <div className="radio-toolbar">
+              {/* <div className="radio-toolbar">
                 <span className="mb-2 d-block" id="radio-title">Topbar Theme</span>
                 <input
                   type="radio"
@@ -220,7 +220,7 @@ const RightSidebar = ({ toggleCanvas, show }: sidebar) => {
                     <label className="me-1" htmlFor="radioThemeColored">Colored</label>{" "}
                   </React.Fragment>
                 )}
-              </div>
+              </div> */}
               <hr className="mt-1" />
               {layoutType === "vertical" && (
                 <React.Fragment>
@@ -454,7 +454,7 @@ const RightSidebar = ({ toggleCanvas, show }: sidebar) => {
                 </React.Fragment>
               )}
               <hr className="mt-1" />
-              <div className="mb-3">
+              {/* <div className="mb-3">
                 <span className="mb-2 d-block" id="radio-title">Preloader</span>
                 <div className="form-check form-switch"><input type="checkbox" className="form-check-input checkbox" id="checkbox_1" /><label className="form-check-label" htmlFor="checkbox_1">Preloader</label></div>
               </div>
@@ -467,8 +467,8 @@ const RightSidebar = ({ toggleCanvas, show }: sidebar) => {
               </div>
               <div className="mb-2">
                 <a href="//skote-v-rtl.react.themesbrand.com"><img src={layout3} className="img-fluid img-thumbnail" alt="" /></a>
-              </div>
-              <a className="btn btn-primary btn-block mt-3" href="//1.envato.market/skotereact"><i className="mdi mdi-cart ms-1"></i> Purchase Now</a>
+              </div> */}
+              {/* <a className="btn btn-primary btn-block mt-3" href="//1.envato.market/skotereact"><i className="mdi mdi-cart ms-1"></i> Purchase Now</a> */}
             </div>
           </SimpleBar>
         </OffcanvasBody>

@@ -19,9 +19,7 @@ import { megaMenuContents } from "Components/constants/layout";
 //i18n
 import { withTranslation } from "react-i18next";
 
-
 const Header = (props: any) => {
-
   const [search, setsearch] = useState(false);
   const [megaMenu, setmegaMenu] = useState(false);
 
@@ -73,7 +71,6 @@ const Header = (props: any) => {
       body.classList.toggle("sidebar-enable");
     }
   }
-
 
   return (
     <React.Fragment>
@@ -127,11 +124,13 @@ const Header = (props: any) => {
                 <Row>
                   {megaMenuContents.map((section, index) => (
                     <Col md={4} key={index}>
-                      <h5 className="font-size-4 mt-0">{props.t(section.title)}</h5>
+                      <h5 className="font-size-4 mt-0">
+                        {props.t(section.title)}
+                      </h5>
                       <ul className="list-unstyled megamenu-list">
-                        {section.items.map((item, idx) => (
-                          <li key={idx}>
-                            <Link to="#">{props.t(item)}</Link>
+                        {section.items.map((item, itemIdx) => (
+                          <li key={itemIdx}>
+                            <Link to={item.path}>{item.label}</Link>
                           </li>
                         ))}
                       </ul>
@@ -192,7 +191,7 @@ const Header = (props: any) => {
               </button>
             </div>
 
-            <NotificationDropDown />
+            {/* <NotificationDropDown /> */}
 
             <ProfileMenu />
 
@@ -211,6 +210,5 @@ const Header = (props: any) => {
     </React.Fragment>
   );
 };
-
 
 export default withTranslation()(Header);
