@@ -63,7 +63,7 @@ const megaMenuContents = [
       { label: "3. New Programs Introduced", path: "/New_Programs_Introduced" },
       { label: "4. New Courses Introduced", path: "/New_Courses_Introduced" },
       { label: "5. Value Added Program", path: "/Value_Added_Program" },
-      { label: "6. Experiential Learning", path: "/Experimental_Learning" },
+      { label: "6. Experiential Learning", path: "/Experiential_Learning" },
       {
         label: "7. Innovative Teaching Methodologies",
         path: "/Innovative_Teaching_Methodologies",

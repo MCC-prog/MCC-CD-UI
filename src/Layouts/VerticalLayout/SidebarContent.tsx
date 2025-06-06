@@ -177,7 +177,7 @@ const SidebarContent = (props: any) => {
                   </Link>
                 </li>
                 <li>
-                  <Link to="/Experimental_Learning">
+                  <Link to="/Experiential_Learning">
                     <span
                       className="badge rounded-pill text-bg-success float-end"
                       key="t-new"
