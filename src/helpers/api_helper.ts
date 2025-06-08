@@ -69,7 +69,7 @@ class APIClient {
    * Post given data to url
    */
   create = (url: any, data: any, headers: any = {}) => {
-    return axios.post(url, data);
+    return axios.post(url, data, headers);
   };
 
   /**
@@ -79,8 +79,8 @@ class APIClient {
     return axios.patch(url, data);
   };
 
-  put = (url: any, data: any) => {
-    return axios.put(url, data);
+  put = (url: any, data: any, headers: any = {}) => {
+    return axios.put(url, data, headers);
   };
 
   /**

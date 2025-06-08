@@ -1,18 +1,34 @@
 import React, { useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { Col, Row, Input, Label, Button, CardBody, Card, Container, Nav, NavItem, NavLink, TabContent, TabPane, Modal, ModalHeader, ModalBody, Table } from "reactstrap";
+import { Col, Row, Input, Label, Button, CardBody, Card, Container, Nav, NavItem, NavLink, TabContent, TabPane, Modal, ModalHeader, ModalBody, Table, ModalFooter } from "reactstrap";
 import Breadcrumb from 'Components/Common/Breadcrumb';
 import AcademicYearDropdown from "Components/DropDowns/AcademicYearDropdown";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
+import { APIClient } from "../../helpers/api_helper";
+import { toast, ToastContainer } from "react-toastify";
+import moment from "moment";
+
+const api = new APIClient();
+
 // Ensure the file exports a default module
 const Research_Publications = () => {
+  // State variables for managing modal, edit mode, and delete confirmation
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  // State variable for managing delete confirmation modal
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  // State variable for managing file upload status
+  const [isFrontPageFileUploadDisabled, setIsFrontPageFileUploadDisabled] = useState(false);
+  const [isResearchArticleFileUploadDisabled, setIsResearchArticleFileUploadDisabled] = useState(false);
   // State variables for managing selected options in dropdowns
   const [selectedStream, setSelectedStream] = useState<any>(null);
   const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
   const [selectedProgramType, setSelectedProgramType] = useState<any>(null);
   const [selectedDegree, setSelectedDegree] = useState<any>(null);
+  const [researchPaperData, setResearchPaperData] = useState<any[]>([]);
   // State variable for managing the modal for listing BOS
   const [isModalOpen, setIsModalOpen] = useState(false);
   // State variable for managing search term and pagination
@@ -22,16 +38,17 @@ const Research_Publications = () => {
   // State variable for managing filters
   const [filters, setFilters] = useState({
     academicYear: "",
-    semesterType: "",
-    semesterNo: "",
+    facultyName: "",
+    coAuthors: "",
     stream: "",
     department: "",
-    programType: "",
-    program: "",
-    yearOfIntroduction: "",
-    percentage: "",
+    indexation: "",
+    journalName: "",
+    paperTitle: "",
+    issn: "",
+    publisher: "",
+    dateOfPublication: "",
   });
-  const researchPaperData: any[] = []; // Initialize with an empty array or fetch data dynamically
   const [filteredData, setFilteredData] = useState(researchPaperData);
 
   // Handle global search
@@ -81,7 +98,6 @@ const Research_Publications = () => {
 
   // Formik validation and submission
   // Initialize Formik with validation schema and initial values
-  const [selectedType, setSelectedType] = useState<string>("Research Article");
 
   const validation = useFormik({
     initialValues: {
@@ -89,10 +105,9 @@ const Research_Publications = () => {
       stream: null as { value: string; label: string } | null,
       department: null as { value: string; label: string } | null,
       otherDepartment: "",
-      type: "Research Article",
       facultyName: "",
       coAuthors: "",
-      indexation: "",
+      indexation: null as { value: string; label: string } | null,
       journalName: "",
       titleOfPaper: "",
       volume: "",
@@ -102,9 +117,6 @@ const Research_Publications = () => {
       doi: "",
       dateOfPublication: "",
       publisher: "",
-      bookTitle: "",
-      editor: "",
-      isbxl: "",
       frontPageUpload: null as File | null,
       researchArticleUpload: null as File | null,
     },
@@ -117,10 +129,9 @@ const Research_Publications = () => {
           ? schema.required("Please specify the department")
           : schema.nullable()
       ),
-      type: Yup.string().required("Please select type"),
       facultyName: Yup.string().required("Please enter faculty name"),
       coAuthors: Yup.string().required("Please enter co-authors"),
-      indexation: Yup.string().required("Please select indexation"),
+      indexation: Yup.object<{ value: string; label: string }>().nullable().required("Please select indexation"),
       journalName: Yup.string().required("Please enter journal name"),
       titleOfPaper: Yup.string().required("Please enter title of paper"),
       volume: Yup.string().required("Please enter volume"),
@@ -128,36 +139,239 @@ const Research_Publications = () => {
       pageNumber: Yup.number().required("Please enter page number").positive("Page number must be positive").integer("Page number must be an integer"),
       issxl: Yup.string().required("Please enter ISSXL"),
       doi: Yup.string().required("Please enter DOI"),
-      bookTitle: Yup.string().required("Please enter book title"),
-      editor: Yup.string().required("Please enter editor name"),
-      isbxl: Yup.string().required("Please enter ISBXL"),
-      frontPageUpload: Yup.mixed().required("Please upload the front page"),
-      dateOfPublication: Yup.string().required("Please select date of publication"),
+      frontPageUpload: Yup.mixed().test(
+        "fileValidation",
+        "Please upload a valid file",
+        function (value) {
+          // Skip validation if the file upload is disabled (file exists)
+          if (isFrontPageFileUploadDisabled) {
+            return true;
+          }
+          // Perform validation if the file upload is enabled (file doesn't exist)
+          if (!value) {
+            return this.createError({ message: "Please upload a file" });
+          }
+          // Check file size (2MB limit)
+          if (value instanceof File && value.size > 2 * 1024 * 1024) {
+            return this.createError({ message: "File size is too large" });
+          }
+          // Check file type
+          const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
+          if (value instanceof File && !allowedTypes.includes(value.type)) {
+            return this.createError({ message: "Unsupported file format" });
+          }
+          return true;
+        }
+      ),
+      dateOfPublication: Yup.date().required("Please select date of publication"),
       publisher: Yup.string().required("Please enter publisher"),
-      researchArticleUpload: Yup.mixed().required("Please upload the research article"),
+      researchArticleUpload: Yup.mixed().test(
+        "fileValidation",
+        "Please upload a valid file",
+        function (value) {
+          // Skip validation if the file upload is disabled (file exists)
+          if (isResearchArticleFileUploadDisabled) {
+            return true;
+          }
+          // Perform validation if the file upload is enabled (file doesn't exist)
+          if (!value) {
+            return this.createError({ message: "Please upload a file" });
+          }
+          // Check file size (2MB limit)
+          if (value instanceof File && value.size > 2 * 1024 * 1024) {
+            return this.createError({ message: "File size is too large" });
+          }
+          // Check file type
+          const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
+          if (value instanceof File && !allowedTypes.includes(value.type)) {
+            return this.createError({ message: "Unsupported file format" });
+          }
+          return true;
+        }
+      )
     }),
-    onSubmit: async (values: any) => {
-      console.log("Form Submitted:", values);
+    onSubmit: async (values, { resetForm }) => {
+      // Create a plain JavaScript object from form values
+      const payload = {
+        researchPublicationId:  editId || "",
+        academicYear: values.academicYear?.value || "",
+        departmentId: values.department?.value || "",
+        streamId: values.stream?.value || "",
+        facultyName: values.facultyName,
+        coAuthors: values.coAuthors,
+        indexation: values.indexation?.value || "",
+        journalName: values.journalName,
+        paperTitle: values.titleOfPaper,
+        volume: values.volume,
+        issue: values.issue,
+        pageNumber: values.pageNumber.toString(),
+        issn: values.issxl,
+        doi: values.doi,
+        publicationDate: values.dateOfPublication,
+        publisher: values.publisher,
+        frontPageUpload: values.frontPageUpload ? await fileToBase64(values.frontPageUpload) : null,
+        researchArticleUpload: values.researchArticleUpload ? await fileToBase64(values.researchArticleUpload) : null,
+      };
+
+      try {
+        if (isEditMode && editId) {
+          // Call the update API
+          const response = await api.put(`/researchPublication/update`, JSON.stringify(payload), {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+          toast.success(response.message || "Research Publication updated successfully!");
+        } else {
+          // Call the save API
+          const response = await api.create("/researchPublication/save", JSON.stringify(payload), {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+          toast.success(response.message || "Research Publication added successfully!");
+        }
+        // Reset the form fields
+        resetForm();
+        setIsEditMode(false); // Reset edit mode
+        setEditId(null); // Clear the edit ID
+        // Display the Research Publication List
+        handleListResearchClick();
+      } catch (error) {
+        // Display error message
+        toast.error("Failed to save Research Publication. Please try again.");
+        console.error("Error creating/updating Research Publication:", error);
+      }
     },
   });
 
-  // Open the modal and fetch data
-  const handleListBosClick = () => {
-    toggleModal();
+  const fileToBase64 = (file: File): Promise<string | null> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (error) => reject(error);
+      reader.readAsDataURL(file);
+    });
   };
 
-  function handleEdit(researchDataId: any): void {
-    console.log("Edit Rserach with ID:", researchDataId);
-    // Open the modal for editing
-    setIsModalOpen(true);
+  const fetchResearchData = async () => {
+    try {
+      const response = await api.get("/researchPublication/getAll", '');
+      setResearchPaperData(response);
+      setFilteredData(response);
+    } catch (error) {
+      console.error("Error fetching BOS data:", error);
+    }
+
   }
+
+  // Open the modal and fetch data
+  const handleListResearchClick = () => {
+    toggleModal();
+    fetchResearchData();
+  };
+
+  // Handle edit action
+  // Fetch the data for the selected BOS ID and populate the form fields
+  const handleEdit = async (id: string) => {
+    try {
+      const response = await api.get(`/researchPublication/edit?researchPublicationId=${id}`, '');
+      const academicYearOptions = await api.get("/getAllAcademicYear", "");
+
+      // Filter the response where isCurrent or isCurrentForAdmission is true
+      const filteredAcademicYearList = academicYearOptions.filter(
+        (year: any) => year.isCurrent || year.isCurrentForAdmission
+      );
+
+      // Map the filtered data to the required format
+      const academicYearList = filteredAcademicYearList.map((year: any) => ({
+        value: year.year,
+        label: year.display
+      }));
+
+      // Map API response to Formik values
+      const mappedValues = {
+        academicYear: mapValueToLabel(response.academicYear, academicYearList),
+        stream: response.streamId
+          ? { value: response.streamId.toString(), label: response.streamName }
+          : null,
+        department: response.departmentId
+          ? { value: response.departmentId.toString(), label: response.departmentName }
+          : null,
+        facultyName: response.facultyName || "",
+        coAuthors: response.coAuthors || "",
+        indexation: response.indexation
+          ? { value: response.indexation.toString(), label: response.indexation }
+          : null,
+        journalName: response.journalName || "",
+        titleOfPaper: response.paperTitle || "",
+        volume: response.volume || "",
+        issue: response.issue || "",
+        pageNumber: response.pageNumber || "",
+        issxl: response.issn || "",
+        doi: response.doi || "",
+        dateOfPublication: response.publicationDate || "",
+        publisher: response.publisher || "",
+        otherDepartment: "", // Add default value for otherDepartment
+        frontPageUpload: null, // File uploads are not pre-filled
+        researchArticleUpload: null, // File uploads are not pre-filled
+      };
+
+      // Update Formik values
+      validation.setValues({
+        ...mappedValues,
+        academicYear: mappedValues.academicYear
+          ? { ...mappedValues.academicYear, value: String(mappedValues.academicYear.value) }
+          : null,
+        stream: mappedValues.stream
+          ? { ...mappedValues.stream, value: String(mappedValues.stream.value) }
+          : null,
+        department: mappedValues.department
+          ? { ...mappedValues.department, value: String(mappedValues.department.value) }
+          : null,
+        indexation: mappedValues.indexation
+          ? { ...mappedValues.indexation, value: String(mappedValues.indexation.value) }
+          : null
+      });
+
+      // Set edit mode and toggle modal
+      setIsEditMode(true);
+      setEditId(id); // Store the ID of the record being edited
+      toggleModal();
+    } catch (error) {
+      console.error("Error fetching Research Publication data by ID:", error);
+    }
+  };
+
+  // Map value to label for dropdowns
+  const mapValueToLabel = (value: string | number | null, options: { value: string | number; label: string }[]): { value: string | number; label: string } | null => {
+    if (!value) return null;
+    const matchedOption = options.find((option) => option.value === value);
+    return matchedOption ? matchedOption : { value, label: String(value) };
+  };
 
   function handleDelete(researchDataId: any): void {
-    console.log("Delete Research ID with ID:", researchDataId);
+    setDeleteId(researchDataId);
+    setIsDeleteModalOpen(true);
   }
 
-  // State variable to track edit mode
-  const [isEditMode, setIsEditMode] = useState(false);
+  // Confirm deletion of the record
+  // Call the delete API and refresh the BOS data
+  const confirmDelete = async (id: string) => {
+    if (deleteId) {
+      try {
+        const response = await api.delete(`/researchPublication/delete?researchPublicationId=${id}`, '');
+        toast.success(response.message || "Research Publication record removed successfully!");
+        fetchResearchData();
+      } catch (error) {
+        toast.error("Failed to remove Research Record. Please try again.");
+        console.error("Error deleting Research:", error);
+      } finally {
+        setIsDeleteModalOpen(false);
+        setDeleteId(null);
+      }
+    }
+  };
 
   return (
     <React.Fragment>
@@ -182,15 +396,13 @@ const Research_Publications = () => {
                           !!validation.errors.academicYear
                         }
                       />
-                      {validation.touched.academicYear &&
-                        validation.errors.academicYear && (
-                          <div className="text-danger">
-                            {typeof validation.errors.academicYear === "string" && validation.errors.academicYear}
-                          </div>
-                        )}
+                      {validation.touched.academicYear && validation.errors.academicYear && (
+                        <div className="text-danger">
+                          {typeof validation.errors.academicYear === "string" && validation.errors.academicYear}
+                        </div>
+                      )}
                     </div>
                   </Col>
-
                   {/* Stream Dropdown */}
                   <Col lg={4}>
                     <div className="mb-3">
@@ -207,7 +419,11 @@ const Research_Publications = () => {
                           validation.touched.stream && !!validation.errors.stream
                         }
                       />
-
+                      {validation.touched.stream && validation.errors.stream && (
+                        <div className="text-danger">
+                          {typeof validation.errors.stream === "string" && validation.errors.stream}
+                        </div>
+                      )}
                     </div>
                   </Col>
 
@@ -229,7 +445,12 @@ const Research_Publications = () => {
                           !!validation.errors.department
                         }
                       />
-
+                      {validation.touched.department &&
+                        validation.errors.department && (
+                          <div className="text-danger">
+                            {typeof validation.errors.department === "string" && validation.errors.department}
+                          </div>
+                        )}
                     </div>
                   </Col>
                   {validation.values.department?.value === "Others" && (
@@ -244,353 +465,297 @@ const Research_Publications = () => {
                           onChange={(e) => validation.setFieldValue("otherDepartment", e.target.value)}
                           placeholder="Enter Department Name"
                         />
-
+                        {validation.touched.otherDepartment && validation.errors.otherDepartment && (
+                          <div className="text-danger">
+                            {typeof validation.errors.otherDepartment === "string" && validation.errors.otherDepartment}
+                          </div>
+                        )}
                       </div>
                     </Col>
                   )}
-                  {/* Type Dropdown */}
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>Type</Label>
+                      <Label>Faculty Name</Label>
+                      <Input
+                        type="text"
+                        name="facultyName"
+                        value={validation.values.facultyName}
+                        onChange={validation.handleChange}
+                        className={`form-control ${validation.touched.facultyName && validation.errors.facultyName ? "is-invalid" : ""}`}
+                        placeholder="Enter Faculty Name"
+                      />
+                      {validation.touched.facultyName && validation.errors.facultyName && (
+                        <div className="text-danger">
+                          {typeof validation.errors.facultyName === "string" && validation.errors.facultyName}
+                        </div>
+                      )}
+                    </div>
+                  </Col>
+
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Co-authors</Label>
+                      <Input
+                        type="text"
+                        name="coAuthors"
+                        value={validation.values.coAuthors}
+                        onChange={validation.handleChange}
+                        className={`form-control ${validation.touched.coAuthors && validation.errors.coAuthors ? "is-invalid" : ""}`}
+                        placeholder="Enter Co-authors"
+                      />
+                      {validation.touched.coAuthors && validation.errors.coAuthors && (
+                        <div className="text-danger">
+                          {typeof validation.errors.coAuthors === "string" && validation.errors.coAuthors}
+                        </div>
+                      )}
+                    </div>
+                  </Col>
+
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Indexation</Label>
                       <Input
                         type="select"
-                        value={validation.values.type}
-                        onChange={(e) => {
-                          validation.setFieldValue("type", e.target.value);
-                          setSelectedType(e.target.value);
-                        }}
-                        className={`form-control ${validation.touched.type && validation.errors.type ? "is-invalid" : ""}`}
+                        value={validation.values.indexation?.value || ""}
+                        onChange={(e) =>
+                          validation.setFieldValue("indexation", {
+                            value: e.target.value,
+                            label: e.target.value,
+                          })
+                        }
+                        className={`form-control ${validation.touched.indexation && validation.errors.indexation ? "is-invalid" : ""}`}
                       >
-                        <option value="Research Article">Research Article</option>
-                        <option value="Book Chapters/Books">Book Chapters/Books</option>
+                        <option value="">Select Indexation</option>
+                        <option value="Scopus">Scopus</option>
+                        <option value="Web of Science">Web of Science</option>
+                        <option value="ABDC">ABDC</option>
+                        <option value="UGC">UGC</option>
                       </Input>
+                      {validation.touched.indexation && validation.errors.indexation && (
+                        <div className="text-danger">
+                          {typeof validation.errors.indexation === "string" && validation.errors.indexation}
+                        </div>
+                      )}
+                    </div>
+                  </Col>
 
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Journal Name</Label>
+                      <Input
+                        type="text"
+                        name="journalName"
+                        value={validation.values.journalName}
+                        onChange={validation.handleChange}
+                        className={`form-control ${validation.touched.journalName && validation.errors.journalName ? "is-invalid" : ""}`}
+                        placeholder="Enter Journal Name"
+                      />
+                      {validation.touched.journalName && validation.errors.journalName && (
+                        <div className="text-danger">
+                          {typeof validation.errors.journalName === "string" && validation.errors.journalName}
+                        </div>
+                      )}
+                    </div>
+                  </Col>
+
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Title of Paper</Label>
+                      <Input
+                        type="text"
+                        name="titleOfPaper"
+                        value={validation.values.titleOfPaper}
+                        onChange={validation.handleChange}
+                        className={`form-control ${validation.touched.titleOfPaper && validation.errors.titleOfPaper ? "is-invalid" : ""}`}
+                        placeholder="Enter Title of Paper"
+                      />
+                      {validation.touched.titleOfPaper && validation.errors.titleOfPaper && (
+                        <div className="text-danger">
+                          {typeof validation.errors.titleOfPaper === "string" && validation.errors.titleOfPaper}
+                        </div>
+                      )}
+                    </div>
+                  </Col>
+
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Volume</Label>
+                      <Input
+                        type="text"
+                        name="volume"
+                        value={validation.values.volume}
+                        onChange={validation.handleChange}
+                        className={`form-control ${validation.touched.volume && validation.errors.volume ? "is-invalid" : ""}`}
+                        placeholder="Enter Volume"
+                      />
+                      {validation.touched.volume && validation.errors.volume && (
+                        <div className="text-danger">
+                          {typeof validation.errors.volume === "string" && validation.errors.volume}
+                        </div>
+                      )}
+                    </div>
+                  </Col>
+
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Issue</Label>
+                      <Input
+                        type="text"
+                        name="issue"
+                        value={validation.values.issue}
+                        onChange={validation.handleChange}
+                        className={`form-control ${validation.touched.issue && validation.errors.issue ? "is-invalid" : ""}`}
+                        placeholder="Enter Issue"
+                      />
+                      {validation.touched.issue && validation.errors.issue && (
+                        <div className="text-danger">
+                          {typeof validation.errors.issue === "string" && validation.errors.issue}
+                        </div>
+                      )}
+                    </div>
+                  </Col>
+
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Page Number</Label>
+                      <Input
+                        type="number"
+                        name="pageNumber"
+                        value={validation.values.pageNumber}
+                        onChange={validation.handleChange}
+                        className={`form-control ${validation.touched.pageNumber && validation.errors.pageNumber ? "is-invalid" : ""}`}
+                        placeholder="Enter Page Number"
+                      />
+                      {validation.touched.pageNumber && validation.errors.pageNumber && (
+                        <div className="text-danger">
+                          {typeof validation.errors.pageNumber === "string" && validation.errors.pageNumber}
+                        </div>
+                      )}
+                    </div>
+                  </Col>
+
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>ISSXL</Label>
+                      <Input
+                        type="text"
+                        name="issxl"
+                        value={validation.values.issxl}
+                        onChange={validation.handleChange}
+                        className={`form-control ${validation.touched.issxl && validation.errors.issxl ? "is-invalid" : ""}`}
+                        placeholder="Enter ISSXL"
+                      />
+                      {validation.touched.issxl && validation.errors.issxl && (
+                        <div className="text-danger">
+                          {typeof validation.errors.issxl === "string" && validation.errors.issxl}
+                        </div>
+                      )}
+                    </div>
+                  </Col>
+
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>DOI</Label>
+                      <Input
+                        type="text"
+                        name="doi"
+                        value={validation.values.doi}
+                        onChange={validation.handleChange}
+                        className={`form-control ${validation.touched.doi && validation.errors.doi ? "is-invalid" : ""}`}
+                        placeholder="Enter DOI"
+                      />
+                      {validation.touched.doi && validation.errors.doi && (
+                        <div className="text-danger">
+                          {typeof validation.errors.doi === "string" && validation.errors.doi}
+                        </div>
+                      )}
+                    </div>
+                  </Col>
+
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Date of Publication</Label>
+                      <Input
+                        type="date" // Use native date input
+                        className={`form-control ${validation.touched.dateOfPublication && validation.errors.dateOfPublication ? "is-invalid" : ""}`}
+                        value={
+                          validation.values.dateOfPublication
+                            ? moment(validation.values.dateOfPublication, "DD/MM/YYYY").format("YYYY-MM-DD") // Convert to yyyy-mm-dd for the input
+                            : ""
+                        }
+                        onChange={(e) => {
+                          const formattedDate = moment(e.target.value, "YYYY-MM-DD").format("DD/MM/YYYY"); // Convert to dd/mm/yyyy
+                          validation.setFieldValue("dateOfPublication", formattedDate);
+                        }}
+                        placeholder="dd/mm/yyyy"
+                      />
+                      {validation.touched.dateOfPublication && validation.errors.dateOfPublication && (
+                        <div className="text-danger">
+                          {typeof validation.errors.dateOfPublication === "string" && validation.errors.dateOfPublication}
+                        </div>
+                      )}
+                    </div>
+                  </Col>
+
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Publisher</Label>
+                      <Input
+                        type="text"
+                        name="publisher"
+                        value={validation.values.publisher}
+                        onChange={validation.handleChange}
+                        className={`form-control ${validation.touched.publisher && validation.errors.publisher ? "is-invalid" : ""}`}
+                        placeholder="Enter Publisher"
+                      />
+                      {validation.touched.publisher && validation.errors.publisher && (
+                        <div className="text-danger">
+                          {typeof validation.errors.publisher === "string" && validation.errors.publisher}
+                        </div>
+                      )}
+                    </div>
+                  </Col>
+
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Front Page Upload</Label>
+                      <Input
+                        type="file"
+                        name="frontPageUpload"
+                        onChange={(event) => {
+                          const file = event.currentTarget.files?.[0] || null;
+                          validation.setFieldValue("frontPageUpload", file);
+                        }}
+                        className={`form-control ${validation.touched.frontPageUpload && validation.errors.frontPageUpload ? "is-invalid" : ""}`}
+                      />
+                      {validation.touched.frontPageUpload && validation.errors.frontPageUpload && (
+                        <div className="text-danger">
+                          {typeof validation.errors.frontPageUpload === "string" && validation.errors.frontPageUpload}
+                        </div>
+                      )}
+                    </div>
+                  </Col>
+
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Research Article Upload</Label>
+                      <Input
+                        type="file"
+                        name="researchArticleUpload"
+                        onChange={(event) => {
+                          const file = event.currentTarget.files?.[0] || null;
+                          validation.setFieldValue("researchArticleUpload", file);
+                        }}
+                        className={`form-control ${validation.touched.researchArticleUpload && validation.errors.researchArticleUpload ? "is-invalid" : ""}`}
+                      />
+                      {validation.touched.researchArticleUpload && validation.errors.researchArticleUpload && (
+                        <div className="text-danger">
+                          {typeof validation.errors.researchArticleUpload === "string" && validation.errors.researchArticleUpload}
+                        </div>
+                      )}
                     </div>
                   </Col>
                 </Row>
-                {/* Conditional Rendering Based on Type */}
-                {selectedType === "Research Article" && (
-                  <Row>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>Faculty Name</Label>
-                        <Input
-                          type="text"
-                          name="facultyName"
-                          value={validation.values.facultyName}
-                          onChange={validation.handleChange}
-                          className={`form-control ${validation.touched.facultyName && validation.errors.facultyName ? "is-invalid" : ""}`}
-                          placeholder="Enter Faculty Name"
-                        />
-
-                      </div>
-                    </Col>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>Co-authors</Label>
-                        <Input
-                          type="text"
-                          name="coAuthors"
-                          value={validation.values.coAuthors}
-                          onChange={validation.handleChange}
-                          className={`form-control ${validation.touched.coAuthors && validation.errors.coAuthors ? "is-invalid" : ""}`}
-                          placeholder="Enter Co-authors"
-                        />
-
-                      </div>
-                    </Col>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>Indexation</Label>
-                        <Input
-                          type="select"
-                          value={validation.values.indexation}
-                          onChange={(e) => validation.setFieldValue("indexation", e.target.value)}
-                          className={`form-control ${validation.touched.indexation && validation.errors.indexation ? "is-invalid" : ""}`}
-                        >
-                          <option value="">Select Indexation</option>
-                          <option value="Scopus">Scopus</option>
-                          <option value="Web of Science">Web of Science</option>
-                          <option value="ABDC">ABDC</option>
-                          <option value="UGC-Care">UGC-Care</option>
-                        </Input>
-
-                      </div>
-                    </Col>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>Journal Name</Label>
-                        <Input
-                          type="text"
-                          name="journalName"
-                          value={validation.values.journalName}
-                          onChange={validation.handleChange}
-                          className={`form-control ${validation.touched.journalName && validation.errors.journalName ? "is-invalid" : ""}`}
-                          placeholder="Enter Journal Name"
-                        />
-
-                      </div>
-                    </Col>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>Title of Paper</Label>
-                        <Input
-                          type="text"
-                          name="titleOfPaper"
-                          value={validation.values.titleOfPaper}
-                          onChange={validation.handleChange}
-                          className={`form-control ${validation.touched.titleOfPaper && validation.errors.titleOfPaper ? "is-invalid" : ""}`}
-                          placeholder="Enter Title of Paper"
-                        />
-
-                      </div>
-                    </Col>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>Volume</Label>
-                        <Input
-                          type="text"
-                          name="volume"
-                          value={validation.values.volume}
-                          onChange={validation.handleChange}
-                          className={`form-control ${validation.touched.volume && validation.errors.volume ? "is-invalid" : ""}`}
-                          placeholder="Enter Volume"
-                        />
-
-                      </div>
-                    </Col>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>Issue</Label>
-                        <Input
-                          type="text"
-                          name="issue"
-                          value={validation.values.issue}
-                          onChange={validation.handleChange}
-                          className={`form-control ${validation.touched.issue && validation.errors.issue ? "is-invalid" : ""}`}
-                          placeholder="Enter Issue"
-                        />
-
-                      </div>
-                    </Col>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>Page Number</Label>
-                        <Input
-                          type="number"
-                          name="pageNumber"
-                          value={validation.values.pageNumber}
-                          onChange={validation.handleChange}
-                          className={`form-control ${validation.touched.pageNumber && validation.errors.pageNumber ? "is-invalid" : ""}`}
-                          placeholder="Enter Page Number"
-                        />
-
-                      </div>
-                    </Col>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>ISSXL</Label>
-                        <Input
-                          type="text"
-                          name="issxl"
-                          value={validation.values.issxl}
-                          onChange={validation.handleChange}
-                          className={`form-control ${validation.touched.issxl && validation.errors.issxl ? "is-invalid" : ""}`}
-                          placeholder="Enter ISSXL"
-                        />
-
-                      </div>
-                    </Col>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>DOI</Label>
-                        <Input
-                          type="text"
-                          name="doi"
-                          value={validation.values.doi}
-                          onChange={validation.handleChange}
-                          className={`form-control ${validation.touched.doi && validation.errors.doi ? "is-invalid" : ""}`}
-                          placeholder="Enter DOI"
-                        />
-
-                      </div>
-                    </Col>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>Date of Publication</Label>
-                        <Input
-                          type="date"
-                          name="dateOfPublication"
-                          value={validation.values.dateOfPublication}
-                          onChange={validation.handleChange}
-                          className={`form-control ${validation.touched.dateOfPublication && validation.errors.dateOfPublication ? "is-invalid" : ""}`}
-                        />
-
-                      </div>
-                    </Col>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>Publisher</Label>
-                        <Input
-                          type="text"
-                          name="publisher"
-                          value={validation.values.publisher}
-                          onChange={validation.handleChange}
-                          className={`form-control ${validation.touched.publisher && validation.errors.publisher ? "is-invalid" : ""}`}
-                          placeholder="Enter Publisher"
-                        />
-
-                      </div>
-                    </Col>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>Front Page Upload</Label>
-                        <Input
-                          type="file"
-                          name="frontPageUpload"
-                          onChange={(event) => {
-                            const file = event.currentTarget.files?.[0] || null;
-                            validation.setFieldValue("frontPageUpload", file);
-                          }}
-                          className={`form-control ${validation.touched.frontPageUpload && validation.errors.frontPageUpload ? "is-invalid" : ""}`}
-                        />
-
-                      </div>
-                    </Col>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>Research Article Upload</Label>
-                        <Input
-                          type="file"
-                          name="researchArticleUpload"
-                          onChange={(event) => {
-                            const file = event.currentTarget.files?.[0] || null;
-                            validation.setFieldValue("researchArticleUpload", file);
-                          }}
-                          className={`form-control ${validation.touched.researchArticleUpload && validation.errors.researchArticleUpload ? "is-invalid" : ""}`}
-                        />
-
-                      </div>
-                    </Col>
-                  </Row>
-                )}
-
-                {selectedType === "Book Chapters/Books" && (
-                  <Row>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>Faculty Name</Label>
-                        <Input
-                          type="text"
-                          name="facultyName"
-                          value={validation.values.facultyName}
-                          onChange={validation.handleChange}
-                          className={`form-control ${validation.touched.facultyName && validation.errors.facultyName ? "is-invalid" : ""}`}
-                          placeholder="Enter Faculty Name"
-                        />
-
-                      </div>
-                    </Col>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>Co-authors</Label>
-                        <Input
-                          type="text"
-                          name="coAuthors"
-                          value={validation.values.coAuthors}
-                          onChange={validation.handleChange}
-                          className={`form-control ${validation.touched.coAuthors && validation.errors.coAuthors ? "is-invalid" : ""}`}
-                          placeholder="Enter Co-authors"
-                        />
-
-                      </div>
-                    </Col>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>Book Title</Label>
-                        <Input
-                          type="text"
-                          name="bookTitle"
-                          value={validation.values.bookTitle}
-                          onChange={validation.handleChange}
-                          className={`form-control ${validation.touched.bookTitle && validation.errors.bookTitle ? "is-invalid" : ""}`}
-                          placeholder="Enter Book Title"
-                        />
-
-                      </div>
-                    </Col>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>Editor</Label>
-                        <Input
-                          type="text"
-                          name="editor"
-                          value={validation.values.editor}
-                          onChange={validation.handleChange}
-                          className={`form-control ${validation.touched.editor && validation.errors.editor ? "is-invalid" : ""}`}
-                          placeholder="Enter Editor Name"
-                        />
-
-                      </div>
-                    </Col>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>Publisher</Label>
-                        <Input
-                          type="text"
-                          name="publisher"
-                          value={validation.values.publisher}
-                          onChange={validation.handleChange}
-                          className={`form-control ${validation.touched.publisher && validation.errors.publisher ? "is-invalid" : ""}`}
-                          placeholder="Enter Publisher"
-                        />
-
-                      </div>
-                    </Col>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>ISBXL</Label>
-                        <Input
-                          type="text"
-                          name="isbxl"
-                          value={validation.values.isbxl}
-                          onChange={validation.handleChange}
-                          className={`form-control ${validation.touched.isbxl && validation.errors.isbxl ? "is-invalid" : ""}`}
-                          placeholder="Enter ISBXL"
-                        />
-
-                      </div>
-                    </Col>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>Date of Publication</Label>
-                        <Input
-                          type="date"
-                          name="dateOfPublication"
-                          value={validation.values.dateOfPublication}
-                          onChange={validation.handleChange}
-                          className={`form-control ${validation.touched.dateOfPublication && validation.errors.dateOfPublication ? "is-invalid" : ""}`}
-                        />
-
-                      </div>
-                    </Col>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>Front Page Upload</Label>
-                        <Input
-                          type="file"
-                          name="frontPageUpload"
-                          onChange={(event) => {
-                            const file = event.currentTarget.files?.[0] || null;
-                            validation.setFieldValue("frontPageUpload", file);
-                          }}
-                          className={`form-control ${validation.touched.frontPageUpload && validation.errors.frontPageUpload ? "is-invalid" : ""}`}
-                        />
-
-                      </div>
-                    </Col>
-                  </Row>
-                )}
                 <Row>
                   <Col lg={12}>
                     <div className="mt-3 d-flex justify-content-between">
@@ -600,7 +765,7 @@ const Research_Publications = () => {
                       <button
                         className="btn btn-secondary"
                         type="button"
-                        onClick={handleListBosClick}
+                        onClick={handleListResearchClick}
                       >
                         List RP's
                       </button>
@@ -640,21 +805,21 @@ const Research_Publications = () => {
                     />
                   </th>
                   <th>
-                    Semester Type
+                    Faculty Name
                     <Input
                       type="text"
                       placeholder="Filter"
-                      value={filters.semesterType}
-                      onChange={(e) => handleFilterChange(e, "semesterType")}
+                      value={filters.facultyName}
+                      onChange={(e) => handleFilterChange(e, "facultyName")}
                     />
                   </th>
                   <th>
-                    Semester No
+                    Co-authors
                     <Input
                       type="text"
                       placeholder="Filter"
-                      value={filters.semesterNo}
-                      onChange={(e) => handleFilterChange(e, "semesterNo")}
+                      value={filters.coAuthors}
+                      onChange={(e) => handleFilterChange(e, "coAuthors")}
                     />
                   </th>
                   <th>
@@ -676,39 +841,57 @@ const Research_Publications = () => {
                     />
                   </th>
                   <th>
-                    Program Type
+                    Indexation
                     <Input
                       type="text"
                       placeholder="Filter"
-                      value={filters.programType}
+                      value={filters.indexation}
                       onChange={(e) => handleFilterChange(e, "programType")}
                     />
                   </th>
                   <th>
-                    Program
+                    JournalName
                     <Input
                       type="text"
                       placeholder="Filter"
-                      value={filters.program}
+                      value={filters.journalName}
                       onChange={(e) => handleFilterChange(e, "program")}
                     />
                   </th>
                   <th>
-                    Year of Introduction
+                    PaperTitle
                     <Input
                       type="text"
                       placeholder="Filter"
-                      value={filters.yearOfIntroduction}
+                      value={filters.paperTitle}
                       onChange={(e) => handleFilterChange(e, "yearOfIntroduction")}
                     />
                   </th>
                   <th>
-                    Percentage
+                    ISSN
                     <Input
                       type="text"
                       placeholder="Filter"
-                      value={filters.percentage}
+                      value={filters.issn}
                       onChange={(e) => handleFilterChange(e, "percentage")}
+                    />
+                  </th>
+                  <th>
+                    PublicationDate
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.dateOfPublication}
+                      onChange={(e) => handleFilterChange(e, "dateOfPublication")}
+                    />
+                  </th>
+                  <th>
+                    Publisher
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.publisher}
+                      onChange={(e) => handleFilterChange(e, "publisher")}
                     />
                   </th>
                   <th>Actions</th>
@@ -716,29 +899,31 @@ const Research_Publications = () => {
               </thead>
               <tbody>
                 {currentRows.length > 0 ? (
-                  currentRows.map((bos, index) => (
-                    <tr key={bos.bosDataId}>
+                  currentRows.map((research, index) => (
+                    <tr key={research.researchPublicationId}>
                       <td>{indexOfFirstRow + index + 1}</td>
-                      <td>{bos.academicYear}</td>
-                      <td>{bos.semType}</td>
-                      <td>{bos.semesterNo}</td>
-                      <td>{bos.streamName}</td>
-                      <td>{bos.departmentName}</td>
-                      <td>{bos.programTypeName}</td>
-                      <td>{bos.programName}</td>
-                      <td>{bos.yearOfIntroduction}</td>
-                      <td>{bos.percentage}</td>
+                      <td>{research.academicYear}</td>
+                      <td>{research.facultyName}</td>
+                      <td>{research.coAuthors}</td>
+                      <td>{research.streamName}</td>
+                      <td>{research.departmentName}</td>
+                      <td>{research.indexation}</td>
+                      <td>{research.journalName}</td>
+                      <td>{research.paperTitle}</td>
+                      <td>{research.issn}</td>
+                      <td>{research.publicationDate}</td>
+                      <td>{research.publisher}</td>
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
                             className="btn btn-sm btn-warning"
-                            onClick={() => handleEdit(bos.bosDataId)}
+                            onClick={() => handleEdit(research.researchPublicationId)}
                           >
                             Edit
                           </button>
                           <button
                             className="btn btn-sm btn-danger"
-                            onClick={() => handleDelete(bos.bosDataId)}
+                            onClick={() => handleDelete(research.researchPublicationId)}
                           >
                             Delete
                           </button>
@@ -749,7 +934,7 @@ const Research_Publications = () => {
                 ) : (
                   <tr>
                     <td colSpan={11} className="text-center">
-                      No BOS data available.
+                      No Research data available.
                     </td>
                   </tr>
                 )}
@@ -777,7 +962,23 @@ const Research_Publications = () => {
             </div>
           </ModalBody>
         </Modal>
+        {/* Confirmation Modal */}
+        <Modal isOpen={isDeleteModalOpen} toggle={() => setIsDeleteModalOpen(false)}>
+          <ModalHeader toggle={() => setIsDeleteModalOpen(false)}>Confirm Deletion</ModalHeader>
+          <ModalBody>
+            Are you sure you want to delete this record? This action cannot be undone.
+          </ModalBody>
+          <ModalFooter>
+            <Button color="danger" onClick={() => confirmDelete(deleteId!)}>
+              Delete
+            </Button>
+            <Button color="secondary" onClick={() => setIsDeleteModalOpen(false)}>
+              Cancel
+            </Button>
+          </ModalFooter>
+        </Modal>
       </div>
+      <ToastContainer />
     </React.Fragment >
   );
 };

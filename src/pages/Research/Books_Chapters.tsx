@@ -89,24 +89,12 @@ const Books_Chapters = () => {
       stream: null as { value: string; label: string } | null,
       department: null as { value: string; label: string } | null,
       otherDepartment: "",
-      type: "Research Article",
       facultyName: "",
       coAuthors: "",
-      indexation: "",
-      journalName: "",
-      titleOfPaper: "",
-      volume: "",
-      issue: "",
-      pageNumber: "",
-      issxl: "",
-      doi: "",
-      dateOfPublication: "",
-      publisher: "",
       bookTitle: "",
       editor: "",
       isbxl: "",
       frontPageUpload: null as File | null,
-      researchArticleUpload: null as File | null,
     },
     validationSchema: Yup.object({
       academicYear: Yup.object<{ value: string; label: string }>().nullable().required("Please select academic year"),
@@ -117,24 +105,14 @@ const Books_Chapters = () => {
           ? schema.required("Please specify the department")
           : schema.nullable()
       ),
-      type: Yup.string().required("Please select type"),
       facultyName: Yup.string().required("Please enter faculty name"),
       coAuthors: Yup.string().required("Please enter co-authors"),
-      indexation: Yup.string().required("Please select indexation"),
-      journalName: Yup.string().required("Please enter journal name"),
-      titleOfPaper: Yup.string().required("Please enter title of paper"),
-      volume: Yup.string().required("Please enter volume"),
-      issue: Yup.string().required("Please enter issue"),
-      pageNumber: Yup.number().required("Please enter page number").positive("Page number must be positive").integer("Page number must be an integer"),
-      issxl: Yup.string().required("Please enter ISSXL"),
-      doi: Yup.string().required("Please enter DOI"),
       bookTitle: Yup.string().required("Please enter book title"),
       editor: Yup.string().required("Please enter editor name"),
       isbxl: Yup.string().required("Please enter ISBXL"),
       frontPageUpload: Yup.mixed().required("Please upload the front page"),
       dateOfPublication: Yup.string().required("Please select date of publication"),
-      publisher: Yup.string().required("Please enter publisher"),
-      researchArticleUpload: Yup.mixed().required("Please upload the research article"),
+      publisher: Yup.string().required("Please enter publisher")
     }),
     onSubmit: async (values: any) => {
       console.log("Form Submitted:", values);
@@ -182,415 +160,166 @@ const Books_Chapters = () => {
                           !!validation.errors.academicYear
                         }
                       />
-                      {validation.touched.academicYear &&
-                        validation.errors.academicYear && (
-                          <div className="text-danger">
-                            {typeof validation.errors.academicYear === "string" && validation.errors.academicYear}
-                          </div>
-                        )}
+                      {validation.touched.academicYear && validation.errors.academicYear && (
+                        <div className="text-danger">
+                          {typeof validation.errors.academicYear === 'string' && validation.errors.academicYear}
+                        </div>
+                      )}
                     </div>
                   </Col>
 
-                  {/* Stream Dropdown */}
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>School</Label>
-                      <StreamDropdown
-                        value={validation.values.stream}
-                        onChange={(selectedOption) => {
-                          validation.setFieldValue("stream", selectedOption);
-                          setSelectedStream(selectedOption);
-                          validation.setFieldValue("department", null);
-                          setSelectedDepartment(null);
-                        }}
-                        isInvalid={
-                          validation.touched.stream && !!validation.errors.stream
-                        }
-                      />
-                      
-                    </div>
-                  </Col>
-
-                  {/* Department Dropdown */}
-                  <Col lg={4}>
-                    <div className="mb-3">
-                      <Label>Department</Label>
-                      <DepartmentDropdown
-                        streamId={selectedStream?.value}
-                        value={validation.values.department}
-                        onChange={(selectedOption) => {
-                          validation.setFieldValue("department", selectedOption);
-                          setSelectedDepartment(selectedOption);
-                          validation.setFieldValue("programType", null);
-                          setSelectedProgramType(null);
-                        }}
-                        isInvalid={
-                          validation.touched.department &&
-                          !!validation.errors.department
-                        }
-                      />
-                     
-                    </div>
-                  </Col>
-                  {validation.values.department?.value === "Others" && (
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>Specify Department</Label>
-                        <Input
-                          type="text"
-                          className={`form-control ${validation.touched.otherDepartment && validation.errors.otherDepartment ? "is-invalid" : ""
-                            }`}
-                          value={validation.values.otherDepartment}
-                          onChange={(e) => validation.setFieldValue("otherDepartment", e.target.value)}
-                          placeholder="Enter Department Name"
-                        />
-                       
-                      </div>
-                    </Col>
-                  )}
-                  {/* Type Dropdown */}
-                  <Col lg={4}>
-                    <div className="mb-3">
-                      <Label>Type</Label>
+                      <Label>Faculty Name</Label>
                       <Input
-                        type="select"
-                        value={validation.values.type}
-                        onChange={(e) => {
-                          validation.setFieldValue("type", e.target.value);
-                          setSelectedType(e.target.value);
+                        type="text"
+                        name="facultyName"
+                        value={validation.values.facultyName}
+                        onChange={validation.handleChange}
+                        className={`form-control ${validation.touched.facultyName && validation.errors.facultyName ? "is-invalid" : ""}`}
+                        placeholder="Enter Faculty Name"
+                      />
+                      {validation.touched.facultyName && validation.errors.facultyName && (
+                        <div className="text-danger">
+                          {typeof validation.errors.facultyName === 'string' && validation.errors.facultyName}
+                        </div>
+                      )}
+                    </div>
+                  </Col>
+
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Co-authors</Label>
+                      <Input
+                        type="text"
+                        name="coAuthors"
+                        value={validation.values.coAuthors}
+                        onChange={validation.handleChange}
+                        className={`form-control ${validation.touched.coAuthors && validation.errors.coAuthors ? "is-invalid" : ""}`}
+                        placeholder="Enter Co-authors"
+                      />
+                      {validation.touched.coAuthors && validation.errors.coAuthors && (
+                        <div className="text-danger">
+                          {typeof validation.errors.coAuthors === 'string' && validation.errors.coAuthors}
+                        </div>
+                      )}
+                    </div>
+                  </Col>
+
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Book Title</Label>
+                      <Input
+                        type="text"
+                        name="bookTitle"
+                        value={validation.values.bookTitle}
+                        onChange={validation.handleChange}
+                        className={`form-control ${validation.touched.bookTitle && validation.errors.bookTitle ? "is-invalid" : ""}`}
+                        placeholder="Enter Book Title"
+                      />
+                      {validation.touched.bookTitle && validation.errors.bookTitle && (
+                        <div className="text-danger">
+                          {typeof validation.errors.bookTitle === 'string' && validation.errors.bookTitle}
+                        </div>
+                      )}
+                    </div>
+                  </Col>
+
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Editor</Label>
+                      <Input
+                        type="text"
+                        name="editor"
+                        value={validation.values.editor}
+                        onChange={validation.handleChange}
+                        className={`form-control ${validation.touched.editor && validation.errors.editor ? "is-invalid" : ""}`}
+                        placeholder="Enter Editor Name"
+                      />
+                      {validation.touched.editor && validation.errors.editor && (
+                        <div className="text-danger">
+                          {typeof validation.errors.editor === 'string' && validation.errors.editor}
+                        </div>
+                      )}
+                    </div>
+                  </Col>
+
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Publisher</Label>
+                      <Input
+                        type="text"
+                        name="publisher"
+                        value={validation.values.publisher}
+                        onChange={validation.handleChange}
+                        className={`form-control ${validation.touched.publisher && validation.errors.publisher ? "is-invalid" : ""}`}
+                        placeholder="Enter Publisher"
+                      />
+                      {validation.touched.publisher && validation.errors.publisher && (
+                        <div className="text-danger">
+                          {typeof validation.errors.publisher === 'string' && validation.errors.publisher}
+                        </div>
+                      )}
+                    </div>
+                  </Col>
+
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>ISBXL</Label>
+                      <Input
+                        type="text"
+                        name="isbxl"
+                        value={validation.values.isbxl}
+                        onChange={validation.handleChange}
+                        className={`form-control ${validation.touched.isbxl && validation.errors.isbxl ? "is-invalid" : ""}`}
+                        placeholder="Enter ISBXL"
+                      />
+                      {validation.touched.isbxl && validation.errors.isbxl && (
+                        <div className="text-danger">
+                          {typeof validation.errors.isbxl === 'string' && validation.errors.isbxl}
+                        </div>
+                      )}
+                    </div>
+                  </Col>
+
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Date of Publication</Label>
+                      <Input
+                        type="date"
+                        name="dateOfPublication"
+                        value={validation.values.dateOfPublication}
+                        onChange={validation.handleChange}
+                        className={`form-control ${validation.touched.dateOfPublication && validation.errors.dateOfPublication ? "is-invalid" : ""}`}
+                      />
+                      {validation.touched.dateOfPublication && validation.errors.dateOfPublication && (
+                        <div className="text-danger">
+                          {typeof validation.errors.dateOfPublication === 'string' && validation.errors.dateOfPublication}
+                        </div>
+                      )}
+                    </div>
+                  </Col>
+
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Front Page Upload</Label>
+                      <Input
+                        type="file"
+                        name="frontPageUpload"
+                        onChange={(event) => {
+                          const file = event.currentTarget.files?.[0] || null;
+                          validation.setFieldValue("frontPageUpload", file);
                         }}
-                        className={`form-control ${validation.touched.type && validation.errors.type ? "is-invalid" : ""}`}
-                      >
-                        <option value="Research Article">Research Article</option>
-                        <option value="Book Chapters/Books">Book Chapters/Books</option>
-                      </Input>
-                      
+                        className={`form-control ${validation.touched.frontPageUpload && validation.errors.frontPageUpload ? "is-invalid" : ""}`}
+                      />
+                      {validation.touched.frontPageUpload && validation.errors.frontPageUpload && (
+                        <div className="text-danger">
+                          {typeof validation.errors.frontPageUpload === 'string' && validation.errors.frontPageUpload}
+                        </div>
+                      )}
                     </div>
                   </Col>
                 </Row>
-                {/* Conditional Rendering Based on Type */}
-                {selectedType === "Research Article" && (
-                  <Row>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>Faculty Name</Label>
-                        <Input
-                          type="text"
-                          name="facultyName"
-                          value={validation.values.facultyName}
-                          onChange={validation.handleChange}
-                          className={`form-control ${validation.touched.facultyName && validation.errors.facultyName ? "is-invalid" : ""}`}
-                          placeholder="Enter Faculty Name"
-                        />
-                        
-                      </div>
-                    </Col>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>Co-authors</Label>
-                        <Input
-                          type="text"
-                          name="coAuthors"
-                          value={validation.values.coAuthors}
-                          onChange={validation.handleChange}
-                          className={`form-control ${validation.touched.coAuthors && validation.errors.coAuthors ? "is-invalid" : ""}`}
-                          placeholder="Enter Co-authors"
-                        />
-                       
-                      </div>
-                    </Col>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>Indexation</Label>
-                        <Input
-                          type="select"
-                          value={validation.values.indexation}
-                          onChange={(e) => validation.setFieldValue("indexation", e.target.value)}
-                          className={`form-control ${validation.touched.indexation && validation.errors.indexation ? "is-invalid" : ""}`}
-                        >
-                          <option value="">Select Indexation</option>
-                          <option value="Scopus">Scopus</option>
-                          <option value="Web of Science">Web of Science</option>
-                          <option value="ABDC">ABDC</option>
-                          <option value="UGC-Care">UGC-Care</option>
-                        </Input>
-                        
-                      </div>
-                    </Col>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>Journal Name</Label>
-                        <Input
-                          type="text"
-                          name="journalName"
-                          value={validation.values.journalName}
-                          onChange={validation.handleChange}
-                          className={`form-control ${validation.touched.journalName && validation.errors.journalName ? "is-invalid" : ""}`}
-                          placeholder="Enter Journal Name"
-                        />
-                        
-                      </div>
-                    </Col>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>Title of Paper</Label>
-                        <Input
-                          type="text"
-                          name="titleOfPaper"
-                          value={validation.values.titleOfPaper}
-                          onChange={validation.handleChange}
-                          className={`form-control ${validation.touched.titleOfPaper && validation.errors.titleOfPaper ? "is-invalid" : ""}`}
-                          placeholder="Enter Title of Paper"
-                        />
-                        
-                      </div>
-                    </Col>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>Volume</Label>
-                        <Input
-                          type="text"
-                          name="volume"
-                          value={validation.values.volume}
-                          onChange={validation.handleChange}
-                          className={`form-control ${validation.touched.volume && validation.errors.volume ? "is-invalid" : ""}`}
-                          placeholder="Enter Volume"
-                        />
-                        
-                      </div>
-                    </Col>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>Issue</Label>
-                        <Input
-                          type="text"
-                          name="issue"
-                          value={validation.values.issue}
-                          onChange={validation.handleChange}
-                          className={`form-control ${validation.touched.issue && validation.errors.issue ? "is-invalid" : ""}`}
-                          placeholder="Enter Issue"
-                        />
-                       
-                      </div>
-                    </Col>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>Page Number</Label>
-                        <Input
-                          type="number"
-                          name="pageNumber"
-                          value={validation.values.pageNumber}
-                          onChange={validation.handleChange}
-                          className={`form-control ${validation.touched.pageNumber && validation.errors.pageNumber ? "is-invalid" : ""}`}
-                          placeholder="Enter Page Number"
-                        />
-                       
-                      </div>
-                    </Col>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>ISSXL</Label>
-                        <Input
-                          type="text"
-                          name="issxl"
-                          value={validation.values.issxl}
-                          onChange={validation.handleChange}
-                          className={`form-control ${validation.touched.issxl && validation.errors.issxl ? "is-invalid" : ""}`}
-                          placeholder="Enter ISSXL"
-                        />
-                        
-                      </div>
-                    </Col>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>DOI</Label>
-                        <Input
-                          type="text"
-                          name="doi"
-                          value={validation.values.doi}
-                          onChange={validation.handleChange}
-                          className={`form-control ${validation.touched.doi && validation.errors.doi ? "is-invalid" : ""}`}
-                          placeholder="Enter DOI"
-                        />
-                       
-                      </div>
-                    </Col>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>Date of Publication</Label>
-                        <Input
-                          type="date"
-                          name="dateOfPublication"
-                          value={validation.values.dateOfPublication}
-                          onChange={validation.handleChange}
-                          className={`form-control ${validation.touched.dateOfPublication && validation.errors.dateOfPublication ? "is-invalid" : ""}`}
-                        />
-                       
-                      </div>
-                    </Col>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>Publisher</Label>
-                        <Input
-                          type="text"
-                          name="publisher"
-                          value={validation.values.publisher}
-                          onChange={validation.handleChange}
-                          className={`form-control ${validation.touched.publisher && validation.errors.publisher ? "is-invalid" : ""}`}
-                          placeholder="Enter Publisher"
-                        />
-                       
-                      </div>
-                    </Col>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>Front Page Upload</Label>
-                        <Input
-                          type="file"
-                          name="frontPageUpload"
-                          onChange={(event) => {
-                            const file = event.currentTarget.files?.[0] || null;
-                            validation.setFieldValue("frontPageUpload", file);
-                          }}
-                          className={`form-control ${validation.touched.frontPageUpload && validation.errors.frontPageUpload ? "is-invalid" : ""}`}
-                        />
-                        
-                      </div>
-                    </Col>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>Research Article Upload</Label>
-                        <Input
-                          type="file"
-                          name="researchArticleUpload"
-                          onChange={(event) => {
-                            const file = event.currentTarget.files?.[0] || null;
-                            validation.setFieldValue("researchArticleUpload", file);
-                          }}
-                          className={`form-control ${validation.touched.researchArticleUpload && validation.errors.researchArticleUpload ? "is-invalid" : ""}`}
-                        />
-                        
-                      </div>
-                    </Col>
-                  </Row>
-                )}
-
-                {selectedType === "Book Chapters/Books" && (
-                  <Row>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>Faculty Name</Label>
-                        <Input
-                          type="text"
-                          name="facultyName"
-                          value={validation.values.facultyName}
-                          onChange={validation.handleChange}
-                          className={`form-control ${validation.touched.facultyName && validation.errors.facultyName ? "is-invalid" : ""}`}
-                          placeholder="Enter Faculty Name"
-                        />
-                        
-                      </div>
-                    </Col>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>Co-authors</Label>
-                        <Input
-                          type="text"
-                          name="coAuthors"
-                          value={validation.values.coAuthors}
-                          onChange={validation.handleChange}
-                          className={`form-control ${validation.touched.coAuthors && validation.errors.coAuthors ? "is-invalid" : ""}`}
-                          placeholder="Enter Co-authors"
-                        />
-                        
-                      </div>
-                    </Col>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>Book Title</Label>
-                        <Input
-                          type="text"
-                          name="bookTitle"
-                          value={validation.values.bookTitle}
-                          onChange={validation.handleChange}
-                          className={`form-control ${validation.touched.bookTitle && validation.errors.bookTitle ? "is-invalid" : ""}`}
-                          placeholder="Enter Book Title"
-                        />
-                        
-                      </div>
-                    </Col>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>Editor</Label>
-                        <Input
-                          type="text"
-                          name="editor"
-                          value={validation.values.editor}
-                          onChange={validation.handleChange}
-                          className={`form-control ${validation.touched.editor && validation.errors.editor ? "is-invalid" : ""}`}
-                          placeholder="Enter Editor Name"
-                        />
-                        
-                      </div>
-                    </Col>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>Publisher</Label>
-                        <Input
-                          type="text"
-                          name="publisher"
-                          value={validation.values.publisher}
-                          onChange={validation.handleChange}
-                          className={`form-control ${validation.touched.publisher && validation.errors.publisher ? "is-invalid" : ""}`}
-                          placeholder="Enter Publisher"
-                        />
-                        
-                      </div>
-                    </Col>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>ISBXL</Label>
-                        <Input
-                          type="text"
-                          name="isbxl"
-                          value={validation.values.isbxl}
-                          onChange={validation.handleChange}
-                          className={`form-control ${validation.touched.isbxl && validation.errors.isbxl ? "is-invalid" : ""}`}
-                          placeholder="Enter ISBXL"
-                        />
-                        
-                      </div>
-                    </Col>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>Date of Publication</Label>
-                        <Input
-                          type="date"
-                          name="dateOfPublication"
-                          value={validation.values.dateOfPublication}
-                          onChange={validation.handleChange}
-                          className={`form-control ${validation.touched.dateOfPublication && validation.errors.dateOfPublication ? "is-invalid" : ""}`}
-                        />
-                        
-                      </div>
-                    </Col>
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>Front Page Upload</Label>
-                        <Input
-                          type="file"
-                          name="frontPageUpload"
-                          onChange={(event) => {
-                            const file = event.currentTarget.files?.[0] || null;
-                            validation.setFieldValue("frontPageUpload", file);
-                          }}
-                          className={`form-control ${validation.touched.frontPageUpload && validation.errors.frontPageUpload ? "is-invalid" : ""}`}
-                        />
-                        
-                      </div>
-                    </Col>
-                  </Row>
-                )}
                 <Row>
                   <Col lg={12}>
                     <div className="mt-3 d-flex justify-content-between">

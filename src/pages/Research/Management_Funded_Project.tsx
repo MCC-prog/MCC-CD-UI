@@ -147,10 +147,7 @@ const Management_Funded_Project: React.FC = () => {
                 name: "",
                 qualification: "",
                 designation: "",
-                department: null as { value: string; label: string } | null,
-                abstractFile: null as File | null,
-                sanctionOrderFile: null as File | null,
-                fellowshipFile: null as File | null,
+                department: null as { value: string; label: string } | null
             },
         },
         validationSchema,
@@ -365,48 +362,6 @@ const Management_Funded_Project: React.FC = () => {
                     {renderCoInvestigatorDepartmentDropdown()}
                     {validation.touched.coInvestigator?.department && validation.errors.coInvestigator?.department && (
                         <div className="text-danger">{validation.errors.coInvestigator.department}</div>
-                    )}
-                </div>
-            </Col>
-            <Col lg={4}>
-                <div className="mb-3">
-                    <Label>Abstract of the Project</Label>
-                    <Input
-                        type="file"
-                        name="coInvestigator.abstractFile"
-                        onChange={(event) => validation.setFieldValue("coInvestigator.abstractFile", event.currentTarget.files?.[0] || null)}
-                        className={`form-control ${validation.touched.coInvestigator?.abstractFile && validation.errors.coInvestigator?.abstractFile ? "is-invalid" : ""}`}
-                    />
-                    {validation.touched.coInvestigator?.abstractFile && validation.errors.coInvestigator?.abstractFile && (
-                        <div className="text-danger">{validation.errors.coInvestigator.abstractFile}</div>
-                    )}
-                </div>
-            </Col>
-            <Col lg={4}>
-                <div className="mb-3">
-                    <Label>Sanction Order</Label>
-                    <Input
-                        type="file"
-                        name="coInvestigator.sanctionOrderFile"
-                        onChange={(event) => validation.setFieldValue("coInvestigator.sanctionOrderFile", event.currentTarget.files?.[0] || null)}
-                        className={`form-control ${validation.touched.coInvestigator?.sanctionOrderFile && validation.errors.coInvestigator?.sanctionOrderFile ? "is-invalid" : ""}`}
-                    />
-                    {validation.touched.coInvestigator?.sanctionOrderFile && validation.errors.coInvestigator?.sanctionOrderFile && (
-                        <div className="text-danger">{validation.errors.coInvestigator.sanctionOrderFile}</div>
-                    )}
-                </div>
-            </Col>
-            <Col lg={4}>
-                <div className="mb-3">
-                    <Label>Fellowship</Label>
-                    <Input
-                        type="file"
-                        name="coInvestigator.fellowshipFile"
-                        onChange={(event) => validation.setFieldValue("coInvestigator.fellowshipFile", event.currentTarget.files?.[0] || null)}
-                        className={`form-control ${validation.touched.coInvestigator?.fellowshipFile && validation.errors.coInvestigator?.fellowshipFile ? "is-invalid" : ""}`}
-                    />
-                    {validation.touched.coInvestigator?.fellowshipFile && validation.errors.coInvestigator?.fellowshipFile && (
-                        <div className="text-danger">{validation.errors.coInvestigator.fellowshipFile}</div>
                     )}
                 </div>
             </Col>

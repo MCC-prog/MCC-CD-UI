@@ -98,6 +98,7 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
       .min(0, "Amount cannot be less than 0")
       .required("Please enter the amount"),
     monthOfGrant: Yup.string().required("Please enter the month of grant"),
+    fellowshipFile: Yup.mixed().required("Please upload the fellowship file"),
     typeOfFunding: Yup.object<{ value: string; label: string }>().nullable().required("Please select type of funding"),
     principalInvestigator: isMultidisciplinary === "Yes" && activeTab === "1"
       ? Yup.object({
@@ -117,8 +118,7 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
         designation: Yup.string().required("Please enter designation"),
         department: Yup.object<{ value: string; label: string }>().nullable().required("Please select department"),
         abstractFile: Yup.mixed().required("Please upload the abstract file"),
-        sanctionOrderFile: Yup.mixed().required("Please upload the sanction order file"),
-        fellowshipFile: Yup.mixed().required("Please upload the fellowship file"),
+        sanctionOrderFile: Yup.mixed().required("Please upload the sanction order file")
       })
       : Yup.object(),
   });
@@ -133,6 +133,7 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
       projectTitle: "",
       amount: "",
       monthOfGrant: "",
+      fellowshipFile: null as File | null,
       typeOfFunding: null as { value: string; label: string } | null,
       principalInvestigator: {
         name: "",
@@ -141,16 +142,13 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
         department: null as { value: string; label: string } | null,
         date: "",
         abstractFile: null as File | null,
-        sanctionOrderFile: null as File | null,
+        sanctionOrderFile: null as File | null
       },
       coInvestigator: {
         name: "",
         qualification: "",
         designation: "",
-        department: null as { value: string; label: string } | null,
-        abstractFile: null as File | null,
-        sanctionOrderFile: null as File | null,
-        fellowshipFile: null as File | null,
+        department: null as { value: string; label: string } | null
       },
     },
     validationSchema,
@@ -367,48 +365,6 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
           )}
         </div>
       </Col>
-      <Col lg={4}>
-        <div className="mb-3">
-          <Label>Abstract of the Project</Label>
-          <Input
-            type="file"
-            name="coInvestigator.abstractFile"
-            onChange={(event) => validation.setFieldValue("coInvestigator.abstractFile", event.currentTarget.files?.[0] || null)}
-            className={`form-control ${validation.touched.coInvestigator?.abstractFile && validation.errors.coInvestigator?.abstractFile ? "is-invalid" : ""}`}
-          />
-          {validation.touched.coInvestigator?.abstractFile && validation.errors.coInvestigator?.abstractFile && (
-            <div className="text-danger">{validation.errors.coInvestigator.abstractFile}</div>
-          )}
-        </div>
-      </Col>
-      <Col lg={4}>
-        <div className="mb-3">
-          <Label>Sanction Order</Label>
-          <Input
-            type="file"
-            name="coInvestigator.sanctionOrderFile"
-            onChange={(event) => validation.setFieldValue("coInvestigator.sanctionOrderFile", event.currentTarget.files?.[0] || null)}
-            className={`form-control ${validation.touched.coInvestigator?.sanctionOrderFile && validation.errors.coInvestigator?.sanctionOrderFile ? "is-invalid" : ""}`}
-          />
-          {validation.touched.coInvestigator?.sanctionOrderFile && validation.errors.coInvestigator?.sanctionOrderFile && (
-            <div className="text-danger">{validation.errors.coInvestigator.sanctionOrderFile}</div>
-          )}
-        </div>
-      </Col>
-      <Col lg={4}>
-        <div className="mb-3">
-          <Label>Fellowship</Label>
-          <Input
-            type="file"
-            name="coInvestigator.fellowshipFile"
-            onChange={(event) => validation.setFieldValue("coInvestigator.fellowshipFile", event.currentTarget.files?.[0] || null)}
-            className={`form-control ${validation.touched.coInvestigator?.fellowshipFile && validation.errors.coInvestigator?.fellowshipFile ? "is-invalid" : ""}`}
-          />
-          {validation.touched.coInvestigator?.fellowshipFile && validation.errors.coInvestigator?.fellowshipFile && (
-            <div className="text-danger">{validation.errors.coInvestigator.fellowshipFile}</div>
-          )}
-        </div>
-      </Col>
     </Row>
   );
 
@@ -426,6 +382,7 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
         amount: selectedData.amount || "",
         monthOfGrant: selectedData.monthOfGrant || "",
         typeOfFunding: { value: selectedData.typeOfFunding, label: selectedData.typeOfFunding },
+        fellowshipFile: selectedData.fellowshipFile || null,
         principalInvestigator: selectedData.principalInvestigator || {
           name: "",
           qualification: "",
@@ -439,10 +396,7 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
           name: "",
           qualification: "",
           designation: "",
-          department: null,
-          abstractFile: null,
-          sanctionOrderFile: null,
-          fellowshipFile: null,
+          department: null
         },
       });
       // Optionally scroll to the form or highlight it for the user
@@ -696,6 +650,20 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
                     </TabContent>
                   </div>
                 )}
+                <Col lg={4}>
+                  <div className="mb-3">
+                    <Label>Fellowship</Label>
+                    <Input
+                      type="file"
+                      name="coInvestigator.fellowshipFile"
+                      onChange={(event) => validation.setFieldValue("coInvestigator.fellowshipFile", event.currentTarget.files?.[0] || null)}
+                      className={`form-control ${validation.touched.fellowshipFile && validation.errors.fellowshipFile ? "is-invalid" : ""}`}
+                    />
+                    {validation.touched?.fellowshipFile && validation.errors.fellowshipFile && (
+                      <div className="text-danger">{validation.errors.fellowshipFile}</div>
+                    )}
+                  </div>
+                </Col>
                 <Row>
                   <Col lg={12}>
                     <div className="mt-3 d-flex justify-content-between">
