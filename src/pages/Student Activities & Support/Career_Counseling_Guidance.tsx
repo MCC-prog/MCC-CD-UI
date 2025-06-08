@@ -27,10 +27,12 @@ import {
 import * as Yup from "yup";
 import { APIClient } from "../../helpers/api_helper";
 import { toast, ToastContainer } from "react-toastify";
+import GetAllProgramDropdown from "Components/DropDowns/GetAllProgramDropdown";
+import moment from "moment";
 
 const api = new APIClient();
 
-const Staff_Profile: React.FC = () => {
+const Career_Counseling_Guidance: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [bosData, setBosData] = useState<any[]>([]);
   const [selectedStream, setSelectedStream] = useState<any>(null);
@@ -42,6 +44,7 @@ const Staff_Profile: React.FC = () => {
   const rowsPerPage = 10;
   const [filteredData, setFilteredData] = useState(bosData);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
 
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -126,11 +129,26 @@ const Staff_Profile: React.FC = () => {
         stream: response.streamId
           ? { value: response.streamId.toString(), label: response.streamName }
           : null,
+        department: response.departmentId
+          ? {
+              value: response.departmentId.toString(),
+              label: response.departmentName,
+            }
+          : null,
+        courses: response.programId
+          ? {
+              value: response.programId.toString(),
+              label: response.programName,
+            }
+          : null,
         noOfStaff: response.noOfStaff || "",
-        fullTime: response.fullTime || "",
-        partTime: response.partTime || "",
-        guestFaculty: response.guestFaculty || "",
-        professorOfPractice: response.professorOfPractice || "",
+        areaOfGuidance: response.areaOfGuidance || "",
+        date: response.date
+          ? moment(response.date).format("DD/MM/YYYY") // Convert to dd/mm/yyyy format
+          : "",
+        noOfParticipants: response.noOfParticipants || "",
+        trainerResource: response.trainerResource || "",
+        outcomes: response.outcomes || "",
       };
 
       // Update Formik values
@@ -144,11 +162,26 @@ const Staff_Profile: React.FC = () => {
         stream: mappedValues.stream
           ? { ...mappedValues.stream, value: String(mappedValues.stream.value) }
           : null,
+        department: mappedValues.department
+          ? {
+              ...mappedValues.department,
+              value: String(mappedValues.department.value),
+            }
+          : null,
+        courses: mappedValues.courses
+          ? {
+              ...mappedValues.courses,
+              value: String(mappedValues.courses.value),
+            }
+          : null,
         noOfStaff: response.noOfStaff || "",
-        fullTime: response.fullTime || "",
-        partTime: response.partTime || "",
-        guestFaculty: response.guestFaculty || "",
-        professorOfPractice: response.professorOfPractice || "",
+        areaOfGuidance: response.areaOfGuidance || "",
+        date: response.date
+          ? moment(response.date).format("DD/MM/YYYY") // Convert to dd/mm/yyyy format
+          : "",
+        noOfParticipants: response.noOfParticipants || "",
+        trainerResource: response.trainerResource || "",
+        outcomes: response.outcomes || "",
       });
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
@@ -189,34 +222,45 @@ const Staff_Profile: React.FC = () => {
     initialValues: {
       academicYear: null as { value: string; label: string } | null,
       noOfStaff: "",
-      fullTime: "",
-      partTime: "",
-      guestFaculty: "",
-      professorOfPractice: "",
+      areaOfGuidance: "",
+      date: "",
+      noOfParticipants: "",
+      trainerResource: "",
+      outcomes: "",
       stream: null as { value: string; label: string } | null,
+      department: null as { value: string; label: string } | null,
+      courses: null as { value: string; label: string } | null,
     },
     validationSchema: Yup.object({
       academicYear: Yup.object()
         .nullable()
         .required("Please select academic year"),
       stream: Yup.object().nullable().required("Please select stream"),
-      noOfStaff: Yup.string().required("Please enter no of staff"),
-      fullTime: Yup.string().required("Please enter full time"),
-      partTime: Yup.string().required("Please enter part time"),
-      guestFaculty: Yup.string().required("Please enter guest faculty"),
-      professorOfPractice: Yup.string().required(
-        "Please enter professor of practice"
+      areaOfGuidance: Yup.string().required("Please enter area of guidance"),
+      noOfParticipants: Yup.number().required(
+        "Please enter No. of Participants/Attendees"
       ),
+      date: Yup.string().required("Please select date"),
+      trainerResource: Yup.string().required(
+        "Please enter trainer/resource person details"
+      ),
+      outcomes: Yup.string().required("Please enter outcomes"),
+      department: Yup.object()
+        .nullable()
+        .required("Please select department"),
+      courses: Yup.object()
+        .nullable()
+        .required("Please select program"),
     }),
     onSubmit: async (values, { resetForm }) => {
       const payload = {
         academicYear: values.academicYear?.value || "",
         streamId: values.stream?.value || "",
         noOfStaff: values.noOfStaff || "",
-        fullTime: values.fullTime || "",
-        partTime: values.partTime || "",
-        guestFaculty: values.guestFaculty || "",
-        professorOfPractice: values.professorOfPractice || "",
+        areaOfGuidance: values.areaOfGuidance || "",
+        noOfParticipants: values.noOfParticipants || "",
+        trainerResource: values.trainerResource || "",
+        outcomes: values.outcomes || "",
       };
 
       // If editing, include the ID
@@ -256,7 +300,10 @@ const Staff_Profile: React.FC = () => {
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <Breadcrumb title="Department Profile" breadcrumbItem="Staff Profile" />
+          <Breadcrumb
+            title="Student Activities & Support"
+            breadcrumbItem="Career Counseling & Guidance"
+          />
           <Card>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
@@ -310,30 +357,53 @@ const Staff_Profile: React.FC = () => {
                     </div>
                   </Col>
 
-                  <Col sm={4}>
+                  {/* Department Dropdown */}
+                  <Col lg={4}>
                     <div className="mb-3">
-                      <Label htmlFor="formFile" className="form-label">
-                        No of Staff
-                      </Label>
-                      <Input
-                        className={`form-control ${
-                          validation.touched.noOfStaff &&
-                          validation.errors.noOfStaff
-                            ? "is-invalid"
-                            : ""
-                        }`}
-                        type="text"
-                        id="noOfStaff"
-                        onChange={(e) =>
-                          validation.setFieldValue("noOfStaff", e.target.value)
+                      <Label>Department</Label>
+                      <DepartmentDropdown
+                        streamId={selectedStream?.value}
+                        value={validation.values.department}
+                        onChange={(selectedOption) => {
+                          validation.setFieldValue(
+                            "department",
+                            selectedOption
+                          );
+                          setSelectedDepartment(selectedOption);
+                        }}
+                        isInvalid={
+                          validation.touched.department &&
+                          !!validation.errors.department
                         }
-                        placeholder="Enter no of staff"
-                        value={validation.values.noOfStaff}
                       />
-                      {validation.touched.noOfStaff &&
-                        validation.errors.noOfStaff && (
+                      {validation.touched.department &&
+                        validation.errors.department && (
                           <div className="text-danger">
-                            {validation.errors.noOfStaff}
+                            {validation.errors.department}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Program</Label>
+                      <GetAllProgramDropdown
+                        value={validation.values.courses}
+                        onChange={(selectedOption) =>
+                          validation.setFieldValue("courses", selectedOption)
+                        }
+                        isInvalid={
+                          validation.touched.courses &&
+                          !!validation.errors.courses
+                        }
+                      />
+                      {validation.touched.courses &&
+                        validation.errors.courses && (
+                          <div className="text-danger">
+                            {Array.isArray(validation.errors.courses)
+                              ? validation.errors.courses.join(", ")
+                              : validation.errors.courses}
                           </div>
                         )}
                     </div>
@@ -342,88 +412,131 @@ const Staff_Profile: React.FC = () => {
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
-                        Full Time
+                        Area of Guidance
                       </Label>
                       <Input
                         className={`form-control ${
-                          validation.touched.fullTime &&
-                          validation.errors.fullTime
+                          validation.touched.areaOfGuidance &&
+                          validation.errors.areaOfGuidance
                             ? "is-invalid"
                             : ""
                         }`}
                         type="text"
-                        id="fullTime"
-                        onChange={(e) =>
-                          validation.setFieldValue("fullTime", e.target.value)
-                        }
-                        placeholder="Enter full time"
-                        value={validation.values.fullTime}
-                      />
-                      {validation.touched.fullTime &&
-                        validation.errors.fullTime && (
-                          <div className="text-danger">
-                            {validation.errors.fullTime}
-                          </div>
-                        )}
-                    </div>
-                  </Col>
-
-                  <Col sm={4}>
-                    <div className="mb-3">
-                      <Label htmlFor="formFile" className="form-label">
-                        Part Time
-                      </Label>
-                      <Input
-                        className={`form-control ${
-                          validation.touched.partTime &&
-                          validation.errors.partTime
-                            ? "is-invalid"
-                            : ""
-                        }`}
-                        type="text"
-                        id="partTime"
-                        onChange={(e) =>
-                          validation.setFieldValue("partTime", e.target.value)
-                        }
-                        placeholder="Enter part time"
-                        value={validation.values.partTime}
-                      />
-                      {validation.touched.partTime &&
-                        validation.errors.partTime && (
-                          <div className="text-danger">
-                            {validation.errors.partTime}
-                          </div>
-                        )}
-                    </div>
-                  </Col>
-
-                  <Col sm={4}>
-                    <div className="mb-3">
-                      <Label htmlFor="formFile" className="form-label">
-                        Guest Faculty
-                      </Label>
-                      <Input
-                        className={`form-control ${
-                          validation.touched.guestFaculty &&
-                          validation.errors.guestFaculty
-                            ? "is-invalid"
-                            : ""
-                        }`}
-                        type="text"
-                        id="guestFaculty"
+                        id="areaOfGuidance"
                         onChange={(e) =>
                           validation.setFieldValue(
-                            "guestFaculty",
+                            "areaOfGuidance",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Enter full time"
+                        value={validation.values.areaOfGuidance}
+                      />
+                      {validation.touched.areaOfGuidance &&
+                        validation.errors.areaOfGuidance && (
+                          <div className="text-danger">
+                            {validation.errors.areaOfGuidance}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Date</Label>
+                      <Input
+                        type="date"
+                        name="date"
+                        value={
+                          validation.values.date
+                            ? moment(
+                                validation.values.date,
+                                "DD/MM/YYYY"
+                              ).format("YYYY-MM-DD") // Convert to yyyy-mm-dd for the input
+                            : ""
+                        }
+                        // onChange={validation.handleChange}
+                        onChange={(e) => {
+                          const formattedDate = moment(
+                            e.target.value,
+                            "YYYY-MM-DD"
+                          ).format("DD/MM/YYYY"); // Convert to dd/mm/yyyy
+                          validation.setFieldValue("date", formattedDate);
+                        }}
+                        placeholder="Enter date"
+                        className={
+                          validation.touched.date && validation.errors.date
+                            ? "is-invalid"
+                            : ""
+                        }
+                      />
+                      {validation.touched.date && validation.errors.date && (
+                        <div className="text-danger">
+                          {validation.errors.date}
+                        </div>
+                      )}
+                    </div>
+                  </Col>
+
+                  <Col sm={4}>
+                    <div className="mb-3">
+                      <Label htmlFor="formFile" className="form-label">
+                        No. of Participants/Attendees
+                      </Label>
+                      <Input
+                        className={`form-control ${
+                          validation.touched.noOfParticipants &&
+                          validation.errors.noOfParticipants
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        type="number"
+                        id="noOfParticipants"
+                        onChange={(e) =>
+                          validation.setFieldValue(
+                            "noOfParticipants",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Enter part time"
+                        value={validation.values.noOfParticipants}
+                      />
+                      {validation.touched.noOfParticipants &&
+                        validation.errors.noOfParticipants && (
+                          <div className="text-danger">
+                            {validation.errors.noOfParticipants}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+
+                  <Col sm={4}>
+                    <div className="mb-3">
+                      <Label htmlFor="formFile" className="form-label">
+                        Trainer/Resource Person details
+                      </Label>
+                      <Input
+                        className={`form-control ${
+                          validation.touched.trainerResource &&
+                          validation.errors.trainerResource
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        type="text"
+                        id="trainerResource"
+                        onChange={(e) =>
+                          validation.setFieldValue(
+                            "trainerResource",
                             e.target.value
                           )
                         }
                         placeholder="Enter guest faculty"
-                        value={validation.values.guestFaculty}
+                        value={validation.values.trainerResource}
                       />
-                      {validation.touched.guestFaculty &&
-                        validation.errors.guestFaculty && (
+                      {validation.touched.trainerResource &&
+                        validation.errors.trainerResource && (
                           <div className="text-danger">
-                            {validation.errors.guestFaculty}
+                            {validation.errors.trainerResource}
                           </div>
                         )}
                     </div>
@@ -432,30 +545,27 @@ const Staff_Profile: React.FC = () => {
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
-                        Professor of Practice
+                        Outcomes
                       </Label>
                       <Input
                         className={`form-control ${
-                          validation.touched.professorOfPractice &&
-                          validation.errors.professorOfPractice
+                          validation.touched.outcomes &&
+                          validation.errors.outcomes
                             ? "is-invalid"
                             : ""
                         }`}
                         type="text"
-                        id="professorOfPractice"
+                        id="outcomes"
                         onChange={(e) =>
-                          validation.setFieldValue(
-                            "professorOfPractice",
-                            e.target.value
-                          )
+                          validation.setFieldValue("outcomes", e.target.value)
                         }
                         placeholder="Enter professor of practice"
-                        value={validation.values.professorOfPractice}
+                        value={validation.values.outcomes}
                       />
-                      {validation.touched.professorOfPractice &&
-                        validation.errors.professorOfPractice && (
+                      {validation.touched.outcomes &&
+                        validation.errors.outcomes && (
                           <div className="text-danger">
-                            {validation.errors.professorOfPractice}
+                            {validation.errors.outcomes}
                           </div>
                         )}
                     </div>
@@ -506,9 +616,9 @@ const Staff_Profile: React.FC = () => {
                       <td>{bos.academicYear}</td>
                       <td>{bos.streamName}</td>
                       <td>{bos.noOfStaff}</td>
-                      <td>{bos.fullTime}</td>
-                      <td>{bos.partTime}</td>
-                      <td>{bos.guestFaculty}</td>
+                      <td>{bos.areaOfGuidance}</td>
+                      <td>{bos.noOfParticipants}</td>
+                      <td>{bos.trainerResource}</td>
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
@@ -588,4 +698,4 @@ const Staff_Profile: React.FC = () => {
   );
 };
 
-export default Staff_Profile;
+export default Career_Counseling_Guidance;

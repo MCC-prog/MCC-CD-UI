@@ -27,10 +27,13 @@ import {
 import * as Yup from "yup";
 import { APIClient } from "../../helpers/api_helper";
 import { toast, ToastContainer } from "react-toastify";
+import GetAllProgramDropdown from "Components/DropDowns/GetAllProgramDropdown";
+import moment from "moment";
+import { Tooltip } from "@mui/material";
 
 const api = new APIClient();
 
-const Staff_Profile: React.FC = () => {
+const StudentProgression_Higher_Education: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [bosData, setBosData] = useState<any[]>([]);
   const [selectedStream, setSelectedStream] = useState<any>(null);
@@ -42,6 +45,9 @@ const Staff_Profile: React.FC = () => {
   const rowsPerPage = 10;
   const [filteredData, setFilteredData] = useState(bosData);
   const [searchTerm, setSearchTerm] = useState("");
+  const [tooltipOpen, setTooltipOpen] = useState(false);
+  const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
+  const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
 
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -126,11 +132,27 @@ const Staff_Profile: React.FC = () => {
         stream: response.streamId
           ? { value: response.streamId.toString(), label: response.streamName }
           : null,
+        department: response.departmentId
+          ? {
+              value: response.departmentId.toString(),
+              label: response.departmentName,
+            }
+          : null,
+        courses: response.programId
+          ? {
+              value: response.programId.toString(),
+              label: response.programName,
+            }
+          : null,
         noOfStaff: response.noOfStaff || "",
-        fullTime: response.fullTime || "",
-        partTime: response.partTime || "",
-        guestFaculty: response.guestFaculty || "",
-        professorOfPractice: response.professorOfPractice || "",
+        mccRegNo: response.mccRegNo || "",
+        coursePurused: response.coursePurused || "",
+        heigherEduCu: response.heigherEduCu || "",
+        university: response.university || "",
+        location: response.location || "",
+        icalepal: response.icalepal || "",
+        courseDuration: response.courseDuration || "",
+        file: response.file || null, // Assuming 'file' is a string or null
       };
 
       // Update Formik values
@@ -141,14 +163,15 @@ const Staff_Profile: React.FC = () => {
               value: String(mappedValues.academicYear.value),
             }
           : null,
-        stream: mappedValues.stream
-          ? { ...mappedValues.stream, value: String(mappedValues.stream.value) }
-          : null,
         noOfStaff: response.noOfStaff || "",
-        fullTime: response.fullTime || "",
-        partTime: response.partTime || "",
-        guestFaculty: response.guestFaculty || "",
-        professorOfPractice: response.professorOfPractice || "",
+        mccRegNo: response.mccRegNo || "",
+        coursePurused: response.coursePurused || "",
+        heigherEduCu: response.heigherEduCu || "",
+        university: response.university || "",
+        location: response.location || "",
+        icalepal: response.icalepal || "",
+        courseDuration: response.courseDuration || "",
+        file: response.file || null, // Assuming 'file' is a string or null
       });
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
@@ -189,34 +212,62 @@ const Staff_Profile: React.FC = () => {
     initialValues: {
       academicYear: null as { value: string; label: string } | null,
       noOfStaff: "",
-      fullTime: "",
-      partTime: "",
-      guestFaculty: "",
-      professorOfPractice: "",
-      stream: null as { value: string; label: string } | null,
+      mccRegNo: "",
+      coursePurused: "",
+      heigherEduCu: "",
+      university: "",
+      location: "",
+      icalepal: "",
+      courseDuration: "",
+      file: null as File | string | null,
     },
     validationSchema: Yup.object({
       academicYear: Yup.object()
         .nullable()
         .required("Please select academic year"),
-      stream: Yup.object().nullable().required("Please select stream"),
-      noOfStaff: Yup.string().required("Please enter no of staff"),
-      fullTime: Yup.string().required("Please enter full time"),
-      partTime: Yup.string().required("Please enter part time"),
-      guestFaculty: Yup.string().required("Please enter guest faculty"),
-      professorOfPractice: Yup.string().required(
-        "Please enter professor of practice"
+      mccRegNo: Yup.string().required("Please enter area of guidance"),
+      coursePurused: Yup.number().required(
+        "Please enter No. of Participants/Attendees"
       ),
+      date: Yup.string().required("Please select date"),
+      heigherEduCu: Yup.string().required(
+        "Please enter trainer/resource person details"
+      ),
+      university: Yup.string().required("Please enter university"),
+      file: Yup.mixed()
+        .required("Please upload a file")
+        .test("fileSize", "File size is too large", (value: any) => {
+          // Skip size validation if file is a string (from existing data)
+          if (typeof value === "string") return true;
+          return value && value.size <= 50 * 1024 * 1024; // 50MB
+        })
+        .test("fileType", "Unsupported file format", (value: any) => {
+          // Skip type validation if file is a string
+          if (typeof value === "string") return true;
+          return (
+            value &&
+            [
+              "application/vnd.ms-excel",
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            ].includes(value.type)
+          );
+        }),
+      location: Yup.string().required("Please enter location"),
+      icalepal: Yup.string()
+        .url("Please enter a valid URL")
+        .required(
+          "Please provide a link for Id Card/Acceptance/Admission Letter-Enrollment Proof"
+        ),
+      courseDuration: Yup.string().required("Please enter course duration"),
     }),
     onSubmit: async (values, { resetForm }) => {
       const payload = {
         academicYear: values.academicYear?.value || "",
-        streamId: values.stream?.value || "",
         noOfStaff: values.noOfStaff || "",
-        fullTime: values.fullTime || "",
-        partTime: values.partTime || "",
-        guestFaculty: values.guestFaculty || "",
-        professorOfPractice: values.professorOfPractice || "",
+        mccRegNo: values.mccRegNo || "",
+        coursePurused: values.coursePurused || "",
+        heigherEduCu: values.heigherEduCu || "",
+        university: values.university || "",
       };
 
       // If editing, include the ID
@@ -256,7 +307,10 @@ const Staff_Profile: React.FC = () => {
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <Breadcrumb title="Department Profile" breadcrumbItem="Staff Profile" />
+          <Breadcrumb
+            title="Student Activities & Support"
+            breadcrumbItem="Student Progression - Higher Education"
+          />
           <Card>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
@@ -287,82 +341,30 @@ const Staff_Profile: React.FC = () => {
                     </div>
                   </Col>
 
-                  <Col lg={4}>
-                    <div className="mb-3">
-                      <Label>School</Label>
-                      <StreamDropdown
-                        value={validation.values.stream}
-                        onChange={(selectedOption) => {
-                          validation.setFieldValue("stream", selectedOption);
-                          setSelectedStream(selectedOption);
-                        }}
-                        isInvalid={
-                          validation.touched.stream &&
-                          !!validation.errors.stream
-                        }
-                      />
-                      {validation.touched.stream &&
-                        validation.errors.stream && (
-                          <div className="text-danger">
-                            {validation.errors.stream}
-                          </div>
-                        )}
-                    </div>
-                  </Col>
-
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
-                        No of Staff
+                        MCC Register number
                       </Label>
                       <Input
                         className={`form-control ${
-                          validation.touched.noOfStaff &&
-                          validation.errors.noOfStaff
+                          validation.touched.mccRegNo &&
+                          validation.errors.mccRegNo
                             ? "is-invalid"
                             : ""
                         }`}
                         type="text"
-                        id="noOfStaff"
+                        id="mccRegNo"
                         onChange={(e) =>
-                          validation.setFieldValue("noOfStaff", e.target.value)
-                        }
-                        placeholder="Enter no of staff"
-                        value={validation.values.noOfStaff}
-                      />
-                      {validation.touched.noOfStaff &&
-                        validation.errors.noOfStaff && (
-                          <div className="text-danger">
-                            {validation.errors.noOfStaff}
-                          </div>
-                        )}
-                    </div>
-                  </Col>
-
-                  <Col sm={4}>
-                    <div className="mb-3">
-                      <Label htmlFor="formFile" className="form-label">
-                        Full Time
-                      </Label>
-                      <Input
-                        className={`form-control ${
-                          validation.touched.fullTime &&
-                          validation.errors.fullTime
-                            ? "is-invalid"
-                            : ""
-                        }`}
-                        type="text"
-                        id="fullTime"
-                        onChange={(e) =>
-                          validation.setFieldValue("fullTime", e.target.value)
+                          validation.setFieldValue("mccRegNo", e.target.value)
                         }
                         placeholder="Enter full time"
-                        value={validation.values.fullTime}
+                        value={validation.values.mccRegNo}
                       />
-                      {validation.touched.fullTime &&
-                        validation.errors.fullTime && (
+                      {validation.touched.mccRegNo &&
+                        validation.errors.mccRegNo && (
                           <div className="text-danger">
-                            {validation.errors.fullTime}
+                            {validation.errors.mccRegNo}
                           </div>
                         )}
                     </div>
@@ -371,59 +373,62 @@ const Staff_Profile: React.FC = () => {
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
-                        Part Time
+                        Course Pursued in MCC
                       </Label>
                       <Input
                         className={`form-control ${
-                          validation.touched.partTime &&
-                          validation.errors.partTime
+                          validation.touched.coursePurused &&
+                          validation.errors.coursePurused
                             ? "is-invalid"
                             : ""
                         }`}
-                        type="text"
-                        id="partTime"
-                        onChange={(e) =>
-                          validation.setFieldValue("partTime", e.target.value)
-                        }
-                        placeholder="Enter part time"
-                        value={validation.values.partTime}
-                      />
-                      {validation.touched.partTime &&
-                        validation.errors.partTime && (
-                          <div className="text-danger">
-                            {validation.errors.partTime}
-                          </div>
-                        )}
-                    </div>
-                  </Col>
-
-                  <Col sm={4}>
-                    <div className="mb-3">
-                      <Label htmlFor="formFile" className="form-label">
-                        Guest Faculty
-                      </Label>
-                      <Input
-                        className={`form-control ${
-                          validation.touched.guestFaculty &&
-                          validation.errors.guestFaculty
-                            ? "is-invalid"
-                            : ""
-                        }`}
-                        type="text"
-                        id="guestFaculty"
+                        type="number"
+                        id="coursePurused"
                         onChange={(e) =>
                           validation.setFieldValue(
-                            "guestFaculty",
+                            "coursePurused",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Enter part time"
+                        value={validation.values.coursePurused}
+                      />
+                      {validation.touched.coursePurused &&
+                        validation.errors.coursePurused && (
+                          <div className="text-danger">
+                            {validation.errors.coursePurused}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+
+                  <Col sm={4}>
+                    <div className="mb-3">
+                      <Label htmlFor="formFile" className="form-label">
+                        Heigher Education Course
+                      </Label>
+                      <Input
+                        className={`form-control ${
+                          validation.touched.heigherEduCu &&
+                          validation.errors.heigherEduCu
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        type="text"
+                        id="heigherEduCu"
+                        onChange={(e) =>
+                          validation.setFieldValue(
+                            "heigherEduCu",
                             e.target.value
                           )
                         }
                         placeholder="Enter guest faculty"
-                        value={validation.values.guestFaculty}
+                        value={validation.values.heigherEduCu}
                       />
-                      {validation.touched.guestFaculty &&
-                        validation.errors.guestFaculty && (
+                      {validation.touched.heigherEduCu &&
+                        validation.errors.heigherEduCu && (
                           <div className="text-danger">
-                            {validation.errors.guestFaculty}
+                            {validation.errors.heigherEduCu}
                           </div>
                         )}
                     </div>
@@ -432,34 +437,240 @@ const Staff_Profile: React.FC = () => {
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
-                        Professor of Practice
+                        University
                       </Label>
                       <Input
                         className={`form-control ${
-                          validation.touched.professorOfPractice &&
-                          validation.errors.professorOfPractice
+                          validation.touched.university &&
+                          validation.errors.university
                             ? "is-invalid"
                             : ""
                         }`}
                         type="text"
-                        id="professorOfPractice"
+                        id="university"
                         onChange={(e) =>
-                          validation.setFieldValue(
-                            "professorOfPractice",
-                            e.target.value
-                          )
+                          validation.setFieldValue("university", e.target.value)
                         }
                         placeholder="Enter professor of practice"
-                        value={validation.values.professorOfPractice}
+                        value={validation.values.university}
                       />
-                      {validation.touched.professorOfPractice &&
-                        validation.errors.professorOfPractice && (
+                      {validation.touched.university &&
+                        validation.errors.university && (
                           <div className="text-danger">
-                            {validation.errors.professorOfPractice}
+                            {validation.errors.university}
                           </div>
                         )}
                     </div>
                   </Col>
+
+                  <Col sm={4}>
+                    <div className="mb-3">
+                      <Label htmlFor="formFile" className="form-label">
+                        Location
+                      </Label>
+                      <Input
+                        className={`form-control ${
+                          validation.touched.location &&
+                          validation.errors.location
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        type="text"
+                        id="location"
+                        onChange={(e) =>
+                          validation.setFieldValue("location", e.target.value)
+                        }
+                        placeholder="Enter location"
+                        value={validation.values.location}
+                      />
+                      {validation.touched.location &&
+                        validation.errors.location && (
+                          <div className="text-danger">
+                            {validation.errors.location}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+
+                  <Col sm={4}>
+                    <div className="mb-3">
+                      <Label htmlFor="formFile" className="form-label">
+                        Provide a link
+                      </Label>
+                      <Tooltip
+                        placement="right"
+                        open={tooltipOpen}
+                        onClose={() => setTooltipOpen(false)}
+                        onOpen={() => setTooltipOpen(true)}
+                        title={
+                          <span>
+                            Id Card/Acceptance/Admission Letter-Enrollment Proof
+                          </span>
+                        }
+                        arrow
+                      >
+                        <i
+                          id="infoIcon"
+                          className="bi bi-info-circle ms-2"
+                          style={{ cursor: "pointer", color: "#0d6efd" }}
+                        ></i>
+                      </Tooltip>
+                      <Input
+                        className={`form-control ${
+                          validation.touched.icalepal &&
+                          validation.errors.icalepal
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        type="url"
+                        id="icalepal"
+                        onChange={(e) =>
+                          validation.setFieldValue("icalepal", e.target.value)
+                        }
+                        placeholder="Enter Id Card/Acceptance/Admission Letter-Enrollment Proof-Provide a link"
+                        value={validation.values.icalepal}
+                      />
+                      {validation.touched.icalepal &&
+                        validation.errors.icalepal && (
+                          <div className="text-danger">
+                            {validation.errors.icalepal}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+
+                  <Col sm={4}>
+                    <div className="mb-3">
+                      <Label htmlFor="formFile" className="form-label">
+                        Course Duration
+                      </Label>
+                      <Input
+                        className={`form-control ${
+                          validation.touched.courseDuration &&
+                          validation.errors.courseDuration
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        type="text"
+                        id="courseDuration"
+                        onChange={(e) =>
+                          validation.setFieldValue(
+                            "courseDuration",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Enter Course Duration"
+                        value={validation.values.courseDuration}
+                      />
+                      {validation.touched.courseDuration &&
+                        validation.errors.courseDuration && (
+                          <div className="text-danger">
+                            {validation.errors.courseDuration}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+
+                  <Col sm={4}>
+                    <div className="mb-3">
+                      <Label htmlFor="formFile" className="form-label">
+                        Upload Student Progression - Higher Education
+                      </Label>
+                      <Tooltip
+                        placement="right"
+                        open={tooltipOpen}
+                        onClose={() => setTooltipOpen(false)}
+                        onOpen={() => setTooltipOpen(true)}
+                        title={
+                          <span>Upload an Excel file. Max size 10MB.</span>
+                        }
+                        arrow
+                      >
+                        <i
+                          id="infoIcon"
+                          className="bi bi-info-circle ms-2"
+                          style={{ cursor: "pointer", color: "#0d6efd" }}
+                        ></i>
+                      </Tooltip>
+                      <Input
+                        className={`form-control ${
+                          validation.touched.file && validation.errors.file
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        type="file"
+                        id="formFile"
+                        onChange={(event) => {
+                          validation.setFieldValue(
+                            "file",
+                            event.currentTarget.files
+                              ? event.currentTarget.files[0]
+                              : null
+                          );
+                        }}
+                        disabled={isFileUploadDisabled} // Disable the button if a file exists
+                      />
+                      {validation.touched.file && validation.errors.file && (
+                        <div className="text-danger">
+                          {validation.errors.file}
+                        </div>
+                      )}
+                      {/* Show a message if the file upload button is disabled */}
+                      {isFileUploadDisabled && (
+                        <div className="text-warning mt-2">
+                          Please remove the existing file to upload a new one.
+                        </div>
+                      )}
+                      {/* Only show the file name if it is a string (from the edit API) */}
+                      {typeof validation.values.file === "string" && (
+                        <div className="mt-2 d-flex align-items-center">
+                          <span
+                            className="me-2"
+                            style={{ fontWeight: "bold", color: "green" }}
+                          >
+                            {validation.values.file}
+                          </span>
+                          <Button
+                            color="link"
+                            className="text-primary"
+                            //   onClick={() =>
+                            //     handleDownloadFile(
+                            //       validation.values.file as string
+                            //     )
+                            //   }
+                            title="Download File"
+                          >
+                            <i className="bi bi-download"></i>
+                          </Button>
+                          <Button
+                            color="link"
+                            className="text-danger"
+                            //   onClick={() => handleDeleteFile()}
+                            title="Delete File"
+                          >
+                            <i className="bi bi-trash"></i>
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </Col>
+
+                  
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Download </Label>
+                      <div>
+                        <a
+                          href="/templateFiles/bos.pdf"
+                          download
+                          className="btn btn-primary btn-sm"
+                        >
+                          Student Progression - Higher Education Template
+                        </a>
+                      </div>
+                    </div>
+                  </Col>
+                  
                 </Row>
                 <Row>
                   <Col lg={12}>
@@ -476,6 +687,7 @@ const Staff_Profile: React.FC = () => {
                       </button>
                     </div>
                   </Col>
+
                 </Row>
               </form>
             </CardBody>
@@ -506,9 +718,9 @@ const Staff_Profile: React.FC = () => {
                       <td>{bos.academicYear}</td>
                       <td>{bos.streamName}</td>
                       <td>{bos.noOfStaff}</td>
-                      <td>{bos.fullTime}</td>
-                      <td>{bos.partTime}</td>
-                      <td>{bos.guestFaculty}</td>
+                      <td>{bos.mccRegNo}</td>
+                      <td>{bos.coursePurused}</td>
+                      <td>{bos.heigherEduCu}</td>
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
@@ -588,4 +800,4 @@ const Staff_Profile: React.FC = () => {
   );
 };
 
-export default Staff_Profile;
+export default StudentProgression_Higher_Education;

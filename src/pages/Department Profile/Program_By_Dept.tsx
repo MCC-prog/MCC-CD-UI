@@ -72,7 +72,7 @@ const Program_By_Dept: React.FC = () => {
         <React.Fragment>
             <div className="page-content">
                 <Container fluid>
-                    <Breadcrumb title="Program offered by the dept" breadcrumbItem="Program offered by the dept" />
+                    <Breadcrumb title="Department Profile" breadcrumbItem="Program offered by the dept" />
                     <Card>
                         <CardBody>
                             <form onSubmit={validation.handleSubmit}>

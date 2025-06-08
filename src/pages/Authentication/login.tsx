@@ -2,7 +2,15 @@ import React, { useEffect, useState } from "react";
 
 // Redux
 import { Link, useNavigate } from "react-router-dom";
-import { Col, Container, Form, FormFeedback, Input, Label, Row } from "reactstrap";
+import {
+  Col,
+  Container,
+  Form,
+  FormFeedback,
+  Input,
+  Label,
+  Row,
+} from "reactstrap";
 
 // Formik validation
 import { useFormik } from "formik";
@@ -15,7 +23,7 @@ import CarouselPage from "./CarouselPage";
 //import thunk
 import { Alert, Snackbar } from "@mui/material";
 import withRouter from "Components/Common/withRouter";
-import { createSelector } from 'reselect';
+import { createSelector } from "reselect";
 import { loginuser, resetLoginMsgFlag } from "slices/auth/login/thunk";
 
 const Login = (props: any) => {
@@ -27,18 +35,16 @@ const Login = (props: any) => {
   //meta title
   document.title = "Login | MCC - Centralized Data";
 
-
   const handleClose = () => setOpen(false);
 
   const selectProperties = createSelector(
     (state: any) => state.Login,
     (login) => ({
-      error: login.error
+      error: login.error,
     })
   );
 
   const { error } = useSelector(selectProperties);
-
 
   const validation = useFormik({
     initialValues: { username: "", password: "" },
@@ -54,14 +60,17 @@ const Login = (props: any) => {
 
   useEffect(() => {
     if (error) {
-      dispatch(resetLoginMsgFlag())
+      dispatch(resetLoginMsgFlag());
     }
-  }, [dispatch, error])
+  }, [dispatch, error]);
 
   return (
     <React.Fragment>
       <div>
-        <Snackbar open={open} autoHideDuration={4000} onClose={handleClose}
+        <Snackbar
+          open={open}
+          autoHideDuration={4000}
+          onClose={handleClose}
           anchorOrigin={{ vertical: "top", horizontal: "center" }}
         >
           <Alert onClose={handleClose} severity="error" sx={{ width: "100%" }}>
@@ -76,13 +85,13 @@ const Login = (props: any) => {
               <div className="auth-full-page-content p-md-5 p-4">
                 <div className="w-100">
                   <div className="d-flex flex-column h-100">
-                    <div className= "d-flex justify-content-center" >
-                        <img
-                          src={mccLogo}
-                          alt=""
-                          height="150"
-                          className="auth-logo-light"
-                        />
+                    <div className="d-flex justify-content-center">
+                      <img
+                        src={mccLogo}
+                        alt=""
+                        height="150"
+                        className="auth-logo-light"
+                      />
                     </div>
                     <div className="my-auto">
                       <div>
@@ -93,7 +102,8 @@ const Login = (props: any) => {
                       </div>
 
                       <div className="mt-4">
-                        <Form className="form-horizontal"
+                        <Form
+                          className="form-horizontal"
                           onSubmit={validation.handleSubmit}
                         >
                           <div className="mb-3">
@@ -107,17 +117,22 @@ const Login = (props: any) => {
                               onBlur={validation.handleBlur}
                               value={validation.values.username || ""}
                               invalid={
-                                validation.touched.username && validation.errors.username ? true : false
+                                validation.touched.username &&
+                                validation.errors.username
+                                  ? true
+                                  : false
                               }
                             />
-                            {validation.touched.username && validation.errors.username ? (
-                              <FormFeedback type="invalid">{validation.errors.username}</FormFeedback>
+                            {validation.touched.username &&
+                            validation.errors.username ? (
+                              <FormFeedback type="invalid">
+                                {validation.errors.username}
+                              </FormFeedback>
                             ) : null}
                           </div>
-
                           <div className="mb-3">
                             <Label className="form-label">Password</Label>
-                            <div className="input-group auth-pass-inputgroup">
+                            <div style={{ position: "relative" }}>
                               <Input
                                 name="password"
                                 value={validation.values.password || ""}
@@ -126,13 +141,57 @@ const Login = (props: any) => {
                                 onChange={validation.handleChange}
                                 onBlur={validation.handleBlur}
                                 invalid={
-                                  validation.touched.password && validation.errors.password ? true : false
+                                  validation.touched.password &&
+                                  validation.errors.password
+                                    ? true
+                                    : false
                                 }
+                                style={{ paddingRight: "3rem" }}
                               />
-                              <button onClick={() => setPasswordShow(!passwordShow)} className="btn btn-light " type="button" id="password-addon">
-                                <i className="mdi mdi-eye-outline"></i></button>
-                              {validation.touched.password && validation.errors.password ? (
-                                <FormFeedback type="invalid">{validation.errors.password}</FormFeedback>
+
+                              {/* Eye Icon Button */}
+                              <button
+                                type="button"
+                                onClick={() => setPasswordShow(!passwordShow)}
+                                style={{
+                                  position: "absolute",
+                                  top: "50%",
+                                  right: "10px",
+                                  transform: "translateY(-50%)",
+                                  background: "none",
+                                  border: "none",
+                                  padding: 0,
+                                  cursor: "pointer",
+                                  fontSize: "1.25rem", // Bigger size
+                                  color: passwordShow ? "#007bff" : "#6c757d", // Blue when active
+                                }}
+                                onMouseEnter={(e) =>
+                                  (e.currentTarget.style.color = "#007bff")
+                                }
+                                onMouseLeave={(e) =>
+                                  (e.currentTarget.style.color = passwordShow
+                                    ? "#007bff"
+                                    : "#6c757d")
+                                }
+                              >
+                                <i
+                                  className={`mdi ${
+                                    passwordShow
+                                      ? "mdi-eye-off-outline"
+                                      : "mdi-eye-outline"
+                                  }`}
+                                ></i>
+                              </button>
+
+                              {/* Validation Message */}
+                              {validation.touched.password &&
+                              validation.errors.password ? (
+                                <FormFeedback
+                                  type="invalid"
+                                  style={{ display: "block" }}
+                                >
+                                  {validation.errors.password}
+                                </FormFeedback>
                               ) : null}
                             </div>
                           </div>
@@ -145,14 +204,14 @@ const Login = (props: any) => {
                               Log In
                             </button>
                           </div>
-
                         </Form>
                       </div>
                     </div>
 
                     <div className="mt-4 mt-md-5 text-center">
                       <p className="mb-0">
-                       <a href="https://mccblr.edu.in/">MCC</a> © {new Date().getFullYear()}
+                        <a href="https://mccblr.edu.in/">MCC</a> ©{" "}
+                        {new Date().getFullYear()}
                       </p>
                     </div>
                   </div>

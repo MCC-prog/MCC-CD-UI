@@ -8,7 +8,7 @@ import UserProfile from "pages/Authentication/user-profile";
 import Bos from "pages/Curriculum/Bos";
 import New_Programs_Introduced from "pages/Curriculum/New_Programs_Introduced";
 import New_Courses_Introduced from "pages/Curriculum/New_Courses_Introduced";
-import Experimental_Learning from "pages/Curriculum/Experimental_Learning";
+import Experimental_Learning from "pages/Curriculum/Experiential_Learning";
 import Courses_With_Focus from "pages/Curriculum/Courses_With_Focus";
 import Innovative_Teaching_Methodologies from "pages/Curriculum/Innovative_Teaching_Methodologies";
 import AC_GB_MoM from "pages/Curriculum/AC_GB_MoM";
@@ -47,6 +47,16 @@ import FP_And_Presentation_Research_Papers from "pages/Research/FP_And_Presentat
 import Government_Or_NGO_Funded_Projects from "pages/Research/Government_Or_NGO_Funded_Projects";
 import Research_Guides from "pages/Research/Research_Guides";
 import Research_Publications from "pages/Research/Research_Publications";
+import CapacityDevelopment_Skills from "pages/Student Activities & Support/CapacityDevelopment_Skills";
+import Conference_Seminars_Workshops from "pages/Student Activities & Support/Conference_Seminars_Workshops";
+import Career_Counseling_Guidance from "pages/Student Activities & Support/Career_Counseling_Guidance";
+import Guest_Lectures from "pages/Student Activities & Support/Guest_Lectures";
+import StudentProgression_Higher_Education from "pages/Student Activities & Support/StudentProgression_Higher_Education";
+import StudentProgression_Competitive_Exams from "pages/Student Activities & Support/StudentProgression_Competitive_Exams";
+import DetailsOfStudents_MOOC from "pages/Student Activities & Support/DetailsOfStudents_MOOC";
+import Intercollegiate_Events_Awards_Won from "pages/Student Activities & Support/Intercollegiate_Events_Awards_Won";
+import Cultural_CoCurricularActivities_Conducted from "pages/Student Activities & Support/Cultural_CoCurricularActivities_Conducted";
+import SportsEvents_Conducted_College from "pages/Student Activities & Support/SportsEvents_Conducted_College";
 
 
 const authProtectedRoutes = [
@@ -55,7 +65,7 @@ const authProtectedRoutes = [
   { path: "/Bos_Data", component: <Bos /> },
   { path: "/New_Programs_Introduced", component: <New_Programs_Introduced /> },
   { path: "/New_Courses_Introduced", component: <New_Courses_Introduced /> },
-  { path: "/Experimental_Learning", component: <Experimental_Learning /> },
+  { path: "/Experiential_Learning", component: <Experimental_Learning /> },
   { path: "/Courses_With_Focus", component: <Courses_With_Focus /> },
   { path: "/Innovative_Teaching_Methodologies", component: <Innovative_Teaching_Methodologies /> },
   { path: "/AC_GB_MoM", component: <AC_GB_MoM /> },
@@ -109,7 +119,20 @@ const authProtectedRoutes = [
   { path: "/FP_And_Presentation_Research_Papers", component: <FP_And_Presentation_Research_Papers /> },
   { path: "/Government_Or_NGO_Funded_Projects", component: <Government_Or_NGO_Funded_Projects /> },
   { path: "/Research_Guides", component: <Research_Guides /> },
-  { path: "/Research_Publications", component: <Research_Publications /> }
+  { path: "/Research_Publications", component: <Research_Publications /> },
+
+  //_______Student Activities/Support_________//
+  { path: "/CapacityDevelopment_Skills", component: <CapacityDevelopment_Skills /> },
+  { path: "/Conference_Seminars_Workshops", component: <Conference_Seminars_Workshops /> },
+  { path: "/Career_Counseling_Guidance", component: <Career_Counseling_Guidance /> },
+  { path: "/Guest_Lectures", component: <Guest_Lectures /> },
+  { path: "/StudentProgression_Higher_Education", component: <StudentProgression_Higher_Education /> },
+  { path: "/StudentProgression_Competitive_Exams", component: <StudentProgression_Competitive_Exams /> },
+  { path: "/DetailsOfStudents_MOOC", component: <DetailsOfStudents_MOOC /> },
+  { path: "/Intercollegiate_Events_Awards_Won", component: <Intercollegiate_Events_Awards_Won /> },
+  { path: "/Cultural_CoCurricularActivities_Conducted", component: <Cultural_CoCurricularActivities_Conducted /> },
+  { path: "/SportsEvents_Conducted_College", component: <SportsEvents_Conducted_College /> },
+
 ];
 
 const publicRoutes = [

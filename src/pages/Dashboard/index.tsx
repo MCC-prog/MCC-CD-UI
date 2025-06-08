@@ -6,7 +6,7 @@ import Activity from './Activity';
 import Calender from 'pages/Calendar';
 
 const Dashboard = () => {
-  document.title = "Home Page | MCC - Centralized Data";
+  document.title = "MCC - Centralized Data";
 
   return (
     <React.Fragment>
