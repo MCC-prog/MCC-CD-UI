@@ -6,8 +6,23 @@ import * as Yup from "yup";
 import React, { useState } from "react";
 import { Button, Card, CardBody, Col, Container, Input, Label, Modal, ModalBody, ModalFooter, ModalHeader, Row, Table } from "reactstrap";
 import Breadcrumb from 'Components/Common/Breadcrumb';
+import { toast, ToastContainer } from "react-toastify";
+import { APIClient } from "helpers/api_helper";
+import axios from "axios";
+
+const api = new APIClient();
 
 const Research_Guides = () => {
+  // State variables for managing modal, edit mode, and delete confirmation
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  // State variable for managing delete confirmation modal
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  // State variable for managing file upload status
+  const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
+  // State variable for managing Research Guides data
+  const [researchGuideData, setResearchGuideData] = useState<any[]>([]);
   // State variables for managing selected options in dropdowns
   const [selectedStream, setSelectedStream] = useState<any>(null);
   const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
@@ -22,24 +37,21 @@ const Research_Guides = () => {
   // State variable for managing filters
   const [filters, setFilters] = useState({
     academicYear: "",
-    semesterType: "",
-    semesterNo: "",
     stream: "",
     department: "",
-    programType: "",
-    program: "",
-    yearOfIntroduction: "",
-    percentage: "",
+    guideName: "",
+    guideAffiliation: "",
+    numberOfStudents: ""
   });
-  const researchPaperData: any[] = []; // Initialize with an empty array or fetch data dynamically
-  const [filteredData, setFilteredData] = useState(researchPaperData);
+
+  const [filteredData, setFilteredData] = useState(researchGuideData);
 
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
 
-    const filtered = researchPaperData.filter((row) =>
+    const filtered = researchGuideData.filter((row) =>
       Object.values(row).some((val) =>
         String(val || "").toLowerCase().includes(value)
       )
@@ -53,7 +65,7 @@ const Research_Guides = () => {
     const updatedFilters = { ...filters, [column]: value };
     setFilters(updatedFilters);
 
-    const filtered = researchPaperData.filter((row) =>
+    const filtered = researchGuideData.filter((row) =>
       Object.values(row).some((val) =>
         String(val || "").toLowerCase().includes(value)
       )
@@ -92,7 +104,14 @@ const Research_Guides = () => {
       guideName: "",
       guideAffiliation: "",
       numberOfStudents: "",
-      studentDetails: [] as any[],
+      studentDetails: [] as {
+        name: string;
+        joiningYear: string;
+        title: string;
+        fundingRecieved: string;
+        scholarship: string;
+        studentDetailId?: string | null;
+      }[],
       uploadLetter: null as File | null,
     },
     validationSchema: Yup.object({
@@ -113,37 +132,200 @@ const Research_Guides = () => {
       studentDetails: Yup.array().of(
         Yup.object({
           name: Yup.string().required("Please enter student name"),
-          yearOfJoining: Yup.string().required("Please enter year of joining"),
+          joiningYear: Yup.string().required("Please enter year of joining"),
           title: Yup.string().required("Please enter title"),
-          fundingReceived: Yup.string().required("Please specify funding received"),
+          fundingRecieved: Yup.string().required("Please specify funding received"),
           scholarship: Yup.string().required("Please specify scholarship"),
         })
       ),
-      uploadLetter: Yup.mixed().required("Please upload the letter"),
+      uploadLetter: Yup.mixed().test(
+        "fileValidation",
+        "Please upload a valid file",
+        function (value) {
+          // Skip validation if the file upload is disabled (file exists)
+          if (isFileUploadDisabled) {
+            return true;
+          }
+          // Perform validation if the file upload is enabled (file doesn't exist)
+          if (!value) {
+            return this.createError({ message: "Please upload a file" });
+          }
+          // Check file size (2MB limit)
+          if (value instanceof File && value.size > 2 * 1024 * 1024) {
+            return this.createError({ message: "File size is too large" });
+          }
+          // Check file type
+          const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
+          if (value instanceof File && !allowedTypes.includes(value.type)) {
+            return this.createError({ message: "Unsupported file format" });
+          }
+          return true;
+        }
+      )
     }),
-    onSubmit: async (values) => {
-      console.log("Form Submitted:", values);
-    },
+    onSubmit: async (values, { resetForm }) => {
+      // Create FormData object
+      const formData = new FormData();
+
+      // Prepare the JSON payload for the `dto` key
+      const dtoPayload = {
+        researchGuideId: editId || null,
+        academicYear: values.academicYear?.value || "0",
+        streamId: values.stream?.value || "0",
+        departmentId: values.department?.value || "0",
+        guideName: values.guideName || "",
+        guidesAffiliation: values.guideAffiliation || "",
+        noOfStudents: String(values.numberOfStudents || "0"),
+        studentList: values.studentDetails.map((student) => ({
+          studentDetailId: student.studentDetailId || null,
+          name: student.name || "",
+          joiningYear: parseInt(student.joiningYear, 10) || 0,
+          title: student.title || "",
+          fundingRecieved: student.fundingRecieved === "true" || false,
+          scholarship: student.scholarship || "",
+        })),
+      };
+
+      // Append the JSON payload as a string with the key `dto`
+      formData.append('dto', new Blob([JSON.stringify(dtoPayload)], { type: 'application/json' }));
+
+      // Append the file with the key `file`
+      if (typeof values.uploadLetter === "string") {
+        formData.append("file", "null");
+      } else if (values.uploadLetter instanceof File) {
+        formData.append("file", values.uploadLetter); // Append the file
+      }
+
+      try {
+        const response = isEditMode && editId
+          ? await api.put(`/researchGuide/update`, formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          })
+          : await api.create(`/researchGuide/save`, formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          });
+
+        toast.success(response.message || "Research Guide record saved successfully!");
+        // Reset the form fields
+        resetForm();
+        setIsEditMode(false); // Reset edit mode
+        setEditId(null); // Clear the edit ID
+        handleListResearchGuidesClick(); // Refresh the list
+      } catch (error) {
+        toast.error("Failed to save Research Guide. Please try again.");
+        console.error("Error creating/updating Research Guide:", error);
+      }
+    }
   });
+
+  // Handle file download actions
+  const handleDownloadFile = async (fileName: string) => {
+    if (fileName) {
+      try {
+        // Ensure you set responseType to 'blob' to handle binary data
+        const response = await axios.get(`/researchGuide/download/${fileName}`, {
+          responseType: 'blob'
+        });
+
+        // Create a Blob from the response data
+        const blob = new Blob([response], { type: "*/*" });
+
+        // Create a URL for the Blob
+        const url = window.URL.createObjectURL(blob);
+
+        // Create a temporary anchor element to trigger the download
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName; // Set the file name for the download
+        document.body.appendChild(link);
+        link.click();
+
+        // Clean up the URL and remove the anchor element
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        toast.success("File downloaded successfully!");
+      } catch (error) {
+        toast.error("Failed to download upload ltter file. Please try again.");
+        console.error("Error downloading file:", error);
+      }
+    } else {
+      toast.error("No file available for download.");
+    }
+  };
+
+
+  // Handle file deletion
+  // Clear the file from the form and show success message
+  const handleDeleteFile = async () => {
+    try {
+      // Call the delete API
+      const response = await api.delete(`/researchGuide/deleteResearchGuideDocument?researchGuideId=${editId}`, '');
+      // Show success message
+      toast.success(response.message || "File deleted successfully!");
+      // Remove the file from the form
+      validation.setFieldValue("uploadLetter", null); // Clear the file from Formik state
+      setIsFileUploadDisabled(false); // Enable the file upload button
+    } catch (error) {
+      // Show error message
+      toast.error("Failed to delete the file. Please try again.");
+      console.error("Error deleting file:", error);
+    }
+  };
 
   const handleNumberOfStudentsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value, 10);
-    validation.setFieldValue("numberOfStudents", value);
 
     if (!isNaN(value) && value > 0) {
-      const updatedStudents = Array.from({ length: value }, () => ({
-        name: "",
-        yearOfJoining: "",
-        title: "",
-        fundingReceived: "",
-        scholarship: "",
-      }));
-      validation.setFieldValue("studentDetails", updatedStudents);
-      setStudents(updatedStudents);
+      if (value > students.length) {
+        // If the number of students is increased, retain existing data and add new empty entries
+        const additionalStudents = Array.from({ length: value - students.length }, () => ({
+          name: "",
+          joiningYear: "",
+          title: "",
+          fundingRecieved: "",
+          scholarship: "",
+        }));
+        const updatedStudents = [...students, ...additionalStudents];
+        validation.setFieldValue("studentDetails", updatedStudents);
+        setStudents(updatedStudents);
+      } else if (value < students.length) {
+        // If the number of students is decreased, check if extra student details are empty
+        const extraStudents = students.slice(value);
+        const isExtraStudentsEmpty = extraStudents.every(
+          (student) =>
+            !student.name &&
+            !student.joiningYear &&
+            !student.title &&
+            !student.fundingRecieved &&
+            !student.scholarship
+        );
+
+        if (isExtraStudentsEmpty) {
+          // Allow decreasing the number of students if extra student details are empty
+          const updatedStudents = students.slice(0, value);
+          validation.setFieldValue("studentDetails", updatedStudents);
+          setStudents(updatedStudents);
+        } else {
+          // Prevent decreasing the number of students if extra student details are not empty
+          toast.error("Please clear the extra student details before decreasing the number of students.");
+          return;
+        }
+      } else {
+        // If the number of students remains the same, do nothing
+        validation.setFieldValue("numberOfStudents", value);
+      }
     } else {
+      // If the input is invalid, reset the student details
       validation.setFieldValue("studentDetails", []);
       setStudents([]);
     }
+
+    validation.setFieldValue("numberOfStudents", value);
   };
 
   const handleStudentDetailsChange = (index: number, field: string, value: string) => {
@@ -153,23 +335,115 @@ const Research_Guides = () => {
     setStudents(updatedStudents);
   };
 
-  function handleEdit(researchDataId: any): void {
-    console.log("Edit Rserach with ID:", researchDataId);
-    // Open the modal for editing
-    setIsModalOpen(true);
+  // Handle edit action
+  // Fetch the data for the selected BOS ID and populate the form fields
+  const handleEdit = async (id: string) => {
+    try {
+      const response = await api.get(`/researchGuide/edit?researchGuideId=${id}`, '');
+      const academicYearOptions = await api.get("/getAllAcademicYear", "");
+
+      // Filter the response where isCurrent or isCurrentForAdmission is true
+      const filteredAcademicYearList = academicYearOptions.filter(
+        (year: any) => year.isCurrent || year.isCurrentForAdmission
+      );
+
+      // Map the filtered data to the required format
+      const academicYearList = filteredAcademicYearList.map((year: any) => ({
+        value: year.year,
+        label: year.display,
+      }));
+
+      // Map API response to Formik values
+      const mappedValues = {
+        academicYear: mapValueToLabel(response.academicYear, academicYearList),
+        stream: response.streamId
+          ? { value: response.streamId.toString(), label: response.streamName }
+          : null,
+        department: response.departmentId
+          ? { value: response.departmentId.toString(), label: response.departmentName }
+          : null,
+        guideName: response.guideName || "",
+        guideAffiliation: response.guidesAffiliation || "",
+        numberOfStudents: response.noOfStudents || "",
+        otherDepartment: "", // Add default value for otherDepartment
+        uploadLetter: response.document?.letter || null, // File uploads are not pre-filled
+        studentDetails: response.studentList || [], // Map student list
+      };
+
+      // Update Formik values
+      validation.setValues({
+        ...mappedValues,
+        academicYear: mappedValues.academicYear
+          ? { ...mappedValues.academicYear, value: String(mappedValues.academicYear.value) }
+          : null,
+        stream: mappedValues.stream
+          ? { ...mappedValues.stream, value: String(mappedValues.stream.value) }
+          : null,
+        department: mappedValues.department
+          ? { ...mappedValues.department, value: String(mappedValues.department.value) }
+          : null,
+      });
+
+      // Update the student list in the state
+      setStudents(response.studentList || []);
+
+      // Set edit mode and toggle modal
+      setIsEditMode(true);
+      setEditId(id); // Store the ID of the record being edited
+      // Disable file upload if a file exists
+      setIsFileUploadDisabled(!!response.document?.letter);
+      toggleModal();
+    } catch (error) {
+      console.error("Error fetching Research Guide data by ID:", error);
+    }
+  };
+
+  function handleDelete(researchGuideDataId: any): void {
+    setDeleteId(researchGuideDataId);
+    setIsDeleteModalOpen(true);
   }
 
-  function handleDelete(researchDataId: any): void {
-    console.log("Delete Research ID with ID:", researchDataId);
+  // Map value to label for dropdowns
+  const mapValueToLabel = (value: string | number | null, options: { value: string | number; label: string }[]): { value: string | number; label: string } | null => {
+    if (!value) return null;
+    const matchedOption = options.find((option) => option.value === value);
+    return matchedOption ? matchedOption : { value, label: String(value) };
+  };
+
+  // Confirm deletion of the record
+  // Call the delete API and refresh the BOS data
+  const confirmDelete = async (id: string) => {
+    if (deleteId) {
+      try {
+        const response = await api.delete(`/researchGuide/deleteResearchGuide?researchGuideId=${id}`, '');
+        toast.success(response.message || "Research Guide record removed successfully!");
+        fetchResearchGuidesData();
+      } catch (error) {
+        toast.error("Failed to remove Research Guide Record. Please try again.");
+        console.error("Error deleting Research Guide:", error);
+      } finally {
+        setIsDeleteModalOpen(false);
+        setDeleteId(null);
+      }
+    }
+  }
+
+  const fetchResearchGuidesData = async () => {
+    try {
+      const response = await api.get("/researchGuide/getAll", '');
+      setResearchGuideData(response);
+      setFilteredData(response);
+    } catch (error) {
+      console.error("Error fetching Research Guide data:", error);
+    }
   }
 
   // Open the modal and fetch data
-  const handleListResearchClick = () => {
+  const handleListResearchGuidesClick = () => {
     toggleModal();
+    fetchResearchGuidesData();
   };
 
-  // State variable to track edit mode
-  const [isEditMode, setIsEditMode] = useState(false);
 
   return (
     <React.Fragment>
@@ -334,10 +608,10 @@ const Research_Guides = () => {
                             value={student.name}
                             onChange={(e) => handleStudentDetailsChange(index, "name", e.target.value)}
                             className={`form-control ${validation.touched.studentDetails?.[index]?.name &&
-                                typeof validation.errors.studentDetails?.[index] === "object" &&
-                                validation.errors.studentDetails?.[index]?.name
-                                ? "is-invalid"
-                                : ""
+                              typeof validation.errors.studentDetails?.[index] === "object" &&
+                              validation.errors.studentDetails?.[index]?.name
+                              ? "is-invalid"
+                              : ""
                               }`}
                             placeholder="Enter Student Name"
                           />
@@ -357,22 +631,22 @@ const Research_Guides = () => {
                           <Label>Year of Joining</Label>
                           <Input
                             type="text"
-                            value={student.yearOfJoining}
-                            onChange={(e) => handleStudentDetailsChange(index, "yearOfJoining", e.target.value)}
-                            className={`form-control ${validation.touched.studentDetails?.[index]?.yearOfJoining &&
-                                typeof validation.errors.studentDetails?.[index] === "object" &&
-                                validation.errors.studentDetails?.[index]?.yearOfJoining
-                                ? "is-invalid"
-                                : ""
+                            value={student.joiningYear}
+                            onChange={(e) => handleStudentDetailsChange(index, "joiningYear", e.target.value)}
+                            className={`form-control ${validation.touched.studentDetails?.[index]?.joiningYear &&
+                              typeof validation.errors.studentDetails?.[index] === "object" &&
+                              validation.errors.studentDetails?.[index]?.joiningYear
+                              ? "is-invalid"
+                              : ""
                               }`}
                             placeholder="Enter Year of Joining"
                           />
-                          {validation.touched.studentDetails?.[index]?.yearOfJoining &&
+                          {validation.touched.studentDetails?.[index]?.joiningYear &&
                             typeof validation.errors.studentDetails?.[index] === "object" &&
-                            validation.errors.studentDetails?.[index]?.yearOfJoining && (
+                            validation.errors.studentDetails?.[index]?.joiningYear && (
                               <div className="text-danger">
-                                {typeof validation.errors.studentDetails?.[index]?.yearOfJoining === "string"
-                                  ? validation.errors.studentDetails?.[index]?.yearOfJoining
+                                {typeof validation.errors.studentDetails?.[index]?.joiningYear === "string"
+                                  ? validation.errors.studentDetails?.[index]?.joiningYear
                                   : ""}
                               </div>
                             )}
@@ -386,10 +660,10 @@ const Research_Guides = () => {
                             value={student.title}
                             onChange={(e) => handleStudentDetailsChange(index, "title", e.target.value)}
                             className={`form-control ${validation.touched.studentDetails?.[index]?.title &&
-                                typeof validation.errors.studentDetails?.[index] === "object" &&
-                                validation.errors.studentDetails?.[index]?.title
-                                ? "is-invalid"
-                                : ""
+                              typeof validation.errors.studentDetails?.[index] === "object" &&
+                              validation.errors.studentDetails?.[index]?.title
+                              ? "is-invalid"
+                              : ""
                               }`}
                             placeholder="Enter Title"
                           />
@@ -409,22 +683,22 @@ const Research_Guides = () => {
                           <Label>Funding Received</Label>
                           <Input
                             type="text"
-                            value={student.fundingReceived}
-                            onChange={(e) => handleStudentDetailsChange(index, "fundingReceived", e.target.value)}
-                            className={`form-control ${validation.touched.studentDetails?.[index]?.fundingReceived &&
-                                typeof validation.errors.studentDetails?.[index] === "object" &&
-                                validation.errors.studentDetails?.[index]?.fundingReceived
-                                ? "is-invalid"
-                                : ""
+                            value={student.fundingRecieved}
+                            onChange={(e) => handleStudentDetailsChange(index, "fundingRecieved", e.target.value)}
+                            className={`form-control ${validation.touched.studentDetails?.[index]?.fundingRecieved &&
+                              typeof validation.errors.studentDetails?.[index] === "object" &&
+                              validation.errors.studentDetails?.[index]?.fundingRecieved
+                              ? "is-invalid"
+                              : ""
                               }`}
                             placeholder="Enter Funding Received"
                           />
-                          {validation.touched.studentDetails?.[index]?.fundingReceived &&
+                          {validation.touched.studentDetails?.[index]?.fundingRecieved &&
                             typeof validation.errors.studentDetails?.[index] === "object" &&
-                            validation.errors.studentDetails?.[index]?.fundingReceived && (
+                            validation.errors.studentDetails?.[index]?.fundingRecieved && (
                               <div className="text-danger">
-                                {typeof validation.errors.studentDetails?.[index]?.fundingReceived === "string"
-                                  ? validation.errors.studentDetails?.[index]?.fundingReceived
+                                {typeof validation.errors.studentDetails?.[index]?.fundingRecieved === "string"
+                                  ? validation.errors.studentDetails?.[index]?.fundingRecieved
                                   : ""}
                               </div>
                             )}
@@ -438,10 +712,10 @@ const Research_Guides = () => {
                             value={student.scholarship}
                             onChange={(e) => handleStudentDetailsChange(index, "scholarship", e.target.value)}
                             className={`form-control ${validation.touched.studentDetails?.[index]?.scholarship &&
-                                typeof validation.errors.studentDetails?.[index] === "object" &&
-                                validation.errors.studentDetails?.[index]?.scholarship
-                                ? "is-invalid"
-                                : ""
+                              typeof validation.errors.studentDetails?.[index] === "object" &&
+                              validation.errors.studentDetails?.[index]?.scholarship
+                              ? "is-invalid"
+                              : ""
                               }`}
                             placeholder="Enter Scholarship"
                           />
@@ -463,14 +737,52 @@ const Research_Guides = () => {
                 <Row>
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>Upload Letter</Label>
+                      <Label htmlFor="formFile" className="form-label">Upload Letter</Label>
                       <Input
-                        type="file"
-                        onChange={(e) => validation.setFieldValue("uploadLetter", e.target.files?.[0] || null)}
                         className={`form-control ${validation.touched.uploadLetter && validation.errors.uploadLetter ? "is-invalid" : ""}`}
+                        type="file"
+                        id="formFile"
+                        onChange={(event) => {
+                          validation.setFieldValue("uploadLetter", event.currentTarget.files ? event.currentTarget.files[0] : null);
+                        }}
+                        disabled={isFileUploadDisabled} // Disable the button if a file exists
                       />
                       {validation.touched.uploadLetter && validation.errors.uploadLetter && (
                         <div className="text-danger">{validation.errors.uploadLetter}</div>
+                      )}
+                      {/* Show a message if the file upload button is disabled */}
+                      {isFileUploadDisabled && (
+                        <div className="text-warning mt-2">
+                          Please remove the existing file to upload a new one.
+                        </div>
+                      )}
+                      {/* Only show the file name if it is a string (from the edit API) */}
+                      {typeof validation.values.uploadLetter === "string" && (
+                        <div className="mt-2 d-flex align-items-center">
+                          <span className="me-2" style={{ fontWeight: "bold", color: "green" }}>
+                            {validation.values.uploadLetter}
+                          </span>
+                          <Button
+                            color="link"
+                            className="text-primary"
+                            onClick={() => {
+                              if (typeof validation.values.uploadLetter === "string") {
+                                handleDownloadFile(validation.values.uploadLetter);
+                              }
+                            }}
+                            title="Download File"
+                          >
+                            <i className="bi bi-download"></i>
+                          </Button>
+                          <Button
+                            color="link"
+                            className="text-danger"
+                            onClick={() => handleDeleteFile()}
+                            title="Delete File"
+                          >
+                            <i className="bi bi-trash"></i>
+                          </Button>
+                        </div>
                       )}
                     </div>
                   </Col>
@@ -484,7 +796,7 @@ const Research_Guides = () => {
                       <button
                         className="btn btn-secondary"
                         type="button"
-                        onClick={handleListResearchClick}
+                        onClick={handleListResearchGuidesClick}
                       >
                         List ResearchGuides
                       </button>
@@ -524,25 +836,7 @@ const Research_Guides = () => {
                     />
                   </th>
                   <th>
-                    Semester Type
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.semesterType}
-                      onChange={(e) => handleFilterChange(e, "semesterType")}
-                    />
-                  </th>
-                  <th>
-                    Semester No
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.semesterNo}
-                      onChange={(e) => handleFilterChange(e, "semesterNo")}
-                    />
-                  </th>
-                  <th>
-                    Stream
+                    School
                     <Input
                       type="text"
                       placeholder="Filter"
@@ -560,39 +854,30 @@ const Research_Guides = () => {
                     />
                   </th>
                   <th>
-                    Program Type
+                    Guide Name
                     <Input
                       type="text"
                       placeholder="Filter"
-                      value={filters.programType}
+                      value={filters.guideName}
                       onChange={(e) => handleFilterChange(e, "programType")}
                     />
                   </th>
                   <th>
-                    Program
+                    Guide Afffiliation
                     <Input
                       type="text"
                       placeholder="Filter"
-                      value={filters.program}
+                      value={filters.guideAffiliation}
                       onChange={(e) => handleFilterChange(e, "program")}
                     />
                   </th>
                   <th>
-                    Year of Introduction
+                    Number of Students
                     <Input
                       type="text"
                       placeholder="Filter"
-                      value={filters.yearOfIntroduction}
+                      value={filters.numberOfStudents}
                       onChange={(e) => handleFilterChange(e, "yearOfIntroduction")}
-                    />
-                  </th>
-                  <th>
-                    Percentage
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.percentage}
-                      onChange={(e) => handleFilterChange(e, "percentage")}
                     />
                   </th>
                   <th>Actions</th>
@@ -600,29 +885,26 @@ const Research_Guides = () => {
               </thead>
               <tbody>
                 {currentRows.length > 0 ? (
-                  currentRows.map((bos, index) => (
-                    <tr key={bos.bosDataId}>
+                  currentRows.map((rg, index) => (
+                    <tr key={rg.researchGuideId}>
                       <td>{indexOfFirstRow + index + 1}</td>
-                      <td>{bos.academicYear}</td>
-                      <td>{bos.semType}</td>
-                      <td>{bos.semesterNo}</td>
-                      <td>{bos.streamName}</td>
-                      <td>{bos.departmentName}</td>
-                      <td>{bos.programTypeName}</td>
-                      <td>{bos.programName}</td>
-                      <td>{bos.yearOfIntroduction}</td>
-                      <td>{bos.percentage}</td>
+                      <td>{rg.academicYear}</td>
+                      <td>{rg.streamName}</td>
+                      <td>{rg.departmentName}</td>
+                      <td>{rg.guideName}</td>
+                      <td>{rg.guidesAffiliation}</td>
+                      <td>{rg.noOfStudents}</td>
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
                             className="btn btn-sm btn-warning"
-                            onClick={() => handleEdit(bos.bosDataId)}
+                            onClick={() => handleEdit(rg.researchGuideId)}
                           >
                             Edit
                           </button>
                           <button
                             className="btn btn-sm btn-danger"
-                            onClick={() => handleDelete(bos.bosDataId)}
+                            onClick={() => handleDelete(rg.researchGuideId)}
                           >
                             Delete
                           </button>
@@ -633,7 +915,7 @@ const Research_Guides = () => {
                 ) : (
                   <tr>
                     <td colSpan={11} className="text-center">
-                      No BOS data available.
+                      No Research Guide data available.
                     </td>
                   </tr>
                 )}
@@ -661,7 +943,23 @@ const Research_Guides = () => {
             </div>
           </ModalBody>
         </Modal>
+        {/* Confirmation Modal */}
+        <Modal isOpen={isDeleteModalOpen} toggle={() => setIsDeleteModalOpen(false)}>
+          <ModalHeader toggle={() => setIsDeleteModalOpen(false)}>Confirm Deletion</ModalHeader>
+          <ModalBody>
+            Are you sure you want to delete this record? This action cannot be undone.
+          </ModalBody>
+          <ModalFooter>
+            <Button color="danger" onClick={() => confirmDelete(deleteId!)}>
+              Delete
+            </Button>
+            <Button color="secondary" onClick={() => setIsDeleteModalOpen(false)}>
+              Cancel
+            </Button>
+          </ModalFooter>
+        </Modal>
       </div>
+      <ToastContainer />
     </React.Fragment >
   );
 };

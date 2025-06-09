@@ -1,13 +1,28 @@
 import React, { useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { Col, Row, Input, Label, Button, CardBody, Card, Container, Nav, NavItem, NavLink, TabContent, TabPane, Modal, ModalHeader, ModalBody, Table } from "reactstrap";
+import { Col, Row, Input, Label, Button, CardBody, Card, Container, Nav, NavItem, NavLink, TabContent, TabPane, Modal, ModalHeader, ModalBody, Table, ModalFooter } from "reactstrap";
 import Breadcrumb from 'Components/Common/Breadcrumb';
 import AcademicYearDropdown from "Components/DropDowns/AcademicYearDropdown";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
+import { toast, ToastContainer } from "react-toastify";
+import { APIClient } from "helpers/api_helper";
+import moment from "moment";
+
+const api = new APIClient();
 
 const Books_Chapters = () => {
+  // State variables for managing modal, edit mode, and delete confirmation
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  // State variable for managing delete confirmation modal
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  // State variable for managing file upload status
+  const [isFrontPageFileUploadDisabled, setIsFrontPageFileUploadDisabled] = useState(false);
+  // State variable for managing book chapters data
+  const [bookChaptersData, setBookChaptersData] = useState<any[]>([]);
   // State variables for managing selected options in dropdowns
   const [selectedStream, setSelectedStream] = useState<any>(null);
   const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
@@ -22,24 +37,24 @@ const Books_Chapters = () => {
   // State variable for managing filters
   const [filters, setFilters] = useState({
     academicYear: "",
-    semesterType: "",
-    semesterNo: "",
     stream: "",
     department: "",
-    programType: "",
-    program: "",
-    yearOfIntroduction: "",
-    percentage: "",
+    facultyName: "",
+    coAuthors: "",
+    bookTitle: "",
+    editor: "",
+    publisher: "",
+    isbxl: "",
+    dateOfPublication: ""
   });
-  const researchPaperData: any[] = []; // Initialize with an empty array or fetch data dynamically
-  const [filteredData, setFilteredData] = useState(researchPaperData);
+  const [filteredData, setFilteredData] = useState(bookChaptersData);
 
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
 
-    const filtered = researchPaperData.filter((row) =>
+    const filtered = bookChaptersData.filter((row) =>
       Object.values(row).some((val) =>
         String(val || "").toLowerCase().includes(value)
       )
@@ -53,7 +68,7 @@ const Books_Chapters = () => {
     const updatedFilters = { ...filters, [column]: value };
     setFilters(updatedFilters);
 
-    const filtered = researchPaperData.filter((row) =>
+    const filtered = bookChaptersData.filter((row) =>
       Object.values(row).some((val) =>
         String(val || "").toLowerCase().includes(value)
       )
@@ -94,6 +109,8 @@ const Books_Chapters = () => {
       bookTitle: "",
       editor: "",
       isbxl: "",
+      publisher: "",
+      dateOfPublication: "",
       frontPageUpload: null as File | null,
     },
     validationSchema: Yup.object({
@@ -110,32 +127,190 @@ const Books_Chapters = () => {
       bookTitle: Yup.string().required("Please enter book title"),
       editor: Yup.string().required("Please enter editor name"),
       isbxl: Yup.string().required("Please enter ISBXL"),
-      frontPageUpload: Yup.mixed().required("Please upload the front page"),
+      frontPageUpload: Yup.mixed().test(
+        "fileValidation",
+        "Please upload a valid file",
+        function (value) {
+          // Skip validation if the file upload is disabled (file exists)
+          if (isFrontPageFileUploadDisabled) {
+            return true;
+          }
+          // Perform validation if the file upload is enabled (file doesn't exist)
+          if (!value) {
+            return this.createError({ message: "Please upload a file" });
+          }
+          // Check file size (2MB limit)
+          if (value instanceof File && value.size > 2 * 1024 * 1024) {
+            return this.createError({ message: "File size is too large" });
+          }
+          // Check file type
+          const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
+          if (value instanceof File && !allowedTypes.includes(value.type)) {
+            return this.createError({ message: "Unsupported file format" });
+          }
+          return true;
+        }
+      ),
       dateOfPublication: Yup.string().required("Please select date of publication"),
       publisher: Yup.string().required("Please enter publisher")
     }),
-    onSubmit: async (values: any) => {
-      console.log("Form Submitted:", values);
+    onSubmit: async (values, { resetForm }) => {
+      // Create FormData object
+      const formData = new FormData();
+
+      // Append fields to FormData
+      formData.append("bookChapterId", editId || "");
+      formData.append("academicYear", values.academicYear?.value || "");
+      formData.append("departmentId", values.department?.value || "");
+      formData.append("facultyName", values.facultyName || "");
+      formData.append("coAuthors", values.coAuthors || "");
+      formData.append("bookTitle", String(values.bookTitle || ""));
+      formData.append("editor", values.editor || "");
+      formData.append("isbn", values.isbxl || "");
+      formData.append("streamId", values.stream?.value || "");
+      formData.append("publicationDate", values.dateOfPublication || "");
+      formData.append("publisher", values.publisher || "");
+      formData.append("otherDepartment", values.otherDepartment || "");
+
+      // Append the file
+      if (typeof values.frontPageUpload === "string") {
+        // If the file is just a name, send null
+        formData.append("frontPageUpload", "null");
+      } else if (values.frontPageUpload instanceof File) {
+        // If the file is a File object, send the file
+        formData.append("frontPageUpload", values.frontPageUpload);
+      }
+
+      try {
+        if (isEditMode && editId) {
+          // Call the update API
+          const response = await api.put(`/bookChapter/update`, formData);
+          toast.success(response.message || "Book Chapter record updated successfully!");
+        } else {
+          // Call the save API
+          const response = await api.create("/bookChapter/save", formData);
+          toast.success(response.message || "Book Chapter record added successfully!");
+        }
+        // Reset the form fields
+        resetForm();
+        setIsEditMode(false); // Reset edit mode
+        setEditId(null); // Clear the edit ID
+        // Display the Book Chapter List
+        handleListBooksChaptersClick();
+      } catch (error) {
+        // Display error message
+        toast.error("Failed to save Book Chapter. Please try again.");
+        console.error("Error creating/updating Book Chapter:", error);
+      }
     },
   });
 
+  const fetchBooksChaptersData = async () => {
+    try {
+      const response = await api.get("/bookChapter/getAll", '');
+      setBookChaptersData(response);
+      setFilteredData(response);
+    } catch (error) {
+      console.error("Error fetching Book Chapter data:", error);
+    }
+  }
+
   // Open the modal and fetch data
-  const handleListBosClick = () => {
+  const handleListBooksChaptersClick = () => {
     toggleModal();
+    fetchBooksChaptersData();
   };
 
-  function handleEdit(researchDataId: any): void {
-    console.log("Edit Rserach with ID:", researchDataId);
-    // Open the modal for editing
-    setIsModalOpen(true);
+  // Handle edit action
+  // Fetch the data for the selected BOS ID and populate the form fields
+  const handleEdit = async (id: string) => {
+    try {
+      const response = await api.get(`/bookChapter/edit?bookChapterId=${id}`, '');
+      const academicYearOptions = await api.get("/getAllAcademicYear", "");
+
+      // Filter the response where isCurrent or isCurrentForAdmission is true
+      const filteredAcademicYearList = academicYearOptions.filter(
+        (year: any) => year.isCurrent || year.isCurrentForAdmission
+      );
+
+      // Map the filtered data to the required format
+      const academicYearList = filteredAcademicYearList.map((year: any) => ({
+        value: year.year,
+        label: year.display
+      }));
+
+      // Map API response to Formik values
+      const mappedValues = {
+        academicYear: mapValueToLabel(response.academicYear, academicYearList),
+        stream: response.streamId
+          ? { value: response.streamId.toString(), label: response.streamName }
+          : null,
+        department: response.departmentId
+          ? { value: response.departmentId.toString(), label: response.departmentName }
+          : null,
+        facultyName: response.facultyName || "",
+        coAuthors: response.coAuthors || "",
+        bookTitle: response.bookTitle || "",
+        editor: response.editor || "",
+        isbxl: response.isbn || "",
+        dateOfPublication: response.publicationDate || "",
+        publisher: response.publisher || "",
+        otherDepartment: "", // Add default value for otherDepartment
+        frontPageUpload: null, // File uploads are not pre-filled
+      };
+
+      // Update Formik values
+      validation.setValues({
+        ...mappedValues,
+        academicYear: mappedValues.academicYear
+          ? { ...mappedValues.academicYear, value: String(mappedValues.academicYear.value) }
+          : null,
+        stream: mappedValues.stream
+          ? { ...mappedValues.stream, value: String(mappedValues.stream.value) }
+          : null,
+        department: mappedValues.department
+          ? { ...mappedValues.department, value: String(mappedValues.department.value) }
+          : null
+      });
+
+      // Set edit mode and toggle modal
+      setIsEditMode(true);
+      setEditId(id); // Store the ID of the record being edited
+      toggleModal();
+    } catch (error) {
+      console.error("Error fetching Research Publication data by ID:", error);
+    }
+  };
+
+  // Map value to label for dropdowns
+  const mapValueToLabel = (value: string | number | null, options: { value: string | number; label: string }[]): { value: string | number; label: string } | null => {
+    if (!value) return null;
+    const matchedOption = options.find((option) => option.value === value);
+    return matchedOption ? matchedOption : { value, label: String(value) };
+  };
+
+  function handleDelete(bookChapterDataId: any): void {
+    setDeleteId(bookChapterDataId);
+    setIsDeleteModalOpen(true);
   }
 
-  function handleDelete(researchDataId: any): void {
-    console.log("Delete Research ID with ID:", researchDataId);
+  // Confirm deletion of the record
+  // Call the delete API and refresh the BOS data
+  const confirmDelete = async (id: string) => {
+    if (deleteId) {
+      try {
+        const response = await api.delete(`/bookChapter/deleteBookChapter?bookChapterId=${id}`, '');
+        toast.success(response.message || "Book Chapter record removed successfully!");
+        fetchBooksChaptersData();
+      } catch (error) {
+        toast.error("Failed to remove Book Chapter Record. Please try again.");
+        console.error("Error deleting book chapter:", error);
+      } finally {
+        setIsDeleteModalOpen(false);
+        setDeleteId(null);
+      }
+    }
   }
-
-  // State variable to track edit mode
-  const [isEditMode, setIsEditMode] = useState(false);
 
   return (
     <React.Fragment>
@@ -167,6 +342,77 @@ const Books_Chapters = () => {
                       )}
                     </div>
                   </Col>
+
+                  {/* Stream Dropdown */}
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>School</Label>
+                      <StreamDropdown
+                        value={validation.values.stream}
+                        onChange={(selectedOption) => {
+                          validation.setFieldValue("stream", selectedOption);
+                          setSelectedStream(selectedOption);
+                          validation.setFieldValue("department", null);
+                          setSelectedDepartment(null);
+                        }}
+                        isInvalid={
+                          validation.touched.stream && !!validation.errors.stream
+                        }
+                      />
+                      {validation.touched.stream && validation.errors.stream && (
+                        <div className="text-danger">
+                          {typeof validation.errors.stream === "string" && validation.errors.stream}
+                        </div>
+                      )}
+                    </div>
+                  </Col>
+
+                  {/* Department Dropdown */}
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Department</Label>
+                      <DepartmentDropdown
+                        streamId={selectedStream?.value}
+                        value={validation.values.department}
+                        onChange={(selectedOption) => {
+                          validation.setFieldValue("department", selectedOption);
+                          setSelectedDepartment(selectedOption);
+                          validation.setFieldValue("programType", null);
+                          setSelectedProgramType(null);
+                        }}
+                        isInvalid={
+                          validation.touched.department &&
+                          !!validation.errors.department
+                        }
+                      />
+                      {validation.touched.department &&
+                        validation.errors.department && (
+                          <div className="text-danger">
+                            {typeof validation.errors.department === "string" && validation.errors.department}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+                  {validation.values.department?.value === "Others" && (
+                    <Col lg={4}>
+                      <div className="mb-3">
+                        <Label>Specify Department</Label>
+                        <Input
+                          type="text"
+                          className={`form-control ${validation.touched.otherDepartment && validation.errors.otherDepartment ? "is-invalid" : ""
+                            }`}
+                          value={validation.values.otherDepartment}
+                          onChange={(e) => validation.setFieldValue("otherDepartment", e.target.value)}
+                          placeholder="Enter Department Name"
+                        />
+                        {validation.touched.otherDepartment && validation.errors.otherDepartment && (
+                          <div className="text-danger">
+                            {typeof validation.errors.otherDepartment === "string" && validation.errors.otherDepartment}
+                          </div>
+                        )}
+                      </div>
+                    </Col>
+                  )}
 
                   <Col lg={4}>
                     <div className="mb-3">
@@ -286,15 +532,22 @@ const Books_Chapters = () => {
                     <div className="mb-3">
                       <Label>Date of Publication</Label>
                       <Input
-                        type="date"
-                        name="dateOfPublication"
-                        value={validation.values.dateOfPublication}
-                        onChange={validation.handleChange}
+                        type="date" // Use native date input
                         className={`form-control ${validation.touched.dateOfPublication && validation.errors.dateOfPublication ? "is-invalid" : ""}`}
+                        value={
+                          validation.values.dateOfPublication
+                            ? moment(validation.values.dateOfPublication, "DD/MM/YYYY").format("YYYY-MM-DD") // Convert to yyyy-mm-dd for the input
+                            : ""
+                        }
+                        onChange={(e) => {
+                          const formattedDate = moment(e.target.value, "YYYY-MM-DD").format("DD/MM/YYYY"); // Convert to dd/mm/yyyy
+                          validation.setFieldValue("dateOfPublication", formattedDate);
+                        }}
+                        placeholder="dd/mm/yyyy"
                       />
                       {validation.touched.dateOfPublication && validation.errors.dateOfPublication && (
                         <div className="text-danger">
-                          {typeof validation.errors.dateOfPublication === 'string' && validation.errors.dateOfPublication}
+                          {typeof validation.errors.dateOfPublication === "string" && validation.errors.dateOfPublication}
                         </div>
                       )}
                     </div>
@@ -329,7 +582,7 @@ const Books_Chapters = () => {
                       <button
                         className="btn btn-secondary"
                         type="button"
-                        onClick={handleListBosClick}
+                        onClick={handleListBooksChaptersClick}
                       >
                         List Books/Chapters
                       </button>
@@ -369,25 +622,7 @@ const Books_Chapters = () => {
                     />
                   </th>
                   <th>
-                    Semester Type
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.semesterType}
-                      onChange={(e) => handleFilterChange(e, "semesterType")}
-                    />
-                  </th>
-                  <th>
-                    Semester No
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.semesterNo}
-                      onChange={(e) => handleFilterChange(e, "semesterNo")}
-                    />
-                  </th>
-                  <th>
-                    Stream
+                    School
                     <Input
                       type="text"
                       placeholder="Filter"
@@ -405,38 +640,65 @@ const Books_Chapters = () => {
                     />
                   </th>
                   <th>
-                    Program Type
+                    Faculty Name
                     <Input
                       type="text"
                       placeholder="Filter"
-                      value={filters.programType}
+                      value={filters.facultyName}
                       onChange={(e) => handleFilterChange(e, "programType")}
                     />
                   </th>
                   <th>
-                    Program
+                    Co-Authors
                     <Input
                       type="text"
                       placeholder="Filter"
-                      value={filters.program}
+                      value={filters.coAuthors}
                       onChange={(e) => handleFilterChange(e, "program")}
                     />
                   </th>
                   <th>
-                    Year of Introduction
+                    Book Title
                     <Input
                       type="text"
                       placeholder="Filter"
-                      value={filters.yearOfIntroduction}
+                      value={filters.bookTitle}
                       onChange={(e) => handleFilterChange(e, "yearOfIntroduction")}
                     />
                   </th>
                   <th>
-                    Percentage
+                    Editor
                     <Input
                       type="text"
                       placeholder="Filter"
-                      value={filters.percentage}
+                      value={filters.editor}
+                      onChange={(e) => handleFilterChange(e, "percentage")}
+                    />
+                  </th>
+                  <th>
+                    Publisher
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.publisher}
+                      onChange={(e) => handleFilterChange(e, "percentage")}
+                    />
+                  </th>
+                  <th>
+                    ISBXL
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.isbxl}
+                      onChange={(e) => handleFilterChange(e, "percentage")}
+                    />
+                  </th>
+                  <th>
+                    Date of Publication
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.dateOfPublication}
                       onChange={(e) => handleFilterChange(e, "percentage")}
                     />
                   </th>
@@ -445,29 +707,30 @@ const Books_Chapters = () => {
               </thead>
               <tbody>
                 {currentRows.length > 0 ? (
-                  currentRows.map((bos, index) => (
-                    <tr key={bos.bosDataId}>
+                  currentRows.map((books, index) => (
+                    <tr key={books.bookChapterId}>
                       <td>{indexOfFirstRow + index + 1}</td>
-                      <td>{bos.academicYear}</td>
-                      <td>{bos.semType}</td>
-                      <td>{bos.semesterNo}</td>
-                      <td>{bos.streamName}</td>
-                      <td>{bos.departmentName}</td>
-                      <td>{bos.programTypeName}</td>
-                      <td>{bos.programName}</td>
-                      <td>{bos.yearOfIntroduction}</td>
-                      <td>{bos.percentage}</td>
+                      <td>{books.academicYear}</td>
+                      <td>{books.streamName}</td>
+                      <td>{books.departmentName}</td>
+                      <td>{books.facultyName}</td>
+                      <td>{books.coAuthors}</td>
+                      <td>{books.bookTitle}</td>
+                      <td>{books.editor}</td>
+                      <td>{books.publisher}</td>
+                      <td>{books.isbn}</td>
+                      <td>{books.publicationDate}</td>
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
                             className="btn btn-sm btn-warning"
-                            onClick={() => handleEdit(bos.bosDataId)}
+                            onClick={() => handleEdit(books.bookChapterId)}
                           >
                             Edit
                           </button>
                           <button
                             className="btn btn-sm btn-danger"
-                            onClick={() => handleDelete(bos.bosDataId)}
+                            onClick={() => handleDelete(books.bookChapterId)}
                           >
                             Delete
                           </button>
@@ -478,7 +741,7 @@ const Books_Chapters = () => {
                 ) : (
                   <tr>
                     <td colSpan={11} className="text-center">
-                      No BOS data available.
+                      No Books/Chapters data available.
                     </td>
                   </tr>
                 )}
@@ -506,7 +769,23 @@ const Books_Chapters = () => {
             </div>
           </ModalBody>
         </Modal>
+        {/* Confirmation Modal */}
+        <Modal isOpen={isDeleteModalOpen} toggle={() => setIsDeleteModalOpen(false)}>
+          <ModalHeader toggle={() => setIsDeleteModalOpen(false)}>Confirm Deletion</ModalHeader>
+          <ModalBody>
+            Are you sure you want to delete this record? This action cannot be undone.
+          </ModalBody>
+          <ModalFooter>
+            <Button color="danger" onClick={() => confirmDelete(deleteId!)}>
+              Delete
+            </Button>
+            <Button color="secondary" onClick={() => setIsDeleteModalOpen(false)}>
+              Cancel
+            </Button>
+          </ModalFooter>
+        </Modal>
       </div>
+      <ToastContainer />
     </React.Fragment >
   );
 };
