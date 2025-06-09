@@ -262,7 +262,6 @@ const Research_Publications = () => {
     } catch (error) {
       console.error("Error fetching BOS data:", error);
     }
-
   }
 
   // Open the modal and fetch data
@@ -778,7 +777,7 @@ const Research_Publications = () => {
         </Container>
         {/* Modal for Listing BOS */}
         <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg" style={{ maxWidth: "100%", width: "auto" }}>
-          <ModalHeader toggle={toggleModal}>List BOS</ModalHeader>
+          <ModalHeader toggle={toggleModal}>List Research Publications</ModalHeader>
           <ModalBody>
             {/* Global Search */}
             <div className="mb-3">
