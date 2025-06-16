@@ -18,7 +18,7 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
   // State variables for managing modal, edit mode, and delete confirmation
   const [isEditMode, setIsEditMode] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
-  // State variable for managing file upload status
+  const [isFellowshipFileUploadDisabled, setIsFellowshipFileUploadDisabled] = useState(false);
   const [isAbstractFileUploadDisabled, setIsAbstractFileUploadDisabled] = useState(false);
   const [isSanctionFileUploadDisabled, setIsSanctionFileUploadDisabled] = useState(false);
   // State variable for managing delete confirmation modal
@@ -29,10 +29,10 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
   const [isMultidisciplinary, setIsMultidisciplinary] = useState<string>("No");
   const [activeTab, setActiveTab] = useState<string>("1");
   const [documentType, setDocumentType] = useState<string>("");
-  // State variable for managing the modal for listing mfp
+  // State variable for managing the modal for listing FWL
   const [isModalOpen, setIsModalOpen] = useState(false);
-  // State variable for managing the list of mfp data
-  const [mfpData, setMfpData] = useState<any[]>([]);
+  // State variable for managing the list of FWL data
+  const [fwlData, setFwlData] = useState<any[]>([]);
   // State variable for managing search term and pagination
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -48,7 +48,7 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
     monthOfGrant: "",
     typeOfFunding: ""
   });
-  const [filteredData, setFilteredData] = useState(mfpData);
+  const [filteredData, setFilteredData] = useState(fwlData);
 
   // Fetch department data on mount
   useEffect(() => {
@@ -72,7 +72,7 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
 
-    const filtered = mfpData.filter((row) =>
+    const filtered = fwlData.filter((row) =>
       Object.values(row).some((val) =>
         String(val || "").toLowerCase().includes(value)
       )
@@ -86,7 +86,7 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
     const updatedFilters = { ...filters, [column]: value };
     setFilters(updatedFilters);
 
-    const filtered = mfpData.filter((row) =>
+    const filtered = fwlData.filter((row) =>
       Object.values(row).some((val) =>
         String(val || "").toLowerCase().includes(value)
       )
@@ -107,7 +107,7 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
   // Calculate total pages
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
-  // Toggle the modal for listing mfp
+  // Toggle the modal for listing fwl
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };
@@ -129,13 +129,14 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
       .required("Please enter the amount"),
     monthOfGrant: Yup.string().required("Please enter the month of grant"),
     typeOfFunding: Yup.object<{ value: string; label: string }>().nullable().required("Please select type of funding"),
+    fellowship: Yup.mixed().required("Please upload the fellowship file"),
     principalInvestigator: isMultidisciplinary === "Yes" && activeTab === "1"
       ? Yup.object({
         name: Yup.string().required("Please enter name"),
         qualification: Yup.string().required("Please enter qualification"),
         designation: Yup.string().required("Please enter designation"),
         department: Yup.object<{ value: string; label: string }>().nullable().required("Please select department"),
-        date: Yup.date().required("Please select a date"),
+        //date: Yup.date().required("Please select a date"),
         abstractFile: Yup.mixed().required("Please upload the abstract file"),
         sanctionOrderFile: Yup.mixed().required("Please upload the sanction order file"),
       })
@@ -146,9 +147,6 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
         qualification: Yup.string().required("Please enter qualification"),
         designation: Yup.string().required("Please enter designation"),
         department: Yup.object<{ value: string; label: string }>().nullable().required("Please select department"),
-        abstractFile: Yup.mixed().required("Please upload the abstract file"),
-        sanctionOrderFile: Yup.mixed().required("Please upload the sanction order file"),
-        fellowshipFile: Yup.mixed().required("Please upload the fellowship file"),
       })
       : Yup.object(),
   });
@@ -164,13 +162,13 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
       amount: "",
       monthOfGrant: "",
       typeOfFunding: null as { value: string; label: string } | null,
-      fellowshipFile: null as File | null,
+      fellowship: null as File | null,
       principalInvestigator: {
         name: "",
         qualification: "",
         designation: "",
         department: null as { value: string; label: string } | null,
-        date: "",
+        //date: "",
         abstractFile: null as File | null,
         sanctionOrderFile: null as File | null,
       },
@@ -188,7 +186,7 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
 
       // Prepare the JSON payload for the `dto` key
       const dtoPayload = {
-        managementFundProjectId: editId || null,
+        fellowshipAwardedId: editId || null,
         academicYear: values.academicYear?.value || 0,
         streamId: values.stream?.value || 0,
         departmentId: values.department?.value || 0,
@@ -219,41 +217,51 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
         }
       };
 
-      // Append the JSON payload as a string with the key `managementFundProjectRequestDto`
-      formData.append('managementFundProjectRequestDto', new Blob([JSON.stringify(dtoPayload)], { type: 'application/json' }));
+      // Append the JSON payload as a string with the key `fellowshipAwardedRequestDto`
+      formData.append('fellowshipAwardedRequestDto', new Blob([JSON.stringify(dtoPayload)], { type: 'application/json' }));
 
-      // ...append files as needed...
+      // Append the file with the key `file`
+      if (isMultidisciplinary === "Yes") {
+        if (activeTab === "1") {
+          formData.append('abstractProject', values.principalInvestigator.abstractFile as Blob);
+          formData.append('sanctionOrder', values.principalInvestigator.sanctionOrderFile as Blob);
+        }
+      }
+      // append global fellowship file
+      if (values.fellowship) {
+        formData.append('fellowship', values.fellowship as Blob);
+      }
 
       try {
         const response = isEditMode && editId
-          ? await api.put(`/managementFundProject/update`, formData, {
+          ? await api.put(`/fellowshipAwarded/update`, formData, {
             headers: {
               'Content-Type': 'multipart/form-data'
             }
           })
-          : await api.create(`/managementFundProject/save`, formData, {
+          : await api.create(`/fellowshipAwarded/save`, formData, {
             headers: {
               'Content-Type': 'multipart/form-data'
             }
           });
 
-        toast.success(response.message || "MFP record saved successfully!");
+        toast.success(response.message || "FWL record saved successfully!");
         // Reset the form fields
         resetForm();
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
-        handleListMFPClick(); // Refresh the list
+        handleListFWLClick(); // Refresh the list
       } catch (error) {
-        toast.error("Failed to save MFP. Please try again.");
-        console.error("Error creating/updating MFP:", error);
+        toast.error("Failed to save FWL. Please try again.");
+        console.error("Error creating/updating FWL:", error);
       }
     }
   });
 
   const fetchMFAData = async () => {
     try {
-      const response = await api.get("/managementFundProject/getAll", '');
-      setMfpData(response);
+      const response = await api.get("/fellowshipAwarded/getAll", '');
+      setFwlData(response);
       setFilteredData(response);
     } catch (error) {
       console.error("Error fetching MFA data:", error);
@@ -261,7 +269,7 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
   }
 
   // Open the modal and fetch data
-  const handleListMFPClick = () => {
+  const handleListFWLClick = () => {
     toggleModal();
     fetchMFAData();
   };
@@ -271,12 +279,12 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
   const confirmDelete = async (id: string) => {
     if (deleteId) {
       try {
-        const response = await api.delete(`/managementFundProject/deleteManagementFundedProject?managementFundProjectId=${id}`, '');
-        toast.success(response.message || "MFP record removed successfully!");
+        const response = await api.delete(`/fellowshipAwarded/deleteFellowshipAwarded?fellowshipAwardedId=${id}`, '');
+        toast.success(response.message || "FWL record removed successfully!");
         fetchMFAData();
       } catch (error) {
-        toast.error("Failed to remove MFP Record. Please try again.");
-        console.error("Error deleting MFP:", error);
+        toast.error("Failed to remove FWL Record. Please try again.");
+        console.error("Error deleting FWL:", error);
       } finally {
         setIsDeleteModalOpen(false);
         setDeleteId(null);
@@ -326,7 +334,7 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
     if (fileName) {
       try {
         // Ensure you set responseType to 'blob' to handle binary data
-        const response = await axios.get(`/managementFundProject/download/${fileName}`, {
+        const response = await axios.get(`/fellowshipAwarded/download/${fileName}`, {
           responseType: 'blob'
         });
 
@@ -360,16 +368,22 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
 
   // Handle file deletion
   // Clear the file from the form and show success message
-  const handleDeleteFile = async () => {
+  const handleDeleteFile = async (fileType: "fellowship" | "abstractProject" | "sanctionOrder") => {
     try {
-      // Call the delete API
-      const response = await api.delete(`/managementFundProject/deleteManagementFundedProjectDocument?managementFundProjectId=${editId}&docType=${documentType}`, '');
-      // Show success message
+      const response = await api.delete(`/fellowshipAwarded/deleteFellowshipAwardedDocument?fellowshipAwardedId=${editId}&docType=${fileType}`, '');
       toast.success(response.message || "File deleted successfully!");
-      // Remove the file from the form
-      validation.setFieldValue("uploadLetter", null); // Clear the file from Formik state
+
+      if (fileType === "fellowship") {
+        validation.setFieldValue("fellowship", null);
+        setIsFellowshipFileUploadDisabled(false);
+      } else if (fileType === "abstractProject") {
+        validation.setFieldValue("principalInvestigator.abstractFile", null);
+        setIsAbstractFileUploadDisabled(false);
+      } else if (fileType === "sanctionOrder") {
+        validation.setFieldValue("principalInvestigator.sanctionOrderFile", null);
+        setIsSanctionFileUploadDisabled(false);
+      }
     } catch (error) {
-      // Show error message
       toast.error("Failed to delete the file. Please try again.");
       console.error("Error deleting file:", error);
     }
@@ -434,7 +448,7 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
           )}
         </div>
       </Col>
-      <Col lg={4}>
+      {/* <Col lg={4}>
         <div className="mb-3">
           <Label>Enter Date</Label>
           <Input
@@ -457,7 +471,7 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
             </div>
           )}
         </div>
-      </Col>
+      </Col> */}
       <Col lg={4}>
         <div className="mb-3">
           <Label>Abstract of the Project</Label>
@@ -498,7 +512,7 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
               <Button
                 color="link"
                 className="text-danger"
-                onClick={() => handleDeleteFile()}
+                onClick={() => handleDeleteFile("abstractProject")}
                 title="Delete File"
               >
                 <i className="bi bi-trash"></i>
@@ -547,7 +561,7 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
               <Button
                 color="link"
                 className="text-danger"
-                onClick={() => handleDeleteFile()}
+                onClick={() => handleDeleteFile("sanctionOrder")}
                 title="Delete File"
               >
                 <i className="bi bi-trash"></i>
@@ -625,7 +639,7 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
   // Fetch the data for the selected BOS ID and populate the form fields
   const handleEdit = async (id: string) => {
     try {
-      const response = await api.get(`/managementFundProject/edit?managementFundProjectId=${id}`, '');
+      const response = await api.get(`/fellowshipAwarded/edit?fellowshipAwardedId=${id}`, '');
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
 
       // Filter the response where isCurrent or isCurrentForAdmission is true
@@ -655,6 +669,7 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
         typeOfFunding: response.fundingType
           ? { value: response.fundingType, label: response.fundingType }
           : null,
+        fellowship: response.globalDocument?.fellowship || null,
         principalInvestigator: {
           name: response.principleInvestigatorDto?.name || "",
           qualification: response.principleInvestigatorDto?.qualification || "",
@@ -696,6 +711,12 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
       // Update Formik values
       validation.setValues(mappedValues);
 
+      // Set file upload disabled states based on file presence
+      setIsFellowshipFileUploadDisabled(!!response.globalDocument?.fellowship);
+      setIsAbstractFileUploadDisabled(!!response.principleInvestigatorDto?.file?.abstractProject);
+      setIsSanctionFileUploadDisabled(!!response.principleInvestigatorDto?.file?.sanctionOrder);
+
+
       // Set edit mode and toggle modal
       setIsEditMode(true);
       setEditId(id); // Store the ID of the record being edited
@@ -705,8 +726,8 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
     }
   };
 
-  function handleDelete(mfpDataId: any): void {
-    setDeleteId(mfpDataId);
+  function handleDelete(fwlDataId: any): void {
+    setDeleteId(fwlDataId);
     setIsDeleteModalOpen(true);
   }
 
@@ -953,18 +974,56 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
                 )}
                 <Col lg={4}>
                   <div className="mb-3">
-                    <Label>Fellowship</Label>
+                    <Label htmlFor="formFile" className="form-label">Fellowship</Label>
                     <Input
+                      className={`form-control ${validation.touched.fellowship && validation.errors.fellowship ? "is-invalid" : ""}`}
                       type="file"
-                      name="coInvestigator.fellowshipFile"
-                      onChange={(event) => validation.setFieldValue("coInvestigator.fellowshipFile", event.currentTarget.files?.[0] || null)}
-                      className={`form-control ${validation.touched.fellowshipFile && validation.errors.fellowshipFile ? "is-invalid" : ""}`}
+                      id="formFile"
+                      onChange={(event) => {
+                        validation.setFieldValue("fellowship", event.currentTarget.files ? event.currentTarget.files[0] : null);
+                      }}
+                      disabled={isFellowshipFileUploadDisabled} // Disable the button if a file exists
                     />
-                    {validation.touched?.fellowshipFile && validation.errors.fellowshipFile && (
-                      <div className="text-danger">{validation.errors.fellowshipFile}</div>
+                    {validation.touched.fellowship && validation.errors.fellowship && (
+                      <div className="text-danger">{validation.errors.fellowship}</div>
+                    )}
+                    {/* Show a message if the file upload button is disabled */}
+                    {isFellowshipFileUploadDisabled && (
+                      <div className="text-warning mt-2">
+                        Please remove the existing file to upload a new one.
+                      </div>
+                    )}
+                    {/* Only show the file name if it is a string (from the edit API) */}
+                    {typeof validation.values.fellowship === "string" && (
+                      <div className="mt-2 d-flex align-items-center">
+                        <span className="me-2" style={{ fontWeight: "bold", color: "green" }}>
+                          {validation.values.fellowship}
+                        </span>
+                        <Button
+                          color="link"
+                          className="text-primary"
+                          onClick={() => {
+                            if (typeof validation.values.fellowship === "string") {
+                              handleDownloadFile(validation.values.fellowship);
+                            }
+                          }}
+                          title="Download File"
+                        >
+                          <i className="bi bi-download"></i>
+                        </Button>
+                        <Button
+                          color="link"
+                          className="text-danger"
+                          onClick={() => handleDeleteFile("fellowship")}
+                          title="Delete File"
+                        >
+                          <i className="bi bi-trash"></i>
+                        </Button>
+                      </div>
                     )}
                   </div>
                 </Col>
+
                 <Row>
                   <Col lg={12}>
                     <div className="mt-3 d-flex justify-content-between">
@@ -974,9 +1033,9 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
                       <button
                         className="btn btn-secondary"
                         type="button"
-                        onClick={handleListMFPClick}
+                        onClick={handleListFWLClick}
                       >
-                        List MFP
+                        List FWL
                       </button>
                     </div>
                   </Col>
@@ -985,9 +1044,9 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
             </CardBody>
           </Card>
         </Container>
-        {/* Modal for Listing mfp */}
+        {/* Modal for Listing FWL */}
         <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg" style={{ maxWidth: "100%", width: "auto" }}>
-          <ModalHeader toggle={toggleModal}>List Management Funded Project</ModalHeader>
+          <ModalHeader toggle={toggleModal}>List Fellowship Awarded Learning</ModalHeader>
           <ModalBody>
             {/* Global Search */}
             <div className="mb-3">
@@ -1081,28 +1140,28 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
               </thead>
               <tbody>
                 {currentRows.length > 0 ? (
-                  currentRows.map((mfp, index) => (
-                    <tr key={mfp.managementFundProjectId}>
+                  currentRows.map((fw, index) => (
+                    <tr key={fw.fellowshipAwardedId}>
                       <td>{indexOfFirstRow + index + 1}</td>
-                      <td>{mfp.academicYear}</td>
-                      <td>{mfp.streamName}</td>
-                      <td>{mfp.departmentName}</td>
-                      <td>{mfp.facultyName}</td>
-                      <td>{mfp.projectTitle}</td>
-                      <td>{mfp.amount}</td>
-                      <td>{mfp.monthOfGrant}</td>
-                      <td>{mfp.fundingType}</td>
+                      <td>{fw.academicYear}</td>
+                      <td>{fw.streamName}</td>
+                      <td>{fw.departmentName}</td>
+                      <td>{fw.facultyName}</td>
+                      <td>{fw.projectTitle}</td>
+                      <td>{fw.amount}</td>
+                      <td>{fw.monthOfGrant}</td>
+                      <td>{fw.fundingType}</td>
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
                             className="btn btn-sm btn-warning"
-                            onClick={() => handleEdit(mfp.managementFundProjectId)}
+                            onClick={() => handleEdit(fw.fellowshipAwardedId)}
                           >
                             Edit
                           </button>
                           <button
                             className="btn btn-sm btn-danger"
-                            onClick={() => handleDelete(mfp.managementFundProjectId)}
+                            onClick={() => handleDelete(fw.fellowshipAwardedId)}
                           >
                             Delete
                           </button>
@@ -1113,7 +1172,7 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
                 ) : (
                   <tr>
                     <td colSpan={11} className="text-center">
-                      No MFP data available.
+                      No FWL data available.
                     </td>
                   </tr>
                 )}

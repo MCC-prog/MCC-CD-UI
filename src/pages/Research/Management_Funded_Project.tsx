@@ -135,7 +135,7 @@ const Management_Funded_Project: React.FC = () => {
                 qualification: Yup.string().required("Please enter qualification"),
                 designation: Yup.string().required("Please enter designation"),
                 department: Yup.object<{ value: string; label: string }>().nullable().required("Please select department"),
-                date: Yup.date().required("Please select a date"),
+                //date: Yup.date().required("Please select a date"),
                 abstractFile: Yup.mixed().required("Please upload the abstract file"),
                 sanctionOrderFile: Yup.mixed().required("Please upload the sanction order file"),
             })
@@ -169,7 +169,7 @@ const Management_Funded_Project: React.FC = () => {
                 qualification: "",
                 designation: "",
                 department: null as { value: string; label: string } | null,
-                date: "",
+                //date: "",
                 abstractFile: null as File | null,
                 sanctionOrderFile: null as File | null,
             },
@@ -199,7 +199,7 @@ const Management_Funded_Project: React.FC = () => {
                 multidisciplinary: isMultidisciplinary === "Yes",
                 multidisciplinaryType: activeTab === "1" ? "PrincipleInvestigatorDetails" : "CoInvestigatorDetails",
                 managementFundProjectAddTabDto: {
-                    additionalTabId: 0, // Set this as needed, or from edit data if available
+                    additionalTabId: editId || null,
                     name: activeTab === "1"
                         ? values.principalInvestigator.name || ""
                         : values.coInvestigator.name || "",
@@ -221,7 +221,13 @@ const Management_Funded_Project: React.FC = () => {
             // Append the JSON payload as a string with the key `managementFundProjectRequestDto`
             formData.append('managementFundProjectRequestDto', new Blob([JSON.stringify(dtoPayload)], { type: 'application/json' }));
 
-            // ...append files as needed...
+            // Append the file with the key `file`
+            if (isMultidisciplinary === "Yes") {
+                if (activeTab === "1") {
+                    formData.append('file.abstractProject', values.principalInvestigator.abstractFile as Blob);
+                    formData.append('file.sanctionOrder', values.principalInvestigator.sanctionOrderFile as Blob);
+                }
+            }
 
             try {
                 const response = isEditMode && editId
@@ -365,10 +371,14 @@ const Management_Funded_Project: React.FC = () => {
             const response = await api.delete(`/managementFundProject/deleteManagementFundedProjectDocument?managementFundProjectId=${editId}&docType=${documentType}`, '');
             // Show success message
             toast.success(response.message || "File deleted successfully!");
-            // Remove the file from the form
-            validation.setFieldValue("uploadLetter", null); // Clear the file from Formik state
+            if (documentType === "sanctionOrder") {
+                validation.setFieldValue("principalInvestigator.sanctionOrderFile", null);
+                setIsSanctionFileUploadDisabled(false);
+            } else if (documentType === "abstractProject") {
+                validation.setFieldValue("principalInvestigator.abstractFile", null);
+                setIsAbstractFileUploadDisabled(false);
+            }
         } catch (error) {
-            // Show error message
             toast.error("Failed to delete the file. Please try again.");
             console.error("Error deleting file:", error);
         }
@@ -433,7 +443,7 @@ const Management_Funded_Project: React.FC = () => {
                     )}
                 </div>
             </Col>
-            <Col lg={4}>
+            {/* <Col lg={4}>
                 <div className="mb-3">
                     <Label>Enter Date</Label>
                     <Input
@@ -456,7 +466,7 @@ const Management_Funded_Project: React.FC = () => {
                         </div>
                     )}
                 </div>
-            </Col>
+            </Col> */}
             <Col lg={4}>
                 <div className="mb-3">
                     <Label>Abstract of the Project</Label>
@@ -497,7 +507,10 @@ const Management_Funded_Project: React.FC = () => {
                             <Button
                                 color="link"
                                 className="text-danger"
-                                onClick={() => handleDeleteFile()}
+                                onClick={() => {
+                                    setDocumentType("abstractProject");
+                                    handleDeleteFile();
+                                }}
                                 title="Delete File"
                             >
                                 <i className="bi bi-trash"></i>
@@ -546,7 +559,10 @@ const Management_Funded_Project: React.FC = () => {
                             <Button
                                 color="link"
                                 className="text-danger"
-                                onClick={() => handleDeleteFile()}
+                                onClick={() => {
+                                    setDocumentType("sanctionOrder");
+                                    handleDeleteFile();
+                                }}
                                 title="Delete File"
                             >
                                 <i className="bi bi-trash"></i>
@@ -686,10 +702,8 @@ const Management_Funded_Project: React.FC = () => {
             setIsMultidisciplinary(response.multidisciplinary ? "Yes" : "No");
             if (response.multidisciplinaryType === "PrincipleInvestigatorDetails") {
                 setActiveTab("1");
-                setDocumentType("PrincipleInvestigatorDetails");
             } else if (response.multidisciplinaryType === "CoInvestigatorDetails") {
                 setActiveTab("2");
-                setDocumentType("CoInvestigatorDetails");
             }
 
             // Update Formik values
@@ -698,6 +712,8 @@ const Management_Funded_Project: React.FC = () => {
             // Set edit mode and toggle modal
             setIsEditMode(true);
             setEditId(id); // Store the ID of the record being edited
+            setIsAbstractFileUploadDisabled(!!response.principleInvestigatorDto?.file?.abstractProject);
+            setIsSanctionFileUploadDisabled(!!response.principleInvestigatorDto?.file?.sanctionOrder);
             toggleModal();
         } catch (error) {
             console.error("Error fetching Research Publication data by ID:", error);

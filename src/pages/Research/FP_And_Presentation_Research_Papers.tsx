@@ -45,8 +45,8 @@ const FP_And_Presentation_Research_Papers = () => {
     mode: "",
     level: "",
     role: "",
-    titleOfPaper: "",
-    organizingInstitute: "",
+    paperTitle: "",
+    organisingInstitute: "",
     fromDate: "",
     toDate: ""
   });
@@ -111,11 +111,11 @@ const FP_And_Presentation_Research_Papers = () => {
       mode: null as { value: string; label: string } | null,
       level: null as { value: string; label: string } | null,
       role: null as { value: string; label: string } | null,
-      titleOfPaper: "",
-      organizingInstitute: "",
+      paperTitle: "",
+      organisingInstitute: "",
       fromDate: "",
       toDate: "",
-      certificateFile: null as File | null,
+      facultyCertificate: null as File | null,
     },
     validationSchema: Yup.object({
       academicYear: Yup.object<{ value: string; label: string }>().nullable().required("Please select academic year"),
@@ -127,52 +127,50 @@ const FP_And_Presentation_Research_Papers = () => {
           : schema;
       }),
       facultyName: Yup.string().required("Please enter faculty name"),
-      type: Yup.string().required("Please select type"),
-      mode: Yup.string().required("Please select mode"),
-      level: Yup.string().required("Please select level"),
-      role: Yup.string().required("Please select role"),
-      titleOfPaper: Yup.string().required("Please enter title of the paper"),
-      organizingInstitute: Yup.string().required("Please enter organizing institute"),
+      type: Yup.object<{ value: string; label: string }>().nullable().required("Please select type"),
+      mode: Yup.object<{ value: string; label: string }>().nullable().required("Please select mode"),
+      level: Yup.object<{ value: string; label: string }>().nullable().required("Please select level"),
+      role: Yup.object<{ value: string; label: string }>().nullable().required("Please select role"),
+      paperTitle: Yup.string().required("Please enter title of the paper"),
+      organisingInstitute: Yup.string().required("Please enter organizing institute"),
       fromDate: Yup.date().required("Please select from date"),
       toDate: Yup.date().required("Please select to date"),
-      certificateFile: Yup.mixed().required("Please upload the certificate"),
+      facultyCertificate: Yup.mixed().required("Please upload the certificate"),
     }),
     onSubmit: async (values, { resetForm }) => {
-      // Create a plain JavaScript object from form values
-      const payload = {
-        facultyParticipationDataId: editId || "",
-        academicYear: values.academicYear?.value || "",
-        departmentId: values.department?.value || "",
-        streamId: values.stream?.value || "",
-        facultyName: values.facultyName || "",
-        type: values.type?.value || "",
-        mode: values.mode?.value || "",
-        level: values.level?.value || "",
-        role: values.role?.value || "",
-        titleOfPaper: values.titleOfPaper || "",
-        organizingInstitute: values.organizingInstitute || "",
-        fromDate: values.fromDate ? moment(values.fromDate, "DD/MM/YYYY").format("YYYY-MM-DD") : "",
-        toDate: values.toDate ? moment(values.toDate, "DD/MM/YYYY").format("YYYY-MM-DD") : "",
-        otherDepartment: values.otherDepartment || "",
-        certificateFile: values.certificateFile ? await fileToBase64(values.certificateFile) : null
-      };
+      // Create FormData object
+      const formData = new FormData();
+      formData.append("facultyParticipationId", editId || "");
+      formData.append("academicYear", values.academicYear?.value || "");
+      formData.append("departmentId", values.department?.value || "");
+      formData.append("streamId", values.stream?.value || "");
+      formData.append("otherDepartment", values.otherDepartment || "");
+      formData.append("facultyName", values.facultyName || "");
+      formData.append("type", values.type?.value || "");
+      formData.append("mode", values.mode?.value || "");
+      formData.append("level", values.level?.value || "");
+      formData.append("role", values.role?.value || "");
+      formData.append("paperTitle", values.paperTitle || "");
+      formData.append("organisingInstitute", values.organisingInstitute || "");
+      formData.append("fromDate", values.fromDate ? moment(values.fromDate, "YYYY-MM-DD").format("DD/MM/YYYY") : "");
+      formData.append("toDate", values.toDate ? moment(values.toDate, "YYYY-MM-DD").format("DD/MM/YYYY") : "");
+      // Append the file
+      if (typeof values.facultyCertificate === "string") {
+        // If the file is just a name, send null
+        formData.append("facultyCertificate", "null");
+      } else if (values.facultyCertificate instanceof File) {
+        // If the file is a File object, send the file
+        formData.append("facultyCertificate", values.facultyCertificate);
+      }
 
       try {
         if (isEditMode && editId) {
           // Call the update API
-          const response = await api.put(`/facultyParticipation/update`, JSON.stringify(payload), {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          });
+          const response = await api.put(`/facultyParticipation/update`, formData);
           toast.success(response.message || "Faculty Participation updated successfully!");
         } else {
           // Call the save API
-          const response = await api.create("/facultyParticipation/save", JSON.stringify(payload), {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          });
+          const response = await api.create("/facultyParticipation/save", formData);
           toast.success(response.message || "Faculty Participation added successfully!");
         }
         // Reset the form fields
@@ -188,15 +186,6 @@ const FP_And_Presentation_Research_Papers = () => {
       }
     },
   });
-
-  const fileToBase64 = (file: File): Promise<string | null> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = (error) => reject(error);
-      reader.readAsDataURL(file);
-    });
-  };
 
   const fetchFPData = async () => {
     try {
@@ -241,17 +230,25 @@ const FP_And_Presentation_Research_Papers = () => {
         department: response.departmentId
           ? { value: response.departmentId.toString(), label: response.departmentName }
           : null,
-        otherDepartment: response.otherDepartment || "", // Ensure otherDepartment is included
+        otherDepartment: response.otherDepartment || "",
         facultyName: response.facultyName || "",
         type: response.type ? { value: response.type, label: response.type } : null,
-        mode: response.mode ? { value: response.mode, label: response.mode } : null,
-        level: response.level ? { value: response.level, label: response.level } : null,
-        role: response.role ? { value: response.role, label: response.role } : null,
-        titleOfPaper: response.titleOfPaper || "",
-        organizingInstitute: response.organizingInstitute || "",
-        fromDate: response.fromDate ? moment(response.fromDate, "DD/MM/YYYY").format("YYYY-MM-DD") : "",
-        toDate: response.toDate ? moment(response.toDate, "DD/MM/YYYY").format("YYYY-MM-DD") : "",
-        certificateFile: null // Reset file input
+        mode: response.mode ? { value: response.mode.toLowerCase(), label: response.mode } : null,
+        level: response.level ? { value: response.level.toLowerCase(), label: response.level } : null,
+        role: response.role ? { value: response.role.toLowerCase(), label: response.role } : null,
+        paperTitle: response.paperTitle || "",
+        organisingInstitute: response.organisingInstitute || "",
+        fromDate: response.fromDate
+          ? moment(response.fromDate, "DD/MM/YYYY").isValid()
+            ? moment(response.fromDate, "DD/MM/YYYY").format("YYYY-MM-DD")
+            : ""
+          : "",
+        toDate: response.toDate
+          ? moment(response.toDate, "DD/MM/YYYY").isValid()
+            ? moment(response.toDate, "DD/MM/YYYY").format("YYYY-MM-DD")
+            : ""
+          : "",
+        facultyCertificate: response.document?.facultyCertificate || null,
       };
 
       // Update Formik values
@@ -272,7 +269,7 @@ const FP_And_Presentation_Research_Papers = () => {
       setIsEditMode(true);
       setEditId(id); // Store the ID of the record being edited
       // Disable file upload if a file exists
-      setIsFileUploadDisabled(!!response.document?.letter);
+      setIsFileUploadDisabled(!!response.document?.facultyCertificate);
       toggleModal();
     } catch (error) {
       console.error("Error fetching Faculty Participation data by ID:", error);
@@ -284,7 +281,7 @@ const FP_And_Presentation_Research_Papers = () => {
     if (fileName) {
       try {
         // Ensure you set responseType to 'blob' to handle binary data
-        const response = await axios.get(`/researchGuide/download/${fileName}`, {
+        const response = await axios.get(`/facultyParticipation/download/${fileName}`, {
           responseType: 'blob'
         });
 
@@ -321,11 +318,11 @@ const FP_And_Presentation_Research_Papers = () => {
   const handleDeleteFile = async () => {
     try {
       // Call the delete API
-      const response = await api.delete(`/researchGuide/deleteResearchGuideDocument?researchGuideId=${editId}`, '');
+      const response = await api.delete(`/facultyParticipation/deleteFacultyParticipationDocument?facultyParticipationId=${editId}&docType=facultyCertificate`, '');
       // Show success message
       toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
-      validation.setFieldValue("uploadLetter", null); // Clear the file from Formik state
+      validation.setFieldValue("facultyCertificate", null); // Clear the file from Formik state
       setIsFileUploadDisabled(false); // Enable the file upload button
     } catch (error) {
       // Show error message
@@ -341,8 +338,9 @@ const FP_And_Presentation_Research_Papers = () => {
     return matchedOption ? matchedOption : { value, label: String(value) };
   };
 
-  function handleDelete(researchDataId: any): void {
-    console.log("Delete Research ID with ID:", researchDataId);
+  function handleDelete(facultyDataId: any): void {
+    setDeleteId(facultyDataId);
+    setIsDeleteModalOpen(true);
   }
 
   // Confirm deletion of the record
@@ -350,7 +348,7 @@ const FP_And_Presentation_Research_Papers = () => {
   const confirmDelete = async (id: string) => {
     if (deleteId) {
       try {
-        const response = await api.delete(`/facultyParticipation/delete?facultyParticipationId=${id}`, '');
+        const response = await api.delete(`/facultyParticipation/deleteFacultyParticipation?facultyParticipationId=${id}`, '');
         toast.success(response.message || "Faculty Participation record removed successfully!");
         fetchFPData();
       } catch (error) {
@@ -480,19 +478,25 @@ const FP_And_Presentation_Research_Papers = () => {
                   </Col>
 
                   {/* Type Dropdown */}
+                  {/* Type Dropdown */}
                   <Col lg={4}>
                     <div className="mb-3">
                       <Label>Type</Label>
                       <Input
                         type="select"
                         value={validation.values.type?.value || ""}
-                        onChange={(e) => validation.setFieldValue("type", e.target.value)}
+                        onChange={(e) => {
+                          const selected = e.target.value
+                            ? { value: e.target.value, label: ((e.target as unknown) as HTMLSelectElement).options[((e.target as unknown) as HTMLSelectElement).selectedIndex].text }
+                            : null;
+                          validation.setFieldValue("type", selected);
+                        }}
                         className={`form-control ${validation.touched.type && validation.errors.type ? "is-invalid" : ""}`}
                       >
                         <option value="">Select Type</option>
-                        <option value="Workshop">Workshop</option>
-                        <option value="Seminar">Seminar</option>
-                        <option value="Conference">Conference</option>
+                        <option value="workshop">Workshop</option>
+                        <option value="seminar">Seminar</option>
+                        <option value="conference">Conference</option>
                       </Input>
                       {validation.touched.type && validation.errors.type && (
                         <div className="text-danger">{validation.errors.type}</div>
@@ -507,12 +511,17 @@ const FP_And_Presentation_Research_Papers = () => {
                       <Input
                         type="select"
                         value={validation.values.mode?.value || ""}
-                        onChange={(e) => validation.setFieldValue("mode", e.target.value)}
+                        onChange={(e) => {
+                          const selected = e.target.value
+                            ? { value: e.target.value, label: ((e.target as unknown) as HTMLSelectElement).options[((e.target as unknown) as HTMLSelectElement).selectedIndex].text }
+                            : null;
+                          validation.setFieldValue("mode", selected);
+                        }}
                         className={`form-control ${validation.touched.mode && validation.errors.mode ? "is-invalid" : ""}`}
                       >
                         <option value="">Select Mode</option>
-                        <option value="Online">Online</option>
-                        <option value="Offline">Offline</option>
+                        <option value="online">Online</option>
+                        <option value="offline">Offline</option>
                       </Input>
                       {validation.touched.mode && validation.errors.mode && (
                         <div className="text-danger">{validation.errors.mode}</div>
@@ -527,13 +536,18 @@ const FP_And_Presentation_Research_Papers = () => {
                       <Input
                         type="select"
                         value={validation.values.level?.value || ""}
-                        onChange={(e) => validation.setFieldValue("level", e.target.value)}
+                        onChange={(e) => {
+                          const selected = e.target.value
+                            ? { value: e.target.value, label: ((e.target as unknown) as HTMLSelectElement).options[((e.target as unknown) as HTMLSelectElement).selectedIndex].text }
+                            : null;
+                          validation.setFieldValue("level", selected);
+                        }}
                         className={`form-control ${validation.touched.level && validation.errors.level ? "is-invalid" : ""}`}
                       >
                         <option value="">Select Level</option>
-                        <option value="State">State</option>
-                        <option value="National">National</option>
-                        <option value="International">International</option>
+                        <option value="state">State</option>
+                        <option value="national">National</option>
+                        <option value="international">International</option>
                       </Input>
                       {validation.touched.level && validation.errors.level && (
                         <div className="text-danger">{validation.errors.level}</div>
@@ -548,13 +562,18 @@ const FP_And_Presentation_Research_Papers = () => {
                       <Input
                         type="select"
                         value={validation.values.role?.value || ""}
-                        onChange={(e) => validation.setFieldValue("role", e.target.value)}
+                        onChange={(e) => {
+                          const selected = e.target.value
+                            ? { value: e.target.value, label: ((e.target as unknown) as HTMLSelectElement).options[((e.target as unknown) as HTMLSelectElement).selectedIndex].text }
+                            : null;
+                          validation.setFieldValue("role", selected);
+                        }}
                         className={`form-control ${validation.touched.role && validation.errors.role ? "is-invalid" : ""}`}
                       >
                         <option value="">Select Role</option>
-                        <option value="Presenter">Presenter</option>
-                        <option value="Participant">Participant</option>
-                        <option value="Resource Person">Resource Person</option>
+                        <option value="presentor">Presentor</option>
+                        <option value="participant">Participant</option>
+                        <option value="resource person">Resource Person</option>
                       </Input>
                       {validation.touched.role && validation.errors.role && (
                         <div className="text-danger">{validation.errors.role}</div>
@@ -568,13 +587,13 @@ const FP_And_Presentation_Research_Papers = () => {
                       <Label>Title of the Paper</Label>
                       <Input
                         type="text"
-                        value={validation.values.titleOfPaper}
-                        onChange={(e) => validation.setFieldValue("titleOfPaper", e.target.value)}
-                        className={`form-control ${validation.touched.titleOfPaper && validation.errors.titleOfPaper ? "is-invalid" : ""}`}
+                        value={validation.values.paperTitle}
+                        onChange={(e) => validation.setFieldValue("paperTitle", e.target.value)}
+                        className={`form-control ${validation.touched.paperTitle && validation.errors.paperTitle ? "is-invalid" : ""}`}
                         placeholder="Enter Title of the Paper"
                       />
-                      {validation.touched.titleOfPaper && validation.errors.titleOfPaper && (
-                        <div className="text-danger">{validation.errors.titleOfPaper}</div>
+                      {validation.touched.paperTitle && validation.errors.paperTitle && (
+                        <div className="text-danger">{validation.errors.paperTitle}</div>
                       )}
                     </div>
                   </Col>
@@ -585,13 +604,13 @@ const FP_And_Presentation_Research_Papers = () => {
                       <Label>Organizing Institute</Label>
                       <Input
                         type="text"
-                        value={validation.values.organizingInstitute}
-                        onChange={(e) => validation.setFieldValue("organizingInstitute", e.target.value)}
-                        className={`form-control ${validation.touched.organizingInstitute && validation.errors.organizingInstitute ? "is-invalid" : ""}`}
+                        value={validation.values.organisingInstitute}
+                        onChange={(e) => validation.setFieldValue("organisingInstitute", e.target.value)}
+                        className={`form-control ${validation.touched.organisingInstitute && validation.errors.organisingInstitute ? "is-invalid" : ""}`}
                         placeholder="Enter Organizing Institute"
                       />
-                      {validation.touched.organizingInstitute && validation.errors.organizingInstitute && (
-                        <div className="text-danger">{validation.errors.organizingInstitute}</div>
+                      {validation.touched.organisingInstitute && validation.errors.organisingInstitute && (
+                        <div className="text-danger">{validation.errors.organisingInstitute}</div>
                       )}
                     </div>
                   </Col>
@@ -601,16 +620,11 @@ const FP_And_Presentation_Research_Papers = () => {
                     <div className="mb-3">
                       <Label>From Date</Label>
                       <Input
-                        type="date" // Use native date input
+                        type="date"
                         className={`form-control ${validation.touched.fromDate && validation.errors.fromDate ? "is-invalid" : ""}`}
-                        value={
-                          validation.values.fromDate
-                            ? moment(validation.values.fromDate, "DD/MM/YYYY").format("YYYY-MM-DD") // Convert to yyyy-mm-dd for the input
-                            : ""
-                        }
+                        value={validation.values.fromDate || ""}
                         onChange={(e) => {
-                          const formattedDate = moment(e.target.value, "YYYY-MM-DD").format("DD/MM/YYYY"); // Convert to dd/mm/yyyy
-                          validation.setFieldValue("fromDate", formattedDate);
+                          validation.setFieldValue("fromDate", e.target.value); // Store as YYYY-MM-DD
                         }}
                         placeholder="dd/mm/yyyy"
                       />
@@ -628,29 +642,10 @@ const FP_And_Presentation_Research_Papers = () => {
                       <Label>To Date</Label>
                       <Input
                         type="date"
-                        value={validation.values.toDate}
-                        onChange={(e) => validation.setFieldValue("toDate", e.target.value)}
                         className={`form-control ${validation.touched.toDate && validation.errors.toDate ? "is-invalid" : ""}`}
-                      />
-                      {validation.touched.toDate && validation.errors.toDate && (
-                        <div className="text-danger">{validation.errors.toDate}</div>
-                      )}
-                    </div>
-                  </Col>
-                  <Col lg={4}>
-                    <div className="mb-3">
-                      <Label>To Date</Label>
-                      <Input
-                        type="date" // Use native date input
-                        className={`form-control ${validation.touched.toDate && validation.errors.toDate ? "is-invalid" : ""}`}
-                        value={
-                          validation.values.toDate
-                            ? moment(validation.values.toDate, "DD/MM/YYYY").format("YYYY-MM-DD") // Convert to yyyy-mm-dd for the input
-                            : ""
-                        }
+                        value={validation.values.toDate || ""}
                         onChange={(e) => {
-                          const formattedDate = moment(e.target.value, "YYYY-MM-DD").format("DD/MM/YYYY"); // Convert to dd/mm/yyyy
-                          validation.setFieldValue("toDate", formattedDate);
+                          validation.setFieldValue("toDate", e.target.value); // Store as YYYY-MM-DD
                         }}
                         placeholder="dd/mm/yyyy"
                       />
@@ -668,12 +663,12 @@ const FP_And_Presentation_Research_Papers = () => {
                       <Label>Upload Certificate</Label>
                       <Input
                         type="file"
-                        onChange={(e) => validation.setFieldValue("certificateFile", e.target.files?.[0] || null)}
-                        className={`form-control ${validation.touched.certificateFile && validation.errors.certificateFile ? "is-invalid" : ""}`}
+                        onChange={(e) => validation.setFieldValue("facultyCertificate", e.target.files?.[0] || null)}
+                        className={`form-control ${validation.touched.facultyCertificate && validation.errors.facultyCertificate ? "is-invalid" : ""}`}
                         disabled={isFileUploadDisabled} // Disable the button if a file exists
                       />
-                      {validation.touched.certificateFile && validation.errors.certificateFile && (
-                        <div className="text-danger">{validation.errors.certificateFile}</div>
+                      {validation.touched.facultyCertificate && validation.errors.facultyCertificate && (
+                        <div className="text-danger">{validation.errors.facultyCertificate}</div>
                       )}
                       {/* Show a message if the file upload button is disabled */}
                       {isFileUploadDisabled && (
@@ -682,17 +677,17 @@ const FP_And_Presentation_Research_Papers = () => {
                         </div>
                       )}
                       {/* Only show the file name if it is a string (from the edit API) */}
-                      {typeof validation.values.certificateFile === "string" && (
+                      {typeof validation.values.facultyCertificate === "string" && (
                         <div className="mt-2 d-flex align-items-center">
                           <span className="me-2" style={{ fontWeight: "bold", color: "green" }}>
-                            {validation.values.certificateFile}
+                            {validation.values.facultyCertificate}
                           </span>
                           <Button
                             color="link"
                             className="text-primary"
                             onClick={() => {
-                              if (typeof validation.values.certificateFile === "string") {
-                                handleDownloadFile(validation.values.certificateFile);
+                              if (typeof validation.values.facultyCertificate === "string") {
+                                handleDownloadFile(validation.values.facultyCertificate);
                               }
                             }}
                             title="Download File"
@@ -828,8 +823,8 @@ const FP_And_Presentation_Research_Papers = () => {
                     <Input
                       type="text"
                       placeholder="Filter"
-                      value={filters.titleOfPaper}
-                      onChange={(e) => handleFilterChange(e, "titleOfPaper")}
+                      value={filters.paperTitle}
+                      onChange={(e) => handleFilterChange(e, "paperTitle")}
                     />
                   </th>
                   <th>
@@ -837,8 +832,8 @@ const FP_And_Presentation_Research_Papers = () => {
                     <Input
                       type="text"
                       placeholder="Filter"
-                      value={filters.organizingInstitute}
-                      onChange={(e) => handleFilterChange(e, "organizingInstitute")}
+                      value={filters.organisingInstitute}
+                      onChange={(e) => handleFilterChange(e, "organisingInstitute")}
                     />
                   </th>
                   <th>
@@ -863,7 +858,7 @@ const FP_And_Presentation_Research_Papers = () => {
               <tbody>
                 {currentRows.length > 0 ? (
                   currentRows.map((fp, index) => (
-                    <tr key={fp.fpDataId}>
+                    <tr key={fp.facultyParticipationId}>
                       <td>{indexOfFirstRow + index + 1}</td>
                       <td>{fp.academicYear}</td>
                       <td>{fp.streamName}</td>
@@ -873,21 +868,21 @@ const FP_And_Presentation_Research_Papers = () => {
                       <td>{fp.mode}</td>
                       <td>{fp.level}</td>
                       <td>{fp.role}</td>
-                      <td>{fp.titleOfPaper}</td>
-                      <td>{fp.organizingInstitute}</td>
+                      <td>{fp.paperTitle}</td>
+                      <td>{fp.organisingInstitute}</td>
                       <td>{fp.fromDate}</td>
                       <td>{fp.toDate}</td>
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
                             className="btn btn-sm btn-warning"
-                            onClick={() => handleEdit(fp.fpDataId)}
+                            onClick={() => handleEdit(fp.facultyParticipationId)}
                           >
                             Edit
                           </button>
                           <button
                             className="btn btn-sm btn-danger"
-                            onClick={() => handleDelete(fp.fpDataId)}
+                            onClick={() => handleDelete(fp.facultyParticipationId)}
                           >
                             Delete
                           </button>

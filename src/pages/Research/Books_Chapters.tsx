@@ -9,6 +9,7 @@ import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
 import { toast, ToastContainer } from "react-toastify";
 import { APIClient } from "helpers/api_helper";
 import moment from "moment";
+import axios from "axios";
 
 const api = new APIClient();
 
@@ -111,7 +112,7 @@ const Books_Chapters = () => {
       isbxl: "",
       publisher: "",
       dateOfPublication: "",
-      frontPageUpload: null as File | null,
+      bookChapter: null as File | null,
     },
     validationSchema: Yup.object({
       academicYear: Yup.object<{ value: string; label: string }>().nullable().required("Please select academic year"),
@@ -127,7 +128,7 @@ const Books_Chapters = () => {
       bookTitle: Yup.string().required("Please enter book title"),
       editor: Yup.string().required("Please enter editor name"),
       isbxl: Yup.string().required("Please enter ISBXL"),
-      frontPageUpload: Yup.mixed().test(
+      bookChapter: Yup.mixed().test(
         "fileValidation",
         "Please upload a valid file",
         function (value) {
@@ -173,12 +174,12 @@ const Books_Chapters = () => {
       formData.append("otherDepartment", values.otherDepartment || "");
 
       // Append the file
-      if (typeof values.frontPageUpload === "string") {
+      if (typeof values.bookChapter === "string") {
         // If the file is just a name, send null
-        formData.append("frontPageUpload", "null");
-      } else if (values.frontPageUpload instanceof File) {
+        formData.append("bookChapter", "null");
+      } else if (values.bookChapter instanceof File) {
         // If the file is a File object, send the file
-        formData.append("frontPageUpload", values.frontPageUpload);
+        formData.append("bookChapter", values.bookChapter);
       }
 
       try {
@@ -256,7 +257,7 @@ const Books_Chapters = () => {
         dateOfPublication: response.publicationDate || "",
         publisher: response.publisher || "",
         otherDepartment: "", // Add default value for otherDepartment
-        frontPageUpload: null, // File uploads are not pre-filled
+        bookChapter: response.documents?.bookChapter || null,
       };
 
       // Update Formik values
@@ -311,6 +312,60 @@ const Books_Chapters = () => {
       }
     }
   }
+
+  // Handle file download actions
+  const handleDownloadFile = async (fileName: string) => {
+    if (fileName) {
+      try {
+        // Ensure you set responseType to 'blob' to handle binary data
+        const response = await axios.get(`/bookChapter/download/${fileName}`, {
+          responseType: 'blob'
+        });
+
+        // Create a Blob from the response data
+        const blob = new Blob([response], { type: "*/*" });
+
+        // Create a URL for the Blob
+        const url = window.URL.createObjectURL(blob);
+
+        // Create a temporary anchor element to trigger the download
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName; // Set the file name for the download
+        document.body.appendChild(link);
+        link.click();
+
+        // Clean up the URL and remove the anchor element
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        toast.success("File downloaded successfully!");
+      } catch (error) {
+        toast.error("Failed to download frontPage uploaded file. Please try again.");
+        console.error("Error downloading file:", error);
+      }
+    } else {
+      toast.error("No file available for download.");
+    }
+  };
+
+  // Handle file deletion
+  // Clear the file from the form and show success message
+  const handleDeleteFile = async () => {
+    try {
+      // Call the delete API
+      const response = await api.delete(`/bookChapter/deleteBookChapterDocument?bookChapterId=${editId}&docType=bookChapter`, '');
+      // Show success message
+      toast.success(response.message || "File deleted successfully!");
+      // Remove the file from the form
+      validation.setFieldValue("bookChapter", null); // Clear the file from Formik state
+      setIsFrontPageFileUploadDisabled(false); // Enable the file upload button
+    } catch (error) {
+      // Show error message
+      toast.error("Failed to delete the file. Please try again.");
+      console.error("Error deleting file:", error);
+    }
+  };
 
   return (
     <React.Fragment>
@@ -553,21 +608,51 @@ const Books_Chapters = () => {
                     </div>
                   </Col>
 
+                  {/* Front Page Upload */}
                   <Col lg={4}>
                     <div className="mb-3">
                       <Label>Front Page Upload</Label>
                       <Input
                         type="file"
-                        name="frontPageUpload"
-                        onChange={(event) => {
-                          const file = event.currentTarget.files?.[0] || null;
-                          validation.setFieldValue("frontPageUpload", file);
-                        }}
-                        className={`form-control ${validation.touched.frontPageUpload && validation.errors.frontPageUpload ? "is-invalid" : ""}`}
+                        onChange={(e) => validation.setFieldValue("bookChapter", e.target.files?.[0] || null)}
+                        className={`form-control ${validation.touched.bookChapter && validation.errors.bookChapter ? "is-invalid" : ""}`}
+                        disabled={isFrontPageFileUploadDisabled} // Disable the button if a file exists
                       />
-                      {validation.touched.frontPageUpload && validation.errors.frontPageUpload && (
-                        <div className="text-danger">
-                          {typeof validation.errors.frontPageUpload === 'string' && validation.errors.frontPageUpload}
+                      {validation.touched.bookChapter && validation.errors.bookChapter && (
+                        <div className="text-danger">{validation.errors.bookChapter}</div>
+                      )}
+                      {/* Show a message if the file upload button is disabled */}
+                      {isFrontPageFileUploadDisabled && (
+                        <div className="text-warning mt-2">
+                          Please remove the existing file to upload a new one.
+                        </div>
+                      )}
+                      {/* Only show the file name if it is a string (from the edit API) */}
+                      {typeof validation.values.bookChapter === "string" && (
+                        <div className="mt-2 d-flex align-items-center">
+                          <span className="me-2" style={{ fontWeight: "bold", color: "green" }}>
+                            {validation.values.bookChapter}
+                          </span>
+                          <Button
+                            color="link"
+                            className="text-primary"
+                            onClick={() => {
+                              if (typeof validation.values.bookChapter === "string") {
+                                handleDownloadFile(validation.values.bookChapter);
+                              }
+                            }}
+                            title="Download File"
+                          >
+                            <i className="bi bi-download"></i>
+                          </Button>
+                          <Button
+                            color="link"
+                            className="text-danger"
+                            onClick={() => handleDeleteFile()}
+                            title="Delete File"
+                          >
+                            <i className="bi bi-trash"></i>
+                          </Button>
                         </div>
                       )}
                     </div>

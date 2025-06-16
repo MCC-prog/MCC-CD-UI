@@ -9,6 +9,7 @@ import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
 import { APIClient } from "../../helpers/api_helper";
 import { toast, ToastContainer } from "react-toastify";
 import moment from "moment";
+import axios from "axios";
 
 const api = new APIClient();
 
@@ -47,7 +48,7 @@ const Research_Publications = () => {
     paperTitle: "",
     issn: "",
     publisher: "",
-    dateOfPublication: "",
+    publicationDate: "",
   });
   const [filteredData, setFilteredData] = useState(researchPaperData);
 
@@ -115,10 +116,9 @@ const Research_Publications = () => {
       pageNumber: "",
       issxl: "",
       doi: "",
-      dateOfPublication: "",
+      publicationDate: "",
       publisher: "",
-      frontPageUpload: null as File | null,
-      researchArticleUpload: null as File | null,
+      researchPublication: null as File | null,
     },
     validationSchema: Yup.object({
       academicYear: Yup.object<{ value: string; label: string }>().nullable().required("Please select academic year"),
@@ -139,33 +139,9 @@ const Research_Publications = () => {
       pageNumber: Yup.number().required("Please enter page number").positive("Page number must be positive").integer("Page number must be an integer"),
       issxl: Yup.string().required("Please enter ISSXL"),
       doi: Yup.string().required("Please enter DOI"),
-      frontPageUpload: Yup.mixed().test(
-        "fileValidation",
-        "Please upload a valid file",
-        function (value) {
-          // Skip validation if the file upload is disabled (file exists)
-          if (isFrontPageFileUploadDisabled) {
-            return true;
-          }
-          // Perform validation if the file upload is enabled (file doesn't exist)
-          if (!value) {
-            return this.createError({ message: "Please upload a file" });
-          }
-          // Check file size (2MB limit)
-          if (value instanceof File && value.size > 2 * 1024 * 1024) {
-            return this.createError({ message: "File size is too large" });
-          }
-          // Check file type
-          const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
-          if (value instanceof File && !allowedTypes.includes(value.type)) {
-            return this.createError({ message: "Unsupported file format" });
-          }
-          return true;
-        }
-      ),
-      dateOfPublication: Yup.date().required("Please select date of publication"),
+      publicationDate: Yup.date().required("Please select from date"),
       publisher: Yup.string().required("Please enter publisher"),
-      researchArticleUpload: Yup.mixed().test(
+      researchPublication: Yup.mixed().test(
         "fileValidation",
         "Please upload a valid file",
         function (value) {
@@ -191,44 +167,41 @@ const Research_Publications = () => {
       )
     }),
     onSubmit: async (values, { resetForm }) => {
+
+      // Create FormData object
+      const formData = new FormData();
+
       // Create a plain JavaScript object from form values
-      const payload = {
-        researchPublicationId:  editId || "",
-        academicYear: values.academicYear?.value || "",
-        departmentId: values.department?.value || "",
-        streamId: values.stream?.value || "",
-        facultyName: values.facultyName,
-        coAuthors: values.coAuthors,
-        indexation: values.indexation?.value || "",
-        journalName: values.journalName,
-        paperTitle: values.titleOfPaper,
-        volume: values.volume,
-        issue: values.issue,
-        pageNumber: values.pageNumber.toString(),
-        issn: values.issxl,
-        doi: values.doi,
-        publicationDate: values.dateOfPublication,
-        publisher: values.publisher,
-        frontPageUpload: values.frontPageUpload ? await fileToBase64(values.frontPageUpload) : null,
-        researchArticleUpload: values.researchArticleUpload ? await fileToBase64(values.researchArticleUpload) : null,
-      };
+      formData.append("researchPublicationId", editId || "");
+      formData.append("academicYear", values.academicYear?.value || "");
+      formData.append("departmentId", values.department?.value || "");
+      formData.append("streamId", values.stream?.value || "");
+      formData.append("facultyName", values.facultyName);
+      formData.append("coAuthors", values.coAuthors);
+      formData.append("indexation", values.indexation?.value || "");
+      formData.append("journalName", values.journalName);
+      formData.append("paperTitle", values.titleOfPaper);
+      formData.append("volume", values.volume);
+      formData.append("issue", values.issue);
+      formData.append("pageNumber", values.pageNumber);
+      formData.append("issn", values.issxl);
+      formData.append("doi", values.doi);
+      formData.append("publicationDate", values.publicationDate ? moment(values.publicationDate, "YYYY-MM-DD").format("DD/MM/YYYY") : "");
+      formData.append("publisher", values.publisher);
+      formData.append("otherDepartment", values.otherDepartment || "");
+      // Append files if they exist
+      if (values.researchPublication) {
+        formData.append("researchPublication", values.researchPublication);
+      }
 
       try {
         if (isEditMode && editId) {
           // Call the update API
-          const response = await api.put(`/researchPublication/update`, JSON.stringify(payload), {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          });
+          const response = await api.put(`/researchPublication/update`, formData);
           toast.success(response.message || "Research Publication updated successfully!");
         } else {
           // Call the save API
-          const response = await api.create("/researchPublication/save", JSON.stringify(payload), {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          });
+          const response = await api.create("/researchPublication/save", formData);
           toast.success(response.message || "Research Publication added successfully!");
         }
         // Reset the form fields
@@ -244,15 +217,6 @@ const Research_Publications = () => {
       }
     },
   });
-
-  const fileToBase64 = (file: File): Promise<string | null> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = (error) => reject(error);
-      reader.readAsDataURL(file);
-    });
-  };
 
   const fetchResearchData = async () => {
     try {
@@ -309,11 +273,14 @@ const Research_Publications = () => {
         pageNumber: response.pageNumber || "",
         issxl: response.issn || "",
         doi: response.doi || "",
-        dateOfPublication: response.publicationDate || "",
+        publicationDate: response.publicationDate
+          ? moment(response.publicationDate, "DD/MM/YYYY").isValid()
+            ? moment(response.publicationDate, "DD/MM/YYYY").format("YYYY-MM-DD")
+            : ""
+          : "",
         publisher: response.publisher || "",
         otherDepartment: "", // Add default value for otherDepartment
-        frontPageUpload: null, // File uploads are not pre-filled
-        researchArticleUpload: null, // File uploads are not pre-filled
+        researchPublication: response.documents.researchPublication, // File uploads are not pre-filled
       };
 
       // Update Formik values
@@ -369,6 +336,60 @@ const Research_Publications = () => {
         setIsDeleteModalOpen(false);
         setDeleteId(null);
       }
+    }
+  };
+
+  // Handle file download actions
+  const handleDownloadFile = async (fileName: string) => {
+    if (fileName) {
+      try {
+        // Ensure you set responseType to 'blob' to handle binary data
+        const response = await axios.get(`/researchPublication/download/${fileName}`, {
+          responseType: 'blob'
+        });
+
+        // Create a Blob from the response data
+        const blob = new Blob([response], { type: "*/*" });
+
+        // Create a URL for the Blob
+        const url = window.URL.createObjectURL(blob);
+
+        // Create a temporary anchor element to trigger the download
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName; // Set the file name for the download
+        document.body.appendChild(link);
+        link.click();
+
+        // Clean up the URL and remove the anchor element
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        toast.success("File downloaded successfully!");
+      } catch (error) {
+        toast.error("Failed to download research publication file. Please try again.");
+        console.error("Error downloading file:", error);
+      }
+    } else {
+      toast.error("No file available for download.");
+    }
+  };
+
+  // Handle file deletion
+  // Clear the file from the form and show success message
+  const handleDeleteFile = async () => {
+    try {
+      // Call the delete API
+      const response = await api.delete(`/researchPublication/deleteResearchPublicationDocument?researchPublicationId=${editId}&docType=researchPublication`, '');
+      // Show success message
+      toast.success(response.message || "File deleted successfully!");
+      // Remove the file from the form
+      validation.setFieldValue("researchPublication", null); // Clear the file from Formik state
+      setIsFrontPageFileUploadDisabled(false); // Enable the file upload button
+    } catch (error) {
+      // Show error message
+      toast.error("Failed to delete the file. Please try again.");
+      console.error("Error deleting file:", error);
     }
   };
 
@@ -671,26 +692,22 @@ const Research_Publications = () => {
                     </div>
                   </Col>
 
+                  {/* Date of Publication */}
                   <Col lg={4}>
                     <div className="mb-3">
                       <Label>Date of Publication</Label>
                       <Input
-                        type="date" // Use native date input
-                        className={`form-control ${validation.touched.dateOfPublication && validation.errors.dateOfPublication ? "is-invalid" : ""}`}
-                        value={
-                          validation.values.dateOfPublication
-                            ? moment(validation.values.dateOfPublication, "DD/MM/YYYY").format("YYYY-MM-DD") // Convert to yyyy-mm-dd for the input
-                            : ""
-                        }
+                        type="date"
+                        className={`form-control ${validation.touched.publicationDate && validation.errors.publicationDate ? "is-invalid" : ""}`}
+                        value={validation.values.publicationDate || ""}
                         onChange={(e) => {
-                          const formattedDate = moment(e.target.value, "YYYY-MM-DD").format("DD/MM/YYYY"); // Convert to dd/mm/yyyy
-                          validation.setFieldValue("dateOfPublication", formattedDate);
+                          validation.setFieldValue("publicationDate", e.target.value); // Store as YYYY-MM-DD
                         }}
                         placeholder="dd/mm/yyyy"
                       />
-                      {validation.touched.dateOfPublication && validation.errors.dateOfPublication && (
+                      {validation.touched.publicationDate && validation.errors.publicationDate && (
                         <div className="text-danger">
-                          {typeof validation.errors.dateOfPublication === "string" && validation.errors.dateOfPublication}
+                          {typeof validation.errors.publicationDate === "string" && validation.errors.publicationDate}
                         </div>
                       )}
                     </div>
@@ -717,39 +734,48 @@ const Research_Publications = () => {
 
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>Front Page Upload</Label>
+                      <Label>First Page Research Article Uplaod</Label>
                       <Input
                         type="file"
-                        name="frontPageUpload"
-                        onChange={(event) => {
-                          const file = event.currentTarget.files?.[0] || null;
-                          validation.setFieldValue("frontPageUpload", file);
-                        }}
-                        className={`form-control ${validation.touched.frontPageUpload && validation.errors.frontPageUpload ? "is-invalid" : ""}`}
+                        onChange={(e) => validation.setFieldValue("researchPublication", e.target.files?.[0] || null)}
+                        className={`form-control ${validation.touched.researchPublication && validation.errors.researchPublication ? "is-invalid" : ""}`}
+                        disabled={isFrontPageFileUploadDisabled} // Disable the button if a file exists
                       />
-                      {validation.touched.frontPageUpload && validation.errors.frontPageUpload && (
-                        <div className="text-danger">
-                          {typeof validation.errors.frontPageUpload === "string" && validation.errors.frontPageUpload}
+                      {validation.touched.researchPublication && validation.errors.researchPublication && (
+                        <div className="text-danger">{validation.errors.researchPublication}</div>
+                      )}
+                      {/* Show a message if the file upload button is disabled */}
+                      {isFrontPageFileUploadDisabled && (
+                        <div className="text-warning mt-2">
+                          Please remove the existing file to upload a new one.
                         </div>
                       )}
-                    </div>
-                  </Col>
-
-                  <Col lg={4}>
-                    <div className="mb-3">
-                      <Label>Research Article Upload</Label>
-                      <Input
-                        type="file"
-                        name="researchArticleUpload"
-                        onChange={(event) => {
-                          const file = event.currentTarget.files?.[0] || null;
-                          validation.setFieldValue("researchArticleUpload", file);
-                        }}
-                        className={`form-control ${validation.touched.researchArticleUpload && validation.errors.researchArticleUpload ? "is-invalid" : ""}`}
-                      />
-                      {validation.touched.researchArticleUpload && validation.errors.researchArticleUpload && (
-                        <div className="text-danger">
-                          {typeof validation.errors.researchArticleUpload === "string" && validation.errors.researchArticleUpload}
+                      {/* Only show the file name if it is a string (from the edit API) */}
+                      {typeof validation.values.researchPublication === "string" && (
+                        <div className="mt-2 d-flex align-items-center">
+                          <span className="me-2" style={{ fontWeight: "bold", color: "green" }}>
+                            {validation.values.researchPublication}
+                          </span>
+                          <Button
+                            color="link"
+                            className="text-primary"
+                            onClick={() => {
+                              if (typeof validation.values.researchPublication === "string") {
+                                handleDownloadFile(validation.values.researchPublication);
+                              }
+                            }}
+                            title="Download File"
+                          >
+                            <i className="bi bi-download"></i>
+                          </Button>
+                          <Button
+                            color="link"
+                            className="text-danger"
+                            onClick={() => handleDeleteFile()}
+                            title="Delete File"
+                          >
+                            <i className="bi bi-trash"></i>
+                          </Button>
                         </div>
                       )}
                     </div>
@@ -880,8 +906,8 @@ const Research_Publications = () => {
                     <Input
                       type="text"
                       placeholder="Filter"
-                      value={filters.dateOfPublication}
-                      onChange={(e) => handleFilterChange(e, "dateOfPublication")}
+                      value={filters.publicationDate}
+                      onChange={(e) => handleFilterChange(e, "publicationDate")}
                     />
                   </th>
                   <th>

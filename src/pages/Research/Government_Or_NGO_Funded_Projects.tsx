@@ -29,10 +29,10 @@ const GovernmentOrNGOFundedProjects = () => {
   const [isMultidisciplinary, setIsMultidisciplinary] = useState<string>("No");
   const [activeTab, setActiveTab] = useState<string>("1");
   const [documentType, setDocumentType] = useState<string>("");
-  // State variable for managing the modal for listing mfp
+  // State variable for managing the modal for listing GFP
   const [isModalOpen, setIsModalOpen] = useState(false);
-  // State variable for managing the list of mfp data
-  const [mfpData, setMfpData] = useState<any[]>([]);
+  // State variable for managing the list of GFP data
+  const [gfpData, setGfpData] = useState<any[]>([]);
   // State variable for managing search term and pagination
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -48,7 +48,7 @@ const GovernmentOrNGOFundedProjects = () => {
     monthOfGrant: "",
     typeOfFunding: ""
   });
-  const [filteredData, setFilteredData] = useState(mfpData);
+  const [filteredData, setFilteredData] = useState(gfpData);
 
   // Fetch department data on mount
   useEffect(() => {
@@ -72,7 +72,7 @@ const GovernmentOrNGOFundedProjects = () => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
 
-    const filtered = mfpData.filter((row) =>
+    const filtered = gfpData.filter((row) =>
       Object.values(row).some((val) =>
         String(val || "").toLowerCase().includes(value)
       )
@@ -86,7 +86,7 @@ const GovernmentOrNGOFundedProjects = () => {
     const updatedFilters = { ...filters, [column]: value };
     setFilters(updatedFilters);
 
-    const filtered = mfpData.filter((row) =>
+    const filtered = gfpData.filter((row) =>
       Object.values(row).some((val) =>
         String(val || "").toLowerCase().includes(value)
       )
@@ -107,7 +107,7 @@ const GovernmentOrNGOFundedProjects = () => {
   // Calculate total pages
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
-  // Toggle the modal for listing mfp
+  // Toggle the modal for listing GFP
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };
@@ -135,7 +135,7 @@ const GovernmentOrNGOFundedProjects = () => {
         qualification: Yup.string().required("Please enter qualification"),
         designation: Yup.string().required("Please enter designation"),
         department: Yup.object<{ value: string; label: string }>().nullable().required("Please select department"),
-        date: Yup.date().required("Please select a date"),
+        //date: Yup.date().required("Please select a date"),
         abstractFile: Yup.mixed().required("Please upload the abstract file"),
         sanctionOrderFile: Yup.mixed().required("Please upload the sanction order file"),
       })
@@ -169,7 +169,7 @@ const GovernmentOrNGOFundedProjects = () => {
         qualification: "",
         designation: "",
         department: null as { value: string; label: string } | null,
-        date: "",
+        //date: "",
         abstractFile: null as File | null,
         sanctionOrderFile: null as File | null,
       },
@@ -184,10 +184,10 @@ const GovernmentOrNGOFundedProjects = () => {
     onSubmit: async (values, { resetForm }) => {
       // Create FormData object
       const formData = new FormData();
-
+      const formType = activeTab === "1" ? "principleInvestigatorDto" : "coInvestigatorDto"
       // Prepare the JSON payload for the `dto` key
       const dtoPayload = {
-        managementFundProjectId: editId || null,
+        governmentFundProjectId: editId || null,
         academicYear: values.academicYear?.value || 0,
         streamId: values.stream?.value || 0,
         departmentId: values.department?.value || 0,
@@ -198,8 +198,8 @@ const GovernmentOrNGOFundedProjects = () => {
         fundingType: values.typeOfFunding?.value || "",
         multidisciplinary: isMultidisciplinary === "Yes",
         multidisciplinaryType: activeTab === "1" ? "PrincipleInvestigatorDetails" : "CoInvestigatorDetails",
-        managementFundProjectAddTabDto: {
-          additionalTabId: 0, // Set this as needed, or from edit data if available
+        [formType]: {
+          additionalTabId: editId || null,
           name: activeTab === "1"
             ? values.principalInvestigator.name || ""
             : values.coInvestigator.name || "",
@@ -218,41 +218,49 @@ const GovernmentOrNGOFundedProjects = () => {
         }
       };
 
-      // Append the JSON payload as a string with the key `managementFundProjectRequestDto`
-      formData.append('managementFundProjectRequestDto', new Blob([JSON.stringify(dtoPayload)], { type: 'application/json' }));
+      console.log("DTO Payload:", dtoPayload);
 
-      // ...append files as needed...
+      // Append the JSON payload as a string with the key `managementFundProjectRequestDto`
+      formData.append('governmentFundProjectRequestDto', new Blob([JSON.stringify(dtoPayload)], { type: 'application/json' }));
+
+      // Append the file with the key `file`
+      if (isMultidisciplinary === "Yes") {
+        if (activeTab === "1") {
+          formData.append('abstractProject', values.principalInvestigator.abstractFile as Blob);
+          formData.append('sanctionOrder', values.principalInvestigator.sanctionOrderFile as Blob);
+        }
+      }
 
       try {
         const response = isEditMode && editId
-          ? await api.put(`/managementFundProject/update`, formData, {
+          ? await api.put(`/governmentFundProject/update`, formData, {
             headers: {
               'Content-Type': 'multipart/form-data'
             }
           })
-          : await api.create(`/managementFundProject/save`, formData, {
+          : await api.create(`/governmentFundProject/save`, formData, {
             headers: {
               'Content-Type': 'multipart/form-data'
             }
           });
 
-        toast.success(response.message || "MFP record saved successfully!");
+        toast.success(response.message || "GFP record saved successfully!");
         // Reset the form fields
         resetForm();
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
-        handleListMFPClick(); // Refresh the list
+        handleListGFPClick(); // Refresh the list
       } catch (error) {
-        toast.error("Failed to save MFP. Please try again.");
-        console.error("Error creating/updating MFP:", error);
+        toast.error("Failed to save GFP. Please try again.");
+        console.error("Error creating/updating GFP:", error);
       }
     }
   });
 
   const fetchMFAData = async () => {
     try {
-      const response = await api.get("/managementFundProject/getAll", '');
-      setMfpData(response);
+      const response = await api.get("/governmentFundProject/getAll", '');
+      setGfpData(response);
       setFilteredData(response);
     } catch (error) {
       console.error("Error fetching MFA data:", error);
@@ -260,7 +268,7 @@ const GovernmentOrNGOFundedProjects = () => {
   }
 
   // Open the modal and fetch data
-  const handleListMFPClick = () => {
+  const handleListGFPClick = () => {
     toggleModal();
     fetchMFAData();
   };
@@ -270,12 +278,12 @@ const GovernmentOrNGOFundedProjects = () => {
   const confirmDelete = async (id: string) => {
     if (deleteId) {
       try {
-        const response = await api.delete(`/managementFundProject/deleteManagementFundedProject?managementFundProjectId=${id}`, '');
-        toast.success(response.message || "MFP record removed successfully!");
+        const response = await api.delete(`/governmentFundProject/deleteGovernmentFundedProject?governmentFundProjectId=${id}`, '');
+        toast.success(response.message || "GFP record removed successfully!");
         fetchMFAData();
       } catch (error) {
-        toast.error("Failed to remove MFP Record. Please try again.");
-        console.error("Error deleting MFP:", error);
+        toast.error("Failed to remove GFP Record. Please try again.");
+        console.error("Error deleting GFP:", error);
       } finally {
         setIsDeleteModalOpen(false);
         setDeleteId(null);
@@ -325,7 +333,7 @@ const GovernmentOrNGOFundedProjects = () => {
     if (fileName) {
       try {
         // Ensure you set responseType to 'blob' to handle binary data
-        const response = await axios.get(`/managementFundProject/download/${fileName}`, {
+        const response = await axios.get(`/governmentFundProject/download/${fileName}`, {
           responseType: 'blob'
         });
 
@@ -361,14 +369,16 @@ const GovernmentOrNGOFundedProjects = () => {
   // Clear the file from the form and show success message
   const handleDeleteFile = async () => {
     try {
-      // Call the delete API
-      const response = await api.delete(`/managementFundProject/deleteManagementFundedProjectDocument?managementFundProjectId=${editId}&docType=${documentType}`, '');
-      // Show success message
+      const response = await api.delete(`/governmentFundProject/deleteGovernmentFundedProjectDocument?GovernmentFundProjectId=${editId}&docType=${documentType}`, '');
       toast.success(response.message || "File deleted successfully!");
-      // Remove the file from the form
-      validation.setFieldValue("uploadLetter", null); // Clear the file from Formik state
+      if (documentType === "sanctionOrder") {
+        validation.setFieldValue("principalInvestigator.sanctionOrderFile", null);
+        setIsSanctionFileUploadDisabled(false);
+      } else if (documentType === "abstractProject") {
+        validation.setFieldValue("principalInvestigator.abstractFile", null);
+        setIsAbstractFileUploadDisabled(false);
+      }
     } catch (error) {
-      // Show error message
       toast.error("Failed to delete the file. Please try again.");
       console.error("Error deleting file:", error);
     }
@@ -433,7 +443,7 @@ const GovernmentOrNGOFundedProjects = () => {
           )}
         </div>
       </Col>
-      <Col lg={4}>
+      {/* <Col lg={4}>
         <div className="mb-3">
           <Label>Enter Date</Label>
           <Input
@@ -456,7 +466,7 @@ const GovernmentOrNGOFundedProjects = () => {
             </div>
           )}
         </div>
-      </Col>
+      </Col> */}
       <Col lg={4}>
         <div className="mb-3">
           <Label>Abstract of the Project</Label>
@@ -497,7 +507,10 @@ const GovernmentOrNGOFundedProjects = () => {
               <Button
                 color="link"
                 className="text-danger"
-                onClick={() => handleDeleteFile()}
+                onClick={() => {
+                  setDocumentType("abstractProject");
+                  handleDeleteFile();
+                }}
                 title="Delete File"
               >
                 <i className="bi bi-trash"></i>
@@ -546,7 +559,10 @@ const GovernmentOrNGOFundedProjects = () => {
               <Button
                 color="link"
                 className="text-danger"
-                onClick={() => handleDeleteFile()}
+                onClick={() => {
+                  setDocumentType("sanctionOrder");
+                  handleDeleteFile();
+                }}
                 title="Delete File"
               >
                 <i className="bi bi-trash"></i>
@@ -624,7 +640,7 @@ const GovernmentOrNGOFundedProjects = () => {
   // Fetch the data for the selected BOS ID and populate the form fields
   const handleEdit = async (id: string) => {
     try {
-      const response = await api.get(`/managementFundProject/edit?managementFundProjectId=${id}`, '');
+      const response = await api.get(`/governmentFundProject/edit?governmentFundProjectId=${id}`, '');
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
 
       // Filter the response where isCurrent or isCurrentForAdmission is true
@@ -661,7 +677,7 @@ const GovernmentOrNGOFundedProjects = () => {
           department: response.principleInvestigatorDto?.departmentId
             ? { value: response.principleInvestigatorDto.departmentId.toString(), label: response.principleInvestigatorDto.departmentName }
             : null,
-          date: response.principleInvestigatorDto?.date || "",
+          //date: response.principleInvestigatorDto?.date || "",
           abstractFile: response.principleInvestigatorDto?.file?.abstractProject || null,
           sanctionOrderFile: response.principleInvestigatorDto?.file?.sanctionOrder || null,
         },
@@ -686,10 +702,8 @@ const GovernmentOrNGOFundedProjects = () => {
       setIsMultidisciplinary(response.multidisciplinary ? "Yes" : "No");
       if (response.multidisciplinaryType === "PrincipleInvestigatorDetails") {
         setActiveTab("1");
-        setDocumentType("PrincipleInvestigatorDetails");
       } else if (response.multidisciplinaryType === "CoInvestigatorDetails") {
         setActiveTab("2");
-        setDocumentType("CoInvestigatorDetails");
       }
 
       // Update Formik values
@@ -698,14 +712,16 @@ const GovernmentOrNGOFundedProjects = () => {
       // Set edit mode and toggle modal
       setIsEditMode(true);
       setEditId(id); // Store the ID of the record being edited
+      setIsAbstractFileUploadDisabled(!!response.principleInvestigatorDto?.file?.abstractProject);
+      setIsSanctionFileUploadDisabled(!!response.principleInvestigatorDto?.file?.sanctionOrder);
       toggleModal();
     } catch (error) {
-      console.error("Error fetching Research Publication data by ID:", error);
+      console.error("Error fetching GFP data by ID:", error);
     }
   };
 
-  function handleDelete(mfpDataId: any): void {
-    setDeleteId(mfpDataId);
+  function handleDelete(gfpDataId: any): void {
+    setDeleteId(gfpDataId);
     setIsDeleteModalOpen(true);
   }
 
@@ -720,7 +736,7 @@ const GovernmentOrNGOFundedProjects = () => {
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <Breadcrumb title="Research" breadcrumbItem="Management_Funded_Project" />
+          <Breadcrumb title="Research" breadcrumbItem="Government/NGO_Funded_Project" />
           <Card>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
@@ -959,9 +975,9 @@ const GovernmentOrNGOFundedProjects = () => {
                       <button
                         className="btn btn-secondary"
                         type="button"
-                        onClick={handleListMFPClick}
+                        onClick={handleListGFPClick}
                       >
-                        List MFP
+                        List GFP
                       </button>
                     </div>
                   </Col>
@@ -970,9 +986,9 @@ const GovernmentOrNGOFundedProjects = () => {
             </CardBody>
           </Card>
         </Container>
-        {/* Modal for Listing mfp */}
+        {/* Modal for Listing GFP */}
         <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg" style={{ maxWidth: "100%", width: "auto" }}>
-          <ModalHeader toggle={toggleModal}>List Management Funded Project</ModalHeader>
+          <ModalHeader toggle={toggleModal}>List Government/NGO Funded Project</ModalHeader>
           <ModalBody>
             {/* Global Search */}
             <div className="mb-3">
@@ -1066,28 +1082,28 @@ const GovernmentOrNGOFundedProjects = () => {
               </thead>
               <tbody>
                 {currentRows.length > 0 ? (
-                  currentRows.map((mfp, index) => (
-                    <tr key={mfp.managementFundProjectId}>
+                  currentRows.map((gfp, index) => (
+                    <tr key={gfp.governmentFundProjectId}>
                       <td>{indexOfFirstRow + index + 1}</td>
-                      <td>{mfp.academicYear}</td>
-                      <td>{mfp.streamName}</td>
-                      <td>{mfp.departmentName}</td>
-                      <td>{mfp.facultyName}</td>
-                      <td>{mfp.projectTitle}</td>
-                      <td>{mfp.amount}</td>
-                      <td>{mfp.monthOfGrant}</td>
-                      <td>{mfp.fundingType}</td>
+                      <td>{gfp.academicYear}</td>
+                      <td>{gfp.streamName}</td>
+                      <td>{gfp.departmentName}</td>
+                      <td>{gfp.facultyName}</td>
+                      <td>{gfp.projectTitle}</td>
+                      <td>{gfp.amount}</td>
+                      <td>{gfp.monthOfGrant}</td>
+                      <td>{gfp.fundingType}</td>
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
                             className="btn btn-sm btn-warning"
-                            onClick={() => handleEdit(mfp.managementFundProjectId)}
+                            onClick={() => handleEdit(gfp.governmentFundProjectId)}
                           >
                             Edit
                           </button>
                           <button
                             className="btn btn-sm btn-danger"
-                            onClick={() => handleDelete(mfp.managementFundProjectId)}
+                            onClick={() => handleDelete(gfp.governmentFundProjectId)}
                           >
                             Delete
                           </button>
@@ -1098,7 +1114,7 @@ const GovernmentOrNGOFundedProjects = () => {
                 ) : (
                   <tr>
                     <td colSpan={11} className="text-center">
-                      No MFP data available.
+                      No GFP data available.
                     </td>
                   </tr>
                 )}
