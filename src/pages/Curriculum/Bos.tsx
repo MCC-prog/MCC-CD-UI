@@ -750,7 +750,7 @@ const Bos: React.FC = () => {
                                         />
                                     </th>
                                     <th>
-                                        Stream
+                                        School
                                         <Input
                                             type="text"
                                             placeholder="Filter"
