@@ -8,7 +8,7 @@ import ProgramTypeDropdown from "Components/DropDowns/ProgramTypeDropdown";
 import SemesterDropdowns from "Components/DropDowns/SemesterDropdowns";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { useFormik } from "formik";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -23,6 +23,7 @@ import {
   ModalHeader,
   Row,
   Table,
+  Tooltip,
 } from "reactstrap";
 import * as Yup from "yup";
 import { APIClient } from "../../helpers/api_helper";
@@ -45,6 +46,11 @@ const Career_Counseling_Guidance: React.FC = () => {
   const [filteredData, setFilteredData] = useState(bosData);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
+  const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
+  const [tooltipOpen, setTooltipOpen] = useState(false);
+  const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
+
+  const fileRef = useRef<HTMLInputElement | null>(null);
 
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -78,9 +84,9 @@ const Career_Counseling_Guidance: React.FC = () => {
   };
 
   // Fetch BOS data from the backend
-  const fetchBosData = async () => {
+  const fetchCCGData = async () => {
     try {
-      const response = await axios.get("/staffProfile/getAllStaffProfile"); // Replace with your backend API endpoint
+      const response = await axios.get("/careerCounseling/getAll"); // Replace with your backend API endpoint
       setBosData(response);
       setFilteredData(response);
     } catch (error) {
@@ -89,9 +95,9 @@ const Career_Counseling_Guidance: React.FC = () => {
   };
 
   // Open the modal and fetch data
-  const handleListBosClick = () => {
+  const handleListCCGClick = () => {
     toggleModal();
-    fetchBosData();
+    fetchCCGData();
   };
 
   // Map value to label for dropdowns
@@ -109,7 +115,7 @@ const Career_Counseling_Guidance: React.FC = () => {
   const handleEdit = async (id: string) => {
     try {
       const response = await api.get(
-        `/staffProfile/edit?staffProfileId=${id}`,
+        `/careerCounseling/edit?careerCounselingId=${id}`,
         ""
       );
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
@@ -135,19 +141,18 @@ const Career_Counseling_Guidance: React.FC = () => {
               label: response.departmentName,
             }
           : null,
-        courses: response.programId
-          ? {
-              value: response.programId.toString(),
-              label: response.programName,
-            }
-          : null,
-        noOfStaff: response.noOfStaff || "",
+        courses: response.courses
+          ? Object.entries(response.courses).map(([key, value]) => ({
+              value: key,
+              label: String(value),
+            }))
+          : [],
         areaOfGuidance: response.areaOfGuidance || "",
         date: response.date
-          ? moment(response.date).format("DD/MM/YYYY") // Convert to dd/mm/yyyy format
+          ? moment(response.date, "DD/MM/YYYY").format("YYYY-MM-DD") // Convert to yyyy-mm-dd for the input
           : "",
         noOfParticipants: response.noOfParticipants || "",
-        trainerResource: response.trainerResource || "",
+        trainerResource: response.resourcePersonDetails || "",
         outcomes: response.outcomes || "",
       };
 
@@ -168,20 +173,15 @@ const Career_Counseling_Guidance: React.FC = () => {
               value: String(mappedValues.department.value),
             }
           : null,
-        courses: mappedValues.courses
-          ? {
-              ...mappedValues.courses,
-              value: String(mappedValues.courses.value),
-            }
-          : null,
-        noOfStaff: response.noOfStaff || "",
+        courses: mappedValues.courses || [],
         areaOfGuidance: response.areaOfGuidance || "",
-        date: response.date
-          ? moment(response.date).format("DD/MM/YYYY") // Convert to dd/mm/yyyy format
+        date: mappedValues.date
+          ? moment(mappedValues.date, "YYYY-MM-DD").format("DD/MM/YYYY") // Convert to dd/mm/yyyy for the input
           : "",
         noOfParticipants: response.noOfParticipants || "",
-        trainerResource: response.trainerResource || "",
+        trainerResource: response.resourcePersonDetails || "",
         outcomes: response.outcomes || "",
+        careerCounseling: response.documents.careerCounseling || null, // Handle file upload
       });
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
@@ -201,15 +201,18 @@ const Career_Counseling_Guidance: React.FC = () => {
     if (deleteId) {
       try {
         const response = await api.delete(
-          `/staffProfile/deleteStaffProfile?staffProfileId=${id}`,
+          `/careerCounseling/deleteCareerCounseling?careerCounselingId=${id}`,
           ""
         );
         toast.success(
-          response.message || "Staff Profile removed successfully!"
+          response.message ||
+            "Career Counseling & Guidance removed successfully!"
         );
-        fetchBosData();
+        fetchCCGData();
       } catch (error) {
-        toast.error("Failed to remove Staff Profile. Please try again.");
+        toast.error(
+          "Failed to remove Career Counseling & Guidance. Please try again."
+        );
         console.error("Error deleting BOS:", error);
       } finally {
         setIsDeleteModalOpen(false);
@@ -218,10 +221,66 @@ const Career_Counseling_Guidance: React.FC = () => {
     }
   };
 
+  // Handle file download actions
+  const handleDownloadFile = async (fileName: string) => {
+    if (fileName) {
+      try {
+        // Ensure you set responseType to 'blob' to handle binary data
+        const response = await axios.get(
+          `/careerCounseling/download/${fileName}`,
+          {
+            responseType: "blob",
+          }
+        );
+
+        // Create a Blob from the response data
+        const blob = new Blob([response], { type: "*/*" });
+
+        // Create a URL for the Blob
+        const url = window.URL.createObjectURL(blob);
+
+        // Create a temporary anchor element to trigger the download
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = fileName; // Set the file name for the download
+        document.body.appendChild(link);
+        link.click();
+
+        // Clean up the URL and remove the anchor element
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        toast.success("File downloaded successfully!");
+      } catch (error) {
+        toast.error("Failed to download excel file. Please try again.");
+        console.error("Error downloading file:", error);
+      }
+    } else {
+      toast.error("No file available for download.");
+    }
+  };
+
+  // Handle file deletion
+  const handleDeleteFile = async (fileName: string, docType: string) => {
+    try {
+      const response = await api.delete(
+        `/careerCounseling/deleteCareerCounselingDocument?careerCounselingId=${editId}&docType=${docType}`,
+        ""
+      );
+      toast.success(response.message || "File deleted successfully!");
+      if (docType === "careerCounseling") {
+        validation.setFieldValue("careerCounseling", null);
+      }
+      setIsFileUploadDisabled(false); // Enable the file upload button
+    } catch (error) {
+      toast.error("Failed to delete the file. Please try again.");
+      console.error("Error deleting file:", error);
+    }
+  };
+
   const validation = useFormik({
     initialValues: {
       academicYear: null as { value: string; label: string } | null,
-      noOfStaff: "",
       areaOfGuidance: "",
       date: "",
       noOfParticipants: "",
@@ -229,7 +288,8 @@ const Career_Counseling_Guidance: React.FC = () => {
       outcomes: "",
       stream: null as { value: string; label: string } | null,
       department: null as { value: string; label: string } | null,
-      courses: null as { value: string; label: string } | null,
+      courses: [] as { value: string; label: string }[],
+      careerCounseling: null as File | string | null,
     },
     validationSchema: Yup.object({
       academicYear: Yup.object()
@@ -245,52 +305,111 @@ const Career_Counseling_Guidance: React.FC = () => {
         "Please enter trainer/resource person details"
       ),
       outcomes: Yup.string().required("Please enter outcomes"),
-      department: Yup.object()
-        .nullable()
-        .required("Please select department"),
-      courses: Yup.object()
-        .nullable()
+      department: Yup.object().nullable().required("Please select department"),
+      courses: Yup.array()
+        .of(
+          Yup.object().shape({
+            value: Yup.string().required(),
+            label: Yup.string().required(),
+          })
+        )
+        .min(1, "Please select at least one program")
         .required("Please select program"),
+      careerCounseling: Yup.mixed().test(
+        "fileValidation",
+        "Please upload a valid file",
+        function (value) {
+          // Skip validation if the file upload is disabled (file exists)
+          if (isFileUploadDisabled) {
+            return true;
+          }
+          // Perform validation if the file upload is enabled (file doesn't exist)
+          if (!value) {
+            return this.createError({ message: "Please upload a file" });
+          }
+          // Check file size (2MB limit)
+          if (value instanceof File && value.size > 2 * 1024 * 1024) {
+            return this.createError({ message: "File size is too large" });
+          }
+          // Check file type
+          const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
+          if (value instanceof File && !allowedTypes.includes(value.type)) {
+            return this.createError({ message: "Unsupported file format" });
+          }
+          return true;
+        }
+      ),
     }),
     onSubmit: async (values, { resetForm }) => {
-      const payload = {
-        academicYear: values.academicYear?.value || "",
-        streamId: values.stream?.value || "",
-        noOfStaff: values.noOfStaff || "",
-        areaOfGuidance: values.areaOfGuidance || "",
-        noOfParticipants: values.noOfParticipants || "",
-        trainerResource: values.trainerResource || "",
-        outcomes: values.outcomes || "",
-      };
-
-      // If editing, include the ID
-      if (isEditMode && editId) {
-        payload["staffProfileId"] = editId;
-      }
-
       try {
+        const formData = new FormData();
+
+        formData.append("academicYear", values.academicYear?.value || "");
+        formData.append("streamId", values.stream?.value || "");
+        formData.append("departmentId", values.department?.value || "");
+        formData.append("areaOfGuidance", values.areaOfGuidance || "");
+        formData.append("resourcePersonDetails", values.trainerResource || "");
+        formData.append("outcomes", values.outcomes || "");
+        const formattedDate = moment(values.date, "YYYY-MM-DD").format(
+          "DD/MM/YYYY"
+        );
+        formData.append("date", formattedDate || "");
+        formData.append("noOfParticipants", values.noOfParticipants || "");
+        values.courses.forEach((course, index) => {
+          formData.append(`courseIds[${index}]`, course.value);
+        });
+
+        if (isEditMode && typeof values.careerCounseling === "string") {
+          formData.append(
+            "file",
+            new Blob([], { type: "application/pdf" }),
+            "empty.pdf"
+          );
+        } else if (isEditMode && values.careerCounseling === null) {
+          formData.append(
+            "file",
+            new Blob([], { type: "application/pdf" }),
+            "empty.pdf"
+          );
+        } else if (values.careerCounseling) {
+          formData.append("file", values.careerCounseling);
+        }
+        // If editing, include the ID
+        if (isEditMode && editId) {
+          formData.append("careerCounselingId", editId);
+        }
+
+        let response;
+
         if (isEditMode && editId) {
           // Call the update API
-          const response = await api.put(`/staffProfile/update`, payload);
+          const response = await api.put(`/careerCounseling/update`, formData);
           toast.success(
-            response.message || "Staff Profile updated successfully!"
+            response.message ||
+              "Career Counseling & Guidance updated successfully!"
           );
         } else {
           // Call the save API
-          const response = await api.create("/staffProfile/save", payload);
+          const response = await api.create("/careerCounseling/save", formData);
           toast.success(
-            response.message || "Staff Profile added successfully!"
+            response.message ||
+              "Career Counseling & Guidance added successfully!"
           );
         }
         // Reset the form fields
         resetForm();
+        if (fileRef.current) {
+          fileRef.current.value = "";
+        }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         // display the BOS List
-        handleListBosClick();
+        handleListCCGClick();
       } catch (error) {
         // Display error message
-        toast.error("Failed to save Staff Profile. Please try again.");
+        toast.error(
+          "Failed to save Career Counseling & Guidance. Please try again."
+        );
         console.error("Error creating BOS:", error);
       }
     },
@@ -570,6 +689,111 @@ const Career_Counseling_Guidance: React.FC = () => {
                         )}
                     </div>
                   </Col>
+
+                  <Col sm={4}>
+                    <div className="mb-3">
+                      <Label htmlFor="formFile" className="form-label">
+                        Upload description of the activity
+                        <i
+                          id="infoIcon"
+                          className="bi bi-info-circle ms-2"
+                          style={{ cursor: "pointer", color: "#0d6efd" }}
+                        ></i>
+                      </Label>
+                      <Tooltip
+                        placement="right"
+                        isOpen={tooltipOpen}
+                        target="infoIcon"
+                        toggle={toggleTooltip}
+                      >
+                        Upload an PDF file. Max size 10MB.
+                      </Tooltip>
+                      <Input
+                        className={`form-control ${
+                          validation.touched.careerCounseling &&
+                          validation.errors.careerCounseling
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        type="file"
+                        id="formFile"
+                        innerRef={fileRef}
+                        onChange={(event) => {
+                          validation.setFieldValue(
+                            "careerCounseling",
+                            event.currentTarget.files
+                              ? event.currentTarget.files[0]
+                              : null
+                          );
+                        }}
+                        disabled={isFileUploadDisabled} // Disable the button if a file exists
+                      />
+                      {validation.touched.careerCounseling &&
+                        validation.errors.careerCounseling && (
+                          <div className="text-danger">
+                            {validation.errors.careerCounseling}
+                          </div>
+                        )}
+                      {/* Show a message if the file upload button is disabled */}
+                      {isFileUploadDisabled && (
+                        <div className="text-warning mt-2">
+                          Please remove the existing file to upload a new one.
+                        </div>
+                      )}
+                      {/* Only show the file name if it is a string (from the edit API) */}
+                      {typeof validation.values.careerCounseling ===
+                        "string" && (
+                        <div className="mt-2 d-flex align-items-center">
+                          <span
+                            className="me-2"
+                            style={{ fontWeight: "bold", color: "green" }}
+                          >
+                            {validation.values.careerCounseling}
+                          </span>
+                          <Button
+                            color="link"
+                            className="text-primary"
+                            onClick={() =>
+                              handleDownloadFile(
+                                validation.values.careerCounseling as string
+                              )
+                            }
+                            title="Download File"
+                          >
+                            <i className="bi bi-download"></i>
+                          </Button>
+                          <Button
+                            color="link"
+                            className="text-danger"
+                            onClick={() =>
+                              handleDeleteFile(
+                                validation.values.careerCounseling as string,
+                                "careerCounseling"
+                              )
+                            }
+                            title="Delete File"
+                          >
+                            <i className="bi bi-trash"></i>
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </Col>
+
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Download </Label>
+                      <div>
+                        <a
+                          href="/templateFiles/Guest Lectures.pdf"
+                          download
+                          className="btn btn-primary btn-sm"
+                        >
+                          Year Dept Guest Lecture
+                        </a>
+                      </div>
+                    </div>
+                  </Col>
                 </Row>
                 <Row>
                   <Col lg={12}>
@@ -580,7 +804,7 @@ const Career_Counseling_Guidance: React.FC = () => {
                       <button
                         className="btn btn-secondary"
                         type="button"
-                        onClick={handleListBosClick}
+                        onClick={handleListCCGClick}
                       >
                         List
                       </button>
@@ -592,44 +816,68 @@ const Career_Counseling_Guidance: React.FC = () => {
           </Card>
         </Container>
         {/* Modal for Listing BOS */}
-        <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg">
-          <ModalHeader toggle={toggleModal}>List Staff Profile</ModalHeader>
+        <Modal
+          isOpen={isModalOpen}
+          toggle={toggleModal}
+          size="lg"
+          style={{ maxWidth: "100%", width: "auto" }}
+        >
+          <ModalHeader toggle={toggleModal}>
+            List Career Counseling & Guidance
+          </ModalHeader>
           <ModalBody>
             <Table className="table-hover custom-table">
               <thead>
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
-                  <th>Stream</th>
-                  <th>No.Of Staff</th>
-                  <th>Full Time</th>
-                  <th>Part Time</th>
-                  <th>Guest Faculty</th>
+                  <th>School</th>
+                  <th>Department</th>
+                  <th>Program</th>
+                  <th>Area of Guidance</th>
+                  <th>Date</th>
+                  <th>No. of Participants/Attendees</th>
+                  <th>Trainer/Resource Person details</th>
+                  <th>Outcomes</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {bosData.length > 0 ? (
                   bosData.map((bos, index) => (
-                    <tr key={bos.id}>
+                    <tr key={bos.careerCounselingId}>
                       <td>{index + 1}</td>
                       <td>{bos.academicYear}</td>
                       <td>{bos.streamName}</td>
-                      <td>{bos.noOfStaff}</td>
+                      <td>{bos.departmentName}</td>
+                      <td>
+                        <ul className="list-disc list-inside">
+                          {Object.values(bos.courses).map((courseName, idx) => (
+                            <li key={idx}>
+                              {typeof courseName === "string" ||
+                              typeof courseName === "number"
+                                ? courseName
+                                : String(courseName)}
+                            </li>
+                          ))}
+                        </ul>
+                      </td>
                       <td>{bos.areaOfGuidance}</td>
+                      <td>{bos.date}</td>
                       <td>{bos.noOfParticipants}</td>
-                      <td>{bos.trainerResource}</td>
+                      <td>{bos.resourcePersonDetails}</td>
+                      <td>{bos.outcomes}</td>
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
                             className="btn btn-sm btn-warning me-2"
-                            onClick={() => handleEdit(bos.staffProfileId)}
+                            onClick={() => handleEdit(bos.careerCounselingId)}
                           >
                             Edit
                           </button>
                           <button
                             className="btn btn-sm btn-danger"
-                            onClick={() => handleDelete(bos.staffProfileId)}
+                            onClick={() => handleDelete(bos.careerCounselingId)}
                           >
                             Delete
                           </button>
