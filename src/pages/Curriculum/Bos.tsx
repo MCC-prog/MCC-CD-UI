@@ -8,7 +8,7 @@ import SemesterDropdowns from "Components/DropDowns/SemesterDropdowns";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { ToastContainer } from "react-toastify";
 import { useFormik } from "formik";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -69,6 +69,8 @@ const Bos: React.FC = () => {
     percentage: "",
   });
   const [filteredData, setFilteredData] = useState(bosData);
+
+  const fileRef = useRef<HTMLInputElement | null>(null);
 
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -231,8 +233,6 @@ const Bos: React.FC = () => {
       });
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
-      // Disable the file upload button if a file exists
-      setIsFileUploadDisabled(!!response.documents?.mom);
       toggleModal();
     } catch (error) {
       console.error("Error fetching BOS data by ID:", error);
@@ -425,12 +425,19 @@ const Bos: React.FC = () => {
       formData.append("bosId", editId || "");
       formData.append("otherDepartment", values.otherDepartment || "");
 
-      // Append the file
-      if (typeof values.file === "string") {
-        // If the file is just a name, send null
-        formData.append("mom", "null");
-      } else if (values.file instanceof File) {
-        // If the file is a File object, send the file
+      if (isEditMode && typeof values.file === "string") {
+        formData.append(
+          "mom",
+          new Blob([], { type: "application/pdf" }),
+          "empty.pdf"
+        );
+      } else if (isEditMode && values.file === null) {
+        formData.append(
+          "mom",
+          new Blob([], { type: "application/pdf" }),
+          "empty.pdf"
+        );
+      } else if (values.file) {
         formData.append("mom", values.file);
       }
 
@@ -450,6 +457,9 @@ const Bos: React.FC = () => {
         }
         // Reset the form fields
         resetForm();
+        if (fileRef.current) {
+          fileRef.current.value = "";
+        }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         // display the BOS List
@@ -771,6 +781,7 @@ const Bos: React.FC = () => {
                         }`}
                         type="file"
                         id="formFile"
+                        innerRef={fileRef}
                         onChange={(event) => {
                           validation.setFieldValue(
                             "file",
