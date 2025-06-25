@@ -21,28 +21,36 @@ const GetAllDepartmentDropdown: React.FC<GetAllDepartmentDropdownProps> = ({
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchGetAllDepartment = async () => {
-      try {
-        // Fetch data from API
-        const response = await api.get("/getAllDepartmentEntry", "");
+useEffect(() => {
+  const fetchGetAllDepartment = async () => {
+    try {
+      const response = await api.get("/getAllDepartmentEntry", "");
 
-        // Map all Department data to the required format
-        const departmentList = response.map((department: any) => ({
-          value: department.id,
-          label: department.name,
-        }));
+      console.log("Raw API Response:", response);
 
-        setOptions(departmentList);
-        setLoading(false);
-      } catch (err) {
-        setError("Failed to fetch Department");
-        setLoading(false);
-      }
-    };
+      const filteredDepartmentList = response.filter((department: any) => {
+        return String(department.isAcademic).toLowerCase() === "true" || String(department.isAcademic) === "1";
+      });
 
-    fetchGetAllDepartment();
-  }, []);
+      const departmentList = filteredDepartmentList.map((department: any) => ({
+        value: department.id,
+        label: department.name,
+      }));
+
+      console.log("Mapped Department Options:", departmentList);
+
+      setOptions(departmentList);
+      setLoading(false);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to fetch all Department");
+      setLoading(false);
+    }
+  };
+
+  fetchGetAllDepartment();
+}, []);
+
 
   if (loading) {
     return <div>Loading...</div>;
@@ -56,17 +64,11 @@ const GetAllDepartmentDropdown: React.FC<GetAllDepartmentDropdownProps> = ({
     <Select
       options={options}
       value={value}
-      onChange={(selectedOptions) => onChange(Array.isArray(selectedOptions) ? [...selectedOptions] : [])}
+      onChange={onChange}
       placeholder={placeholder}
-      isMulti
       className={isInvalid ? "select-error" : ""}
       styles={{
         menu: (provided) => ({ ...provided, zIndex: 9999 }),
-        menuList: (provided) => ({
-          ...provided,
-          maxHeight: "200px",
-          overflowY: "auto",
-        }),
       }}
     />
   );

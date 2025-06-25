@@ -9,7 +9,7 @@ import ProgramTypeDropdown from "Components/DropDowns/ProgramTypeDropdown";
 import SemesterDropdowns from "Components/DropDowns/SemesterDropdowns";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { useFormik } from "formik";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -60,6 +60,8 @@ const Value_Added_Program: React.FC = () => {
   });
   const [filteredData, setFilteredData] = useState(vapData);
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
+
+  const fileRef = useRef<HTMLInputElement | null>(null);
 
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -437,8 +439,24 @@ const Value_Added_Program: React.FC = () => {
       formData.append("organization", values.hostingInstOrg || "");
       formData.append("departmentId", values.department?.value || "");
       formData.append("otherDepartment", values.otherDepartment || "");
-      formData.append("excel", values.file as File); // Append the file
+      // formData.append("excel", values.file as File); // Append the file
       formData.append("valueAddedCourseId", editId || ""); // Append the edit ID if in edit mode
+
+      if (isEditMode && typeof values.file === "string") {
+        formData.append(
+          "excel",
+          new Blob([], { type: "application/pdf" }),
+          "empty.pdf"
+        );
+      } else if (isEditMode && values.file === null) {
+        formData.append(
+          "excel",
+          new Blob([], { type: "application/pdf" }),
+          "empty.pdf"
+        );
+      } else if (values.file) {
+        formData.append("excel", values.file);
+      }
 
       try {
         if (isEditMode && editId) {
@@ -459,6 +477,9 @@ const Value_Added_Program: React.FC = () => {
         }
         // Reset the form fields
         resetForm();
+        if (fileRef.current) {
+          fileRef.current.value = ""; // Clear the file input
+        }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         // display the BOS List
@@ -908,6 +929,7 @@ const Value_Added_Program: React.FC = () => {
                         }`}
                         type="file"
                         id="formFile"
+                        innerRef={fileRef}
                         accept=".xls, .xlsx"
                         onChange={(event) => {
                           validation.setFieldValue(
@@ -985,7 +1007,12 @@ const Value_Added_Program: React.FC = () => {
           </Card>
         </Container>
         {/* Modal for Listing BOS */}
-        <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg">
+        <Modal
+          isOpen={isModalOpen}
+          toggle={toggleModal}
+          size="lg"
+          style={{ maxWidth: "100%", width: "auto" }}
+        >
           <ModalHeader toggle={toggleModal}>List</ModalHeader>
           <ModalBody>
             <Table bordered>
@@ -1066,7 +1093,7 @@ const Value_Added_Program: React.FC = () => {
                       <td>{vap.academicYear}</td>
                       <td>{vap.departmentName}</td>
                       <td>{vap.studentName}</td>
-                      <td>{vap.registerNumber}</td>
+                      <td>{vap.registerNo}</td>
                       <td>{vap.courseTitle}</td>
                       <td>{vap.noOfStudentsEnrolled}</td>
                       <td>{vap.noOfStudentsCompleted}</td>

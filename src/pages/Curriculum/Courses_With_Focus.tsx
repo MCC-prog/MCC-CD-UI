@@ -445,11 +445,7 @@ const Courses_With_Focus: React.FC = () => {
             value: key,
             label: String(value),
           }))
-          : [],
-        revisionPercentage: response.percentage || "",
-        conductedDate: response.yearOfIntroduction ? response.yearOfIntroduction : "",
-        otherDepartment: "", // Add default value for otherDepartment
-        file: response.documents?.mom || null
+          : []
       };
 
       // Update Formik values
@@ -781,6 +777,9 @@ const Courses_With_Focus: React.FC = () => {
         },
         coursesWithFocusId: isEditMode && editId ? Number(editId) : null,
       };
+
+      console.log(values.fileGId, "File G ID");
+      console.log("CoursesWithFocusRequestDto:", coursesWithFocusRequestDto);
 
       formData.append(
         "coursesWithFocusRequestDto",

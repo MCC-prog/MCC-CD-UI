@@ -1,9 +1,10 @@
 import Breadcrumb from "Components/Common/Breadcrumb";
 import { useFormik } from "formik";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import Select from "react-select";
 import * as Yup from "yup";
 import {
+  Button,
   Card,
   CardBody,
   Col,
@@ -11,10 +12,15 @@ import {
   Form,
   Input,
   Label,
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
   NavItem,
   NavLink,
   Row,
   TabContent,
+  Table,
   TabPane,
   Toast,
 } from "reactstrap";
@@ -28,6 +34,10 @@ import AcademicYearDropdown from "Components/DropDowns/AcademicYearDropdown";
 import SemesterDropdowns from "Components/DropDowns/SemesterDropdowns";
 import moment from "moment";
 import { toast, ToastContainer } from "react-toastify";
+import { APIClient } from "../../helpers/api_helper";
+import { SEMESTER_NO_OPTIONS } from "Components/constants/layout";
+
+const api = new APIClient();
 
 const Experiential_Learning: React.FC = () => {
   const [activeTab, setActiveTab] = useState<number | null>(null);
@@ -46,13 +56,256 @@ const Experiential_Learning: React.FC = () => {
     | "bootcamp"
     | null
   >(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [experientialLearningData, setExperientialLearningData] = useState<
+    any[]
+  >([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 10;
+  // State variable for managing filters
+  const [filters, setFilters] = useState({
+    academicYear: "",
+    semesterType: "",
+    semesterNo: "",
+    stream: "",
+    department: "",
+    programType: "",
+    program: "",
+    yearOfIntroduction: "",
+    percentage: "",
+  });
+  const [filteredData, setFilteredData] = useState(experientialLearningData);
+  const fellowshipFileRef = useRef<HTMLInputElement>(null);
+  const studentExcelRef = useRef<HTMLInputElement>(null);
 
-  const toggleTab = (tab) => {
-    setActiveTab(activeTab === tab ? null : tab); // Collapse if clicked again
+  const bootcampFileRef = useRef<HTMLInputElement>(null);
+  const bootcampStudentExcelRef = useRef<HTMLInputElement>(null);
+
+  const fieldProjectFileRef = useRef<HTMLInputElement>(null);
+  const communicationLetterRef = useRef<HTMLInputElement>(null);
+  const fieldStudentExcelRef = useRef<HTMLInputElement>(null);
+
+  // Handle global search
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.toLowerCase();
+    setSearchTerm(value);
+
+    const filtered = experientialLearningData.filter((row) =>
+      Object.values(row).some((val) =>
+        String(val || "")
+          .toLowerCase()
+          .includes(value)
+      )
+    );
+    setFilteredData(filtered);
+  };
+
+  // Handle column-specific filters
+  const handleFilterChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    column: string
+  ) => {
+    const value = e.target.value.toLowerCase();
+    const updatedFilters = { ...filters, [column]: value };
+    setFilters(updatedFilters);
+
+    const filtered = experientialLearningData.filter((row) =>
+      Object.values(row).some((val) =>
+        String(val || "")
+          .toLowerCase()
+          .includes(value)
+      )
+    );
+    setFilteredData(filtered);
+  };
+
+  // Calculate the paginated data
+  const indexOfLastRow = currentPage * rowsPerPage;
+  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
+  const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
+
+  // Handle page change
+  const handlePageChange = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+  };
+
+  // Calculate total pages
+  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+
+  // Toggle the modal for listing BOS
+  const toggleModal = () => {
+    setIsModalOpen(!isModalOpen);
+  };
+
+  // Fetch BOS data from the backend
+  const fetchExperientialLearningData = async () => {
+    try {
+      const response = await api.get(
+        "/experientialLearning/getAllExperientialLearning",
+        ""
+      );
+      setExperientialLearningData(response);
+      setFilteredData(response);
+    } catch (error) {
+      console.error("Error fetching BOS data:", error);
+    }
+  };
+
+  // Open the modal and fetch data
+  const handleListBosClick = () => {
+    toggleModal();
+    fetchExperientialLearningData();
   };
 
   const toggleWizard = () => {
     setShowWizard(!showWizard);
+  };
+
+  const mapValueToLabel = (
+    value: string | number | null,
+    options: { value: string | number; label: string }[]
+  ): { value: string | number; label: string } | null => {
+    if (!value) return null;
+    const matchedOption = options.find((option) => option.value === value);
+    return matchedOption ? matchedOption : { value, label: String(value) };
+  };
+  // Handle edit action
+  // Fetch the data for the selected BOS ID and populate the form fields
+  const handleEdit = async (id: string) => {
+    try {
+      const response = await api.get(
+        `/experientialLearning?experientialLearningID=${id}`,
+        ""
+      );
+      const academicYearOptions = await api.get("/getAllAcademicYear", "");
+      // Filter the response where isCurrent or isCurrentForAdmission is true
+      const filteredAcademicYearList = academicYearOptions.filter(
+        (year: any) => year.isCurrent || year.isCurrentForAdmission
+      );
+      // Map the filtered data to the required format
+      const academicYearList = filteredAcademicYearList.map((year: any) => ({
+        value: year.year,
+        label: year.display,
+      }));
+
+      const semesterNoOptions = SEMESTER_NO_OPTIONS;
+
+      // Map API response to Formik values
+      const mappedValues = {
+        academicYear: mapValueToLabel(response.academicYear, academicYearList),
+        semesterType: response.semType
+          ? { value: response.semType, label: response.semType.toUpperCase() }
+          : null,
+        semesterNo: mapValueToLabel(
+          String(response.semesterNo),
+          semesterNoOptions
+        ) as { value: string; label: string } | null,
+        stream: response.streamId
+          ? { value: response.streamId.toString(), label: response.streamName }
+          : null,
+        department: response.departmentId
+          ? {
+              value: response.departmentId.toString(),
+              label: response.departmentName,
+            }
+          : null,
+        programType: response.programTypeId
+          ? {
+              value: response.programTypeId.toString(),
+              label: response.programTypeName,
+            }
+          : null,
+        degree: response.programId
+          ? {
+              value: response.programId.toString(),
+              label: response.programName,
+            }
+          : null,
+        program: response.courses
+          ? Object.entries(response.courses).map(([key, value]) => ({
+              value: key,
+              label: String(value),
+            }))
+          : [],
+        revisionPercentage: response.percentage || "",
+        conductedDate: response.yearOfIntroduction
+          ? response.yearOfIntroduction
+          : "",
+        otherDepartment: "",
+        file: response.documents?.mom || null,
+        // Add these lines:
+        programName: response.programName || "",
+        courseTitile: response.courseTitile || "",
+        pedagogy: response.pedagogy || { pedagogyFile: null },
+        internship: response.internship || {
+          totalJoiningStudentsOfIntern: "",
+          orgNameOfIntern: "",
+          locationOfIntern: "",
+        },
+        fieldProject: response.fieldProject || {
+          totalParticipatingStudents: "",
+          fieldProjectStartDate: null,
+          fieldProjectEndDate: null,
+          locationOfOrganisation: "",
+          fieldProjectFile: null,
+          communicationLetter: null,
+          studentExcelSheet: null,
+        },
+        dissertation: response.dissertation || {
+          totalParticipatingStudentsdissertation: "",
+          dissertationStartDate: null,
+          dissertationEndDate: null,
+        },
+        fellowship: response.fellowship || {
+          studentExcelSheet: null,
+          fellowshipFile: null,
+        },
+        bootcamp: response.bootcamp || {
+          studentExcelSheet: null,
+          bootcampFile: null,
+        },
+      };
+
+      setIsEditMode(true); // Set edit mode
+      setEditId(id); // Store the ID of the record being edited
+      // Disable the file upload button if a file exists
+      setIsFileUploadDisabled(!!response.documents?.mom);
+      toggleModal();
+    } catch (error) {
+      console.error("Error fetching BOS data by ID:", error);
+    }
+  };
+
+  // Handle delete action
+  // Set the ID of the record to be deleted and open the confirmation modal
+  const handleDelete = (id: string) => {
+    setDeleteId(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  // Confirm deletion of the record
+  // Call the delete API and refresh the BOS data
+  const confirmDelete = async (id: string) => {
+    if (deleteId) {
+      try {
+        const response = await api.delete(`/bos/deleteBos?bosId=${id}`, "");
+        toast.success(
+          response.message || "Curriculum BOS removed successfully!"
+        );
+        fetchExperientialLearningData();
+      } catch (error) {
+        toast.error("Failed to remove Curriculum BOS. Please try again.");
+        console.error("Error deleting BOS:", error);
+      } finally {
+        setIsDeleteModalOpen(false);
+        setDeleteId(null);
+      }
+    }
   };
 
   const pedagogySchema = Yup.object({
@@ -246,7 +499,7 @@ const Experiential_Learning: React.FC = () => {
     academicYear: Yup.object()
       .nullable()
       .required("Please select academic year"),
-    semesterType: Yup.object()
+    semesterType: Yup.object<{ value: string; label: string }>()
       .nullable()
       .required("Please select semester type"),
     semesterNo: Yup.object().nullable().required("Please select semester"),
@@ -341,13 +594,13 @@ const Experiential_Learning: React.FC = () => {
   const combinedSchema = getCombinedSchema(activeTab1);
   const validation = useFormik({
     initialValues: {
-      academicYear: null,
-      semesterType: null,
-      semesterNo: [],
-      stream: null,
+      academicYear: null as { value: string; label: string } | null,
+      semesterType: null as { value: string; label: string } | null,
+      semesterNo: null as { value: string; label: string } | null,
+      stream: null as { value: string; label: string } | null,
       department: null as { value: string; label: string } | null,
       degree: null as { value: string; label: string } | null,
-      programType: null,
+      programType: null as { value: string; label: string } | null,
       programName: "",
       courseTitile: "",
       file: null,
@@ -383,11 +636,186 @@ const Experiential_Learning: React.FC = () => {
       },
     },
     validationSchema: combinedSchema,
-    onSubmit: (values) => {
+    onSubmit: async (values, { resetForm }) => {
       console.log("Submitting form...", values);
       if (!isAnyTabFilled(values)) {
         toast.warning("You must fill at least one experiential tab.");
         return;
+      }
+      const formData = new FormData();
+      // formData.append("pedagogyFile", values.pedagogy.pedagogyFile || "");
+      // formData.append(
+      //   "internship",
+      //   JSON.stringify({
+      //     totalJoiningStudentsOfIntern:
+      //       values.internship.totalJoiningStudentsOfIntern,
+      //     orgNameOfIntern: values.internship.orgNameOfIntern,
+      //     locationOfIntern: values.internship.locationOfIntern,
+      //   }) || ""
+      // );
+      // formData.append(
+      //   "fieldProject",
+      //   JSON.stringify({
+      //     totalParticipatingStudents:
+      //       values.fieldProject.totalParticipatingStudents,
+      //     fieldProjectStartDate: values.fieldProject.fieldProjectStartDate
+      //       ? moment(values.fieldProject.fieldProjectStartDate).format(
+      //           "YYYY-MM-DD"
+      //         )
+      //       : "",
+      //     fieldProjectEndDate: values.fieldProject.fieldProjectEndDate
+      //       ? moment(values.fieldProject.fieldProjectEndDate).format(
+      //           "YYYY-MM-DD"
+      //         )
+      //       : "",
+      //     locationOfOrganisation: values.fieldProject.locationOfOrganisation,
+      //     fieldProjectFile: values.fieldProject.fieldProjectFile || "",
+      //     communicationLetter: values.fieldProject.communicationLetter || "",
+      //     studentExcelSheet: values.fieldProject.studentExcelSheet || "",
+      //   }) || ""
+      // );
+      // formData.append(
+      //   "dissertation",
+      //   JSON.stringify({
+      //     totalParticipatingStudentsdissertation:
+      //       values.dissertation.totalParticipatingStudentsdissertation,
+      //     dissertationStartDate: values.dissertation.dissertationStartDate
+      //       ? moment(values.dissertation.dissertationStartDate).format(
+      //           "YYYY-MM-DD"
+      //         )
+      //       : "",
+      //     dissertationEndDate: values.dissertation.dissertationEndDate
+      //       ? moment(values.dissertation.dissertationEndDate).format(
+      //           "YYYY-MM-DD"
+      //         )
+      //       : "",
+      //   }) || ""
+      // );
+      // formData.append(
+      //   "fellowship",
+      //   JSON.stringify({
+      //     studentExcelSheet: values.fellowship.studentExcelSheet || "",
+      //     fellowshipFile: values.fellowship.fellowshipFile || "",
+      //   })
+      // );
+      // formData.append(
+      //   "bootcamp",
+      //   JSON.stringify({
+      //     studentExcelSheet: values.bootcamp.studentExcelSheet || "",
+      //     bootcampFile: values.bootcamp.bootcampFile || "",
+      //   }) || ""
+      // );
+      // Construct dtoPayload object from form values
+      const dtoPayload = {
+        academicYear: values.academicYear?.value || "",
+        semesterType: values.semesterType?.value || "",
+        semesterNo: values.semesterNo?.value || "",
+        streamId: values.stream?.value || "",
+        departmentId: values.department?.value || "",
+        programTypeId: values.programType?.value || "",
+        programId: values.degree?.value || "",
+        programName: values.programName,
+        courseTitile: values.courseTitile,
+        pedagogy: values.pedagogy || null,
+        internship: {
+          totalInternStudents:
+            values.internship.totalJoiningStudentsOfIntern || "",
+          internOrgName: values.internship.orgNameOfIntern || "",
+          internOrgLocation: values.internship.locationOfIntern || "",
+        },
+        fieldProject: {
+          totalFieldProjectStudents:
+            values.fieldProject.totalParticipatingStudents || "",
+          fieldProjectStratDate: values.fieldProject.fieldProjectStartDate
+            ? moment(values.fieldProject.fieldProjectStartDate).format(
+                "YYYY-MM-DD"
+              )
+            : null,
+          fieldProjectEndDate: values.fieldProject.fieldProjectEndDate
+            ? moment(values.fieldProject.fieldProjectEndDate).format(
+                "YYYY-MM-DD"
+              )
+            : null,
+          fielsProjectOrgLocation:
+            values.fieldProject.locationOfOrganisation || "",
+        },
+        dissertation: {
+          totalDissertationsStudents:
+            values.dissertation.totalParticipatingStudentsdissertation || "",
+          dissertationsStartDate: values.dissertation.dissertationStartDate
+            ? moment(values.dissertation.dissertationStartDate).format(
+                "YYYY-MM-DD"
+              )
+            : null,
+          dissertationsEndDate: values.dissertation.dissertationEndDate
+            ? moment(values.dissertation.dissertationEndDate).format(
+                "YYYY-MM-DD"
+              )
+            : null,
+        },
+        fellowship: values.fellowship || null,
+        bootcamp: values.bootcamp || null,
+      };
+
+      formData.append(
+        "experientialLearningRequestDto",
+        new Blob([JSON.stringify(dtoPayload)], { type: "application/json" })
+      );
+      formData.append("pedagogy", values.pedagogy?.pedagogyFile || new Blob());
+      formData.append(
+        "fP_fieldProject",
+        values.fieldProject?.fieldProjectFile || new Blob()
+      );
+      formData.append(
+        "fP_communicationLetter",
+        values.fieldProject?.communicationLetter || new Blob()
+      );
+      formData.append(
+        "fP_studentExcelSheet",
+        values.fieldProject?.studentExcelSheet || new Blob()
+      );
+      formData.append(
+        "f_fellowship",
+        values.fellowship?.fellowshipFile || new Blob()
+      );
+      formData.append(
+        "f_studentExcelSheet",
+        values.fellowship?.studentExcelSheet || new Blob()
+      );
+      formData.append(
+        "b_bootcamp",
+        values.bootcamp?.bootcampFile || new Blob()
+      );
+      formData.append(
+        "b_studentExcelSheet",
+        values.bootcamp?.studentExcelSheet || new Blob()
+      );
+
+      try {
+        const response =
+          isEditMode && editId
+            ? await api.put(`/experientialLearning`, formData, {
+                headers: {
+                  "Content-Type": "multipart/form-data",
+                },
+              })
+            : await api.create(`/experientialLearning`, formData, {
+                headers: {
+                  "Content-Type": "multipart/form-data",
+                },
+              });
+
+        toast.success(
+          response.message || "Experiential Learning record saved successfully!"
+        );
+        // Reset the form fields
+        resetForm();
+        setIsEditMode(false); // Reset edit mode
+        setEditId(null); // Clear the edit ID
+        // handleListExperiential LearningClick(); // Refresh the list
+      } catch (error) {
+        toast.error("Failed to save Experiential Learning. Please try again.");
+        console.error("Error creating/updating Experiential Learning:", error);
       }
     },
   });
@@ -621,12 +1049,12 @@ const Experiential_Learning: React.FC = () => {
                     </div>
                   </Col>
                   <div className="mb-3 mt-3 d-grid">
-                    <button
-                      className="btn btn-primary toggle-wizard-button"
+                    <Button
+                      className="btn btn-tabs toggle-wizard-button"
                       onClick={toggleWizard}
                     >
-                      Experimental Learning
-                    </button>
+                      Experiential Learning
+                    </Button>
                   </div>
                   {showWizard && (
                     <div className="wizard clearfix">
@@ -640,7 +1068,7 @@ const Experiential_Learning: React.FC = () => {
                         }}
                       >
                         {[1, 2, 3, 4, 5, 6].map((tab) => (
-                          <button
+                          <Button
                             key={tab}
                             className={`step-button ${
                               activeTab === tab ? "active" : ""
@@ -659,7 +1087,7 @@ const Experiential_Learning: React.FC = () => {
                               : tab === 5
                               ? "Fellowship"
                               : "Bootcamp"}
-                          </button>
+                          </Button>
                         ))}
                       </div>
                       <div className="tab-content">
@@ -686,7 +1114,7 @@ const Experiential_Learning: React.FC = () => {
                                     id="pedagogyFile"
                                     onChange={(event) => {
                                       validation.setFieldValue(
-                                        "pedagogyFile",
+                                        "pedagogy.pedagogyFile",
                                         event.currentTarget.files
                                           ? event.currentTarget.files[0]
                                           : null
@@ -839,7 +1267,7 @@ const Experiential_Learning: React.FC = () => {
                                     }
                                     onChange={(e) =>
                                       validation.setFieldValue(
-                                        "totalParticipatingStudents",
+                                        "fieldProject.totalParticipatingStudents",
                                         e.target.value
                                       )
                                     }
@@ -978,9 +1406,10 @@ const Experiential_Learning: React.FC = () => {
                                     }`}
                                     type="file"
                                     id="fieldProjectFile"
+                                    innerRef={fieldProjectFileRef}
                                     onChange={(event) => {
                                       validation.setFieldValue(
-                                        "fieldProjectFile",
+                                        "fieldProject.fieldProjectFile",
                                         event.currentTarget.files
                                           ? event.currentTarget.files[0]
                                           : null
@@ -1019,9 +1448,10 @@ const Experiential_Learning: React.FC = () => {
                                         : ""
                                     }`}
                                     id="communicationLetter"
+                                    innerRef={communicationLetterRef}
                                     onChange={(event) => {
                                       validation.setFieldValue(
-                                        "communicationLetter",
+                                        "fieldProject.communicationLetter",
                                         event.currentTarget.files
                                           ? event.currentTarget.files[0]
                                           : null
@@ -1051,9 +1481,10 @@ const Experiential_Learning: React.FC = () => {
                                         : ""
                                     }`}
                                     id="studentExcelSheet"
+                                    innerRef={fieldStudentExcelRef}
                                     onChange={(event) => {
                                       validation.setFieldValue(
-                                        "studentExcelSheet",
+                                        "fieldProject.studentExcelSheet",
                                         event.currentTarget.files
                                           ? event.currentTarget.files[0]
                                           : null
@@ -1068,7 +1499,7 @@ const Experiential_Learning: React.FC = () => {
                                 <button
                                   type="button"
                                   className="btn btn-danger"
-                                  onClick={() =>
+                                  onClick={() => {
                                     validation.setFieldValue("fieldProject", {
                                       totalParticipatingStudents: "",
                                       fieldProjectStartDate: "",
@@ -1077,8 +1508,19 @@ const Experiential_Learning: React.FC = () => {
                                       fieldProjectFile: null,
                                       communicationLetter: null,
                                       studentExcelSheet: null,
-                                    })
-                                  }
+                                    });
+
+                                    // Clear input file values
+                                    if (fieldProjectFileRef.current) {
+                                      fieldProjectFileRef.current.value = "";
+                                    }
+                                    if (communicationLetterRef.current) {
+                                      communicationLetterRef.current.value = "";
+                                    }
+                                    if (fieldStudentExcelRef.current) {
+                                      fieldStudentExcelRef.current.value = "";
+                                    }
+                                  }}
                                 >
                                   Clear
                                 </button>
@@ -1230,6 +1672,7 @@ const Experiential_Learning: React.FC = () => {
                                   </Label>
                                   <Input
                                     type="file"
+                                    innerRef={studentExcelRef}
                                     className={`form-control ${
                                       validation.touched.fellowship
                                         ?.studentExcelSheet &&
@@ -1279,6 +1722,7 @@ const Experiential_Learning: React.FC = () => {
                                         ? "is-invalid"
                                         : ""
                                     }`}
+                                    innerRef={fellowshipFileRef}
                                     id="fellowshipFile"
                                     onChange={(event) => {
                                       validation.setFieldValue(
@@ -1288,10 +1732,6 @@ const Experiential_Learning: React.FC = () => {
                                           : null
                                       );
                                     }}
-                                    value={
-                                      validation.values.fellowship
-                                        .fellowshipFile || ""
-                                    }
                                   />
                                   {validation.touched.fellowship
                                     ?.fellowshipFile &&
@@ -1312,12 +1752,20 @@ const Experiential_Learning: React.FC = () => {
                                 <button
                                   type="button"
                                   className="btn btn-danger"
-                                  onClick={() =>
+                                  onClick={() => {
                                     validation.setFieldValue("fellowship", {
                                       studentExcelSheet: null,
                                       fellowshipFile: null,
-                                    })
-                                  }
+                                    });
+
+                                    // Clear the actual file inputs
+                                    if (fellowshipFileRef.current) {
+                                      fellowshipFileRef.current.value = "";
+                                    }
+                                    if (studentExcelRef.current) {
+                                      studentExcelRef.current.value = "";
+                                    }
+                                  }}
                                 >
                                   Clear
                                 </button>
@@ -1338,6 +1786,7 @@ const Experiential_Learning: React.FC = () => {
                                   </Label>
                                   <Input
                                     type="file"
+                                    innerRef={bootcampStudentExcelRef}
                                     className={`form-control ${
                                       validation.touched.bootcamp
                                         ?.studentExcelSheet &&
@@ -1380,6 +1829,7 @@ const Experiential_Learning: React.FC = () => {
                                   </Label>
                                   <Input
                                     type="file"
+                                    innerRef={bootcampFileRef}
                                     className={`form-control ${
                                       validation.touched.bootcamp
                                         ?.bootcampFile &&
@@ -1396,10 +1846,6 @@ const Experiential_Learning: React.FC = () => {
                                           : null
                                       );
                                     }}
-                                    value={
-                                      validation.values.bootcamp.bootcampFile ||
-                                      ""
-                                    }
                                   />
                                   {validation.touched.bootcamp?.bootcampFile &&
                                     validation.errors.bootcamp
@@ -1419,12 +1865,21 @@ const Experiential_Learning: React.FC = () => {
                                 <button
                                   type="button"
                                   className="btn btn-danger"
-                                  onClick={() =>
+                                  onClick={() => {
                                     validation.setFieldValue("bootcamp", {
                                       studentExcelSheet: null,
                                       bootcampFile: null,
-                                    })
-                                  }
+                                    });
+
+                                    // Clear actual file input values
+                                    if (bootcampStudentExcelRef.current) {
+                                      bootcampStudentExcelRef.current.value =
+                                        "";
+                                    }
+                                    if (bootcampFileRef.current) {
+                                      bootcampFileRef.current.value = "";
+                                    }
+                                  }}
                                 >
                                   Clear
                                 </button>
@@ -1437,15 +1892,227 @@ const Experiential_Learning: React.FC = () => {
                   )}
                 </Row>
 
-                <div className="mt-3 d-flex justify-content-between">
-                  <button className="btn btn-primary btn-block" type="submit">
-                    Submit Application
-                  </button>
-                </div>
+                <Row>
+                  <Col lg={12}>
+                    <div className="mt-3 d-flex justify-content-between">
+                      <button className="btn btn-primary" type="submit">
+                        {isEditMode
+                          ? "Update Experiential Learning"
+                          : "Save Experiential Learning"}
+                      </button>
+                      <button
+                        className="btn btn-secondary"
+                        type="button"
+                        onClick={handleListBosClick}
+                      >
+                        List Experiential Learning
+                      </button>
+                    </div>
+                  </Col>
+                </Row>
               </form>
             </CardBody>
           </Card>
         </Container>
+        {/* Modal for Listing BOS */}
+        <Modal
+          isOpen={isModalOpen}
+          toggle={toggleModal}
+          size="lg"
+          style={{ maxWidth: "100%", width: "auto" }}
+        >
+          <ModalHeader toggle={toggleModal}>
+            List Experiential Learning
+          </ModalHeader>
+          <ModalBody>
+            {/* Global Search */}
+            <div className="mb-3">
+              <Input
+                type="text"
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={handleSearch}
+              />
+            </div>
+
+            {/* Table with Pagination */}
+            <Table className="table-hover custom-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>
+                    Academic Year
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.academicYear}
+                      onChange={(e) => handleFilterChange(e, "academicYear")}
+                    />
+                  </th>
+                  <th>
+                    Semester Type
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.semesterType}
+                      onChange={(e) => handleFilterChange(e, "semesterType")}
+                    />
+                  </th>
+                  <th>
+                    Semester No
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.semesterNo}
+                      onChange={(e) => handleFilterChange(e, "semesterNo")}
+                    />
+                  </th>
+                  <th>
+                    Stream
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.stream}
+                      onChange={(e) => handleFilterChange(e, "stream")}
+                    />
+                  </th>
+                  <th>
+                    Department
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.department}
+                      onChange={(e) => handleFilterChange(e, "department")}
+                    />
+                  </th>
+                  <th>
+                    Program Type
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.programType}
+                      onChange={(e) => handleFilterChange(e, "programType")}
+                    />
+                  </th>
+                  <th>
+                    Program
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.program}
+                      onChange={(e) => handleFilterChange(e, "program")}
+                    />
+                  </th>
+                  <th>
+                    Year of Introduction
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.yearOfIntroduction}
+                      onChange={(e) =>
+                        handleFilterChange(e, "yearOfIntroduction")
+                      }
+                    />
+                  </th>
+                  <th>
+                    Percentage
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.percentage}
+                      onChange={(e) => handleFilterChange(e, "percentage")}
+                    />
+                  </th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentRows.length > 0 ? (
+                  currentRows.map((bos, index) => (
+                    <tr key={bos.id}>
+                      <td>{indexOfFirstRow + index + 1}</td>
+                      <td>{bos.academicYear}</td>
+                      <td>{bos.semType}</td>
+                      <td>{bos.semesterNo}</td>
+                      <td>{bos.streamName}</td>
+                      <td>{bos.departmentName}</td>
+                      <td>{bos.programTypeName}</td>
+                      <td>{bos.programName}</td>
+                      <td>{bos.yearOfIntroduction}</td>
+                      <td>{bos.percentage}</td>
+                      <td>
+                        <div className="d-flex justify-content-center gap-2">
+                          <button
+                            className="btn btn-sm btn-warning"
+                            onClick={() => handleEdit(bos.id)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="btn btn-sm btn-danger"
+                            onClick={() => handleDelete(bos.id)}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={11} className="text-center">
+                      No BOS data available.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </Table>
+            {/* Pagination Controls */}
+            <div className="d-flex justify-content-between align-items-center mt-3">
+              <Button
+                color="primary"
+                disabled={currentPage === 1}
+                onClick={() => handlePageChange(currentPage - 1)}
+              >
+                Previous
+              </Button>
+              <div>
+                Page {currentPage} of {totalPages}
+              </div>
+              <Button
+                color="primary"
+                disabled={currentPage === totalPages}
+                onClick={() => handlePageChange(currentPage + 1)}
+              >
+                Next
+              </Button>
+            </div>
+          </ModalBody>
+        </Modal>
+        {/* Confirmation Modal */}
+        <Modal
+          isOpen={isDeleteModalOpen}
+          toggle={() => setIsDeleteModalOpen(false)}
+        >
+          <ModalHeader toggle={() => setIsDeleteModalOpen(false)}>
+            Confirm Deletion
+          </ModalHeader>
+          <ModalBody>
+            Are you sure you want to delete this record? This action cannot be
+            undone.
+          </ModalBody>
+          <ModalFooter>
+            <Button color="danger" onClick={() => confirmDelete(deleteId!)}>
+              Delete
+            </Button>
+            <Button
+              color="secondary"
+              onClick={() => setIsDeleteModalOpen(false)}
+            >
+              Cancel
+            </Button>
+          </ModalFooter>
+        </Modal>
       </div>
       <ToastContainer />
     </React.Fragment>

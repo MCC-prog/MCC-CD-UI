@@ -6,6 +6,7 @@ import { ToastContainer } from "react-toastify";
 import { useFormik } from "formik";
 import React, { useState } from "react";
 import {
+  Button,
   Card,
   CardBody,
   Col,
@@ -14,15 +15,19 @@ import {
   Label,
   Modal,
   ModalBody,
+  ModalFooter,
   ModalHeader,
   Row,
   Table,
+  Tooltip,
 } from "reactstrap";
 import * as Yup from "yup";
 import { APIClient } from "../../helpers/api_helper";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import GetAllProgramDropdown from "Components/DropDowns/GetAllProgramDropdown";
+import axios from "axios";
+import moment from "moment";
 
 const api = new APIClient();
 
@@ -30,19 +35,86 @@ const Nss_Yrc: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [nssData, setNssData] = useState<any[]>([]);
   const [selectedStream, setSelectedStream] = useState<any>(null);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 10;
+  const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
+  const [filteredData, setFilteredData] = useState(nssData);
+  const [filters, setFilters] = useState({
+    academicYear: "",
+    semester: "",
+    stream: "",
+    program: "",
+    noOfParticipants: "",
+    organisation: "",
+    location: "",
+    date: "",
+    file: null as string | null,
+  });
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [tooltipOpen, setTooltipOpen] = useState(false);
+  const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
+
+  // Handle global search
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.toLowerCase();
+    setSearchTerm(value);
+
+    const filtered = nssData.filter((row) =>
+      Object.values(row).some((val) =>
+        String(val || "")
+          .toLowerCase()
+          .includes(value)
+      )
+    );
+    setFilteredData(filtered);
+  };
+  // Handle column-specific filters
+  const handleFilterChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    column: string
+  ) => {
+    const value = e.target.value.toLowerCase();
+    const updatedFilters = { ...filters, [column]: value };
+    setFilters(updatedFilters);
+
+    const filtered = nssData.filter((row) =>
+      Object.values(row).some((val) =>
+        String(val || "")
+          .toLowerCase()
+          .includes(value)
+      )
+    );
+    setFilteredData(filtered);
+  };
+  // Calculate the paginated data
+  const indexOfLastRow = currentPage * rowsPerPage;
+  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
+  const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
+
+  // Handle page change
+  const handlePageChange = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+  };
+
+  // Calculate total pages
+  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };
 
-  // Fetch BOS data from the backend
+  // Fetch Nss data from the backend
   const fetchNssData = async () => {
     try {
-      const response = await api.get("/nss/getAllNss", "");
-      setNssData(response.data);
-      console.log("NSS data fetched successfully:", response.data);
+      const response = await api.get("/nss/getAll", "");
+      setNssData(response);
+      setFilteredData(response);
     } catch (error) {
-      console.error("Error fetching NSS:", error);
+      console.error("Error fetching Nss:", error);
     }
   };
 
@@ -52,14 +124,145 @@ const Nss_Yrc: React.FC = () => {
     fetchNssData();
   };
 
-  const handleEdit = (id: string) => {
-    console.log("Edit Cdp with ID:", id);
-    // Add your edit logic here
+  const mapValueToLabel = (
+    value: string | number | null,
+    options: { value: string | number; label: string }[]
+  ): { value: string | number; label: string } | null => {
+    if (!value) return null;
+    const matchedOption = options.find((option) => option.value === value);
+    return matchedOption ? matchedOption : { value, label: String(value) };
+  };
+
+  const handleEdit = async (id: string) => {
+    try {
+      const response = await api.get(`/nss/edit?nssId=${id}`, "");
+      const academicYearOptions = await api.get("/getAllAcademicYear", "");
+      // Filter the response where isCurrent or isCurrentForAdmission is true
+      const filteredAcademicYearList = academicYearOptions.filter(
+        (year: any) => year.isCurrent || year.isCurrentForAdmission
+      );
+      // Map the filtered data to the required format
+      const academicYearList = filteredAcademicYearList.map((year: any) => ({
+        value: year.year,
+        label: year.display,
+      }));
+      // Map API response to Formik values
+      const mappedValues = {
+        academicYear: mapValueToLabel(response.academicYear, academicYearList),
+        semester: response.semester
+          ? { value: response.semester, label: response.semester.toUpperCase() }
+          : null,
+        stream: response.streamId
+          ? { value: response.streamId.toString(), label: response.streamName }
+          : null,
+        program: response.courses
+          ? Object.entries(response.courses).map(([key, value]) => ({
+              value: key,
+              label: String(value),
+            }))
+          : [],
+        noOfParticipants: response.noOfParticipants || "",
+        date: response.date ? response.date : "",
+        organisation: response.organisation || "",
+        location: response.location || "",
+        file: response.documents?.NSS || null,
+      };
+      // Update Formik values
+      validation.setValues({
+        ...mappedValues,
+        file: response.documents?.NSS || null,
+        academicYear: mappedValues.academicYear
+          ? {
+              ...mappedValues.academicYear,
+              value: String(mappedValues.academicYear.value),
+            }
+          : null,
+      });
+
+      setIsEditMode(true); // Set edit mode
+      setEditId(id); // Store the ID of the record being edited
+      setIsFileUploadDisabled(!!response.documents?.NSS);
+      toggleModal();
+    } catch (error) {
+      console.error("Error fetching NSS data by ID:", error);
+    }
   };
 
   const handleDelete = (id: string) => {
-    console.log("Delete Cdp with ID:", id);
-    // Add your delete logic here
+    setDeleteId(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async (id: string) => {
+    if (deleteId) {
+      try {
+        const response = await api.delete(
+          `/nss/deleteNSSActivity?nssId=${id}`,
+          ""
+        );
+        toast.success(response.message || "NSS/YRC  removed successfully!");
+        fetchNssData();
+      } catch (error) {
+        toast.error("Failed to remove NSS/YRC. Please try again.");
+        console.error("Error deleting NSS/YRC:", error);
+      } finally {
+        setIsDeleteModalOpen(false);
+        setDeleteId(null);
+      }
+    }
+  };
+
+  const handleDownloadFile = async (fileName: string) => {
+    if (fileName) {
+      try {
+        // Ensure you set responseType to 'blob' to handle binary data
+        const response = await axios.get(`/nss/download/${fileName}`, {
+          responseType: "blob",
+        });
+
+        // Create a Blob from the response data
+        const blob = new Blob([response], { type: "*/*" });
+
+        // Create a URL for the Blob
+        const url = window.URL.createObjectURL(blob);
+
+        // Create a temporary anchor element to trigger the download
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = fileName; // Set the file name for the download
+        document.body.appendChild(link);
+        link.click();
+
+        // Clean up the URL and remove the anchor element
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        toast.success("File downloaded successfully!");
+      } catch (error) {
+        toast.error("Failed to download  file. Please try again.");
+        console.error("Error downloading file:", error);
+      }
+    } else {
+      toast.error("No file available for download.");
+    }
+  };
+
+  // Handle file deletion
+  // Clear the file from the form and show success message
+  const handleDeleteFile = async () => {
+    try {
+      // Call the delete API
+      const response = await api.delete(`/nss/deleteNSS?nssId=${editId}`, "");
+      // Show success message
+      toast.success(response.message || "File deleted successfully!");
+      // Remove the file from the form
+      validation.setFieldValue("file", null); // Clear the file from Formik state
+      setIsFileUploadDisabled(false); // Enable the file upload button
+    } catch (error) {
+      // Show error message
+      toast.error("Failed to delete the file. Please try again.");
+      console.error("Error deleting file:", error);
+    }
   };
 
   const formatDate = (date: string): string => {
@@ -73,20 +276,20 @@ const Nss_Yrc: React.FC = () => {
   const validation = useFormik({
     initialValues: {
       academicYear: null as { value: string; label: string } | null,
-      semesterType: null as { value: string; label: string } | null,
+      semester: null as { value: string; label: string } | null,
       stream: null as { value: string; label: string } | null,
-      program: null as { value: string; label: string } | null,
+      program: [] as { value: string; label: string }[],
       noOfParticipants: "",
-      organization: "",
+      organisation: "",
       location: "",
       date: "",
-      file: null,
+      file: null as File | string | null,
     },
     validationSchema: Yup.object({
       academicYear: Yup.object<{ value: string; label: string }>()
         .nullable()
         .required("Please select academic year"),
-      semesterType: Yup.object<{ value: string; label: string }>()
+      semester: Yup.object<{ value: string; label: string }>()
         .nullable()
         .required("Please select a semester type"), // Single object for single-select
       stream: Yup.object<{ value: string; label: string }>()
@@ -95,22 +298,24 @@ const Nss_Yrc: React.FC = () => {
       file: Yup.mixed()
         .required("Please upload a file")
         .test("fileSize", "File size is too large", (value: any) => {
+          if (typeof value === "string") return true;
           return value && value.size <= 2 * 1024 * 1024; // 2MB limit
         })
         .test("fileType", "Unsupported file format", (value: any) => {
+          if (typeof value === "string") return true;
           return (
             value &&
             ["application/pdf", "image/jpeg", "image/png"].includes(value.type)
           );
         }),
-      program: Yup.object<{ value: string; label: string }>()
-        .nullable()
-        .required("Please select Course"),
+      program: Yup.array()
+        .min(1, "Please select at least one program")
+        .required("Please select programs"),
       noOfParticipants: Yup.number()
         .typeError("Please enter a valid number")
         .min(0, "Number of students completed cannot be less than 0")
         .required("Please enter number of No Of Participants"),
-      organization: Yup.string().required("Please select Organization"),
+      organisation: Yup.string().required("Please select Organization"),
       location: Yup.string().required("Please select Location"),
       date: Yup.date().required("Please select Date"),
     }),
@@ -121,33 +326,50 @@ const Nss_Yrc: React.FC = () => {
       // Append fields to FormData
       formData.append("academicYear", values.academicYear?.value || "");
       formData.append("streamId", values.stream?.value || "");
-      formData.append("programId", values.program?.value || "");
-      formData.append("semType", values.semesterType?.value || "");
+      formData.append(
+        "courseIds",
+        values.program.map((option) => option.value).join(",") || ""
+      );
+      formData.append("semester", values.semester?.value || "");
       formData.append("noOfParticipants", values.noOfParticipants || "");
-      formData.append("organization", values.organization || "");
+      formData.append("organisation", values.organisation || "");
       formData.append("location", values.location || "");
       formData.append("date", formatDate(values.date) || "");
 
-      // Append the file
-      if (values.file) {
-        formData.append("nss", values.file);
-      } else {
-        console.error("No file selected");
+      if (isEditMode && typeof values.file === "string") {
+        // Pass an empty Blob instead of null
+        formData.append("file", new Blob([]), "empty.pdf");
+      } else if (isEditMode && values.file === null) {
+        formData.append("file", new Blob([]), "empty.pdf");
+      } else if (values.file) {
+        formData.append("file", values.file);
+      }
+
+      // If editing, include ID
+      if (isEditMode && editId) {
+        formData.append("id", editId);
       }
 
       try {
-        const response = await api.create("/nss/saveNss", formData);
-        // Display success message
-        toast.success(response.message || "Nss added successfully!");
-        console.log("Nss created successfully:", response.data);
+        if (isEditMode && editId) {
+          // Call the update API
+          const response = await api.put(`/nss/update`, formData);
+          toast.success(response.message || "NSS/YRC updated successfully!");
+        } else {
+          // Call the save API
+          const response = await api.create("/nss/save", formData);
+          toast.success(response.message || "NSS/YRC added successfully!");
+        }
         // Reset the form fields
         resetForm();
-        // display the Nss List
+        setIsEditMode(false); // Reset edit mode
+        setEditId(null); // Clear the edit ID
+        setIsFileUploadDisabled(false); // Enable the file upload button
         handleListNssClick();
       } catch (error) {
         // Display error message
-        toast.error("Failed to save Nss. Please try again.");
-        console.error("Error creating Nss:", error);
+        toast.error("Failed to save NSS/YRC. Please try again.");
+        console.error("Error creating NSS/YRC:", error);
       }
     },
   });
@@ -156,7 +378,7 @@ const Nss_Yrc: React.FC = () => {
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <Breadcrumb title="NSS" breadcrumbItem="NSS" />
+          <Breadcrumb title="NSS/YRC" breadcrumbItem="Extension Activity" />
           <Card>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
@@ -208,7 +430,7 @@ const Nss_Yrc: React.FC = () => {
                         )}
                     </div>
                   </Col>
-                   <Col lg={4}>
+                  <Col lg={4}>
                     <div className="mb-3">
                       <Label>Program</Label>
                       <GetAllProgramDropdown
@@ -224,29 +446,31 @@ const Nss_Yrc: React.FC = () => {
                       {validation.touched.program &&
                         validation.errors.program && (
                           <div className="text-danger">
-                            {validation.errors.program}
+                            {Array.isArray(validation.errors.program)
+                              ? validation.errors.program.join(", ")
+                              : validation.errors.program}
                           </div>
                         )}
                     </div>
                   </Col>
-                    {/* Semester Dropdowns */}
+                  {/* Semester Dropdowns */}
                   <Col lg={4}>
                     <div className="mb-3">
                       <Label>Semester Type</Label>
                       <SemesterTypeDropdown
-                        value={validation.values.semesterType}
+                        value={validation.values.semester}
                         onChange={(selectedOption) =>
-                          validation.setFieldValue("semesterType", selectedOption)
+                          validation.setFieldValue("semester", selectedOption)
                         }
                         isInvalid={
-                          validation.touched.semesterType &&
-                          !!validation.errors.semesterType
+                          validation.touched.semester &&
+                          !!validation.errors.semester
                         }
                       />
-                      {validation.touched.semesterType &&
-                        validation.errors.semesterType && (
+                      {validation.touched.semester &&
+                        validation.errors.semester && (
                           <div className="text-danger">
-                            {validation.errors.semesterType}
+                            {validation.errors.semester}
                           </div>
                         )}
                     </div>
@@ -255,27 +479,34 @@ const Nss_Yrc: React.FC = () => {
                     <div className="mb-3">
                       <Label>Date</Label>
                       <Input
-                        type="date"
+                        type="date" // Use native date input
                         className={`form-control ${
-                          validation.touched.date &&
-                          validation.errors.date
+                          validation.touched.date && validation.errors.date
                             ? "is-invalid"
                             : ""
                         }`}
-                        value={validation.values.date}
-                        onChange={(e) =>
-                          validation.setFieldValue(
-                            "date",
-                            e.target.value
-                          )
+                        value={
+                          validation.values.date
+                            ? moment(
+                                validation.values.date,
+                                "DD/MM/YYYY"
+                              ).format("YYYY-MM-DD") // Convert to yyyy-mm-dd for the input
+                            : ""
                         }
+                        onChange={(e) => {
+                          const formattedDate = moment(
+                            e.target.value,
+                            "YYYY-MM-DD"
+                          ).format("DD/MM/YYYY"); // Convert to dd/mm/yyyy
+                          validation.setFieldValue("date", formattedDate);
+                        }}
+                        placeholder="dd/mm/yyyy"
                       />
-                      {validation.touched.date &&
-                        validation.errors.date && (
-                          <div className="text-danger">
-                            {validation.errors.date}
-                          </div>
-                        )}
+                      {validation.touched.date && validation.errors.date && (
+                        <div className="text-danger">
+                          {validation.errors.date}
+                        </div>
+                      )}
                     </div>
                   </Col>
                   <Col lg={4}>
@@ -306,30 +537,30 @@ const Nss_Yrc: React.FC = () => {
                         )}
                     </div>
                   </Col>
-                       <Col lg={4}>
+                  <Col lg={4}>
                     <div className="mb-3">
                       <Label>Organization</Label>
                       <Input
                         type="text"
                         className={`form-control ${
-                          validation.touched.organization &&
-                          validation.errors.organization
+                          validation.touched.organisation &&
+                          validation.errors.organisation
                             ? "is-invalid"
                             : ""
                         }`}
-                        value={validation.values.organization}
+                        value={validation.values.organisation}
                         onChange={(e) =>
                           validation.setFieldValue(
-                            "organization",
+                            "organisation",
                             e.target.value
                           )
                         }
-                        placeholder="Enter Organization"
+                        placeholder="Enter organisation"
                       />
-                      {validation.touched.organization &&
-                        validation.errors.organization && (
+                      {validation.touched.organisation &&
+                        validation.errors.organisation && (
                           <div className="text-danger">
-                            {validation.errors.organization}
+                            {validation.errors.organisation}
                           </div>
                         )}
                     </div>
@@ -347,10 +578,7 @@ const Nss_Yrc: React.FC = () => {
                         }`}
                         value={validation.values.location}
                         onChange={(e) =>
-                          validation.setFieldValue(
-                            "location",
-                            e.target.value
-                          )
+                          validation.setFieldValue("location", e.target.value)
                         }
                         placeholder="Enter Location"
                       />
@@ -365,8 +593,21 @@ const Nss_Yrc: React.FC = () => {
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
-                        Upload NSS
+                        Upload Nss/YRC
+                        <i
+                          id="infoIcon"
+                          className="bi bi-info-circle ms-2"
+                          style={{ cursor: "pointer", color: "#0d6efd" }}
+                        ></i>
                       </Label>
+                      <Tooltip
+                        placement="right"
+                        isOpen={tooltipOpen}
+                        target="infoIcon"
+                        toggle={toggleTooltip}
+                      >
+                        Upload an Excel or PDF file. Max size 10MB.
+                      </Tooltip>
                       <Input
                         className={`form-control ${
                           validation.touched.file && validation.errors.file
@@ -383,10 +624,48 @@ const Nss_Yrc: React.FC = () => {
                               : null
                           );
                         }}
+                        disabled={isFileUploadDisabled} // Disable the button if a file exists
                       />
                       {validation.touched.file && validation.errors.file && (
                         <div className="text-danger">
                           {validation.errors.file}
+                        </div>
+                      )}
+                      {/* Show a message if the file upload button is disabled */}
+                      {isFileUploadDisabled && (
+                        <div className="text-warning mt-2">
+                          Please remove the existing file to upload a new one.
+                        </div>
+                      )}
+                      {/* Only show the file name if it is a string (from the edit API) */}
+                      {typeof validation.values.file === "string" && (
+                        <div className="mt-2 d-flex align-items-center">
+                          <span
+                            className="me-2"
+                            style={{ fontWeight: "bold", color: "green" }}
+                          >
+                            {validation.values.file}
+                          </span>
+                          <Button
+                            color="link"
+                            className="text-primary"
+                            onClick={() =>
+                              handleDownloadFile(
+                                validation.values.file as string
+                              )
+                            }
+                            title="Download File"
+                          >
+                            <i className="bi bi-download"></i>
+                          </Button>
+                          <Button
+                            color="link"
+                            className="text-danger"
+                            onClick={() => handleDeleteFile()}
+                            title="Delete File"
+                          >
+                            <i className="bi bi-trash"></i>
+                          </Button>
                         </div>
                       )}
                     </div>
@@ -400,7 +679,7 @@ const Nss_Yrc: React.FC = () => {
                           download
                           className="btn btn-primary btn-sm"
                         >
-                          Sample NSS
+                          Sample NSS/YRC
                         </a>
                       </div>
                     </div>
@@ -410,14 +689,14 @@ const Nss_Yrc: React.FC = () => {
                   <Col lg={12}>
                     <div className="mt-3 d-flex justify-content-between">
                       <button className="btn btn-primary" type="submit">
-                        Save
+                        {isEditMode ? "Update" : "Save"}
                       </button>
                       <button
                         className="btn btn-primary"
                         type="button"
                         onClick={handleListNssClick}
                       >
-                        List NSS
+                        List NSS/YRC
                       </button>
                     </div>
                   </Col>
@@ -426,54 +705,136 @@ const Nss_Yrc: React.FC = () => {
             </CardBody>
           </Card>
         </Container>
-        {/* Modal for Listing NSS */}
+        {/* Modal for Listing NSS/YRC */}
         <Modal
           isOpen={isModalOpen}
           toggle={toggleModal}
           size="lg"
           style={{ maxWidth: "100%", width: "auto" }}
         >
-          <ModalHeader toggle={toggleModal}>List NSS</ModalHeader>
+          <ModalHeader toggle={toggleModal}>List NSS/YRC</ModalHeader>
           <ModalBody>
-            <Table bordered>
+            {/* Global Search */}
+            <div className="mb-3">
+              <Input
+                type="text"
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={handleSearch}
+              />
+            </div>
+            <Table className="table-hover custom-table">
               <thead>
                 <tr>
                   <th>Sl.No</th>
-                  <th>Academic Year</th>
-                  <th>School</th>
-                  <th>Program</th>
-                  <th>Semester Type</th>
-                  <th>Department</th>
-                  <th>No Of Participants</th>
-                  <th>Organization</th>
-                  <th>Location</th>
-                  <th>Date</th>
+                  <th>
+                    Academic Year
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.academicYear}
+                      onChange={(e) => handleFilterChange(e, "academicYear")}
+                    />
+                  </th>
+                  <th>
+                    School
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.stream}
+                      onChange={(e) => handleFilterChange(e, "stream")}
+                    />
+                  </th>
+                  <th>
+                    Program
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.program}
+                      onChange={(e) => handleFilterChange(e, "program")}
+                    />
+                  </th>
+                  <th>
+                    Semester Type
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.semester}
+                      onChange={(e) => handleFilterChange(e, "semester")}
+                    />
+                  </th>
+                  <th>
+                    No Of Participants
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.noOfParticipants}
+                      onChange={(e) =>
+                        handleFilterChange(e, "noOfParticipants")
+                      }
+                    />
+                  </th>
+                  <th>
+                    Organization
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.organisation}
+                      onChange={(e) => handleFilterChange(e, "organisation")}
+                    />
+                  </th>
+                  <th>
+                    Location
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.location}
+                      onChange={(e) => handleFilterChange(e, "location")}
+                    />
+                  </th>
+                  <th>
+                    Date
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.date}
+                      onChange={(e) => handleFilterChange(e, "date")}
+                    />
+                  </th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {nssData.length > 0 ? (
                   nssData.map((nss, index) => (
-                    <tr key={nss.nssId}>
+                    <tr key={nss.id}>
                       <td>{index + 1}</td>
                       <td>{nss.academicYear}</td>
                       <td>{nss.streamName}</td>
-                      <td>{nss.programName}</td>
-                      <td>{nss.semType}</td>
+                      <td>
+                        <ul>
+                          {(Object.values(nss.courses) as string[]).map(
+                            (course, index) => (
+                              <li key={index}>{course}</li>
+                            )
+                          )}
+                        </ul>
+                      </td>
+                      <td>{nss.semester}</td>
                       <td>{nss.noOfParticipants}</td>
-                      <td>{nss.organization}</td>
+                      <td>{nss.organisation}</td>
                       <td>{nss.location}</td>
                       <td>{nss.date}</td>
                       <td>
                         <button
                           className="btn btn-sm btn-warning me-2"
-                          onClick={() => handleEdit(nss.nssId)}
+                          onClick={() => handleEdit(nss.id)}
                         >
                           Edit
                         </button>
                         <button
                           className="btn btn-sm btn-danger"
-                          onClick={() => handleDelete(nss.nssId)}
+                          onClick={() => handleDelete(nss.id)}
                         >
                           Delete
                         </button>
@@ -483,13 +844,57 @@ const Nss_Yrc: React.FC = () => {
                 ) : (
                   <tr>
                     <td colSpan={11} className="text-center">
-                      No NSS data available.
+                      No NSS/YRC data available.
                     </td>
                   </tr>
                 )}
               </tbody>
             </Table>
+            {/* Pagination Controls */}
+            <div className="d-flex justify-content-between align-items-center mt-3">
+              <Button
+                color="primary"
+                disabled={currentPage === 1}
+                onClick={() => handlePageChange(currentPage - 1)}
+              >
+                Previous
+              </Button>
+              <div>
+                Page {currentPage} of {totalPages}
+              </div>
+              <Button
+                color="primary"
+                disabled={currentPage === totalPages}
+                onClick={() => handlePageChange(currentPage + 1)}
+              >
+                Next
+              </Button>
+            </div>
           </ModalBody>
+        </Modal>
+        {/* Confirmation Modal */}
+        <Modal
+          isOpen={isDeleteModalOpen}
+          toggle={() => setIsDeleteModalOpen(false)}
+        >
+          <ModalHeader toggle={() => setIsDeleteModalOpen(false)}>
+            Confirm Deletion
+          </ModalHeader>
+          <ModalBody>
+            Are you sure you want to delete this record? This action cannot be
+            undone.
+          </ModalBody>
+          <ModalFooter>
+            <Button color="danger" onClick={() => confirmDelete(deleteId!)}>
+              Delete
+            </Button>
+            <Button
+              color="secondary"
+              onClick={() => setIsDeleteModalOpen(false)}
+            >
+              Cancel
+            </Button>
+          </ModalFooter>
         </Modal>
       </div>
       <ToastContainer />

@@ -8,7 +8,7 @@ import ProgramTypeDropdown from "Components/DropDowns/ProgramTypeDropdown";
 import SemesterDropdowns from "Components/DropDowns/SemesterDropdowns";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { useFormik } from "formik";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -36,7 +36,7 @@ const api = new APIClient();
 
 const Guest_Lectures: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [bosData, setBosData] = useState<any[]>([]);
+  const [gLData, setGLData] = useState<any[]>([]);
   const [selectedStream, setSelectedStream] = useState<any>(null);
   const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -45,18 +45,20 @@ const Guest_Lectures: React.FC = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
-  const [filteredData, setFilteredData] = useState(bosData);
+  const [filteredData, setFilteredData] = useState(gLData);
   const [searchTerm, setSearchTerm] = useState("");
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
+
+  const fileRef = useRef<HTMLInputElement | null>(null);
 
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
 
-    const filtered = bosData.filter((row) =>
+    const filtered = gLData.filter((row) =>
       Object.values(row).some((val) =>
         String(val || "")
           .toLowerCase()
@@ -82,21 +84,21 @@ const Guest_Lectures: React.FC = () => {
     setIsModalOpen(!isModalOpen);
   };
 
-  // Fetch BOS data from the backend
-  const fetchBosData = async () => {
+  // Fetch Guest Lectures from the backend
+  const fetchGuestLectureData = async () => {
     try {
-      const response = await axios.get("/staffProfile/getAllStaffProfile"); // Replace with your backend API endpoint
-      setBosData(response);
+      const response = await axios.get("/guestLectures/getAll"); // Replace with your backend API endpoint
+      setGLData(response);
       setFilteredData(response);
     } catch (error) {
-      console.error("Error fetching BOS data:", error);
+      console.error("Error fetching Guest Lectures:", error);
     }
   };
 
   // Open the modal and fetch data
-  const handleListBosClick = () => {
+  const handleListGLClick = () => {
     toggleModal();
-    fetchBosData();
+    fetchGuestLectureData();
   };
 
   // Map value to label for dropdowns
@@ -110,11 +112,11 @@ const Guest_Lectures: React.FC = () => {
   };
 
   // Handle edit action
-  // Fetch the data for the selected BOS ID and populate the form fields
+  // Fetch the data for the selected Guest Lectures ID and populate the form fields
   const handleEdit = async (id: string) => {
     try {
       const response = await api.get(
-        `/staffProfile/edit?staffProfileId=${id}`,
+        `/guestLectures/edit?guestLecturesId=${id}`,
         ""
       );
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
@@ -141,11 +143,12 @@ const Guest_Lectures: React.FC = () => {
             }
           : null,
         courses: response.courses
-          ? {
-              value: response.courses.toString(),
-              label: response.courses,
-            }
-          : null,
+          ? Object.entries(response.courses).map(([key, value]) => ({
+              value: key,
+              label: String(value),
+            }))
+          : [],
+
         semType: response.semType
           ? {
               value: response.semType.toString(),
@@ -156,12 +159,12 @@ const Guest_Lectures: React.FC = () => {
           ? moment(response.date, "DD/MM/YYYY").format("YYYY-MM-DD") // Convert to yyyy-mm-dd for the input
           : "",
         resourcePersonName: response.resourcePersonName || "",
-        resourcePersonOrganization: response.resourcePersonOrganization || "",
-        affiliationOrg: response.affiliationOrg || "",
+        resourcePersonOrganization: response.resourcePersonDesignation || "",
+        affiliationOrg: response.organisation || "",
         titleOfTalk: response.titleOfTalk || "",
         targetAudience: response.targetAudience || "",
         noOfParticipants: response.noOfParticipants || "",
-        file: response.file || null, // Handle file upload
+        guestLecture: response.documents.guestLecture || null, // Handle file upload
       };
 
       // Update Formik values
@@ -181,12 +184,7 @@ const Guest_Lectures: React.FC = () => {
               value: String(mappedValues.department.value),
             }
           : null,
-        courses: mappedValues.courses
-          ? {
-              ...mappedValues.courses,
-              value: String(mappedValues.courses.value),
-            }
-          : null,
+        courses: mappedValues.courses || [],
         semType: mappedValues.semType
           ? {
               ...mappedValues.semType,
@@ -197,18 +195,18 @@ const Guest_Lectures: React.FC = () => {
           ? moment(mappedValues.date, "YYYY-MM-DD").format("DD/MM/YYYY") // Convert to dd/mm/yyyy for the input
           : "",
         resourcePersonName: response.resourcePersonName || "",
-        resourcePersonOrganization: response.resourcePersonOrganization || "",
-        affiliationOrg: response.affiliationOrg || "",
+        resourcePersonOrganization: response.resourcePersonDesignation || "",
+        affiliationOrg: response.organisation || "",
         titleOfTalk: response.titleOfTalk || "",
         targetAudience: response.targetAudience || "",
         noOfParticipants: response.noOfParticipants || "",
-        file: response.file || null, // Handle file upload
+        guestLecture: response.documents.guestLecture || null, // Handle file upload
       });
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();
     } catch (error) {
-      console.error("Error fetching BOS data by ID:", error);
+      console.error("Error fetching Guest Lectures by ID:", error);
     }
   };
 
@@ -217,21 +215,21 @@ const Guest_Lectures: React.FC = () => {
     setIsDeleteModalOpen(true);
   };
 
-  // Call the delete API and refresh the BOS data
+  // Call the delete API and refresh the Guest Lectures
   const confirmDelete = async (id: string) => {
     if (deleteId) {
       try {
         const response = await api.delete(
-          `/staffProfile/deleteStaffProfile?staffProfileId=${id}`,
+          `/guestLectures/deleteGuestLectures?guestLecturesId=${id}`,
           ""
         );
         toast.success(
-          response.message || "Staff Profile removed successfully!"
+          response.message || "Guest Lectures removed successfully!"
         );
-        fetchBosData();
+        fetchGuestLectureData();
       } catch (error) {
-        toast.error("Failed to remove Staff Profile. Please try again.");
-        console.error("Error deleting BOS:", error);
+        toast.error("Failed to remove Guest Lectures. Please try again.");
+        console.error("Error deleting Guest Lectures:", error);
       } finally {
         setIsDeleteModalOpen(false);
         setDeleteId(null);
@@ -252,11 +250,73 @@ const Guest_Lectures: React.FC = () => {
     { value: "P", label: "Odd" },
   ];
 
+  // Handle file download actions
+  const handleDownloadFile = async (fileName: string) => {
+    if (fileName) {
+      try {
+        // Ensure you set responseType to 'blob' to handle binary data
+        const response = await axios.get(
+          `/guestLectures/download/${fileName}`,
+          {
+            responseType: "blob",
+          }
+        );
+
+        // Create a Blob from the response data
+        const blob = new Blob([response], { type: "*/*" });
+
+        // Create a URL for the Blob
+        const url = window.URL.createObjectURL(blob);
+
+        // Create a temporary anchor element to trigger the download
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = fileName; // Set the file name for the download
+        document.body.appendChild(link);
+        link.click();
+
+        // Clean up the URL and remove the anchor element
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        toast.success("File downloaded successfully!");
+      } catch (error) {
+        toast.error("Failed to download excel file. Please try again.");
+        console.error("Error downloading file:", error);
+      }
+    } else {
+      toast.error("No file available for download.");
+    }
+  };
+
+  // Handle file deletion
+  // Clear the file from the form and show success message
+  const handleDeleteFile = async (fileName: string, docType: string) => {
+    try {
+      // Call the delete API
+      const response = await api.delete(
+        `/guestLectures/deleteGuestLecturesDocument?guestLecturesId=${editId}&docType=${docType}`,
+        ""
+      );
+      // Show success message
+      toast.success(response.message || "File deleted successfully!");
+      // Remove the file from the form
+      if (docType === "guestLecture") {
+        validation.setFieldValue("guestLecture", null);
+      }
+      setIsFileUploadDisabled(false); // Enable the file upload button
+    } catch (error) {
+      // Show error message
+      toast.error("Failed to delete the file. Please try again.");
+      console.error("Error deleting file:", error);
+    }
+  };
+
   const validation = useFormik({
     initialValues: {
       academicYear: null as { value: string; label: string } | null,
       department: null as { value: string; label: string } | null,
-      courses: null as { value: string; label: string } | null,
+      courses: [] as { value: string; label: string }[],
       semType: null as { value: string; label: string } | null,
       date: "",
       resourcePersonName: "",
@@ -266,7 +326,7 @@ const Guest_Lectures: React.FC = () => {
       targetAudience: "",
       noOfParticipants: "",
       stream: null as { value: string; label: string } | null,
-      file: null as File | string | null, // Allow file to be a string for edit mode
+      guestLecture: null as File | string | null, // Allow file to be a string for edit mode
     },
     validationSchema: Yup.object({
       academicYear: Yup.object()
@@ -274,7 +334,15 @@ const Guest_Lectures: React.FC = () => {
         .required("Please select academic year"),
       stream: Yup.object().nullable().required("Please select stream"),
       department: Yup.object().nullable().required("Please select department"),
-      courses: Yup.object().nullable().required("Please select program"),
+      courses: Yup.array()
+        .of(
+          Yup.object().shape({
+            value: Yup.string().required(),
+            label: Yup.string().required(),
+          })
+        )
+        .min(1, "Please select program")
+        .required("Please select program"),
       semType: Yup.object().nullable().required("Please select semester"),
       date: Yup.string()
         .required("Please select date")
@@ -300,45 +368,78 @@ const Guest_Lectures: React.FC = () => {
       targetAudience: Yup.string().required("Please enter target audience"),
     }),
     onSubmit: async (values, { resetForm }) => {
-      const payload = {
-        academicYear: values.academicYear?.value || "",
-        streamId: values.stream?.value || "",
-        resourcePersonName: values.resourcePersonName || "",
-        resourcePersonOrganization: values.resourcePersonOrganization || "",
-        affiliationOrg: values.affiliationOrg || "",
-        titleOfTalk: values.titleOfTalk || "",
-        targetAudience: values.targetAudience || "",
-      };
-
-      // If editing, include the ID
-      if (isEditMode && editId) {
-        payload["staffProfileId"] = editId;
-      }
-
       try {
+        const formData = new FormData();
+
+        formData.append("academicYear", values.academicYear?.value || "");
+        formData.append("streamId", values.stream?.value || "");
+        formData.append("departmentId", values.department?.value || "");
+        formData.append("resourcePersonName", values.resourcePersonName || "");
+        formData.append(
+          "resourcePersonDesignation",
+          values.resourcePersonOrganization || ""
+        );
+        formData.append("organisation", values.affiliationOrg || "");
+        formData.append("titleOfTalk", values.titleOfTalk || "");
+        formData.append("targetAudience", values.targetAudience || "");
+        formData.append("semType", values.semType?.value || "");
+        formData.append("date", values.date || "");
+        formData.append("noOfParticipants", values.noOfParticipants || "");
+
+        // Append courses (assuming it's a multi-select)
+        values.courses.forEach((course, index) => {
+          formData.append(`courseIds[${index}]`, course.value);
+        });
+
+        if (isEditMode && typeof values.guestLecture === "string") {
+          // Pass an empty PDF instead of null
+          formData.append(
+            "file",
+            new Blob([], { type: "application/pdf" }),
+            "empty.pdf"
+          );
+        } else if (isEditMode && values.guestLecture === null) {
+          formData.append(
+            "file",
+            new Blob([], { type: "application/pdf" }),
+            "empty.pdf"
+          );
+        } else if (values.guestLecture) {
+          formData.append("file", values.guestLecture);
+        }
+        // If editing, include the ID
         if (isEditMode && editId) {
-          // Call the update API
-          const response = await api.put(`/staffProfile/update`, payload);
+          formData.append("guestLectureId", editId);
+        }
+
+        let response;
+
+        if (isEditMode && editId) {
+          response = await api.put("/guestLectures/update", formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+          });
           toast.success(
-            response.message || "Staff Profile updated successfully!"
+            response.message || "Guest Lectures updated successfully!"
           );
         } else {
-          // Call the save API
-          const response = await api.create("/staffProfile/save", payload);
+          response = await api.create("/guestLectures/save", formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+          });
           toast.success(
-            response.message || "Staff Profile added successfully!"
+            response.message || "Guest Lectures added successfully!"
           );
         }
-        // Reset the form fields
+
         resetForm();
-        setIsEditMode(false); // Reset edit mode
-        setEditId(null); // Clear the edit ID
-        // display the BOS List
-        handleListBosClick();
+        if (fileRef.current) {
+          fileRef.current.value = "";
+        }
+        setIsEditMode(false);
+        setEditId(null);
+        handleListGLClick();
       } catch (error) {
-        // Display error message
-        toast.error("Failed to save Staff Profile. Please try again.");
-        console.error("Error creating BOS:", error);
+        toast.error("Failed to save Guest Lectures. Please try again.");
+        console.error("Error creating Guest Lectures:", error);
       }
     },
   });
@@ -541,7 +642,7 @@ const Guest_Lectures: React.FC = () => {
                             e.target.value
                           )
                         }
-                        placeholder="Enter no of staff"
+                        placeholder="Enter Resource Person Name"
                         value={validation.values.resourcePersonName}
                       />
                       {validation.touched.resourcePersonName &&
@@ -573,7 +674,7 @@ const Guest_Lectures: React.FC = () => {
                             e.target.value
                           )
                         }
-                        placeholder="Enter full time"
+                        placeholder="Enter Resource Person Designation"
                         value={validation.values.resourcePersonOrganization}
                       />
                       {validation.touched.resourcePersonOrganization &&
@@ -605,7 +706,7 @@ const Guest_Lectures: React.FC = () => {
                             e.target.value
                           )
                         }
-                        placeholder="Enter part time"
+                        placeholder="Enter Affiliation/Organization"
                         value={validation.values.affiliationOrg}
                       />
                       {validation.touched.affiliationOrg &&
@@ -637,7 +738,7 @@ const Guest_Lectures: React.FC = () => {
                             e.target.value
                           )
                         }
-                        placeholder="Enter guest faculty"
+                        placeholder="Enter Title of the Talk"
                         value={validation.values.titleOfTalk}
                       />
                       {validation.touched.titleOfTalk &&
@@ -669,7 +770,7 @@ const Guest_Lectures: React.FC = () => {
                             e.target.value
                           )
                         }
-                        placeholder="Enter professor of practice"
+                        placeholder="Enter Target Audience"
                         value={validation.values.targetAudience}
                       />
                       {validation.touched.targetAudience &&
@@ -733,15 +834,16 @@ const Guest_Lectures: React.FC = () => {
                       </Tooltip>
                       <Input
                         className={`form-control ${
-                          validation.touched.file && validation.errors.file
+                          validation.touched.guestLecture && validation.errors.guestLecture
                             ? "is-invalid"
                             : ""
                         }`}
                         type="file"
                         id="formFile"
+                        innerRef={fileRef}
                         onChange={(event) => {
                           validation.setFieldValue(
-                            "file",
+                            "guestLecture",
                             event.currentTarget.files
                               ? event.currentTarget.files[0]
                               : null
@@ -749,9 +851,9 @@ const Guest_Lectures: React.FC = () => {
                         }}
                         disabled={isFileUploadDisabled} // Disable the button if a file exists
                       />
-                      {validation.touched.file && validation.errors.file && (
+                      {validation.touched.guestLecture && validation.errors.guestLecture && (
                         <div className="text-danger">
-                          {validation.errors.file}
+                          {validation.errors.guestLecture}
                         </div>
                       )}
                       {/* Show a message if the file upload button is disabled */}
@@ -761,22 +863,22 @@ const Guest_Lectures: React.FC = () => {
                         </div>
                       )}
                       {/* Only show the file name if it is a string (from the edit API) */}
-                      {typeof validation.values.file === "string" && (
+                      {typeof validation.values.guestLecture === "string" && (
                         <div className="mt-2 d-flex align-items-center">
                           <span
                             className="me-2"
                             style={{ fontWeight: "bold", color: "green" }}
                           >
-                            {validation.values.file}
+                            {validation.values.guestLecture}
                           </span>
                           <Button
                             color="link"
                             className="text-primary"
-                            // onClick={() =>
-                            //   handleDownloadFile(
-                            //     validation.values.file as string
-                            //   )
-                            // }
+                            onClick={() =>
+                              handleDownloadFile(
+                                validation.values.guestLecture as string
+                              )
+                            }
                             title="Download File"
                           >
                             <i className="bi bi-download"></i>
@@ -784,7 +886,12 @@ const Guest_Lectures: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
-                            // onClick={() => handleDeleteFile()}
+                            onClick={() =>
+                              handleDeleteFile(
+                                validation.values.guestLecture as string,
+                                "guestLecture"
+                              )
+                            }
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>
@@ -799,7 +906,7 @@ const Guest_Lectures: React.FC = () => {
                       <Label>Download </Label>
                       <div>
                         <a
-                          href="/templateFiles/bos.pdf"
+                          href="/templateFiles/Guest Lectures.pdf"
                           download
                           className="btn btn-primary btn-sm"
                         >
@@ -818,7 +925,7 @@ const Guest_Lectures: React.FC = () => {
                       <button
                         className="btn btn-secondary"
                         type="button"
-                        onClick={handleListBosClick}
+                        onClick={handleListGLClick}
                       >
                         List
                       </button>
@@ -829,9 +936,14 @@ const Guest_Lectures: React.FC = () => {
             </CardBody>
           </Card>
         </Container>
-        {/* Modal for Listing BOS */}
-        <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg">
-          <ModalHeader toggle={toggleModal}>List Staff Profile</ModalHeader>
+        {/* Modal for Listing Guest Lectures */}
+        <Modal
+          isOpen={isModalOpen}
+          toggle={toggleModal}
+          size="lg"
+          style={{ maxWidth: "100%", width: "auto" }}
+        >
+          <ModalHeader toggle={toggleModal}>List Guest Lectures</ModalHeader>
           <ModalBody>
             <Table className="table-hover custom-table">
               <thead>
@@ -839,35 +951,43 @@ const Guest_Lectures: React.FC = () => {
                   <th>#</th>
                   <th>Academic Year</th>
                   <th>Stream</th>
-                  <th>No.Of Staff</th>
-                  <th>Full Time</th>
-                  <th>Part Time</th>
-                  <th>Guest Faculty</th>
+                  <th>Department</th>
+                  <th>Semester Type</th>
+                  <th>Resource Person</th>
+                  <th>Resource Person Designation</th>
+                  <th>Organisation</th>
+                  <th>Title of Talk</th>
+                  <th>Target Audience</th>
+                  <th>No.Of Participants</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {bosData.length > 0 ? (
-                  bosData.map((bos, index) => (
-                    <tr key={bos.id}>
+                {gLData.length > 0 ? (
+                  gLData.map((gl, index) => (
+                    <tr key={gl.guestLectureId}>
                       <td>{index + 1}</td>
-                      <td>{bos.academicYear}</td>
-                      <td>{bos.streamName}</td>
-                      <td>{bos.resourcePersonName}</td>
-                      <td>{bos.resourcePersonOrganization}</td>
-                      <td>{bos.affiliationOrg}</td>
-                      <td>{bos.titleOfTalk}</td>
+                      <td>{gl.academicYear}</td>
+                      <td>{gl.streamName}</td>
+                      <td>{gl.departmentName}</td>
+                      <td>{gl.semType}</td>
+                      <td>{gl.resourcePersonName}</td>
+                      <td>{gl.resourcePersonDesignation}</td>
+                      <td>{gl.organisation}</td>
+                      <td>{gl.titleOfTalk}</td>
+                      <td>{gl.targetAudience}</td>
+                      <td>{gl.noOfParticipants}</td>
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
                             className="btn btn-sm btn-warning me-2"
-                            onClick={() => handleEdit(bos.staffProfileId)}
+                            onClick={() => handleEdit(gl.guestLectureId)}
                           >
                             Edit
                           </button>
                           <button
                             className="btn btn-sm btn-danger"
-                            onClick={() => handleDelete(bos.staffProfileId)}
+                            onClick={() => handleDelete(gl.guestLectureId)}
                           >
                             Delete
                           </button>
@@ -878,7 +998,7 @@ const Guest_Lectures: React.FC = () => {
                 ) : (
                   <tr>
                     <td colSpan={4} className="text-center">
-                      No BOS data available.
+                      No Guest Lectures available.
                     </td>
                   </tr>
                 )}

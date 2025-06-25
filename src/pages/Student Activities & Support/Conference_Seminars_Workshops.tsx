@@ -6,7 +6,7 @@ import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
 import Select from "react-select";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { useFormik } from "formik";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -26,7 +26,9 @@ import {
 import * as Yup from "yup";
 import { APIClient } from "../../helpers/api_helper";
 import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import moment from "moment";
+import { co } from "@fullcalendar/core/internal-common";
 
 const api = new APIClient();
 
@@ -41,11 +43,17 @@ const Conference_Seminars_Workshops: React.FC = () => {
   const [filteredData, setFilteredData] = useState(cswData);
   const [filters, setFilters] = useState({
     academicYear: "",
+    stream: "",
+    department: "",
     level: "",
-    type: "",
-    TOTCSWT: "",
+    funding: "",
     collaboratingOrg: "",
     amount: "",
+    fromDate: "",
+    toDate: "",
+    location: "",
+    conferenceTitle: "",
+    collaboratingOrganisation: "",
   });
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -55,6 +63,8 @@ const Conference_Seminars_Workshops: React.FC = () => {
   const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
+  const brochureRef = useRef<HTMLInputElement | null>(null);
+  const conferenceRef = useRef<HTMLInputElement | null>(null);
 
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -110,7 +120,7 @@ const Conference_Seminars_Workshops: React.FC = () => {
   // Fetch Conference, Seminars & Workshops data from the backend
   const fetchCSWData = async () => {
     try {
-      const response = await axios.get("/teacherDetails/getAllClassRoomTools"); // Replace with your backend API endpoint
+      const response = await axios.get("/conference/getAll"); // Replace with your backend API endpoint
       setCSWData(response);
       setFilteredData(response);
     } catch (error) {
@@ -140,10 +150,7 @@ const Conference_Seminars_Workshops: React.FC = () => {
   // Fetch the data for the selected Conference, Seminars & Workshops ID and populate the form fields
   const handleEdit = async (id: string) => {
     try {
-      const response = await api.get(
-        `/teacherDetails/edit?id=${id}&screenName=TEACHERDETAILS`,
-        ""
-      );
+      const response = await api.get(`/conference/edit?conferenceId=${id}`, "");
       if (!response) {
         toast.error("No data found for the selected ID.");
         return;
@@ -159,10 +166,11 @@ const Conference_Seminars_Workshops: React.FC = () => {
           response.funding,
           capType // Assuming you have a capType options array
         ),
-        collaboratingOrg: response.academicExperience || "",
-        amount: response.industrialExperience || "",
-        TOTCSWT: response.TOTCSWT || "",
-        file: response.document?.excel || null,
+        collaboratingOrg: response.collaboratingOrganisation || "",
+        amount: response.amount || "",
+        TOTCSWT: response.conferenceTitle || "",
+        brochure: response.documents?.brochure || null,
+        conference: response.documents?.conference || null,
         academicYear: response.academicYear
           ? { value: response.academicYear, label: response.academicYear }
           : null,
@@ -176,23 +184,21 @@ const Conference_Seminars_Workshops: React.FC = () => {
             }
           : null,
         fromDate: response.fromDate
-          ? moment(response.fromDate).format("DD/MM/YYYY")
+          ? moment(response.fromDate, "DD/MM/YYYY").format("DD/MM/YYYY")
           : "",
+
         toDate: response.toDate
-          ? moment(response.toDate).format("DD/MM/YYYY")
+          ? moment(response.toDate, "DD/MM/YYYY").format("DD/MM/YYYY")
           : "",
+
         location: response.location || "",
       };
 
       // Update Formik values
       validation.setValues({
         ...mappedValues,
-        academicYear: null, // Assuming you handle academic year separately
         level: mapValueToLabel(response.level, level),
         funding: mapValueToLabel(response.funding, capType),
-        collaboratingOrg: response.academicExperience || "",
-        amount: response.industrialExperience || "",
-        TOTCSWT: response.TOTCSWT || "",
       });
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
@@ -218,7 +224,7 @@ const Conference_Seminars_Workshops: React.FC = () => {
     if (deleteId) {
       try {
         const response = await api.delete(
-          `/teacherDetails/deleteClassRoomTools?id=${id}&screenName=TEACHERDETAILS`,
+          `/conference/deleteConference?conferenceId=${id}`,
           ""
         );
         toast.success(
@@ -265,12 +271,9 @@ const Conference_Seminars_Workshops: React.FC = () => {
     if (fileName) {
       try {
         // Ensure you set responseType to 'blob' to handle binary data
-        const response = await axios.get(
-          `/studentStrengthProgramWise/download/${fileName}`,
-          {
-            responseType: "blob",
-          }
-        );
+        const response = await axios.get(`/conference/download/${fileName}`, {
+          responseType: "blob",
+        });
 
         // Create a Blob from the response data
         const blob = new Blob([response], { type: "*/*" });
@@ -301,17 +304,21 @@ const Conference_Seminars_Workshops: React.FC = () => {
 
   // Handle file deletion
   // Clear the file from the form and show success message
-  const handleDeleteFile = async () => {
+  const handleDeleteFile = async (fileName: string, docType: string) => {
     try {
       // Call the delete API
       const response = await api.delete(
-        `/studentStrengthProgramWise/deleteTotalStudStrengthDocument?totalStudentStrengthId=${editId}`,
+        `/conference/deleteConferenceDocuments?conferenceId=${editId}&docType=${docType}`,
         ""
       );
       // Show success message
       toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
-      validation.setFieldValue("file", null); // Clear the file from Formik state
+      if (docType === "brochure") {
+        validation.setFieldValue("brochure", null);
+      } else if (docType === "conference") {
+        validation.setFieldValue("conference", null);
+      }
       setIsFileUploadDisabled(false); // Enable the file upload button
     } catch (error) {
       // Show error message
@@ -333,7 +340,8 @@ const Conference_Seminars_Workshops: React.FC = () => {
       fromDate: "",
       toDate: "",
       location: "",
-      file: null as File | string | null,
+      brochure: null as File | string | null,
+      conference: null as File | string | null,
     },
     validationSchema: Yup.object({
       academicYear: Yup.object()
@@ -364,7 +372,31 @@ const Conference_Seminars_Workshops: React.FC = () => {
         .test("is-valid-date", "Invalid start date", (value) =>
           moment(value, "DD/MM/YYYY", true).isValid()
         ),
-      file: Yup.mixed().test(
+      brochure: Yup.mixed().test(
+        "fileValidation",
+        "Please upload a valid file",
+        function (value) {
+          // Skip validation if the file upload is disabled (file exists)
+          if (isFileUploadDisabled) {
+            return true;
+          }
+          // Perform validation if the file upload is enabled (file doesn't exist)
+          if (!value) {
+            return this.createError({ message: "Please upload a file" });
+          }
+          // Check file size (2MB limit)
+          if (value instanceof File && value.size > 2 * 1024 * 1024) {
+            return this.createError({ message: "File size is too large" });
+          }
+          // Check file type
+          const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
+          if (value instanceof File && !allowedTypes.includes(value.type)) {
+            return this.createError({ message: "Unsupported file format" });
+          }
+          return true;
+        }
+      ),
+      conference: Yup.mixed().test(
         "fileValidation",
         "Please upload a valid file",
         function (value) {
@@ -390,29 +422,91 @@ const Conference_Seminars_Workshops: React.FC = () => {
       ),
     }),
     onSubmit: async (values, { resetForm }) => {
-      const payload = {
-        level: values.level?.value || "",
-        type: values.funding?.value || "",
-        academicExperience: values.collaboratingOrg || 0,
-        industrialExperience: values.amount || 0,
-      };
-
-      // If editing, include the ID
-      if (isEditMode && editId) {
-        payload["teacherDetailsId"] = editId;
-      }
-
       try {
+        const formData = new FormData();
+        // Append form values to FormData
+        formData.append(
+          "academicYear",
+          values.academicYear ? values.academicYear.value : ""
+        );
+        formData.append("streamId", values.stream ? values.stream.value : "");
+        formData.append(
+          "departmentId",
+          values.department ? values.department.value : ""
+        );
+        formData.append(
+          "level",
+          values.level ? values.level.value.toString() : ""
+        );
+        formData.append(
+          "funding",
+          values.funding ? values.funding.value.toString() : ""
+        );
+        formData.append("collaboratingOrganisation", values.collaboratingOrg);
+        formData.append("amount", values.amount.toString());
+        formData.append("conferenceTitle", values.TOTCSWT);
+        formData.append(
+          "fromDate",
+          values.fromDate
+            ? moment(values.fromDate, "DD/MM/YYYY").format("DD/MM/YYYY")
+            : ""
+        );
+        formData.append(
+          "toDate",
+          values.toDate
+            ? moment(values.toDate, "DD/MM/YYYY").format("DD/MM/YYYY")
+            : ""
+        );
+        formData.append("location", values.location);
+
+        if (isEditMode && typeof values.brochure === "string") {
+          // Pass an empty PDF instead of null
+          formData.append(
+            "brochure",
+            new Blob([], { type: "application/pdf" }),
+            "empty.pdf"
+          );
+        } else if (isEditMode && values.brochure === null) {
+          formData.append(
+            "brochure",
+            new Blob([], { type: "application/pdf" }),
+            "empty.pdf"
+          );
+        } else if (values.brochure) {
+          formData.append("brochure", values.brochure);
+        }
+
+        if (isEditMode && typeof values.conference === "string") {
+          // Pass an empty PDF instead of null
+          formData.append(
+            "conference",
+            new Blob([], { type: "application/pdf" }),
+            "empty.pdf"
+          );
+        } else if (isEditMode && values.conference === null) {
+          formData.append(
+            "conference",
+            new Blob([], { type: "application/pdf" }),
+            "empty.pdf"
+          );
+        } else if (values.conference) {
+          formData.append("conference", values.conference);
+        }
+        // If in edit mode, append the edit ID
+        if (isEditMode && editId) {
+          formData.append("conferenceId", editId);
+        }
+
         if (isEditMode && editId) {
           // Call the update API
-          const response = await api.put(`/teacherDetails/update`, payload);
+          const response = await api.put(`/conference/update`, formData);
           toast.success(
             response.message ||
               "Conference, Seminars & Workshops updated successfully!"
           );
         } else {
           // Call the save API
-          const response = await api.create("/teacherDetails/save", payload);
+          const response = await api.create("/conference/save", formData);
           toast.success(
             response.message ||
               "Conference, Seminars & Workshops added successfully!"
@@ -420,6 +514,12 @@ const Conference_Seminars_Workshops: React.FC = () => {
         }
         // Reset the form fields
         resetForm();
+        if (brochureRef.current) {
+          brochureRef.current.value = "";
+        }
+        if (conferenceRef.current) {
+          conferenceRef.current.value = "";
+        }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         handleListCSWClick();
@@ -673,7 +773,7 @@ const Conference_Seminars_Workshops: React.FC = () => {
                             e.target.value
                           )
                         }
-                        placeholder="Enter academic experience"
+                        placeholder="Enter collaborating organization"
                       />
                       {validation.touched.collaboratingOrg &&
                         validation.errors.collaboratingOrg && (
@@ -762,6 +862,7 @@ const Conference_Seminars_Workshops: React.FC = () => {
                         )}
                     </div>
                   </Col>
+
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
@@ -782,15 +883,17 @@ const Conference_Seminars_Workshops: React.FC = () => {
                       </Tooltip>
                       <Input
                         className={`form-control ${
-                          validation.touched.file && validation.errors.file
+                          validation.touched.brochure &&
+                          validation.errors.brochure
                             ? "is-invalid"
                             : ""
                         }`}
                         type="file"
                         id="formFile"
+                        innerRef={brochureRef}
                         onChange={(event) => {
                           validation.setFieldValue(
-                            "file",
+                            "brochure",
                             event.currentTarget.files
                               ? event.currentTarget.files[0]
                               : null
@@ -798,11 +901,12 @@ const Conference_Seminars_Workshops: React.FC = () => {
                         }}
                         disabled={isFileUploadDisabled} // Disable the button if a file exists
                       />
-                      {validation.touched.file && validation.errors.file && (
-                        <div className="text-danger">
-                          {validation.errors.file}
-                        </div>
-                      )}
+                      {validation.touched.brochure &&
+                        validation.errors.brochure && (
+                          <div className="text-danger">
+                            {validation.errors.brochure}
+                          </div>
+                        )}
                       {/* Show a message if the file upload button is disabled */}
                       {isFileUploadDisabled && (
                         <div className="text-warning mt-2">
@@ -810,20 +914,20 @@ const Conference_Seminars_Workshops: React.FC = () => {
                         </div>
                       )}
                       {/* Only show the file name if it is a string (from the edit API) */}
-                      {typeof validation.values.file === "string" && (
+                      {typeof validation.values.brochure === "string" && (
                         <div className="mt-2 d-flex align-items-center">
                           <span
                             className="me-2"
                             style={{ fontWeight: "bold", color: "green" }}
                           >
-                            {validation.values.file}
+                            {validation.values.brochure}
                           </span>
                           <Button
                             color="link"
                             className="text-primary"
                             onClick={() =>
                               handleDownloadFile(
-                                validation.values.file as string
+                                validation.values.brochure as string
                               )
                             }
                             title="Download File"
@@ -833,7 +937,12 @@ const Conference_Seminars_Workshops: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
-                            onClick={() => handleDeleteFile()}
+                            onClick={() =>
+                              handleDeleteFile(
+                                validation.values.brochure as string,
+                                "brochure"
+                              )
+                            }
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>
@@ -863,15 +972,17 @@ const Conference_Seminars_Workshops: React.FC = () => {
                       </Tooltip>
                       <Input
                         className={`form-control ${
-                          validation.touched.file && validation.errors.file
+                          validation.touched.conference &&
+                          validation.errors.conference
                             ? "is-invalid"
                             : ""
                         }`}
                         type="file"
                         id="formFile"
+                        innerRef={conferenceRef}
                         onChange={(event) => {
                           validation.setFieldValue(
-                            "file",
+                            "conference",
                             event.currentTarget.files
                               ? event.currentTarget.files[0]
                               : null
@@ -879,11 +990,12 @@ const Conference_Seminars_Workshops: React.FC = () => {
                         }}
                         disabled={isFileUploadDisabled} // Disable the button if a file exists
                       />
-                      {validation.touched.file && validation.errors.file && (
-                        <div className="text-danger">
-                          {validation.errors.file}
-                        </div>
-                      )}
+                      {validation.touched.conference &&
+                        validation.errors.conference && (
+                          <div className="text-danger">
+                            {validation.errors.conference}
+                          </div>
+                        )}
                       {/* Show a message if the file upload button is disabled */}
                       {isFileUploadDisabled && (
                         <div className="text-warning mt-2">
@@ -891,20 +1003,20 @@ const Conference_Seminars_Workshops: React.FC = () => {
                         </div>
                       )}
                       {/* Only show the file name if it is a string (from the edit API) */}
-                      {typeof validation.values.file === "string" && (
+                      {typeof validation.values.conference === "string" && (
                         <div className="mt-2 d-flex align-items-center">
                           <span
                             className="me-2"
                             style={{ fontWeight: "bold", color: "green" }}
                           >
-                            {validation.values.file}
+                            {validation.values.conference}
                           </span>
                           <Button
                             color="link"
                             className="text-primary"
                             onClick={() =>
                               handleDownloadFile(
-                                validation.values.file as string
+                                validation.values.conference as string
                               )
                             }
                             title="Download File"
@@ -914,7 +1026,12 @@ const Conference_Seminars_Workshops: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
-                            onClick={() => handleDeleteFile()}
+                            onClick={() =>
+                              handleDeleteFile(
+                                validation.values.conference as string,
+                                "conference"
+                              )
+                            }
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>
@@ -933,7 +1050,7 @@ const Conference_Seminars_Workshops: React.FC = () => {
                           download
                           className="btn btn-primary btn-sm"
                         >
-                          Sample BOS Template
+                          Collaboration/Funding agency Template
                         </a>
                       </div>
                     </div>
@@ -948,7 +1065,7 @@ const Conference_Seminars_Workshops: React.FC = () => {
                           download
                           className="btn btn-primary btn-sm"
                         >
-                          Sample BOS Template
+                          Feedback Excel Template
                         </a>
                       </div>
                     </div>
@@ -975,8 +1092,13 @@ const Conference_Seminars_Workshops: React.FC = () => {
           </Card>
         </Container>
         {/* Modal for Listing Conference, Seminars & Workshops */}
-        <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg">
-          <ModalHeader toggle={toggleModal}>List Teacher Details</ModalHeader>
+        <Modal
+          isOpen={isModalOpen}
+          toggle={toggleModal}
+          size="lg"
+          style={{ maxWidth: "100%", width: "auto" }}
+        >
+          <ModalHeader toggle={toggleModal}>List Conference, Seminars & Workshops</ModalHeader>
           <ModalBody>
             {/* Global Search */}
             <div className="mb-3">
@@ -1001,27 +1123,7 @@ const Conference_Seminars_Workshops: React.FC = () => {
                     />
                   </th>
                   <th>
-                    Soft Skills
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.TOTCSWT}
-                      onChange={(e) => handleFilterChange(e, "TOTCSWT")}
-                    />
-                  </th>
-                  <th>
-                    Language and Communication Skills
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.collaboratingOrg}
-                      onChange={(e) =>
-                        handleFilterChange(e, "collaboratingOrg")
-                      }
-                    />
-                  </th>
-                  <th>
-                    Life Skills
+                    Level
                     <Input
                       type="text"
                       placeholder="Filter"
@@ -1030,51 +1132,123 @@ const Conference_Seminars_Workshops: React.FC = () => {
                     />
                   </th>
                   <th>
-                    Type
+                    Stream
                     <Input
                       type="text"
                       placeholder="Filter"
-                      value={filters.type}
-                      onChange={(e) => handleFilterChange(e, "type")}
+                      value={filters.stream}
+                      onChange={(e) => handleFilterChange(e, "stream")}
                     />
                   </th>
                   <th>
-                    Qualification
+                    Department
                     <Input
                       type="text"
                       placeholder="Filter"
-                      value={filters.TOTCSWT}
-                      onChange={(e) => handleFilterChange(e, "TOTCSWT")}
+                      value={filters.department}
+                      onChange={(e) => handleFilterChange(e, "department")}
                     />
                   </th>
-
+                  <th>
+                    Conference Title
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.conferenceTitle}
+                      onChange={(e) => handleFilterChange(e, "conferenceTitle")}
+                    />
+                  </th>
+                  <th>
+                    From Date
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.fromDate}
+                      onChange={(e) => handleFilterChange(e, "fromDate")}
+                    />
+                  </th>
+                  <th>
+                    To Date
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.toDate}
+                      onChange={(e) => handleFilterChange(e, "toDate")}
+                    />
+                  </th>
+                  <th>
+                    Collaborating Organisation
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.collaboratingOrganisation}
+                      onChange={(e) =>
+                        handleFilterChange(e, "collaboratingOrganisation")
+                      }
+                    />
+                  </th>
+                  <th>
+                    Location
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.location}
+                      onChange={(e) => handleFilterChange(e, "location")}
+                    />
+                  </th>
+                  <th>
+                    Funding
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.funding}
+                      onChange={(e) => handleFilterChange(e, "funding")}
+                    />
+                  </th>
+                  <th>
+                    Amount
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.amount}
+                      onChange={(e) => handleFilterChange(e, "amount")}
+                    />
+                  </th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {currentRows.length > 0 ? (
                   currentRows.map((cds, index) => (
-                    <tr key={cds.teacherDetailsId}>
+                    <tr key={cds.conferenceId}>
                       <td>{index + 1}</td>
                       <td>{cds.academicYear}</td>
-                      <td>{cds.softSkills}</td>
+                      <td>{cds.level}</td>
                       <td>{cds.streamName}</td>
                       <td>{cds.departmentName}</td>
-                      <td>{cds.type}</td>
-                      <td>{cds.TOTCSWT}</td>
+                      <td>{cds.conferenceTitle}</td>
+                      <td>{cds.fromDate}</td>
+                      <td>{cds.toDate}</td>
+                      <td>{cds.collaboratingOrganisation}</td>
+                      <td>{cds.location}</td>
+                      <td>{cds.funding}</td>
+                      <td>{cds.amount}</td>
+
                       <td>
-                        <button
-                          className="btn btn-sm btn-warning me-2"
-                          onClick={() => handleEdit(cds.teacherDetailsId)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="btn btn-sm btn-danger"
-                          onClick={() => handleDelete(cds.teacherDetailsId)}
-                        >
-                          Delete
-                        </button>
+                        <div className="d-flex justify-content-center gap-2">
+                          <button
+                            className="btn btn-sm btn-warning me-2"
+                            onClick={() => handleEdit(cds.conferenceId)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="btn btn-sm btn-danger"
+                            onClick={() => handleDelete(cds.conferenceId)}
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -1109,6 +1283,7 @@ const Conference_Seminars_Workshops: React.FC = () => {
             </div>
           </ModalBody>
         </Modal>
+
         <Modal
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
