@@ -6,7 +6,7 @@ import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
 import Select from "react-select";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { useFormik } from "formik";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -27,6 +27,7 @@ import * as Yup from "yup";
 import { APIClient } from "../../helpers/api_helper";
 import { toast, ToastContainer } from "react-toastify";
 import moment from "moment";
+import { s } from "@fullcalendar/core/internal-common";
 
 const api = new APIClient();
 
@@ -52,6 +53,7 @@ const CapacityDevelopment_Skills: React.FC = () => {
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
+  const fileRef = useRef<HTMLInputElement | null>(null);
 
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -107,7 +109,7 @@ const CapacityDevelopment_Skills: React.FC = () => {
   // Fetch Capacity development & Skills enhancement data from the backend
   const fetchCDSData = async () => {
     try {
-      const response = await axios.get("/teacherDetails/getAllClassRoomTools"); // Replace with your backend API endpoint
+      const response = await axios.get("/capacityDevelopment/getAll"); // Replace with your backend API endpoint
       setCDSData(response);
       setFilteredData(response);
     } catch (error) {
@@ -138,7 +140,7 @@ const CapacityDevelopment_Skills: React.FC = () => {
   const handleEdit = async (id: string) => {
     try {
       const response = await api.get(
-        `/teacherDetails/edit?id=${id}&screenName=TEACHERDETAILS`,
+        `/capacityDevelopment/edit?capacityDevelopmentId=${id}`,
         ""
       );
       if (!response) {
@@ -156,24 +158,22 @@ const CapacityDevelopment_Skills: React.FC = () => {
           response.type,
           capType // Assuming you have a capType options array
         ),
-        LanguageAndCommunication: response.academicExperience || "",
-        awarenessOfTrends: response.industrialExperience || "",
-        qualification: response.qualification || "",
-        file: response.document?.excel || null,
+        LanguageAndCommunication: response.languageAndCommunicationSkills || "",
+        awarenessOfTrends: response.awarenessOfTrends || "",
+        qualification: response.softSkills || "",
+        file: response.document?.capacityDevelopment || null,
         academicYear: response.academicYear
           ? { value: response.academicYear, label: response.academicYear }
           : null,
+        softSkills: response.softSkills || "",
+        capacityDevelopmentId: response.capacityDevelopmentId || "",
       };
 
       // Update Formik values
       validation.setValues({
         ...mappedValues,
-        academicYear: null, // Assuming you handle academic year separately
         lifeSkills: mapValueToLabel(response.lifeSkills, lifeSkills),
         type: mapValueToLabel(response.type, capType),
-        LanguageAndCommunication: response.academicExperience || "",
-        awarenessOfTrends: response.industrialExperience || "",
-        qualification: response.qualification || "",
       });
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
@@ -199,7 +199,7 @@ const CapacityDevelopment_Skills: React.FC = () => {
     if (deleteId) {
       try {
         const response = await api.delete(
-          `/teacherDetails/deleteClassRoomTools?id=${id}&screenName=TEACHERDETAILS`,
+          `/capacityDevelopment/deleteCapacityDevelopment?capacityDevelopmentId=${id}`,
           ""
         );
         toast.success(
@@ -248,7 +248,7 @@ const CapacityDevelopment_Skills: React.FC = () => {
       try {
         // Ensure you set responseType to 'blob' to handle binary data
         const response = await axios.get(
-          `/studentStrengthProgramWise/download/${fileName}`,
+          `/capacityDevelopment/download/${fileName}`,
           {
             responseType: "blob",
           }
@@ -287,7 +287,7 @@ const CapacityDevelopment_Skills: React.FC = () => {
     try {
       // Call the delete API
       const response = await api.delete(
-        `/studentStrengthProgramWise/deleteTotalStudStrengthDocument?totalStudentStrengthId=${editId}`,
+        `/capacityDevelopment/deleteCapacityDevelopmentDocument?capacityDevelopmentId=${editId}&docType=capacityDevelopment`,
         ""
       );
       // Show success message
@@ -353,29 +353,53 @@ const CapacityDevelopment_Skills: React.FC = () => {
       ),
     }),
     onSubmit: async (values, { resetForm }) => {
-      const payload = {
-        lifeSkills: values.lifeSkills?.value || "",
-        type: values.type?.value || "",
-        academicExperience: values.LanguageAndCommunication || 0,
-        industrialExperience: values.awarenessOfTrends || 0,
-      };
-
-      // If editing, include the ID
-      if (isEditMode && editId) {
-        payload["teacherDetailsId"] = editId;
-      }
-
       try {
+        const formData = new FormData();
+
+        formData.append("academicYear", values.academicYear?.value || "");
+        formData.append("softSkills", values.qualification || "");
+        formData.append(
+          "languageAndCommunicationSkills",
+          values.LanguageAndCommunication || ""
+        );
+        formData.append(
+          "lifeSkills",
+          values.lifeSkills?.value !== undefined
+            ? String(values.lifeSkills?.value)
+            : ""
+        );
+        formData.append(
+          "type",
+          values.type?.value !== undefined ? String(values.type?.value) : ""
+        );
+        formData.append("awarenessOfTrends", values.awarenessOfTrends || "");
+
+        // Only append if it's a File
+        if (values.file instanceof File) {
+          formData.append("file", values.file);
+        }
+
+        // If editing, include ID
+        if (isEditMode && editId) {
+          formData.append("capacityDevelopmentId", editId);
+        }
+
         if (isEditMode && editId) {
           // Call the update API
-          const response = await api.put(`/teacherDetails/update`, payload);
+          const response = await api.put(
+            `/capacityDevelopment/update`,
+            formData
+          );
           toast.success(
             response.message ||
               "Capacity development & Skills enhancement updated successfully!"
           );
         } else {
           // Call the save API
-          const response = await api.create("/teacherDetails/save", payload);
+          const response = await api.create(
+            "/capacityDevelopment/save",
+            formData
+          );
           toast.success(
             response.message ||
               "Capacity development & Skills enhancement added successfully!"
@@ -383,6 +407,9 @@ const CapacityDevelopment_Skills: React.FC = () => {
         }
         // Reset the form fields
         resetForm();
+        if (fileRef.current) {
+          fileRef.current.value = "";
+        }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         handleListTeachersClick();
@@ -605,6 +632,7 @@ const CapacityDevelopment_Skills: React.FC = () => {
                         }`}
                         type="file"
                         id="formFile"
+                        innerRef={fileRef}
                         onChange={(event) => {
                           validation.setFieldValue(
                             "file",
@@ -668,7 +696,7 @@ const CapacityDevelopment_Skills: React.FC = () => {
                           download
                           className="btn btn-primary btn-sm"
                         >
-                          Sample BOS Template
+                          Download Template
                         </a>
                       </div>
                     </div>
@@ -695,8 +723,8 @@ const CapacityDevelopment_Skills: React.FC = () => {
           </Card>
         </Container>
         {/* Modal for Listing Capacity development & Skills enhancement */}
-        <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg">
-          <ModalHeader toggle={toggleModal}>List Teacher Details</ModalHeader>
+        <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg"  style={{ maxWidth: "100%", width: "auto" }}>
+          <ModalHeader toggle={toggleModal}>List Capacity Development & Skills Enhancement</ModalHeader>
           <ModalBody>
             {/* Global Search */}
             <div className="mb-3">
@@ -759,7 +787,7 @@ const CapacityDevelopment_Skills: React.FC = () => {
                     />
                   </th>
                   <th>
-                    Qualification
+                    Awareness of trends in technology
                     <Input
                       type="text"
                       placeholder="Filter"
@@ -774,24 +802,26 @@ const CapacityDevelopment_Skills: React.FC = () => {
               <tbody>
                 {currentRows.length > 0 ? (
                   currentRows.map((cds, index) => (
-                    <tr key={cds.teacherDetailsId}>
+                    <tr key={cds.capacityDevelopmentId}>
                       <td>{index + 1}</td>
                       <td>{cds.academicYear}</td>
                       <td>{cds.softSkills}</td>
-                      <td>{cds.streamName}</td>
-                      <td>{cds.departmentName}</td>
+                      <td>{cds.languageAndCommunicationSkills}</td>
+                      <td>{cds.lifeSkills}</td>
                       <td>{cds.type}</td>
-                      <td>{cds.qualification}</td>
+                      <td>{cds.awarenessOfTrends}</td>
                       <td>
                         <button
                           className="btn btn-sm btn-warning me-2"
-                          onClick={() => handleEdit(cds.teacherDetailsId)}
+                          onClick={() => handleEdit(cds.capacityDevelopmentId)}
                         >
                           Edit
                         </button>
                         <button
                           className="btn btn-sm btn-danger"
-                          onClick={() => handleDelete(cds.teacherDetailsId)}
+                          onClick={() =>
+                            handleDelete(cds.capacityDevelopmentId)
+                          }
                         >
                           Delete
                         </button>

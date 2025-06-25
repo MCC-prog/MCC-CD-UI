@@ -1,6 +1,6 @@
 import Breadcrumb from "Components/Common/Breadcrumb";
 import { useFormik } from "formik";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import Select from "react-select";
 import * as Yup from "yup";
 import { Card, CardBody, Col, Container, Input, Label, Row } from "reactstrap";
@@ -54,6 +54,9 @@ const New_Programs_Introduced: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
+
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  const sylRef = useRef<HTMLInputElement | null>(null);
 
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -286,11 +289,13 @@ const New_Programs_Introduced: React.FC = () => {
           ""
         );
         toast.success(
-          response.message || "Curriculum BOS removed successfully!"
+          response.message || "New Program Introduced removed successfully!"
         );
         fetchBosData();
       } catch (error) {
-        toast.error("Failed to remove Curriculum BOS. Please try again.");
+        toast.error(
+          "Failed to remove New Program Introduced. Please try again."
+        );
         console.error("Error deleting BOS:", error);
       } finally {
         setIsDeleteModalOpen(false);
@@ -460,13 +465,37 @@ const New_Programs_Introduced: React.FC = () => {
       formData.append("otherDepartment", values.otherDepartment || "");
       formData.append("programName", values.programName || "");
 
-      if (values.file) {
+      if (isEditMode && typeof values.file === "string") {
+        formData.append(
+          "mom",
+          new Blob([], { type: "application/pdf" }),
+          "empty.pdf"
+        );
+      } else if (isEditMode && values.file === null) {
+        formData.append(
+          "mom",
+          new Blob([], { type: "application/pdf" }),
+          "empty.pdf"
+        );
+      } else if (values.file) {
         formData.append("mom", values.file);
       }
-      if (values.syllabusFile) {
+
+      if (isEditMode && typeof values.syllabusFile === "string") {
+        formData.append(
+          "syllabus",
+          new Blob([], { type: "application/pdf" }),
+          "empty.pdf"
+        );
+      } else if (isEditMode && values.syllabusFile === null) {
+        formData.append(
+          "syllabus",
+          new Blob([], { type: "application/pdf" }),
+          "empty.pdf"
+        );
+      } else if (values.syllabusFile) {
         formData.append("syllabus", values.syllabusFile);
       }
-
       try {
         if (isEditMode && editId) {
           // Call the update API
@@ -475,7 +504,7 @@ const New_Programs_Introduced: React.FC = () => {
             formData
           );
           toast.success(
-            response.message || "Curriculum BOS updated successfully!"
+            response.message || "New Program Introduced updated successfully!"
           );
         } else {
           // Call the save API
@@ -484,18 +513,25 @@ const New_Programs_Introduced: React.FC = () => {
             formData
           );
           toast.success(
-            response.message || "Curriculum BOS added successfully!"
+            response.message || "New Program Introduced added successfully!"
           );
         }
         // Reset the form fields
         resetForm();
+        if (fileRef.current) {
+          fileRef.current.value = ""; // Clear the file input
+        }
+        if (sylRef.current) {
+          sylRef.current.value = ""; // Clear the syllabus file input
+        }
+
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         // display the BOS List
         handleListNPIClick();
       } catch (error) {
         // Display error message
-        toast.error("Failed to save Curriculum BOS. Please try again.");
+        toast.error("Failed to save New Program Introduced. Please try again.");
         console.error("Error creating BOS:", error);
       }
     },
@@ -790,6 +826,7 @@ const New_Programs_Introduced: React.FC = () => {
                             : ""
                         }`}
                         type="file"
+                        innerRef={fileRef}
                         id="mom"
                         onChange={(event) => {
                           validation.setFieldValue(
@@ -860,6 +897,7 @@ const New_Programs_Introduced: React.FC = () => {
                         }`}
                         type="file"
                         id="syllabusFile"
+                        innerRef={sylRef}
                         onChange={(event) => {
                           validation.setFieldValue(
                             "syllabusFile",

@@ -1,7 +1,5 @@
 import axios from "axios";
 import Breadcrumb from "Components/Common/Breadcrumb";
-import AcademicYearDropdown from "Components/DropDowns/AcademicYearDropdown";
-import DegreeDropdown from "Components/DropDowns/DegreeDropdown";
 import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
 import Select from "react-select";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";

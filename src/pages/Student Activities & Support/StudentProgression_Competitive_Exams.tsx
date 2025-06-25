@@ -8,7 +8,7 @@ import ProgramTypeDropdown from "Components/DropDowns/ProgramTypeDropdown";
 import SemesterDropdowns from "Components/DropDowns/SemesterDropdowns";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { useFormik } from "formik";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -51,6 +51,8 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
 
+  const fileRef = useRef<HTMLInputElement | null>(null);
+
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toLowerCase();
@@ -85,7 +87,9 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
   // Fetch BOS data from the backend
   const fetchBosData = async () => {
     try {
-      const response = await axios.get("/staffProfile/getAllStaffProfile"); // Replace with your backend API endpoint
+      const response = await axios.get(
+        "/studentProgressionCompetitiveExam/getAll"
+      ); // Replace with your backend API endpoint
       setBosData(response);
       setFilteredData(response);
     } catch (error) {
@@ -122,14 +126,12 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
     { value: "Cleared", label: "Cleared" },
   ];
 
-  // Handle the click event for the "Add BOS" button
-
   // Handle edit action
   // Fetch the data for the selected BOS ID and populate the form fields
   const handleEdit = async (id: string) => {
     try {
       const response = await api.get(
-        `/staffProfile/edit?staffProfileId=${id}`,
+        `/studentProgressionCompetitiveExam/edit?competitiveExamId=${id}`,
         ""
       );
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
@@ -155,24 +157,23 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
               label: response.departmentName,
             }
           : null,
-        courses: response.programId
-          ? {
-              value: response.programId.toString(),
-              label: response.programName,
-            }
-          : null,
+        courses: response.courses
+          ? Object.entries(response.courses).map(([key, value]) => ({
+              value: key,
+              label: String(value),
+            }))
+          : [],
         noOfStaff: response.noOfStaff || "",
         studentName: response.studentName || "",
         date: response.date
           ? moment(response.date).format("DD/MM/YYYY") // Convert to dd/mm/yyyy format
           : "",
-        compExamName: response.compExamName || "",
-        trainerResource: response.trainerResource || "",
-        proofOfCAE: response.proofOfCAE || "",
+        compExamName: response.competitiveExamName || "",
+        proofOfCAE: response.appearedForExam || "",
         status: response.status
           ? { value: response.status, label: response.status }
           : null,
-        file: response.document?.excel || null,
+        excel: response.documents?.competitiveExam || null,
       };
 
       // Update Formik values
@@ -192,27 +193,21 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
               value: String(mappedValues.department.value),
             }
           : null,
-        courses: mappedValues.courses
-          ? {
-              ...mappedValues.courses,
-              value: String(mappedValues.courses.value),
-            }
-          : null,
+        courses: mappedValues.courses || [],
         noOfStaff: response.noOfStaff || "",
         studentName: response.studentName || "",
         date: response.date
           ? moment(response.date).format("DD/MM/YYYY") // Convert to dd/mm/yyyy format
           : "",
-        compExamName: response.compExamName || "",
-        trainerResource: response.trainerResource || "",
-        proofOfCAE: response.proofOfCAE || "",
+        compExamName: response.competitiveExamName || "",
+        proofOfCAE: response.appearedForExam || "",
         status: mappedValues.status
           ? {
               ...mappedValues.status,
               value: String(mappedValues.status.value),
             }
           : null,
-        file: response.document?.excel || null, // Use the file from the response
+        excel: response.document?.excel || null, // Use the file from the response
       });
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
@@ -236,11 +231,14 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
           ""
         );
         toast.success(
-          response.message || "Staff Profile removed successfully!"
+          response.message ||
+            "Student Progression - Competitive Exams removed successfully!"
         );
         fetchBosData();
       } catch (error) {
-        toast.error("Failed to remove Staff Profile. Please try again.");
+        toast.error(
+          "Failed to remove Student Progression - Competitive Exams. Please try again."
+        );
         console.error("Error deleting BOS:", error);
       } finally {
         setIsDeleteModalOpen(false);
@@ -256,13 +254,12 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
       studentName: "",
       date: "",
       compExamName: "",
-      trainerResource: "",
       proofOfCAE: "",
       stream: null as { value: string; label: string } | null,
       department: null as { value: string; label: string } | null,
-      courses: null as { value: string; label: string } | null,
+      courses: [] as { value: string; label: string }[],
       status: null as { value: string; label: string } | null,
-      file: null as File | string | null,
+      excel: null as File | string | null,
     },
     validationSchema: Yup.object({
       academicYear: Yup.object()
@@ -270,16 +267,22 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
         .required("Please select academic year"),
       stream: Yup.object().nullable().required("Please select stream"),
       studentName: Yup.string().required("Please enter area of guidance"),
-      compExamName: Yup.number().required(
-        "Please enter No. of Participants/Attendees"
-      ),
+      compExamName: Yup.string().required("Please enter competitive exam name"),
       proofOfCAE: Yup.string().required(
         "Please enter proof of Completion/Appeared for exam"
       ),
       department: Yup.object().nullable().required("Please select department"),
-      courses: Yup.object().nullable().required("Please select program"),
+      courses: Yup.array()
+        .of(
+          Yup.object().shape({
+            value: Yup.string().required(),
+            label: Yup.string().required(),
+          })
+        )
+        .min(1, "Please select at least one program")
+        .required("Please select program"),
       status: Yup.object().nullable().required("Please select status"),
-      file: Yup.mixed()
+      excel: Yup.mixed()
         .required("Please upload a file")
         .test("fileSize", "File size is too large", (value: any) => {
           // Skip size validation if file is a string (from existing data)
@@ -299,44 +302,84 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
         }),
     }),
     onSubmit: async (values, { resetForm }) => {
-      const payload = {
-        academicYear: values.academicYear?.value || "",
-        streamId: values.stream?.value || "",
-        noOfStaff: values.noOfStaff || "",
-        studentName: values.studentName || "",
-        compExamName: values.compExamName || "",
-        trainerResource: values.trainerResource || "",
-        proofOfCAE: values.proofOfCAE || "",
-      };
-
-      // If editing, include the ID
-      if (isEditMode && editId) {
-        payload["staffProfileId"] = editId;
-      }
-
       try {
+        const formData = new FormData();
+        formData.append("academicYear", values.academicYear?.value || "");
+        formData.append("studentName", values.studentName);
+        formData.append("competitiveExamName", values.compExamName);
+        formData.append("appearedForExam", values.proofOfCAE);
+        formData.append("streamId", values.stream?.value || "");
+        formData.append("departmentId", values.department?.value || "");
+        values.courses.forEach((course, index) => {
+          formData.append(`courseIds[${index}]`, course.value);
+        });
+        formData.append("status", values.status?.value || "");
+        // If the date is provided, format it to YYYY-MM-DD
+        if (values.date) {
+          const formattedDate = moment(values.date, "DD/MM/YYYY").format(
+            "YYYY-MM-DD"
+          );
+          formData.append("date", formattedDate);
+        }
+        if (isEditMode && typeof values.excel === "string") {
+          formData.append(
+            "excel",
+            new Blob([], {
+              type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            }),
+            "empty.xlsx"
+          );
+        } else if (isEditMode && values.excel === null) {
+          formData.append(
+            "excel",
+            new Blob([], {
+              type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            }),
+            "empty.xlsx"
+          );
+        } else if (values.excel) {
+          formData.append("excel", values.excel);
+        }
+
+        // If in edit mode, append the edit ID
+        if (isEditMode && editId) {
+          formData.append("competitiveExamId", editId);
+        }
         if (isEditMode && editId) {
           // Call the update API
-          const response = await api.put(`/staffProfile/update`, payload);
+          const response = await api.put(
+            `/studentProgressionCompetitiveExam/update`,
+            formData
+          );
           toast.success(
-            response.message || "Staff Profile updated successfully!"
+            response.message ||
+              "Student Progression - Competitive Exams updated successfully!"
           );
         } else {
           // Call the save API
-          const response = await api.create("/staffProfile/save", payload);
+          const response = await api.create(
+            "/studentProgressionCompetitiveExam/save",
+            formData
+          );
           toast.success(
-            response.message || "Staff Profile added successfully!"
+            response.message ||
+              "Student Progression - Competitive Exams added successfully!"
           );
         }
         // Reset the form fields
         resetForm();
+        if (fileRef.current) {
+          fileRef.current.value = "";
+        }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         // display the BOS List
         handleListBosClick();
       } catch (error) {
         // Display error message
-        toast.error("Failed to save Staff Profile. Please try again.");
+        toast.error(
+          "Failed to save Student Progression - Competitive Exams. Please try again."
+        );
         console.error("Error creating BOS:", error);
       }
     },
@@ -499,7 +542,7 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
                             ? "is-invalid"
                             : ""
                         }`}
-                        type="number"
+                        type="text"
                         id="compExamName"
                         onChange={(e) =>
                           validation.setFieldValue(
@@ -595,15 +638,16 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
                       </Tooltip>
                       <Input
                         className={`form-control ${
-                          validation.touched.file && validation.errors.file
+                          validation.touched.excel && validation.errors.excel
                             ? "is-invalid"
                             : ""
                         }`}
                         type="file"
                         id="formFile"
+                        innerRef={fileRef}
                         onChange={(event) => {
                           validation.setFieldValue(
-                            "file",
+                            "excel",
                             event.currentTarget.files
                               ? event.currentTarget.files[0]
                               : null
@@ -611,9 +655,9 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
                         }}
                         disabled={isFileUploadDisabled} // Disable the button if a file exists
                       />
-                      {validation.touched.file && validation.errors.file && (
+                      {validation.touched.excel && validation.errors.excel && (
                         <div className="text-danger">
-                          {validation.errors.file}
+                          {validation.errors.excel}
                         </div>
                       )}
                       {/* Show a message if the file upload button is disabled */}
@@ -623,13 +667,13 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
                         </div>
                       )}
                       {/* Only show the file name if it is a string (from the edit API) */}
-                      {typeof validation.values.file === "string" && (
+                      {typeof validation.values.excel === "string" && (
                         <div className="mt-2 d-flex align-items-center">
                           <span
                             className="me-2"
                             style={{ fontWeight: "bold", color: "green" }}
                           >
-                            {validation.values.file}
+                            {validation.values.excel}
                           </span>
                           <Button
                             color="link"
@@ -692,44 +736,64 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
           </Card>
         </Container>
         {/* Modal for Listing BOS */}
-        <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg">
-          <ModalHeader toggle={toggleModal}>List Staff Profile</ModalHeader>
+        <Modal
+          isOpen={isModalOpen}
+          toggle={toggleModal}
+          size="lg"
+          style={{ maxWidth: "100%", width: "auto" }}
+        >
+          <ModalHeader toggle={toggleModal}>
+            List Student Progression - Competitive Exams
+          </ModalHeader>
           <ModalBody>
             <Table className="table-hover custom-table">
               <thead>
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
+                  <th>Student Name</th>
                   <th>Stream</th>
-                  <th>No.Of Staff</th>
-                  <th>Full Time</th>
-                  <th>Part Time</th>
-                  <th>Guest Faculty</th>
+                  <th>Department</th>
+                  <th>Program</th>
+                  <th>Competitive Exam Name</th>
+                  <th>Status</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {bosData.length > 0 ? (
                   bosData.map((bos, index) => (
-                    <tr key={bos.id}>
+                    <tr key={bos.competitiveExamId}>
                       <td>{index + 1}</td>
                       <td>{bos.academicYear}</td>
-                      <td>{bos.streamName}</td>
-                      <td>{bos.noOfStaff}</td>
                       <td>{bos.studentName}</td>
-                      <td>{bos.compExamName}</td>
-                      <td>{bos.trainerResource}</td>
+                      <td>{bos.streamName}</td>
+                      <td>{bos.departmentName}</td>
+                      <td>
+                        <ul className="list-disc list-inside">
+                          {Object.values(bos.courses).map((courseName, idx) => (
+                            <li key={idx}>
+                              {typeof courseName === "string" ||
+                              typeof courseName === "number"
+                                ? courseName
+                                : String(courseName)}
+                            </li>
+                          ))}
+                        </ul>
+                      </td>
+                      <td>{bos.competitiveExamName}</td>
+                      <td>{bos.status}</td>
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
                             className="btn btn-sm btn-warning me-2"
-                            onClick={() => handleEdit(bos.staffProfileId)}
+                            onClick={() => handleEdit(bos.competitiveExamId)}
                           >
                             Edit
                           </button>
                           <button
                             className="btn btn-sm btn-danger"
-                            onClick={() => handleDelete(bos.staffProfileId)}
+                            onClick={() => handleDelete(bos.competitiveExamId)}
                           >
                             Delete
                           </button>
