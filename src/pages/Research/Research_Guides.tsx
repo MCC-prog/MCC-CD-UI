@@ -193,7 +193,7 @@ const Research_Guides = () => {
       if (typeof values.uploadLetter === "string") {
         formData.append("file", "null");
       } else if (values.uploadLetter instanceof File) {
-        formData.append("file", values.uploadLetter); // Append the file
+        formData.append("file", values.uploadLetter);
       }
 
       try {

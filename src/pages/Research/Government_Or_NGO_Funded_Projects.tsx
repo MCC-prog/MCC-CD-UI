@@ -146,9 +146,6 @@ const GovernmentOrNGOFundedProjects = () => {
         qualification: Yup.string().required("Please enter qualification"),
         designation: Yup.string().required("Please enter designation"),
         department: Yup.object<{ value: string; label: string }>().nullable().required("Please select department"),
-        abstractFile: Yup.mixed().required("Please upload the abstract file"),
-        sanctionOrderFile: Yup.mixed().required("Please upload the sanction order file"),
-        fellowshipFile: Yup.mixed().required("Please upload the fellowship file"),
       })
       : Yup.object(),
   });
@@ -184,7 +181,7 @@ const GovernmentOrNGOFundedProjects = () => {
     onSubmit: async (values, { resetForm }) => {
       // Create FormData object
       const formData = new FormData();
-      const formType = activeTab === "1" ? "principleInvestigatorDto" : "coInvestigatorDto"
+      
       // Prepare the JSON payload for the `dto` key
       const dtoPayload = {
         governmentFundProjectId: editId || null,
@@ -198,7 +195,7 @@ const GovernmentOrNGOFundedProjects = () => {
         fundingType: values.typeOfFunding?.value || "",
         multidisciplinary: isMultidisciplinary === "Yes",
         multidisciplinaryType: activeTab === "1" ? "PrincipleInvestigatorDetails" : "CoInvestigatorDetails",
-        [formType]: {
+        governmentFundProjectAddTabDto: {
           additionalTabId: editId || null,
           name: activeTab === "1"
             ? values.principalInvestigator.name || ""
@@ -218,19 +215,25 @@ const GovernmentOrNGOFundedProjects = () => {
         }
       };
 
-      console.log("DTO Payload:", dtoPayload);
-
       // Append the JSON payload as a string with the key `managementFundProjectRequestDto`
       formData.append('governmentFundProjectRequestDto', new Blob([JSON.stringify(dtoPayload)], { type: 'application/json' }));
 
       // Append the file with the key `file`
       if (isMultidisciplinary === "Yes") {
         if (activeTab === "1") {
-          formData.append('abstractProject', values.principalInvestigator.abstractFile as Blob);
-          formData.append('sanctionOrder', values.principalInvestigator.sanctionOrderFile as Blob);
+          if (typeof values.principalInvestigator.abstractFile === "string") {
+            formData.append("abstractProject", "null");
+          } else if (values.principalInvestigator.abstractFile instanceof File) {
+            formData.append("abstractProject", values.principalInvestigator.abstractFile);
+          }
+          if (typeof values.principalInvestigator.sanctionOrderFile === "string") {
+            formData.append("sanctionOrder", "null");
+          } else if (values.principalInvestigator.sanctionOrderFile instanceof File) {
+            formData.append("sanctionOrder", values.principalInvestigator.sanctionOrderFile);
+          }
         }
-      }
-
+      } 
+      
       try {
         const response = isEditMode && editId
           ? await api.put(`/governmentFundProject/update`, formData, {
@@ -257,7 +260,7 @@ const GovernmentOrNGOFundedProjects = () => {
     }
   });
 
-  const fetchMFAData = async () => {
+  const fetchGFPData = async () => {
     try {
       const response = await api.get("/governmentFundProject/getAll", '');
       setGfpData(response);
@@ -270,7 +273,7 @@ const GovernmentOrNGOFundedProjects = () => {
   // Open the modal and fetch data
   const handleListGFPClick = () => {
     toggleModal();
-    fetchMFAData();
+    fetchGFPData();
   };
 
   // Confirm deletion of the record
@@ -280,7 +283,7 @@ const GovernmentOrNGOFundedProjects = () => {
       try {
         const response = await api.delete(`/governmentFundProject/deleteGovernmentFundedProject?governmentFundProjectId=${id}`, '');
         toast.success(response.message || "GFP record removed successfully!");
-        fetchMFAData();
+        fetchGFPData();
       } catch (error) {
         toast.error("Failed to remove GFP Record. Please try again.");
         console.error("Error deleting GFP:", error);

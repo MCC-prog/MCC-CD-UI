@@ -9,19 +9,14 @@ import {
   CardBody,
   Col,
   Container,
-  Form,
   Input,
   Label,
   Modal,
   ModalBody,
   ModalFooter,
   ModalHeader,
-  NavItem,
-  NavLink,
   Row,
-  TabContent,
   Table,
-  TabPane,
 } from "reactstrap";
 import AcademicYearDropdown from "Components/DropDowns/AcademicYearDropdown";
 import SemesterDropdowns from "Components/DropDowns/SemesterDropdowns";
@@ -31,34 +26,285 @@ import ProgramTypeDropdown from "Components/DropDowns/ProgramTypeDropdown";
 import DegreeDropdown from "Components/DropDowns/DegreeDropdown";
 import ProgramDropdown from "Components/DropDowns/ProgramDropdown";
 import { APIClient } from "../../helpers/api_helper";
+import { ToastContainer } from "react-toastify";
 import { toast } from "react-toastify";
-import { SEMESTER_NO_OPTIONS } from "Components/constants/layout";
+import { SEMESTER_NO_OPTIONS } from "../../Components/constants/layout";
+import axios from "axios";
 
 const api = new APIClient();
 
+const courseType = [
+  { value: "T", label: "Core" },
+  { value: "P", label: "Elective" },
+  { value: "A", label: "Allied" },
+];
+
+const dropdownStyles = {
+  menu: (provided: any) => ({
+    ...provided,
+    overflowY: "auto",
+  }),
+  menuPortal: (base: any) => ({ ...base, zIndex: 9999 }),
+};
+
+const getTabValidationSchema = (tab: number | null) => {
+  // Main form validation schema
+  const mainFormSchema = {
+    academicYear: Yup.object<{ value: string; label: string }>()
+      .nullable()
+      .required("Please select academic year"),
+    semesterType: Yup.object<{ value: string; label: string }>()
+      .nullable()
+      .required("Please select a semester type"),
+    semesterNo: Yup.object<{ value: string; label: string }>()
+      .nullable()
+      .required("Please select a semester number"),
+    stream: Yup.object<{ value: string; label: string }>()
+      .nullable()
+      .required("Please select school"),
+    department: Yup.object<{ value: string; label: string }>()
+      .nullable()
+      .required("Please select department"),
+    programType: Yup.object()
+      .nullable()
+      .required("Please select programType"),
+    program: Yup.array()
+      .min(1, "Please select at least one program")
+      .required("Please select programs"),
+    degree: Yup.object().nullable().required("Please select degree"),
+    otherDepartment: Yup.string(),
+  };
+
+  // Always include all fields in the schema, but only main form fields are required
+  const allTabFields = {
+    courseTitileG: Yup.string(),
+    courseTypeG: Yup.object().nullable(),
+    fileG: Yup.mixed().nullable(),
+    courseTitileES: Yup.string(),
+    courseTypeES: Yup.object().nullable(),
+    fileES: Yup.mixed().nullable(),
+    courseTitileIK: Yup.string(),
+    courseTypeIK: Yup.object().nullable(),
+    fileIK: Yup.mixed().nullable(),
+    courseTitileEM: Yup.string(),
+    courseTypeEM: Yup.object().nullable(),
+    fileEM: Yup.mixed().nullable(),
+    courseTitileSE: Yup.string(),
+    courseTypeSE: Yup.object().nullable(),
+    fileSE: Yup.mixed().nullable(),
+    courseTitileEN: Yup.string(),
+    courseTypeEN: Yup.object().nullable(),
+    fileEN: Yup.mixed().nullable(),
+    courseTitileET: Yup.string(),
+    courseTypeET: Yup.object().nullable(),
+    fileET: Yup.mixed().nullable(),
+  };
+
+  // Helper for file validation
+  const fileValidation = (field: string) =>
+    Yup.mixed().when([], {
+      is: function (this: any) {
+        // Only skip validation if the value is a non-empty string (existing file)
+        return this && this.parent && typeof this.parent[field] === "string" && this.parent[field];
+      },
+      then: (schema) => schema, // No validation if file exists (string)
+      otherwise: (schema) =>
+        schema
+          .required("Please upload a file")
+          .test("fileSize", "File size is too large", (value: any) => {
+            // Only check size if value is a File
+            if (!value || typeof value === "string") return true;
+            return value.size <= 2 * 1024 * 1024;
+          })
+          .test("fileType", "Unsupported file format", (value: any) => {
+            // Only check type if value is a File
+            if (!value || typeof value === "string") return true;
+            return ["application/pdf", "image/jpeg", "image/png"].includes(value.type);
+          }),
+    });
+
+  switch (tab) {
+    case 1:
+      return Yup.object({
+        ...mainFormSchema,
+        ...allTabFields,
+        courseTitileG: Yup.string().required("Please enter Course Title"),
+        courseTypeG: Yup.object().nullable().required("Please select course type"),
+        fileG: fileValidation("fileG"),
+      });
+    case 2:
+      return Yup.object({
+        ...mainFormSchema,
+        ...allTabFields,
+        courseTitileES: Yup.string().required("Please enter Course Title"),
+        courseTypeES: Yup.object().nullable().required("Please select course type"),
+        fileES: fileValidation("fileES"),
+      });
+    case 3:
+      return Yup.object({
+        ...mainFormSchema,
+        ...allTabFields,
+        courseTitileIK: Yup.string().required("Please enter Course Title"),
+        courseTypeIK: Yup.object().nullable().required("Please select course type"),
+        fileIK: fileValidation("fileIK"),
+      });
+    case 4:
+      return Yup.object({
+        ...mainFormSchema,
+        ...allTabFields,
+        courseTitileEM: Yup.string().required("Please enter Course Title"),
+        courseTypeEM: Yup.object().nullable().required("Please select course type"),
+        fileEM: fileValidation("fileEM"),
+      });
+    case 5:
+      return Yup.object({
+        ...mainFormSchema,
+        ...allTabFields,
+        courseTitileSE: Yup.string().required("Please enter Course Title"),
+        courseTypeSE: Yup.object().nullable().required("Please select course type"),
+        fileSE: fileValidation("fileSE"),
+      });
+    case 6:
+      return Yup.object({
+        ...mainFormSchema,
+        ...allTabFields,
+        courseTitileEN: Yup.string().required("Please enter Course Title"),
+        courseTypeEN: Yup.object().nullable().required("Please select course type"),
+        fileEN: fileValidation("fileEN"),
+      });
+    case 7:
+      return Yup.object({
+        ...mainFormSchema,
+        ...allTabFields,
+        courseTitileET: Yup.string().required("Please enter Course Title"),
+        courseTypeET: Yup.object().nullable().required("Please select course type"),
+        fileET: fileValidation("fileET"),
+      });
+    default:
+      return Yup.object({
+        ...mainFormSchema,
+        ...allTabFields,
+      }).test(
+        "at-least-one-nested",
+        "Please select a Focus Area and fill at least one nested tab.",
+        (values: any) => false // Always block if no tab is active
+      );
+  }
+};
+
+// Helper: Check if any field in the current tab is filled
+const isTabFilled = (validation: any, tab: number | null) => {
+  switch (tab) {
+    case 1:
+      return (
+        validation.values.courseTitileG ||
+        validation.values.courseTypeG ||
+        validation.values.fileG
+      );
+    case 2:
+      return (
+        validation.values.courseTitileES ||
+        validation.values.courseTypeES ||
+        validation.values.fileES
+      );
+    case 3:
+      return (
+        validation.values.courseTitileIK ||
+        validation.values.courseTypeIK ||
+        validation.values.fileIK
+      );
+    case 4:
+      return (
+        validation.values.courseTitileEM ||
+        validation.values.courseTypeEM ||
+        validation.values.fileEM
+      );
+    case 5:
+      return (
+        validation.values.courseTitileSE ||
+        validation.values.courseTypeSE ||
+        validation.values.fileSE
+      );
+    case 6:
+      return (
+        validation.values.courseTitileEN ||
+        validation.values.courseTypeEN ||
+        validation.values.fileEN
+      );
+    case 7:
+      return (
+        validation.values.courseTitileET ||
+        validation.values.courseTypeET ||
+        validation.values.fileET
+      );
+    default:
+      return false;
+  }
+};
+
+// Helper: Clear fields for a tab
+const clearTabFields = (validation: any, tab: number | null) => {
+  switch (tab) {
+    case 1:
+      validation.setFieldValue("courseTitileG", "");
+      validation.setFieldValue("courseTypeG", null);
+      validation.setFieldValue("fileG", null);
+      break;
+    case 2:
+      validation.setFieldValue("courseTitileES", "");
+      validation.setFieldValue("courseTypeES", null);
+      validation.setFieldValue("fileES", null);
+      break;
+    case 3:
+      validation.setFieldValue("courseTitileIK", "");
+      validation.setFieldValue("courseTypeIK", null);
+      validation.setFieldValue("fileIK", null);
+      break;
+    case 4:
+      validation.setFieldValue("courseTitileEM", "");
+      validation.setFieldValue("courseTypeEM", null);
+      validation.setFieldValue("fileEM", null);
+      break;
+    case 5:
+      validation.setFieldValue("courseTitileSE", "");
+      validation.setFieldValue("courseTypeSE", null);
+      validation.setFieldValue("fileSE", null);
+      break;
+    case 6:
+      validation.setFieldValue("courseTitileEN", "");
+      validation.setFieldValue("courseTypeEN", null);
+      validation.setFieldValue("fileEN", null);
+      break;
+    case 7:
+      validation.setFieldValue("courseTitileET", "");
+      validation.setFieldValue("courseTypeET", null);
+      validation.setFieldValue("fileET", null);
+      break;
+    default:
+      break;
+  }
+};
+
 const Courses_With_Focus: React.FC = () => {
-  // State variables for managing modal, edit mode, and delete confirmation
+  // State
   const [isEditMode, setIsEditMode] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState(null);
+  const [activeTab, setActiveTab] = useState<number | null>(null);
+  // State variable for managing file upload status
+  const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
   const [showWizard, setShowWizard] = useState(false);
   const [selectedStream, setSelectedStream] = useState<any>(null);
   const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
   const [selectedProgramType, setSelectedProgramType] = useState<any>(null);
   const [selectedDegree, setSelectedDegree] = useState<any>(null);
-  // State variable for managing delete confirmation modal
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  // State variable for managing the modal for listing Course With Focus
   const [isModalOpen, setIsModalOpen] = useState(false);
-  // State variable for managing the list of Courses With Focus
   const [CWFData, setCWFData] = useState<any[]>([]);
   const [filteredData, setFilteredData] = useState(CWFData);
-  // State variable for managing search term and pagination
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
-  // State variable for managing filters
   const [filters, setFilters] = useState({
     academicYear: "",
     semesterType: "",
@@ -71,11 +317,20 @@ const Courses_With_Focus: React.FC = () => {
     percentage: "",
   });
 
-  // Handle global search
+  // Utility
+  const mapValueToLabel = (
+    value: string | number | null,
+    options: { value: string | number; label: string }[]
+  ): { value: string | number; label: string } | null => {
+    if (!value) return null;
+    const matchedOption = options.find((option) => option.value === value);
+    return matchedOption ? matchedOption : { value, label: String(value) };
+  };
+
+  // Table and Modal Handlers
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
-
     const filtered = CWFData.filter((row) =>
       Object.values(row).some((val) =>
         String(val || "")
@@ -88,20 +343,22 @@ const Courses_With_Focus: React.FC = () => {
 
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
-  const toggleTab = (tab) => {
-    setActiveTab(activeTab === tab ? null : tab); // Collapse if clicked again
+  const toggleTab = (tab: number) => {
+    // Only allow switching if current tab is not filled or switching to the same tab
+    if (activeTab === tab || !isTabFilled(validation, activeTab)) {
+      setActiveTab(tab);
+    }
   };
 
   const toggleWizard = () => {
     setShowWizard(!showWizard);
+    if (showWizard) setActiveTab(null);
   };
 
-  // Toggle the modal for listing Course With Focus
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };
 
-  // Handle column-specific filters
   const handleFilterChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     column: string
@@ -120,17 +377,14 @@ const Courses_With_Focus: React.FC = () => {
     setFilteredData(filtered);
   };
 
-  // Calculate the paginated data
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
   const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
 
-  // Handle page change
   const handlePageChange = (pageNumber: number) => {
     setCurrentPage(pageNumber);
   };
 
-  // Fetch Courses With Focus from the backend
   const fetchCWFData = async () => {
     try {
       const response = await api.get(
@@ -144,44 +398,16 @@ const Courses_With_Focus: React.FC = () => {
     }
   };
 
-  // Open the modal and fetch data
   const handleListCWFClick = () => {
     toggleModal();
     fetchCWFData();
   };
 
-  const dropdownStyles = {
-    menu: (provided: any) => ({
-      ...provided,
-      overflowY: "auto", // Enable scrolling for additional options
-    }),
-    menuPortal: (base: any) => ({ ...base, zIndex: 9999 }), // Ensure the menu is above other elements
-  };
-
-  const courseType = [
-    { value: "T", label: "Core" },
-    { value: "P", label: "Elective" },
-    { value: "A", label: "Allied" },
-  ];
-
-  // Map value to label for dropdowns
-  const mapValueToLabel = (
-    value: string | number | null,
-    options: { value: string | number; label: string }[]
-  ): { value: string | number; label: string } | null => {
-    if (!value) return null;
-    const matchedOption = options.find((option) => option.value === value);
-    return matchedOption ? matchedOption : { value, label: String(value) };
-  };
-
-  // Handle edit action
-  // Fetch the data for the selected Course With Focus ID and populate the form fields
+  // Edit/Delete
   const handleEdit = async (id: string) => {
     try {
-      const response = await api.get(
-        `/CoursesWithFocus?coursesWithFocusId=${id}`,
-        ""
-      );
+      const response = await api.get(`/CoursesWithFocus?coursesWithFocusId=${id}`, "");
+
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
       // Filter the response where isCurrent or isCurrentForAdmission is true
       const filteredAcademicYearList = academicYearOptions.filter(
@@ -190,98 +416,219 @@ const Courses_With_Focus: React.FC = () => {
       // Map the filtered data to the required format
       const academicYearList = filteredAcademicYearList.map((year: any) => ({
         value: year.year,
-        label: year.display,
+        label: year.display
       }));
- 
-      const semesterNoOptions = SEMESTER_NO_OPTIONS;
- 
+
+      const semesterNoOptions = SEMESTER_NO_OPTIONS
+
       // Map API response to Formik values
       const mappedValues = {
         academicYear: mapValueToLabel(response.academicYear, academicYearList),
         semesterType: response.semType
           ? { value: response.semType, label: response.semType.toUpperCase() }
           : null,
-        semesterNo: mapValueToLabel(
-          String(response.semNumber),
-          semesterNoOptions
-        ) as { value: string; label: string } | null,
+        semesterNo: mapValueToLabel(String(response.semNumber), semesterNoOptions) as { value: string; label: string } | null,
         stream: response.streamId
           ? { value: response.streamId.toString(), label: response.streamName }
           : null,
         department: response.departmentId
-          ? {
-              value: response.departmentId.toString(),
-              label: response.departmentName,
-            }
+          ? { value: response.departmentId.toString(), label: response.departmentName }
           : null,
         programType: response.programTypeId
-          ? {
-              value: response.programTypeId.toString(),
-              label: response.programTypeName,
-            }
+          ? { value: response.programTypeId.toString(), label: response.programTypeName }
           : null,
         degree: response.programId
-          ? {
-              value: response.programId.toString(),
-              label: response.programName,
-            }
+          ? { value: response.programId.toString(), label: response.programName }
           : null,
         program: response.courses
           ? Object.entries(response.courses).map(([key, value]) => ({
-              value: key,
-              label: String(value),
-            }))
+            value: key,
+            label: String(value),
+          }))
           : [],
-        file: null,
-        otherDepartment: "",
-        courses: null,
-        courseType: null,
-        courseTitile: null,
-        courseTitileET: "",
-        courseTitileG: "",
-        courseTitileES: "",
-        courseTitileIK: "",
-        courseTitileEM: "",
-        courseTitileSE: "",
-        courseTitileEN: "",
+        revisionPercentage: response.percentage || "",
+        conductedDate: response.yearOfIntroduction ? response.yearOfIntroduction : "",
+        otherDepartment: "", // Add default value for otherDepartment
+        file: response.documents?.mom || null
       };
+
+      // Update Formik values
       validation.setValues({
+        ...validation.initialValues,
         ...mappedValues,
+        // Ensure all required fields are present (even if empty)
+        courseTitileG: "",
+        courseTypeG: null,
+        fileG: null,
+        courseTitileES: "",
+        courseTypeES: null,
+        fileES: null,
+        courseTitileIK: "",
+        courseTypeIK: null,
+        fileIK: null,
+        courseTitileEM: "",
+        courseTypeEM: null,
+        fileEM: null,
+        courseTitileSE: "",
+        courseTypeSE: null,
+        fileSE: null,
+        courseTitileEN: "",
+        courseTypeEN: null,
+        fileEN: null,
+        courseTitileET: "",
+        courseTypeET: null,
+        fileET: null,
         academicYear: mappedValues.academicYear
           ? { ...mappedValues.academicYear, value: String(mappedValues.academicYear.value) }
           : null,
         semesterNo: mappedValues.semesterNo
           ? { ...mappedValues.semesterNo, value: String(mappedValues.semesterNo.value) }
           : null,
-        stream: mappedValues.stream
-          ? { ...mappedValues.stream, value: String(mappedValues.stream.value) }
-          : null,
-        department: mappedValues.department
-          ? { ...mappedValues.department, value: String(mappedValues.department.value) }
-          : null,
-        programType: mappedValues.programType
-          ? { ...mappedValues.programType, value: String(mappedValues.programType.value) }
-          : null,
-        degree: mappedValues.degree
-          ? { ...mappedValues.degree, value: String(mappedValues.degree.value) }
-          : null,
       });
- 
-      setIsEditMode(true); // Set edit mode
-      setEditId(id); // Store the ID of the record being edited
+
+      const getCourseTypeOption = (value: string) =>
+        courseType.find((opt) => opt.value === value) || null;
+
+      // Nested tab data
+      if (response.ecoGenderC && (response.ecoGenderC.courseTitle || response.ecoGenderC.courseType)) {
+        setShowWizard(true);
+        setActiveTab(1);
+        validation.setFieldValue("courseTitileG", response.ecoGenderC.courseTitle || "");
+        validation.setFieldValue("courseTypeG", getCourseTypeOption(response.ecoGenderC.courseType));
+        validation.setFieldValue("fileG", response.ecoGenderC?.file && Object.values(response.ecoGenderC.file)[0]
+          ? Object.values(response.ecoGenderC.file)[0]
+          : "");
+        validation.setFieldValue("fileGId", response.ecoGenderC?.coursesWithFocusAddOnFieldID || null);
+      } else if (response.ecoEnvironmentalC && (response.ecoEnvironmentalC.courseTitle || response.ecoEnvironmentalC.courseType)) {
+        setShowWizard(true);
+        setActiveTab(2);
+        validation.setFieldValue("courseTitileES", response.ecoEnvironmentalC.courseTitle || "");
+        validation.setFieldValue("courseTypeES", getCourseTypeOption(response.ecoEnvironmentalC.courseTypeES));
+        validation.setFieldValue("fileES", response.ecoEnvironmentalC?.file && Object.values(response.ecoEnvironmentalC.file)[0]
+          ? Object.values(response.ecoEnvironmentalC.file)[0]
+          : "");
+        validation.setFieldValue("fileESId", response.ecoEnvironmentalC?.coursesWithFocusAddOnFieldID || null);
+      } else if (response.ecoIKSC && (response.ecoIKSC.courseTitle || response.ecoIKSC.courseType)) {
+        setShowWizard(true);
+        setActiveTab(3);
+        validation.setFieldValue("courseTitileIK", response.ecoIKSC.courseTitle || "");
+        validation.setFieldValue("courseTypeIK", getCourseTypeOption(response.ecoIKSC.courseType));
+        validation.setFieldValue("fileIK", response.ecoIKSC?.file && Object.values(response.ecoIKSC.file)[0]
+          ? Object.values(response.ecoIKSC.file)[0]
+          : "");
+        validation.setFieldValue("fileIKId", response.ecoIKSC?.coursesWithFocusAddOnFieldID || null);
+      } else if (response.ecoEmployC && (response.ecoEmployC.courseTitle || response.ecoEmployC.courseType)) {
+        setShowWizard(true);
+        setActiveTab(4);
+        validation.setFieldValue("courseTitileEM", response.ecoEmployC.courseTitle || "");
+        validation.setFieldValue("courseTypeEM", getCourseTypeOption(response.ecoEmployC.courseType));
+        validation.setFieldValue("fileEM", response.ecoEmployC?.file && Object.values(response.ecoEmployC.file)[0]
+          ? Object.values(response.ecoEmployC.file)[0]
+          : "");
+        validation.setFieldValue("fileEMId", response.ecoEmployC?.coursesWithFocusAddOnFieldID || null);
+      } else if (response.ecoSkillC && (response.ecoSkillC.courseTitle || response.ecoSkillC.courseType)) {
+        setShowWizard(true);
+        setActiveTab(5);
+        validation.setFieldValue("courseTitileSE", response.ecoSkillC.courseTitle || "");
+        validation.setFieldValue("courseTypeSE", getCourseTypeOption(response.ecoSkillC.courseType));
+        validation.setFieldValue("fileSE", response.ecoSkillC?.file && Object.values(response.ecoSkillC.file)[0]
+          ? Object.values(response.ecoSkillC.file)[0]
+          : "");
+        validation.setFieldValue("fileSEId", response.ecoSkillC?.coursesWithFocusAddOnFieldID || null);
+      } else if (response.ecoEntreC && (response.ecoEntreC.courseTitle || response.ecoEntreC.courseType)) {
+        setShowWizard(true);
+        setActiveTab(6);
+        validation.setFieldValue("courseTitileEN", response.ecoEntreC.courseTitle || "");
+        validation.setFieldValue("courseTypeEN", getCourseTypeOption(response.ecoEntreC.courseType));
+        validation.setFieldValue("fileEN", response.ecoEntreC?.file && Object.values(response.ecoEntreC.file)[0]
+          ? Object.values(response.ecoEntreC.file)[0]
+          : "");
+        validation.setFieldValue("fileENId", response.ecoEntreC?.coursesWithFocusAddOnFieldID || null);
+      } else if (response.ecoEthicsC && (response.ecoEthicsC.courseTitle || response.ecoEthicsC.courseType)) {
+        setShowWizard(true);
+        setActiveTab(7);
+        validation.setFieldValue("courseTitileET", response.ecoEthicsC.courseTitle || "");
+        validation.setFieldValue("courseTypeET", getCourseTypeOption(response.ecoEthicsC.courseType));
+        validation.setFieldValue("fileET", response.ecoEthicsC?.file && Object.values(response.ecoEthicsC.file)[0]
+          ? Object.values(response.ecoEthicsC.file)[0]
+          : "");
+        validation.setFieldValue("fileETId", response.ecoEthicsC?.coursesWithFocusAddOnFieldID || null);
+      } else {
+        setShowWizard(false);
+        setActiveTab(null);
+      }
+      setIsEditMode(true);
+      setEditId(id);
       toggleModal();
     } catch (error) {
-      console.error("Error fetching Courses With Focus by ID:", error);
+      toast.error("Failed to fetch data for editing.");
     }
   };
-  // Handle delete action
-  // Set the ID of the record to be deleted and open the confirmation modal
+
   const handleDelete = (id: string) => {
     setDeleteId(id);
     setIsDeleteModalOpen(true);
   };
 
-  // Call the delete API and refresh the Courses With Focus
+  // Handle file download actions
+  const handleDownloadFile = async (fileName: string) => {
+    if (fileName) {
+      try {
+        // Ensure you set responseType to 'blob' to handle binary data
+        const response = await axios.get(`/CoursesWithFocus/download/${fileName}`, {
+          responseType: 'blob'
+        });
+
+        // Create a Blob from the response data
+        const blob = new Blob([response], { type: "*/*" });
+
+        // Create a URL for the Blob
+        const url = window.URL.createObjectURL(blob);
+
+        // Create a temporary anchor element to trigger the download
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName; // Set the file name for the download
+        document.body.appendChild(link);
+        link.click();
+
+        // Clean up the URL and remove the anchor element
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        toast.success("File downloaded successfully!");
+      } catch (error) {
+        toast.error("Failed to download the file. Please try again.");
+        console.error("Error downloading file:", error);
+      }
+    } else {
+      toast.error("No file available for download.");
+    }
+  };
+
+  // Handle file deletion
+  // Clear the file from the form and show success message
+  const handleDeleteFile = async (tabKey: string) => {
+    const fileId = validation.values[tabKey + "Id"];
+    if (!fileId) {
+      toast.error("No file to delete.");
+      return;
+    }
+    try {
+      // Call the delete API
+      const response = await api.delete(`/CoursesWithFocus/deleteCoursesWithFocusDocument?coursesWithFocusDocumentId=${fileId}`, '');
+      // Show success message
+      toast.success(response.message || "File deleted successfully!");
+      // Remove the file from the form
+      validation.setFieldValue(tabKey, null); // Clear the file from Formik state
+      validation.setFieldValue(tabKey + "Id", null);
+    } catch (error) {
+      // Show error message
+      toast.error("Failed to delete the file. Please try again.");
+      console.error("Error deleting file:", error);
+    }
+  };
+
   const confirmDelete = async (id: string) => {
     if (deleteId) {
       try {
@@ -295,7 +642,6 @@ const Courses_With_Focus: React.FC = () => {
         fetchCWFData();
       } catch (error) {
         toast.error("Failed to remove Courses With Focus. Please try again.");
-        console.error("Error deleting Course With Focus:", error);
       } finally {
         setIsDeleteModalOpen(false);
         setDeleteId(null);
@@ -303,6 +649,7 @@ const Courses_With_Focus: React.FC = () => {
     }
   };
 
+  // Formik
   const validation = useFormik({
     initialValues: {
       academicYear: null as { value: string; label: string } | null,
@@ -318,108 +665,175 @@ const Courses_With_Focus: React.FC = () => {
       courses: null as { value: string; label: string } | null,
       courseType: null as { value: string; label: string } | null,
       courseTitile: null as { value: string; label: string } | null,
-      courseTitileET: "",
-      courseTitileG: "",
-      courseTitileES: "",
-      courseTitileIK: "",
-      courseTitileEM: "",
-      courseTitileSE: "",
-      courseTitileEN: "",
+      courseTitileET: "" as string,
+      courseTitileG: "" as string,
+      courseTitileES: "" as string,
+      courseTitileIK: "" as string,
+      courseTitileEM: "" as string,
+      courseTitileSE: "" as string,
+      courseTitileEN: "" as string,
+      fileG: null,
+      fileES: null,
+      fileIK: null,
+      fileEM: null,
+      fileSE: null,
+      fileEN: null,
+      fileET: null,
+      courseTypeG: null as { value: string; label: string } | null,
+      courseTypeES: null as { value: string; label: string } | null,
+      courseTypeIK: null as { value: string; label: string } | null,
+      courseTypeEM: null as { value: string; label: string } | null,
+      courseTypeSE: null as { value: string; label: string } | null,
+      courseTypeEN: null as { value: string; label: string } | null,
+      courseTypeET: null as { value: string; label: string } | null,
+      fileGId: null,
+      fileESId: null,
+      fileIKId: null,
+      fileEMId: null,
+      fileSEId: null,
+      fileENId: null,
+      fileETId: null,
     },
-    validationSchema: Yup.object({
-      academicYear: Yup.object<{ value: string; label: string }>()
-        .nullable()
-        .required("Please select academic year"),
-      semesterType: Yup.object<{ value: string; label: string }>()
-        .nullable()
-        .required("Please select a semester type"), // Single object for single-select
-      semesterNo: Yup.object<{ value: string; label: string }>()
-        .nullable()
-        .required("Please select a semester number"),
-      stream: Yup.object<{ value: string; label: string }>()
-        .nullable()
-        .required("Please select school"),
-      department: Yup.object<{ value: string; label: string }>()
-        .nullable()
-        .required("Please select department"),
-      programType: Yup.object()
-        .nullable()
-        .required("Please select programType"),
-      courses: Yup.object().nullable().required("Please enter Program "),
-      program: Yup.array()
-        .min(1, "Please select at least one program")
-        .required("Please select programs"),
-      courseType: Yup.object().nullable().required("Please select course type"),
-      courseTitile: Yup.string().required("Please select Course Title"),
-      file: Yup.mixed()
-        .required("Please upload a file")
-        .test("fileSize", "File size is too large", (value: any) => {
-          return value && value.size <= 2 * 1024 * 1024; // 2MB limit
-        })
-        .test("fileType", "Unsupported file format", (value: any) => {
-          return (
-            value &&
-            ["application/pdf", "image/jpeg", "image/png"].includes(value.type)
-          );
-        }),
-    }),
-    onSubmit: async (values, { resetForm }) => {
-      // Create FormData object
-      const formData = new FormData();
-
-      // Append fields to FormData
-      formData.append("academicYear", values.academicYear?.value || "");
-      formData.append("departmentId", values.department?.value || "");
-      formData.append("semType", values.semesterType?.value || "");
-      formData.append("semesterNo", String(values.semesterNo?.value || ""));
-      formData.append("programTypeId", values.programType?.value || "");
-      formData.append("streamId", values.stream?.value || "");
-      formData.append(
-        "courseIds",
-        values.program.map((option) => option.value).join(",") || ""
-      );
-      formData.append("programId", values.degree?.value || "");
-      formData.append("otherDepartment", values.otherDepartment || "");
-      // Append the file
-      if (values.file) {
-        formData.append("mom", values.file);
-      } else {
-        console.error("No file selected");
+    validationSchema: getTabValidationSchema(activeTab),
+    enableReinitialize: true,
+    onSubmit: async (values, { resetForm, setErrors, setSubmitting }) => {
+      // Block submit if no Focus Area tab is active
+      if (!activeTab) {
+        validation.setStatus("Please select a Focus Area and fill at least one focus area type.");
+        setSubmitting(false);
+        return;
       }
+
+      const formData = new FormData();
+      // Determine focusArea based on activeTab
+      let focusArea = "";
+      switch (activeTab) {
+        case 1:
+          focusArea = "Gender";
+          break;
+        case 2:
+          focusArea = "Environment & Sustainability";
+          break;
+        case 3:
+          focusArea = "Indian Knowledge System";
+          break;
+        case 4:
+          focusArea = "Employability";
+          break;
+        case 5:
+          focusArea = "Skill Enhancement";
+          break;
+        case 6:
+          focusArea = "Entrepreneurship";
+          break;
+        case 7:
+          focusArea = "Ethics";
+          break;
+        default:
+          focusArea = "";
+      }
+      const coursesWithFocusRequestDto: any = {
+        academicYear: Number(values.academicYear?.value) || null,
+        semType: values.semesterType?.value || null,
+        semNumber: Number(values.semesterNo?.value) || null,
+        streamId: Number(values.stream?.value) || null,
+        departmentId: Number(values.department?.value) || null,
+        programTypeId: Number(values.programType?.value) || null,
+        programId: Number(values.degree?.value) || null,
+        focusArea: focusArea,
+        courseId: Array.isArray(values.program)
+          ? values.program.map((option: any) => Number(option.value))
+          : [],
+        ecoEntreC: {
+          coursesWithFocusAddOnFieldsId: values.fileENId || null,
+          courseTitle: values.courseTitileEN || null,
+          courseType: values.courseTypeEN?.value || null,
+        },
+        ecoEmployC: {
+          coursesWithFocusAddOnFieldsId: values.fileEMId || null,
+          courseTitle: values.courseTitileEM || null,
+          courseType: values.courseTypeEM?.value || null,
+        },
+        ecoSkillC: {
+          coursesWithFocusAddOnFieldsId: values.fileSEId || null,
+          courseTitle: values.courseTitileSE || null,
+          courseType: values.courseTypeSE?.value || null,
+        },
+        ecoGenderC: {
+          coursesWithFocusAddOnFieldsId: values.fileGId || null,
+          courseTitle: values.courseTitileG || null,
+          courseType: values.courseTypeG?.value || null,
+        },
+        ecoEnvironmentalC: {
+          coursesWithFocusAddOnFieldsId: values.fileESId || null,
+          courseTitle: values.courseTitileES || null,
+          courseType: values.courseTypeES?.value || null,
+        },
+        ecoIKSC: {
+          coursesWithFocusAddOnFieldsId: values.fileIKId || null,
+          courseTitle: values.courseTitileIK || null,
+          courseType: values.courseTypeIK?.value || null,
+        },
+        ecoEthicsC: {
+          coursesWithFocusAddOnFieldsId: values.fileETId || null,
+          courseTitle: values.courseTitileET || null,
+          courseType: values.courseTypeET?.value || null,
+        },
+        coursesWithFocusId: isEditMode && editId ? Number(editId) : null,
+      };
+
+      formData.append(
+        "coursesWithFocusRequestDto",
+        new Blob([JSON.stringify(coursesWithFocusRequestDto)], { type: "application/json" })
+      );
+
+      formData.append("ecoGenderC", values.fileG || new Blob());
+      formData.append("ecoIKSC", values.fileIK || new Blob());
+      formData.append("ecoEmployC", values.fileEM || new Blob());
+      formData.append("ecoSkillC", values.fileSE || new Blob());
+      formData.append("ecoEntreC", values.fileEN || new Blob());
 
       try {
         if (isEditMode && editId) {
-          // Call the update API
           const response = await api.put(
-            `/centralized/CoursesWithFocus`,
-            formData
+            `/CoursesWithFocus`,
+            formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          }
           );
           toast.success(
             response.message || "Courses With Focus updated successfully!"
           );
         } else {
-          // Call the save API
           const response = await api.create(
-            "/centralized/CoursesWithFocus",
-            formData
+            "/CoursesWithFocus",
+            formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          }
           );
           toast.success(
             response.message || "Courses With Focus added successfully!"
           );
         }
-        // Reset the form fields
         resetForm();
-        setIsEditMode(false); // Reset edit mode
-        setEditId(null); // Clear the edit ID
-        // display the Course With Focus List
+        setIsEditMode(false);
+        setEditId(null);
         handleListCWFClick();
       } catch (error) {
-        // Display error message
         toast.error("Failed to save Courses With Focus. Please try again.");
-        console.error("Error creating Course With Focus:", error);
       }
     },
   });
+
+  // Helper for tab errors
+  const showTabError = (tab: number, touched: any, error: any) =>
+    activeTab === tab && touched && error ? (
+      <div className="text-danger">{error}</div>
+    ) : null;
 
   return (
     <React.Fragment>
@@ -433,7 +847,7 @@ const Courses_With_Focus: React.FC = () => {
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
                 <Row>
-                  {/* Academic Year Dropdown */}
+                  {/* ...main form fields as before... */}
                   <Col lg={4}>
                     <div className="mb-3">
                       <Label>Academic Year</Label>
@@ -461,49 +875,34 @@ const Courses_With_Focus: React.FC = () => {
                   {/* Semester Dropdowns */}
                   <Col lg={8}>
                     <SemesterDropdowns
-                      semesterTypeValue={validation.values.semesterType} // Single object for single-select
-                      semesterNoValue={validation.values.semesterNo} // Array for multiselect
-                      onSemesterTypeChange={
-                        (selectedOption) =>
-                          validation.setFieldValue(
-                            "semesterType",
-                            selectedOption
-                          ) // Single object
+                      semesterTypeValue={validation.values.semesterType}
+                      semesterNoValue={validation.values.semesterNo}
+                      onSemesterTypeChange={(selectedOption) =>
+                        validation.setFieldValue("semesterType", selectedOption)
                       }
-                      onSemesterNoChange={
-                        (selectedOptions) =>
-                          validation.setFieldValue(
-                            "semesterNo",
-                            selectedOptions
-                          ) // Array of selected values
+                      onSemesterNoChange={(selectedOption) =>
+                        validation.setFieldValue("semesterNo", selectedOption)
                       }
                       isSemesterTypeInvalid={
-                        validation.touched.semesterType &&
-                        !!validation.errors.semesterType
+                        validation.touched.semesterType && !!validation.errors.semesterType
                       }
                       isSemesterNoInvalid={
-                        validation.touched.semesterNo &&
-                        !!validation.errors.semesterNo
+                        validation.touched.semesterNo && !!validation.errors.semesterNo
                       }
                       semesterTypeError={
                         validation.touched.semesterType
-                          ? Array.isArray(validation.errors.semesterType)
-                            ? validation.errors.semesterType.join(", ")
-                            : validation.errors.semesterType
+                          ? validation.errors.semesterType
                           : null
                       }
                       semesterNoError={
                         validation.touched.semesterNo
-                          ? Array.isArray(validation.errors.semesterNo)
-                            ? validation.errors.semesterNo.join(", ")
-                            : validation.errors.semesterNo
+                          ? validation.errors.semesterNo
                           : null
                       }
                       semesterTypeTouched={!!validation.touched.semesterType}
                       semesterNoTouched={!!validation.touched.semesterNo}
                     />
                   </Col>
-
                   <Col lg={4}>
                     <div className="mb-3">
                       <Label>School</Label>
@@ -528,8 +927,6 @@ const Courses_With_Focus: React.FC = () => {
                         )}
                     </div>
                   </Col>
-
-                  {/* Department Dropdown */}
                   <Col lg={4}>
                     <div className="mb-3">
                       <Label>Department</Label>
@@ -564,12 +961,11 @@ const Courses_With_Focus: React.FC = () => {
                         <Label>Specify Department</Label>
                         <Input
                           type="text"
-                          className={`form-control ${
-                            validation.touched.otherDepartment &&
+                          className={`form-control ${validation.touched.otherDepartment &&
                             validation.errors.otherDepartment
-                              ? "is-invalid"
-                              : ""
-                          }`}
+                            ? "is-invalid"
+                            : ""
+                            }`}
                           value={validation.values.otherDepartment}
                           onChange={(e) =>
                             validation.setFieldValue(
@@ -588,12 +984,11 @@ const Courses_With_Focus: React.FC = () => {
                       </div>
                     </Col>
                   )}
-                  {/* Program Type Dropdown */}
                   <Col lg={4}>
                     <div className="mb-3">
                       <Label>Program Type</Label>
                       <ProgramTypeDropdown
-                        deptId={selectedDepartment?.value} // Pass the selected department ID
+                        deptId={selectedDepartment?.value}
                         value={validation.values.programType}
                         onChange={(selectedOption) => {
                           validation.setFieldValue(
@@ -657,7 +1052,6 @@ const Courses_With_Focus: React.FC = () => {
                       {validation.touched.program &&
                         validation.errors.program && (
                           <div className="text-danger">
-                            {" "}
                             {Array.isArray(validation.errors.program)
                               ? validation.errors.program.join(", ")
                               : validation.errors.program}
@@ -668,6 +1062,7 @@ const Courses_With_Focus: React.FC = () => {
                   <div className="mb-3 mt-3 d-grid">
                     <button
                       className="btn btn-primary toggle-wizard-button"
+                      type="button"
                       onClick={toggleWizard}
                     >
                       Focus Areas
@@ -687,699 +1082,807 @@ const Courses_With_Focus: React.FC = () => {
                         {[1, 2, 3, 4, 5, 6, 7].map((tab) => (
                           <button
                             key={tab}
-                            className={`step-button ${
-                              activeTab === tab ? "active" : ""
-                            }`}
+                            className={`step-button ${activeTab === tab ? "active" : ""}`}
+                            type="button"
                             onClick={() => toggleTab(tab)}
+                            disabled={activeTab !== tab && isTabFilled(validation, activeTab)}
+                            style={activeTab !== tab && isTabFilled(validation, activeTab) ? { opacity: 0.5, cursor: "not-allowed" } : {}}
                           >
-                            {tab}.
                             {tab === 1
                               ? "Gender"
                               : tab === 2
-                              ? "Environment & Sustainability"
-                              : tab === 3
-                              ? "Indian Knowledge System"
-                              : tab === 4
-                              ? "Employability"
-                              : tab === 5
-                              ? "Skill Enhancement"
-                              : tab === 6
-                              ? "Entrepreneurship"
-                              : "Ethics"}
+                                ? "Environment & Sustainability"
+                                : tab === 3
+                                  ? "Indian Knowledge System"
+                                  : tab === 4
+                                    ? "Employability"
+                                    : tab === 5
+                                      ? "Skill Enhancement"
+                                      : tab === 6
+                                        ? "Entrepreneurship"
+                                        : "Ethics"}
                           </button>
                         ))}
                       </div>
-                      <div className="tab-content">
+                      <div className="mb-2 mt-2">
+                        {activeTab && (
+                          <button
+                            type="button"
+                            className="btn btn-outline-warning btn-sm"
+                            onClick={() => clearTabFields(validation, activeTab)}
+                          >
+                            Clear
+                          </button>
+                        )}
+                      </div>
+                      <div className="tab-content mt-3">
+                        {/* Gender */}
                         {activeTab === 1 && (
-                          <Form>
-                            <Row>
-                              <Col lg={4}>
-                                <div className="mb-3">
-                                  <Label>Course Title</Label>
-                                  <Input
-                                    type="text"
-                                    name="courseTitileG"
-                                    value={validation.values.courseTitileG}
-                                    onChange={validation.handleChange}
-                                    placeholder="Enter Course Titile"
-                                    className={
-                                      validation.touched.courseTitileG &&
+                          <Row>
+                            <Col lg={4}>
+                              <div className="mb-3">
+                                <Label>Course Title</Label>
+                                <Input
+                                  type="text"
+                                  name="courseTitileG"
+                                  value={validation.values.courseTitileG}
+                                  onChange={validation.handleChange}
+                                  placeholder="Enter Course Title"
+                                  className={
+                                    validation.touched.courseTitileG &&
                                       validation.errors.courseTitileG
-                                        ? "input-error"
-                                        : ""
-                                    }
-                                  />
-                                  {validation.touched.courseTitileG &&
-                                    validation.errors.courseTitileG && (
-                                      <div className="text-danger">
-                                        {validation.errors.courseTitileG}
-                                      </div>
-                                    )}
-                                </div>
-                              </Col>
-                              <Col lg={4}>
-                                <div className="mb-3">
-                                  <Label>Course Type</Label>
-                                  <Select
-                                    options={courseType}
-                                    value={validation.values.courseType}
-                                    onChange={(selectedOptions) =>
-                                      validation.setFieldValue(
-                                        "courseType",
-                                        selectedOptions
-                                      )
-                                    }
-                                    placeholder="Select Course Type"
-                                    isMulti
-                                    styles={dropdownStyles}
-                                    menuPortalTarget={document.body}
-                                    className={
-                                      validation.touched.courseType &&
-                                      validation.errors.courseType
-                                        ? "select-error"
-                                        : ""
-                                    }
-                                  />
-                                  {validation.touched.courseType &&
-                                    validation.errors.courseType && (
-                                      <div className="text-danger">
-                                        {validation.errors.courseType}
-                                      </div>
-                                    )}
-                                </div>
-                              </Col>
-                              <Col sm={4}>
-                                <div className="mb-3">
-                                  <Label
-                                    htmlFor="formFile"
-                                    className="form-label"
-                                  >
-                                    Upload file
-                                  </Label>
-                                  <Input
-                                    className={`form-control ${
-                                      validation.touched.file &&
-                                      validation.errors.file
-                                        ? "is-invalid"
-                                        : ""
+                                      ? "input-error"
+                                      : ""
+                                  }
+                                />
+                                {showTabError(1, validation.touched.courseTitileG, validation.errors.courseTitileG)}
+                              </div>
+                            </Col>
+                            <Col lg={4}>
+                              <div className="mb-3">
+                                <Label>Course Type</Label>
+                                <Select
+                                  options={courseType}
+                                  value={validation.values.courseTypeG}
+                                  onChange={(selectedOption) =>
+                                    validation.setFieldValue(
+                                      "courseTypeG",
+                                      selectedOption
+                                    )
+                                  }
+                                  placeholder="Select Course Type"
+                                  styles={dropdownStyles}
+                                  menuPortalTarget={document.body}
+                                  className={
+                                    validation.touched.courseTypeG &&
+                                      validation.errors.courseTypeG
+                                      ? "select-error"
+                                      : ""
+                                  }
+                                />
+                                {showTabError(1, validation.touched.courseTypeG, validation.errors.courseTypeG)}
+                              </div>
+                            </Col>
+                            <Col sm={4}>
+                              <div className="mb-3">
+                                <Label htmlFor="formFile" className="form-label">
+                                  Upload file
+                                </Label>
+                                <Input
+                                  className={`form-control ${activeTab === 1 &&
+                                    validation.touched.fileG &&
+                                    validation.errors.fileG
+                                    ? "is-invalid"
+                                    : ""
                                     }`}
-                                    type="file"
-                                    id="gender"
-                                    onChange={(event) => {
-                                      validation.setFieldValue(
-                                        "gender",
-                                        event.currentTarget.files
-                                          ? event.currentTarget.files[0]
-                                          : null
-                                      );
-                                    }}
-                                  />
-                                  {validation.touched.file &&
-                                    validation.errors.file && (
-                                      <div className="text-danger">
-                                        {validation.errors.file}
-                                      </div>
-                                    )}
-                                </div>
-                              </Col>
-                            </Row>
-                          </Form>
+                                  type="file"
+                                  id="gender"
+                                  onChange={(event) => {
+                                    validation.setFieldValue(
+                                      "fileG",
+                                      event.currentTarget.files
+                                        ? event.currentTarget.files[0]
+                                        : null
+                                    );
+                                  }}
+                                  disabled={typeof validation.values.fileG === "string" && validation.values.fileG}
+                                />
+                                {showTabError(1, validation.touched.fileG, validation.errors.fileG)}
+                                {validation.touched.fileG && validation.errors.fileG && (
+                                  <div className="text-danger">{validation.errors.fileG}</div>
+                                )}
+                                {/* Show a message if the file upload button is disabled */}
+                                {typeof validation.values.fileG === "string" && validation.values.fileG && (
+                                  <div className="text-warning mt-2">
+                                    Please remove the existing file to upload a new one.
+                                  </div>
+                                )}
+                                {/* Only show the file name if it is a string (from the edit API) */}
+                                {typeof validation.values.fileG === "string" && validation.values.fileG && (
+                                  <div className="mt-2 d-flex align-items-center">
+                                    <span className="me-2" style={{ fontWeight: "bold", color: "green" }}>
+                                      {validation.values.fileG}
+                                    </span>
+                                    <Button
+                                      color="link"
+                                      className="text-primary"
+                                      onClick={() => validation.values.fileG && handleDownloadFile(validation.values.fileG as string)}
+                                      title="Download File"
+                                    >
+                                      <i className="bi bi-download"></i>
+                                    </Button>
+                                    <Button
+                                      color="link"
+                                      className="text-danger"
+                                      onClick={() => handleDeleteFile("fileG")}
+                                      title="Delete File"
+                                    >
+                                      <i className="bi bi-trash"></i>
+                                    </Button>
+                                  </div>
+                                )}
+                              </div>
+                            </Col>
+                          </Row>
                         )}
+                        {/* Environment & Sustainability */}
                         {activeTab === 2 && (
-                          <Form>
-                            <Row>
-                              <Col lg={4}>
-                                <div className="mb-3">
-                                  <Label>Course Title</Label>
-                                  <Input
-                                    type="text"
-                                    name="courseTitileES"
-                                    value={validation.values.courseTitileES}
-                                    onChange={validation.handleChange}
-                                    placeholder="Enter Course Titile"
-                                    className={
-                                      validation.touched.courseTitileES &&
+                          <Row>
+                            <Col lg={4}>
+                              <div className="mb-3">
+                                <Label>Course Title</Label>
+                                <Input
+                                  type="text"
+                                  name="courseTitileES"
+                                  value={validation.values.courseTitileES}
+                                  onChange={validation.handleChange}
+                                  placeholder="Enter Course Title"
+                                  className={
+                                    validation.touched.courseTitileES &&
                                       validation.errors.courseTitileES
-                                        ? "input-error"
-                                        : ""
-                                    }
-                                  />
-                                  {validation.touched.courseTitileES &&
-                                    validation.errors.courseTitileES && (
-                                      <div className="text-danger">
-                                        {validation.errors.courseTitileES}
-                                      </div>
-                                    )}
-                                </div>
-                              </Col>
-                              <Col lg={4}>
-                                <div className="mb-3">
-                                  <Label>Course Type</Label>
-                                  <Select
-                                    options={courseType}
-                                    value={validation.values.courseType}
-                                    onChange={(selectedOptions) =>
-                                      validation.setFieldValue(
-                                        "courseType",
-                                        selectedOptions
-                                      )
-                                    }
-                                    placeholder="Select Course Type"
-                                    isMulti
-                                    styles={dropdownStyles}
-                                    menuPortalTarget={document.body}
-                                    className={
-                                      validation.touched.courseType &&
-                                      validation.errors.courseType
-                                        ? "select-error"
-                                        : ""
-                                    }
-                                  />
-                                  {validation.touched.courseType &&
-                                    validation.errors.courseType && (
-                                      <div className="text-danger">
-                                        {validation.errors.courseType}
-                                      </div>
-                                    )}
-                                </div>
-                              </Col>
-                              <Col sm={4}>
-                                <div className="mb-3">
-                                  <Label
-                                    htmlFor="formFile"
-                                    className="form-label"
-                                  >
-                                    Upload file
-                                  </Label>
-                                  <Input
-                                    className={`form-control ${
-                                      validation.touched.file &&
-                                      validation.errors.file
-                                        ? "is-invalid"
-                                        : ""
+                                      ? "input-error"
+                                      : ""
+                                  }
+                                />
+                                {showTabError(2, validation.touched.courseTitileES, validation.errors.courseTitileES)}
+                              </div>
+                            </Col>
+                            <Col lg={4}>
+                              <div className="mb-3">
+                                <Label>Course Type</Label>
+                                <Select
+                                  options={courseType}
+                                  value={validation.values.courseTypeES}
+                                  onChange={(selectedOption) =>
+                                    validation.setFieldValue(
+                                      "courseTypeES",
+                                      selectedOption
+                                    )
+                                  }
+                                  placeholder="Select Course Type"
+                                  styles={dropdownStyles}
+                                  menuPortalTarget={document.body}
+                                  className={
+                                    validation.touched.courseTypeES &&
+                                      validation.errors.courseTypeES
+                                      ? "select-error"
+                                      : ""
+                                  }
+                                />
+                                {showTabError(2, validation.touched.courseTypeES, validation.errors.courseTypeES)}
+                              </div>
+                            </Col>
+                            <Col sm={4}>
+                              <div className="mb-3">
+                                <Label htmlFor="formFile" className="form-label">
+                                  Upload file
+                                </Label>
+                                <Input
+                                  className={`form-control ${activeTab === 2 &&
+                                    validation.touched.fileES &&
+                                    validation.errors.fileES
+                                    ? "is-invalid"
+                                    : ""
                                     }`}
-                                    type="file"
-                                    id="environment&sustainability"
-                                    onChange={(event) => {
-                                      validation.setFieldValue(
-                                        "environment&sustainability",
-                                        event.currentTarget.files
-                                          ? event.currentTarget.files[0]
-                                          : null
-                                      );
-                                    }}
-                                  />
-                                  {validation.touched.file &&
-                                    validation.errors.file && (
-                                      <div className="text-danger">
-                                        {validation.errors.file}
-                                      </div>
-                                    )}
-                                </div>
-                              </Col>
-                            </Row>
-                          </Form>
+                                  type="file"
+                                  id="environment&sustainability"
+                                  onChange={(event) => {
+                                    validation.setFieldValue(
+                                      "fileES",
+                                      event.currentTarget.files
+                                        ? event.currentTarget.files[0]
+                                        : null
+                                    );
+                                  }}
+                                  disabled={typeof validation.values.fileES === "string" && validation.values.fileES}
+                                />
+                                {showTabError(2, validation.touched.fileES, validation.errors.fileES)}
+                                {validation.touched.fileES && validation.errors.fileES && (
+                                  <div className="text-danger">{validation.errors.fileES}</div>
+                                )}
+                                {/* Show a message if the file upload button is disabled */}
+                                {typeof validation.values.fileES === "string" && validation.values.fileES && (
+                                  <div className="text-warning mt-2">
+                                    Please remove the existing file to upload a new one.
+                                  </div>
+                                )}
+                                {/* Only show the file name if it is a string (from the edit API) */}
+                                {typeof validation.values.fileES === "string" && validation.values.fileES && (
+                                  <div className="mt-2 d-flex align-items-center">
+                                    <span className="me-2" style={{ fontWeight: "bold", color: "green" }}>
+                                      {validation.values.fileES}
+                                    </span>
+                                    <Button
+                                      color="link"
+                                      className="text-primary"
+                                      onClick={() => validation.values.fileES && handleDownloadFile(validation.values.fileES as string)}
+                                      title="Download File"
+                                    >
+                                      <i className="bi bi-download"></i>
+                                    </Button>
+                                    <Button
+                                      color="link"
+                                      className="text-danger"
+                                      onClick={() => handleDeleteFile("fileES")}
+                                      title="Delete File"
+                                    >
+                                      <i className="bi bi-trash"></i>
+                                    </Button>
+                                  </div>
+                                )}
+                              </div>
+                            </Col>
+                          </Row>
                         )}
+                        {/* Indian Knowledge System */}
                         {activeTab === 3 && (
-                          <Form>
-                            <Row>
-                              <Col lg={4}>
-                                <div className="mb-3">
-                                  <Label>Course Title</Label>
-                                  <Input
-                                    type="text"
-                                    name="courseTitileIK"
-                                    value={validation.values.courseTitileIK}
-                                    onChange={validation.handleChange}
-                                    placeholder="Enter Course Titile"
-                                    className={
-                                      validation.touched.courseTitileIK &&
+                          <Row>
+                            <Col lg={4}>
+                              <div className="mb-3">
+                                <Label>Course Title</Label>
+                                <Input
+                                  type="text"
+                                  name="courseTitileIK"
+                                  value={validation.values.courseTitileIK}
+                                  onChange={validation.handleChange}
+                                  placeholder="Enter Course Title"
+                                  className={
+                                    validation.touched.courseTitileIK &&
                                       validation.errors.courseTitileIK
-                                        ? "input-error"
-                                        : ""
-                                    }
-                                  />
-                                  {validation.touched.courseTitileIK &&
-                                    validation.errors.courseTitileIK && (
-                                      <div className="text-danger">
-                                        {validation.errors.courseTitileIK}
-                                      </div>
-                                    )}
-                                </div>
-                              </Col>
-                              <Col lg={4}>
-                                <div className="mb-3">
-                                  <Label>Course Type</Label>
-                                  <Select
-                                    options={courseType}
-                                    value={validation.values.courseType}
-                                    onChange={(selectedOptions) =>
-                                      validation.setFieldValue(
-                                        "courseType",
-                                        selectedOptions
-                                      )
-                                    }
-                                    placeholder="Select Course Type"
-                                    isMulti
-                                    styles={dropdownStyles}
-                                    menuPortalTarget={document.body}
-                                    className={
-                                      validation.touched.courseType &&
-                                      validation.errors.courseType
-                                        ? "select-error"
-                                        : ""
-                                    }
-                                  />
-                                  {validation.touched.courseType &&
-                                    validation.errors.courseType && (
-                                      <div className="text-danger">
-                                        {validation.errors.courseType}
-                                      </div>
-                                    )}
-                                </div>
-                              </Col>
-                              <Col sm={4}>
-                                <div className="mb-3">
-                                  <Label
-                                    htmlFor="formFile"
-                                    className="form-label"
-                                  >
-                                    Upload file
-                                  </Label>
-                                  <Input
-                                    className={`form-control ${
-                                      validation.touched.file &&
-                                      validation.errors.file
-                                        ? "is-invalid"
-                                        : ""
+                                      ? "input-error"
+                                      : ""
+                                  }
+                                />
+                                {showTabError(3, validation.touched.courseTitileIK, validation.errors.courseTitileIK)}
+                              </div>
+                            </Col>
+                            <Col lg={4}>
+                              <div className="mb-3">
+                                <Label>Course Type</Label>
+                                <Select
+                                  options={courseType}
+                                  value={validation.values.courseTypeIK}
+                                  onChange={(selectedOption) =>
+                                    validation.setFieldValue(
+                                      "courseTypeIK",
+                                      selectedOption
+                                    )
+                                  }
+                                  placeholder="Select Course Type"
+                                  styles={dropdownStyles}
+                                  menuPortalTarget={document.body}
+                                  className={
+                                    validation.touched.courseTypeIK &&
+                                      validation.errors.courseTypeIK
+                                      ? "select-error"
+                                      : ""
+                                  }
+                                />
+                                {showTabError(3, validation.touched.courseTypeIK, validation.errors.courseTypeIK)}
+                              </div>
+                            </Col>
+                            <Col sm={4}>
+                              <div className="mb-3">
+                                <Label htmlFor="formFile" className="form-label">
+                                  Upload file
+                                </Label>
+                                <Input
+                                  className={`form-control ${activeTab === 3 &&
+                                    validation.touched.fileIK &&
+                                    validation.errors.fileIK
+                                    ? "is-invalid"
+                                    : ""
                                     }`}
-                                    type="file"
-                                    id="indianKnowledgeSystem"
-                                    onChange={(event) => {
-                                      validation.setFieldValue(
-                                        "indianKnowledgeSystem",
-                                        event.currentTarget.files
-                                          ? event.currentTarget.files[0]
-                                          : null
-                                      );
-                                    }}
-                                  />
-                                  {validation.touched.file &&
-                                    validation.errors.file && (
-                                      <div className="text-danger">
-                                        {validation.errors.file}
-                                      </div>
-                                    )}
-                                </div>
-                              </Col>
-                            </Row>
-                          </Form>
+                                  type="file"
+                                  id="indianKnowledgeSystem"
+                                  onChange={(event) => {
+                                    validation.setFieldValue(
+                                      "fileIK",
+                                      event.currentTarget.files
+                                        ? event.currentTarget.files[0]
+                                        : null
+                                    );
+                                  }}
+                                  disabled={typeof validation.values.fileIK === "string" && validation.values.fileIK}
+                                />
+                                {showTabError(3, validation.touched.fileIK, validation.errors.fileIK)}
+                                {validation.touched.fileIK && validation.errors.fileIK && (
+                                  <div className="text-danger">{validation.errors.fileIK}</div>
+                                )}
+                                {/* Show a message if the file upload button is disabled */}
+                                {typeof validation.values.fileIK === "string" && validation.values.fileIK && (
+                                  <div className="text-warning mt-2">
+                                    Please remove the existing file to upload a new one.
+                                  </div>
+                                )}
+                                {/* Only show the file name if it is a string (from the edit API) */}
+                                {typeof validation.values.fileIK === "string" && validation.values.fileIK && (
+                                  <div className="mt-2 d-flex align-items-center">
+                                    <span className="me-2" style={{ fontWeight: "bold", color: "green" }}>
+                                      {validation.values.fileIK}
+                                    </span>
+                                    <Button
+                                      color="link"
+                                      className="text-primary"
+                                      onClick={() => validation.values.fileIK && handleDownloadFile(validation.values.fileIK as string)}
+                                      title="Download File"
+                                    >
+                                      <i className="bi bi-download"></i>
+                                    </Button>
+                                    <Button
+                                      color="link"
+                                      className="text-danger"
+                                      onClick={() => handleDeleteFile("fileIK")}
+                                      title="Delete File"
+                                    >
+                                      <i className="bi bi-trash"></i>
+                                    </Button>
+                                  </div>
+                                )}
+                              </div>
+                            </Col>
+                          </Row>
                         )}
+                        {/* Employability */}
                         {activeTab === 4 && (
-                          <Form>
-                            <Row>
-                              <Col lg={4}>
-                                <div className="mb-3">
-                                  <Label>Course Title</Label>
-                                  <Input
-                                    type="text"
-                                    name="courseTitileEM"
-                                    value={validation.values.courseTitileEM}
-                                    onChange={validation.handleChange}
-                                    placeholder="Enter Course Titile"
-                                    className={
-                                      validation.touched.courseTitileEM &&
+                          <Row>
+                            <Col lg={4}>
+                              <div className="mb-3">
+                                <Label>Course Title</Label>
+                                <Input
+                                  type="text"
+                                  name="courseTitileEM"
+                                  value={validation.values.courseTitileEM}
+                                  onChange={validation.handleChange}
+                                  placeholder="Enter Course Title"
+                                  className={
+                                    validation.touched.courseTitileEM &&
                                       validation.errors.courseTitileEM
-                                        ? "input-error"
-                                        : ""
-                                    }
-                                  />
-                                  {validation.touched.courseTitileEM &&
-                                    validation.errors.courseTitileEM && (
-                                      <div className="text-danger">
-                                        {validation.errors.courseTitileEM}
-                                      </div>
-                                    )}
-                                </div>
-                              </Col>
-                              <Col lg={4}>
-                                <div className="mb-3">
-                                  <Label>Course Type</Label>
-                                  <Select
-                                    options={courseType}
-                                    value={validation.values.courseType}
-                                    onChange={(selectedOptions) =>
-                                      validation.setFieldValue(
-                                        "courseType",
-                                        selectedOptions
-                                      )
-                                    }
-                                    placeholder="Select Course Type"
-                                    isMulti
-                                    styles={dropdownStyles}
-                                    menuPortalTarget={document.body}
-                                    className={
-                                      validation.touched.courseType &&
-                                      validation.errors.courseType
-                                        ? "select-error"
-                                        : ""
-                                    }
-                                  />
-                                  {validation.touched.courseType &&
-                                    validation.errors.courseType && (
-                                      <div className="text-danger">
-                                        {validation.errors.courseType}
-                                      </div>
-                                    )}
-                                </div>
-                              </Col>
-                              <Col sm={4}>
-                                <div className="mb-3">
-                                  <Label
-                                    htmlFor="formFile"
-                                    className="form-label"
-                                  >
-                                    Upload file
-                                  </Label>
-                                  <Input
-                                    className={`form-control ${
-                                      validation.touched.file &&
-                                      validation.errors.file
-                                        ? "is-invalid"
-                                        : ""
+                                      ? "input-error"
+                                      : ""
+                                  }
+                                />
+                                {showTabError(4, validation.touched.courseTitileEM, validation.errors.courseTitileEM)}
+                              </div>
+                            </Col>
+                            <Col lg={4}>
+                              <div className="mb-3">
+                                <Label>Course Type</Label>
+                                <Select
+                                  options={courseType}
+                                  value={validation.values.courseTypeEM}
+                                  onChange={(selectedOption) =>
+                                    validation.setFieldValue(
+                                      "courseTypeEM",
+                                      selectedOption
+                                    )
+                                  }
+                                  placeholder="Select Course Type"
+                                  styles={dropdownStyles}
+                                  menuPortalTarget={document.body}
+                                  className={
+                                    validation.touched.courseTypeEM &&
+                                      validation.errors.courseTypeEM
+                                      ? "select-error"
+                                      : ""
+                                  }
+                                />
+                                {showTabError(4, validation.touched.courseTypeEM, validation.errors.courseTypeEM)}
+                              </div>
+                            </Col>
+                            <Col sm={4}>
+                              <div className="mb-3">
+                                <Label htmlFor="formFile" className="form-label">
+                                  Upload file
+                                </Label>
+                                <Input
+                                  className={`form-control ${activeTab === 4 &&
+                                    validation.touched.fileEM &&
+                                    validation.errors.fileEM
+                                    ? "is-invalid"
+                                    : ""
                                     }`}
-                                    type="file"
-                                    id="employability"
-                                    onChange={(event) => {
-                                      validation.setFieldValue(
-                                        "employability",
-                                        event.currentTarget.files
-                                          ? event.currentTarget.files[0]
-                                          : null
-                                      );
-                                    }}
-                                  />
-                                  {validation.touched.file &&
-                                    validation.errors.file && (
-                                      <div className="text-danger">
-                                        {validation.errors.file}
-                                      </div>
-                                    )}
-                                </div>
-                              </Col>
-                            </Row>
-                          </Form>
+                                  type="file"
+                                  id="employability"
+                                  onChange={(event) => {
+                                    validation.setFieldValue(
+                                      "fileEM",
+                                      event.currentTarget.files
+                                        ? event.currentTarget.files[0]
+                                        : null
+                                    );
+                                  }}
+                                  disabled={typeof validation.values.fileEM === "string" && validation.values.fileEM}
+                                />
+                                {showTabError(4, validation.touched.fileEM, validation.errors.fileEM)}
+                                {validation.touched.fileEM && validation.errors.fileEM && (
+                                  <div className="text-danger">{validation.errors.fileEM}</div>
+                                )}
+                                {/* Show a message if the file upload button is disabled */}
+                                {typeof validation.values.fileEM === "string" && validation.values.fileEM && (
+                                  <div className="text-warning mt-2">
+                                    Please remove the existing file to upload a new one.
+                                  </div>
+                                )}
+                                {/* Only show the file name if it is a string (from the edit API) */}
+                                {typeof validation.values.fileEM === "string" && validation.values.fileEM && (
+                                  <div className="mt-2 d-flex align-items-center">
+                                    <span className="me-2" style={{ fontWeight: "bold", color: "green" }}>
+                                      {validation.values.fileEM}
+                                    </span>
+                                    <Button
+                                      color="link"
+                                      className="text-primary"
+                                      onClick={() => validation.values.fileEM && handleDownloadFile(validation.values.fileEM as string)}
+                                      title="Download File"
+                                    >
+                                      <i className="bi bi-download"></i>
+                                    </Button>
+                                    <Button
+                                      color="link"
+                                      className="text-danger"
+                                      onClick={() => handleDeleteFile("fileEM")}
+                                      title="Delete File"
+                                    >
+                                      <i className="bi bi-trash"></i>
+                                    </Button>
+                                  </div>
+                                )}
+                              </div>
+                            </Col>
+                          </Row>
                         )}
+                        {/* Skill Enhancement */}
                         {activeTab === 5 && (
-                          <Form>
-                            <Row>
-                              <Col lg={4}>
-                                <div className="mb-3">
-                                  <Label>Course Title</Label>
-                                  <Input
-                                    type="text"
-                                    name="courseTitileSE"
-                                    value={validation.values.courseTitileSE}
-                                    onChange={validation.handleChange}
-                                    placeholder="Enter Course Titile"
-                                    className={
-                                      validation.touched.courseTitileSE &&
+                          <Row>
+                            <Col lg={4}>
+                              <div className="mb-3">
+                                <Label>Course Title</Label>
+                                <Input
+                                  type="text"
+                                  name="courseTitileSE"
+                                  value={validation.values.courseTitileSE}
+                                  onChange={validation.handleChange}
+                                  placeholder="Enter Course Title"
+                                  className={
+                                    validation.touched.courseTitileSE &&
                                       validation.errors.courseTitileSE
-                                        ? "input-error"
-                                        : ""
-                                    }
-                                  />
-                                  {validation.touched.courseTitileSE &&
-                                    validation.errors.courseTitileSE && (
-                                      <div className="text-danger">
-                                        {validation.errors.courseTitileSE}
-                                      </div>
-                                    )}
-                                </div>
-                              </Col>
-                              <Col lg={4}>
-                                <div className="mb-3">
-                                  <Label>Course Type</Label>
-                                  <Select
-                                    options={courseType}
-                                    value={validation.values.courseType}
-                                    onChange={(selectedOptions) =>
-                                      validation.setFieldValue(
-                                        "courseType",
-                                        selectedOptions
-                                      )
-                                    }
-                                    placeholder="Select Course Type"
-                                    isMulti
-                                    styles={dropdownStyles}
-                                    menuPortalTarget={document.body}
-                                    className={
-                                      validation.touched.courseType &&
-                                      validation.errors.courseType
-                                        ? "select-error"
-                                        : ""
-                                    }
-                                  />
-                                  {validation.touched.courseType &&
-                                    validation.errors.courseType && (
-                                      <div className="text-danger">
-                                        {validation.errors.courseType}
-                                      </div>
-                                    )}
-                                </div>
-                              </Col>
-                              <Col sm={4}>
-                                <div className="mb-3">
-                                  <Label
-                                    htmlFor="formFile"
-                                    className="form-label"
-                                  >
-                                    Upload file
-                                  </Label>
-                                  <Input
-                                    className={`form-control ${
-                                      validation.touched.file &&
-                                      validation.errors.file
-                                        ? "is-invalid"
-                                        : ""
+                                      ? "input-error"
+                                      : ""
+                                  }
+                                />
+                                {showTabError(5, validation.touched.courseTitileSE, validation.errors.courseTitileSE)}
+                              </div>
+                            </Col>
+                            <Col lg={4}>
+                              <div className="mb-3">
+                                <Label>Course Type</Label>
+                                <Select
+                                  options={courseType}
+                                  value={validation.values.courseTypeSE}
+                                  onChange={(selectedOption) =>
+                                    validation.setFieldValue(
+                                      "courseTypeSE",
+                                      selectedOption
+                                    )
+                                  }
+                                  placeholder="Select Course Type"
+                                  styles={dropdownStyles}
+                                  menuPortalTarget={document.body}
+                                  className={
+                                    validation.touched.courseTypeSE &&
+                                      validation.errors.courseTypeSE
+                                      ? "select-error"
+                                      : ""
+                                  }
+                                />
+                                {showTabError(5, validation.touched.courseTypeSE, validation.errors.courseTypeSE)}
+                              </div>
+                            </Col>
+                            <Col sm={4}>
+                              <div className="mb-3">
+                                <Label htmlFor="formFile" className="form-label">
+                                  Upload file
+                                </Label>
+                                <Input
+                                  className={`form-control ${activeTab === 5 &&
+                                    validation.touched.fileSE &&
+                                    validation.errors.fileSE
+                                    ? "is-invalid"
+                                    : ""
                                     }`}
-                                    type="file"
-                                    id="skillEnhancement"
-                                    onChange={(event) => {
-                                      validation.setFieldValue(
-                                        "skillEnhancement",
-                                        event.currentTarget.files
-                                          ? event.currentTarget.files[0]
-                                          : null
-                                      );
-                                    }}
-                                  />
-                                  {validation.touched.file &&
-                                    validation.errors.file && (
-                                      <div className="text-danger">
-                                        {validation.errors.file}
-                                      </div>
-                                    )}
-                                </div>
-                              </Col>
-                            </Row>
-                          </Form>
+                                  type="file"
+                                  id="skillEnhancement"
+                                  onChange={(event) => {
+                                    validation.setFieldValue(
+                                      "fileSE",
+                                      event.currentTarget.files
+                                        ? event.currentTarget.files[0]
+                                        : null
+                                    );
+                                  }}
+                                  disabled={typeof validation.values.fileSE === "string" && validation.values.fileSE}
+                                />
+                                {showTabError(5, validation.touched.fileSE, validation.errors.fileSE)}
+                                {validation.touched.fileSE && validation.errors.fileSE && (
+                                  <div className="text-danger">{validation.errors.fileSE}</div>
+                                )}
+                                {/* Show a message if the file upload button is disabled */}
+                                {typeof validation.values.fileSE === "string" && validation.values.fileSE && (
+                                  <div className="text-warning mt-2">
+                                    Please remove the existing file to upload a new one.
+                                  </div>
+                                )}
+                                {/* Only show the file name if it is a string (from the edit API) */}
+                                {typeof validation.values.fileSE === "string" && validation.values.fileSE && (
+                                  <div className="mt-2 d-flex align-items-center">
+                                    <span className="me-2" style={{ fontWeight: "bold", color: "green" }}>
+                                      {validation.values.fileSE}
+                                    </span>
+                                    <Button
+                                      color="link"
+                                      className="text-primary"
+                                      onClick={() => validation.values.fileSE && handleDownloadFile(validation.values.fileSE as string)}
+                                      title="Download File"
+                                    >
+                                      <i className="bi bi-download"></i>
+                                    </Button>
+                                    <Button
+                                      color="link"
+                                      className="text-danger"
+                                      onClick={() => handleDeleteFile("fileSE")}
+                                      title="Delete File"
+                                    >
+                                      <i className="bi bi-trash"></i>
+                                    </Button>
+                                  </div>
+                                )}
+                              </div>
+                            </Col>
+                          </Row>
                         )}
+                        {/* Entrepreneurship */}
                         {activeTab === 6 && (
-                          <Form>
-                            <Row>
-                              <Col lg={4}>
-                                <div className="mb-3">
-                                  <Label>Course Title</Label>
-                                  <Input
-                                    type="text"
-                                    name="courseTitileEN"
-                                    value={validation.values.courseTitileEN}
-                                    onChange={validation.handleChange}
-                                    placeholder="Enter Course Titile"
-                                    className={
-                                      validation.touched.courseTitileEN &&
+                          <Row>
+                            <Col lg={4}>
+                              <div className="mb-3">
+                                <Label>Course Title</Label>
+                                <Input
+                                  type="text"
+                                  name="courseTitileEN"
+                                  value={validation.values.courseTitileEN}
+                                  onChange={validation.handleChange}
+                                  placeholder="Enter Course Title"
+                                  className={
+                                    validation.touched.courseTitileEN &&
                                       validation.errors.courseTitileEN
-                                        ? "input-error"
-                                        : ""
-                                    }
-                                  />
-                                  {validation.touched.courseTitileEN &&
-                                    validation.errors.courseTitileEN && (
-                                      <div className="text-danger">
-                                        {validation.errors.courseTitileEN}
-                                      </div>
-                                    )}
-                                </div>
-                              </Col>
-                              <Col lg={4}>
-                                <div className="mb-3">
-                                  <Label>Course Type</Label>
-                                  <Select
-                                    options={courseType}
-                                    value={validation.values.courseType}
-                                    onChange={(selectedOptions) =>
-                                      validation.setFieldValue(
-                                        "courseType",
-                                        selectedOptions
-                                      )
-                                    }
-                                    placeholder="Select Course Type"
-                                    isMulti
-                                    styles={dropdownStyles}
-                                    menuPortalTarget={document.body}
-                                    className={
-                                      validation.touched.courseType &&
-                                      validation.errors.courseType
-                                        ? "select-error"
-                                        : ""
-                                    }
-                                  />
-                                  {validation.touched.courseType &&
-                                    validation.errors.courseType && (
-                                      <div className="text-danger">
-                                        {validation.errors.courseType}
-                                      </div>
-                                    )}
-                                </div>
-                              </Col>
-                              <Col sm={4}>
-                                <div className="mb-3">
-                                  <Label
-                                    htmlFor="formFile"
-                                    className="form-label"
-                                  >
-                                    Upload file
-                                  </Label>
-                                  <Input
-                                    className={`form-control ${
-                                      validation.touched.file &&
-                                      validation.errors.file
-                                        ? "is-invalid"
-                                        : ""
+                                      ? "input-error"
+                                      : ""
+                                  }
+                                />
+                                {showTabError(6, validation.touched.courseTitileEN, validation.errors.courseTitileEN)}
+                              </div>
+                            </Col>
+                            <Col lg={4}>
+                              <div className="mb-3">
+                                <Label>Course Type</Label>
+                                <Select
+                                  options={courseType}
+                                  value={validation.values.courseTypeEN}
+                                  onChange={(selectedOption) =>
+                                    validation.setFieldValue(
+                                      "courseTypeEN",
+                                      selectedOption
+                                    )
+                                  }
+                                  placeholder="Select Course Type"
+                                  styles={dropdownStyles}
+                                  menuPortalTarget={document.body}
+                                  className={
+                                    validation.touched.courseTypeEN &&
+                                      validation.errors.courseTypeEN
+                                      ? "select-error"
+                                      : ""
+                                  }
+                                />
+                                {showTabError(6, validation.touched.courseTypeEN, validation.errors.courseTypeEN)}
+                              </div>
+                            </Col>
+                            <Col sm={4}>
+                              <div className="mb-3">
+                                <Label htmlFor="formFile" className="form-label">
+                                  Upload file
+                                </Label>
+                                <Input
+                                  className={`form-control ${activeTab === 6 &&
+                                    validation.touched.fileEN &&
+                                    validation.errors.fileEN
+                                    ? "is-invalid"
+                                    : ""
                                     }`}
-                                    type="file"
-                                    id="entrepreneurship"
-                                    onChange={(event) => {
-                                      validation.setFieldValue(
-                                        "entrepreneurship",
-                                        event.currentTarget.files
-                                          ? event.currentTarget.files[0]
-                                          : null
-                                      );
-                                    }}
-                                  />
-                                  {validation.touched.file &&
-                                    validation.errors.file && (
-                                      <div className="text-danger">
-                                        {validation.errors.file}
-                                      </div>
-                                    )}
-                                </div>
-                              </Col>
-                            </Row>
-                          </Form>
+                                  type="file"
+                                  id="entrepreneurship"
+                                  onChange={(event) => {
+                                    validation.setFieldValue(
+                                      "fileEN",
+                                      event.currentTarget.files
+                                        ? event.currentTarget.files[0]
+                                        : null
+                                    );
+                                  }}
+                                  disabled={typeof validation.values.fileEN === "string" && validation.values.fileEN}
+                                />
+                                {showTabError(6, validation.touched.fileEN, validation.errors.fileEN)}
+                                {validation.touched.fileEN && validation.errors.fileEN && (
+                                  <div className="text-danger">{validation.errors.fileEN}</div>
+                                )}
+                                {/* Show a message if the file upload button is disabled */}
+                                {typeof validation.values.fileEN === "string" && validation.values.fileEN && (
+                                  <div className="text-warning mt-2">
+                                    Please remove the existing file to upload a new one.
+                                  </div>
+                                )}
+                                {/* Only show the file name if it is a string (from the edit API) */}
+                                {typeof validation.values.fileEN === "string" && validation.values.fileEN && (
+                                  <div className="mt-2 d-flex align-items-center">
+                                    <span className="me-2" style={{ fontWeight: "bold", color: "green" }}>
+                                      {validation.values.fileEN}
+                                    </span>
+                                    <Button
+                                      color="link"
+                                      className="text-primary"
+                                      onClick={() => validation.values.fileEN && handleDownloadFile(validation.values.fileEN as string)}
+                                      title="Download File"
+                                    >
+                                      <i className="bi bi-download"></i>
+                                    </Button>
+                                    <Button
+                                      color="link"
+                                      className="text-danger"
+                                      onClick={() => handleDeleteFile("fileEN")}
+                                      title="Delete File"
+                                    >
+                                      <i className="bi bi-trash"></i>
+                                    </Button>
+                                  </div>
+                                )}
+                              </div>
+                            </Col>
+                          </Row>
                         )}
+                        {/* Ethics */}
                         {activeTab === 7 && (
-                          <Form>
-                            <Row>
-                              <Col lg={4}>
-                                <div className="mb-3">
-                                  <Label>Course Title</Label>
-                                  <Input
-                                    type="text"
-                                    name="courseTitileET"
-                                    value={validation.values.courseTitileET}
-                                    onChange={validation.handleChange}
-                                    placeholder="Enter Course Titile"
-                                    className={
-                                      validation.touched.courseTitileET &&
+                          <Row>
+                            <Col lg={4}>
+                              <div className="mb-3">
+                                <Label>Course Title</Label>
+                                <Input
+                                  type="text"
+                                  name="courseTitileET"
+                                  value={validation.values.courseTitileET}
+                                  onChange={validation.handleChange}
+                                  placeholder="Enter Course Title"
+                                  className={
+                                    validation.touched.courseTitileET &&
                                       validation.errors.courseTitileET
-                                        ? "input-error"
-                                        : ""
-                                    }
-                                  />
-                                  {validation.touched.courseTitileET &&
-                                    validation.errors.courseTitileET && (
-                                      <div className="text-danger">
-                                        {validation.errors.courseTitileET}
-                                      </div>
-                                    )}
-                                </div>
-                              </Col>
-                              <Col lg={4}>
-                                <div className="mb-3">
-                                  <Label>Course Type</Label>
-                                  <Select
-                                    options={courseType}
-                                    value={validation.values.courseType}
-                                    onChange={(selectedOptions) =>
-                                      validation.setFieldValue(
-                                        "courseType",
-                                        selectedOptions
-                                      )
-                                    }
-                                    placeholder="Select Course Type"
-                                    isMulti
-                                    styles={dropdownStyles}
-                                    menuPortalTarget={document.body}
-                                    className={
-                                      validation.touched.courseType &&
-                                      validation.errors.courseType
-                                        ? "select-error"
-                                        : ""
-                                    }
-                                  />
-                                  {validation.touched.courseType &&
-                                    validation.errors.courseType && (
-                                      <div className="text-danger">
-                                        {validation.errors.courseType}
-                                      </div>
-                                    )}
-                                </div>
-                              </Col>
-                              <Col sm={4}>
-                                <div className="mb-3">
-                                  <Label
-                                    htmlFor="formFile"
-                                    className="form-label"
-                                  >
-                                    Upload file
-                                  </Label>
-                                  <Input
-                                    className={`form-control ${
-                                      validation.touched.file &&
-                                      validation.errors.file
-                                        ? "is-invalid"
-                                        : ""
+                                      ? "input-error"
+                                      : ""
+                                  }
+                                />
+                                {showTabError(7, validation.touched.courseTitileET, validation.errors.courseTitileET)}
+                              </div>
+                            </Col>
+                            <Col lg={4}>
+                              <div className="mb-3">
+                                <Label>Course Type</Label>
+                                <Select
+                                  options={courseType}
+                                  value={validation.values.courseTypeET}
+                                  onChange={(selectedOption) =>
+                                    validation.setFieldValue(
+                                      "courseTypeET",
+                                      selectedOption
+                                    )
+                                  }
+                                  placeholder="Select Course Type"
+                                  styles={dropdownStyles}
+                                  menuPortalTarget={document.body}
+                                  className={
+                                    validation.touched.courseTypeET &&
+                                      validation.errors.courseTypeET
+                                      ? "select-error"
+                                      : ""
+                                  }
+                                />
+                                {showTabError(7, validation.touched.courseTypeET, validation.errors.courseTypeET)}
+                              </div>
+                            </Col>
+                            <Col sm={4}>
+                              <div className="mb-3">
+                                <Label htmlFor="formFile" className="form-label">
+                                  Upload file
+                                </Label>
+                                <Input
+                                  className={`form-control ${activeTab === 7 &&
+                                    validation.touched.fileET &&
+                                    validation.errors.fileET
+                                    ? "is-invalid"
+                                    : ""
                                     }`}
-                                    type="file"
-                                    id="ethics"
-                                    onChange={(event) => {
-                                      validation.setFieldValue(
-                                        "ethics",
-                                        event.currentTarget.files
-                                          ? event.currentTarget.files[0]
-                                          : null
-                                      );
-                                    }}
-                                  />
-                                  {validation.touched.file &&
-                                    validation.errors.file && (
-                                      <div className="text-danger">
-                                        {validation.errors.file}
-                                      </div>
-                                    )}
-                                </div>
-                              </Col>
-                            </Row>
-                          </Form>
+                                  type="file"
+                                  id="ethics"
+                                  onChange={(event) => {
+                                    validation.setFieldValue(
+                                      "fileET",
+                                      event.currentTarget.files
+                                        ? event.currentTarget.files[0]
+                                        : null
+                                    );
+                                  }}
+                                  disabled={typeof validation.values.fileET === "string" && validation.values.fileET}
+                                />
+                                {showTabError(7, validation.touched.fileET, validation.errors.fileET)}
+                                {validation.touched.fileET && validation.errors.fileET && (
+                                  <div className="text-danger">{validation.errors.fileET}</div>
+                                )}
+                                {/* Show a message if the file upload button is disabled */}
+                                {typeof validation.values.fileET === "string" && validation.values.fileET && (
+                                  <div className="text-warning mt-2">
+                                    Please remove the existing file to upload a new one.
+                                  </div>
+                                )}
+                                {/* Only show the file name if it is a string (from the edit API) */}
+                                {typeof validation.values.fileET === "string" && validation.values.fileET && (
+                                  <div className="mt-2 d-flex align-items-center">
+                                    <span className="me-2" style={{ fontWeight: "bold", color: "green" }}>
+                                      {validation.values.fileET}
+                                    </span>
+                                    <Button
+                                      color="link"
+                                      className="text-primary"
+                                      onClick={() => validation.values.fileET && handleDownloadFile(validation.values.fileET as string)}
+                                      title="Download File"
+                                    >
+                                      <i className="bi bi-download"></i>
+                                    </Button>
+                                    <Button
+                                      color="link"
+                                      className="text-danger"
+                                      onClick={() => handleDeleteFile("fileET")}
+                                      title="Delete File"
+                                    >
+                                      <i className="bi bi-trash"></i>
+                                    </Button>
+                                  </div>
+                                )}
+                              </div>
+                            </Col>
+                          </Row>
                         )}
                       </div>
                     </div>
                   )}
                 </Row>
-
                 <Row>
                   <Col lg={12}>
                     <div className="mt-3 d-flex justify-content-between">
@@ -1393,6 +1896,11 @@ const Courses_With_Focus: React.FC = () => {
                       >
                         List Course With Focus
                       </button>
+                    </div>
+                    <div className="mt-3">
+                      {validation.status && (
+                        <div className="text-danger mb-2">{validation.status}</div>
+                      )}
                     </div>
                   </Col>
                 </Row>
@@ -1408,7 +1916,6 @@ const Courses_With_Focus: React.FC = () => {
         >
           <ModalHeader toggle={toggleModal}>List Course With Focus</ModalHeader>
           <ModalBody>
-            {/* Global Search */}
             <div className="mb-3">
               <Input
                 type="text"
@@ -1417,8 +1924,6 @@ const Courses_With_Focus: React.FC = () => {
                 onChange={handleSearch}
               />
             </div>
-
-            {/* Table with Pagination */}
             <Table className="table-hover custom-table">
               <thead>
                 <tr>
@@ -1487,17 +1992,6 @@ const Courses_With_Focus: React.FC = () => {
                     />
                   </th>
                   <th>
-                    Subject Tittle
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.yearOfIntroduction}
-                      onChange={(e) =>
-                        handleFilterChange(e, "yearOfIntroduction")
-                      }
-                    />
-                  </th>
-                  <th>
                     Focus Area
                     <Input
                       type="text"
@@ -1521,7 +2015,6 @@ const Courses_With_Focus: React.FC = () => {
                       <td>{cwf.departmentName}</td>
                       <td>{cwf.programTypeName}</td>
                       <td>{cwf.programName}</td>
-                      <td>{cwf.subjectTittle}</td>
                       <td>{cwf.focusArea}</td>
                       <td>
                         <div className="d-flex justify-content-center gap-2">
@@ -1550,7 +2043,6 @@ const Courses_With_Focus: React.FC = () => {
                 )}
               </tbody>
             </Table>
-            {/* Pagination Controls */}
             <div className="d-flex justify-content-between align-items-center mt-3">
               <Button
                 color="primary"
@@ -1572,7 +2064,6 @@ const Courses_With_Focus: React.FC = () => {
             </div>
           </ModalBody>
         </Modal>
-        {/* Confirmation Modal */}
         <Modal
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
@@ -1596,8 +2087,8 @@ const Courses_With_Focus: React.FC = () => {
             </Button>
           </ModalFooter>
         </Modal>
-        ;
       </div>
+      <ToastContainer />
     </React.Fragment>
   );
 };
