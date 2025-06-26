@@ -309,17 +309,17 @@ const SidebarContent = (props: any) => {
               </Link>
               <ul className="sub-menu">
                 <li>
-                  <Link to="/#">
+                  <Link to="/examination/programWiseExamResult">
                     {props.t("1. Program –wise Exam Results")}
                   </Link>
                 </li>
                 <li>
-                  <Link to="/#">
+                  <Link to= "/examination/examAndActionTaken">
                     {props.t("2. Student Grievances w.r.t Exam & Action taken")}
                   </Link>
                 </li>
                 <li>
-                  <Link to="/#">
+                  <Link to="/malpracticeCommitteeReport">
                     {props.t("3. Malpractice Committee report")}
                   </Link>
                 </li>
@@ -404,21 +404,21 @@ const SidebarContent = (props: any) => {
               </Link>
               <ul className="sub-menu">
                 <li>
-                  <Link to="/#">
+                  <Link to="/workshopsandSeminarsConducted">
                     {props.t(
-                      "1. Workshops/Seminars conducted on Research Methodology, Intellectual Property Rights (IPR), Entrepreneurship and Skills development"
+                      "1. Workshops/Seminars conducted on Research Methodology, IPR, Entrepreneurship & Skills development"
                     )}
                   </Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("2. Innovation")}</Link>
+                  <Link to="/innovation">{props.t("2. Innovation")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("3. Patents filed")}</Link>
+                  <Link to="/patentsFiled">{props.t("3. Patents filed")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">
-                    {props.t("4. Activities conducted by MCCIIE")}
+                  <Link to="/enterpreneurship/activitiesConducted">
+                    {props.t("4. Activities conducted by MCCIE")}
                   </Link>
                 </li>
               </ul>
@@ -551,21 +551,21 @@ const SidebarContent = (props: any) => {
               </Link>
               <ul className="sub-menu">
                 <li>
-                  <Link to="/#">{props.t("1. On campus placement data")}</Link>
+                  <Link to="/placement/onCampus">{props.t("1. On campus placement data")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("2. Off campus placement data")}</Link>
+                  <Link to="/placement/offCampus">{props.t("2. Off campus placement data")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">
+                  <Link to= "/placement/trainingsAndWorkshops">
                     {props.t("3. Training programs & Workshops")}
                   </Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("4. Internships")}</Link>
+                  <Link to="/placement/Internships">{props.t("4. Internships")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("5. Career Fair")}</Link>
+                  <Link to="/placement/careerFair">{props.t("5. Career Fair")}</Link>
                 </li>
               </ul>
             </li>

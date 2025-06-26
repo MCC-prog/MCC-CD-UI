@@ -57,6 +57,18 @@ import DetailsOfStudents_MOOC from "pages/Student Activities & Support/DetailsOf
 import Intercollegiate_Events_Awards_Won from "pages/Student Activities & Support/Intercollegiate_Events_Awards_Won";
 import Cultural_CoCurricularActivities_Conducted from "pages/Student Activities & Support/Cultural_CoCurricularActivities_Conducted";
 import SportsEvents_Conducted_College from "pages/Student Activities & Support/SportsEvents_Conducted_College";
+import Program_Wise_Exam_Results from "pages/Examination/Program_Wise_Exam_Result"
+import Exam_Action_Taken from "pages/Examination/Exam_Action_Taken";
+import Malpractice_committee_Report from "pages/Examination/Malpractice_Committee_Report";
+import WorkshopsOrSeminars from "pages/Innovation And Entreprenuership/WorkshopsOrSeminar";
+import Innovation from "pages/Innovation And Entreprenuership/Innovation";
+import PatentsOrCopyRights from "pages/Innovation And Entreprenuership/PatentsOrCopyRights";
+import Activities_Conducted_MCCIE from "pages/Innovation And Entreprenuership/Activities_Conducted_MCCIE";
+import OffCampus from "pages/Placement/OffCampus";
+import Internships from "pages/Placement/Internships";
+import CareerFair from "pages/Placement/CareerFair";
+import OnCampus from "pages/Placement/OnCampus";
+import TrainingsAndWorkshops from "pages/Placement/TrainingsAndWorkshops";
 
 
 const authProtectedRoutes = [
@@ -132,6 +144,25 @@ const authProtectedRoutes = [
   { path: "/Intercollegiate_Events_Awards_Won", component: <Intercollegiate_Events_Awards_Won /> },
   { path: "/Cultural_CoCurricularActivities_Conducted", component: <Cultural_CoCurricularActivities_Conducted /> },
   { path: "/SportsEvents_Conducted_College", component: <SportsEvents_Conducted_College /> },
+
+  //_______Examination_________//
+  { path: "/examination/programWiseExamResult", component: <Program_Wise_Exam_Results />} ,
+  {path: "/examination/examAndActionTaken", component: <Exam_Action_Taken />},
+  {path: "/malpracticeCommitteeReport", component: <Malpractice_committee_Report />},
+
+  //___________Innovation and Enterprenuership____________//
+  {path: "/workshopsandSeminarsConducted", component: <WorkshopsOrSeminars />},
+  {path: "/innovation", component: <Innovation />},
+  {path: "/patentsFiled", component: <PatentsOrCopyRights />},
+  {path: "/enterpreneurship/activitiesConducted", component: <Activities_Conducted_MCCIE />},
+
+
+  //___________Placement____________//
+  { path: "/placement/onCampus", component: <OnCampus/> },
+  { path: "/placement/offCampus", component: <OffCampus /> },
+  { path: "/placement/trainingsAndWorkshops", component: <TrainingsAndWorkshops /> },
+  { path: "/placement/Internships", component: <Internships /> },
+  { path: "/placement/careerFair", component: <CareerFair/> }
 
 ];
 

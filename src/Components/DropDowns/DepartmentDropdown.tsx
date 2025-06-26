@@ -10,11 +10,13 @@ interface DepartmentDropdownProps {
   onChange: (selectedOption: any) => void;
   placeholder?: string;
   isInvalid?: boolean;
+  styles?: any; // Add styles property to the interface
 }
 
 const DepartmentDropdown: React.FC<DepartmentDropdownProps> = ({
   streamId,
   value,
+  styles,
   onChange,
   placeholder = "Select Department",
   isInvalid = false,
@@ -55,6 +57,7 @@ const DepartmentDropdown: React.FC<DepartmentDropdownProps> = ({
     <Select
       options={options}
       value={value}
+      styles={styles}
       onChange={onChange}
       placeholder={placeholder}
       className={isInvalid ? "select-error" : ""}
