@@ -699,7 +699,7 @@ const PartTime_Guest: React.FC = () => {
           </Card>
         </Container>
         {/* Modal for Listing BOS */}
-        <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg">
+        <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg" style={{ maxWidth: "90%" }}  >
           <ModalHeader toggle={toggleModal}>List Teacher Details</ModalHeader>
           <ModalBody>
             {/* Global Search */}
@@ -794,6 +794,7 @@ const PartTime_Guest: React.FC = () => {
                       <td>{bos.qualification}</td>
                       <td>{bos.vidwanId}</td>
                       <td>
+                        <div className="d-flex justify-content-center gap-2">
                         <button
                           className="btn btn-sm btn-warning me-2"
                           onClick={() => handleEdit(bos.teacherDetailsId)}
@@ -806,6 +807,7 @@ const PartTime_Guest: React.FC = () => {
                         >
                           Delete
                         </button>
+                        </div>
                       </td>
                     </tr>
                   ))

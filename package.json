@@ -2,6 +2,7 @@
   "name": "mcc-centralized-data",
   "version": "1.0.0",
   "private": true,
+  "homepage": "https://erp.mccblr.edu.in/cnd",
   "dependencies": {
     "@ckeditor/ckeditor5-build-classic": "^40.1.0",
     "@ckeditor/ckeditor5-react": "^6.2.0",

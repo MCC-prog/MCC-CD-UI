@@ -46,6 +46,21 @@ const Guest_Lectures: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
   const [filteredData, setFilteredData] = useState(gLData);
+  const [filters, setFilters] = useState({
+    academicYear: "",
+    stream: "",
+    department: "",
+    courses: "",
+    semType: "",
+    date: "",
+    resourcePersonName: "",
+    organisation: "",
+    resourcePersonDesignation: "",
+    titleOfTalk: "",
+    targetAudience: "",
+    noOfParticipants: "",
+    guestLecture: "",
+  });
   const [searchTerm, setSearchTerm] = useState("");
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
   const [tooltipOpen, setTooltipOpen] = useState(false);
@@ -67,7 +82,24 @@ const Guest_Lectures: React.FC = () => {
     );
     setFilteredData(filtered);
   };
+  // Handle column-specific filters
+  const handleFilterChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    column: string
+  ) => {
+    const value = e.target.value.toLowerCase();
+    const updatedFilters = { ...filters, [column]: value };
+    setFilters(updatedFilters);
 
+    const filtered = gLData.filter((row) =>
+      Object.values(row).some((val) =>
+        String(val || "")
+          .toLowerCase()
+          .includes(value)
+      )
+    );
+    setFilteredData(filtered);
+  };
   // Calculate the paginated data
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
@@ -834,7 +866,8 @@ const Guest_Lectures: React.FC = () => {
                       </Tooltip>
                       <Input
                         className={`form-control ${
-                          validation.touched.guestLecture && validation.errors.guestLecture
+                          validation.touched.guestLecture &&
+                          validation.errors.guestLecture
                             ? "is-invalid"
                             : ""
                         }`}
@@ -851,11 +884,12 @@ const Guest_Lectures: React.FC = () => {
                         }}
                         disabled={isFileUploadDisabled} // Disable the button if a file exists
                       />
-                      {validation.touched.guestLecture && validation.errors.guestLecture && (
-                        <div className="text-danger">
-                          {validation.errors.guestLecture}
-                        </div>
-                      )}
+                      {validation.touched.guestLecture &&
+                        validation.errors.guestLecture && (
+                          <div className="text-danger">
+                            {validation.errors.guestLecture}
+                          </div>
+                        )}
                       {/* Show a message if the file upload button is disabled */}
                       {isFileUploadDisabled && (
                         <div className="text-warning mt-2">
@@ -945,26 +979,113 @@ const Guest_Lectures: React.FC = () => {
         >
           <ModalHeader toggle={toggleModal}>List Guest Lectures</ModalHeader>
           <ModalBody>
+            <div className="mb-3">
+              <Input
+                type="text"
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={handleSearch}
+              />
+            </div>
             <Table className="table-hover custom-table">
               <thead>
                 <tr>
                   <th>#</th>
-                  <th>Academic Year</th>
-                  <th>Stream</th>
-                  <th>Department</th>
-                  <th>Semester Type</th>
-                  <th>Resource Person</th>
-                  <th>Resource Person Designation</th>
-                  <th>Organisation</th>
-                  <th>Title of Talk</th>
-                  <th>Target Audience</th>
-                  <th>No.Of Participants</th>
+                  <th>
+                    Academic Year
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.academicYear}
+                      onChange={(e) => handleFilterChange(e, "academicYear")}
+                    />
+                  </th>
+                  <th>Stream
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.stream}
+                      onChange={(e) => handleFilterChange(e, "stream")}
+                    />
+                  </th>
+                  <th>Department
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.department}
+                      onChange={(e) => handleFilterChange(e, "department")}
+                    />
+                  </th>
+                  <th>Semester Type
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.semType}
+                      onChange={(e) => handleFilterChange(e, "semType")}
+                    />
+                  </th>
+                  <th>Resource Person
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.resourcePersonName}
+                      onChange={(e) =>
+                        handleFilterChange(e, "resourcePersonName")
+                      }
+                    />
+                  </th>
+                  <th>Resource Person Designation
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.resourcePersonDesignation}
+                      onChange={(e) =>
+                        handleFilterChange(e, "resourcePersonDesignation")
+                      }
+                    />
+                  </th>
+                  <th>Organisation
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.organisation}
+                      onChange={(e) => handleFilterChange(e, "organisation")}
+                    />
+                  </th>
+                  <th>Title of Talk
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.titleOfTalk}
+                      onChange={(e) => handleFilterChange(e, "titleOfTalk")}
+                    />
+                  </th>
+                  <th>Target Audience
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.targetAudience}
+                      onChange={(e) =>
+                        handleFilterChange(e, "targetAudience")
+                      }
+                    />
+                  </th>
+                  <th>No.Of Participants
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.noOfParticipants}
+                      onChange={(e) =>
+                        handleFilterChange(e, "noOfParticipants")
+                      }
+                    />
+                  </th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {gLData.length > 0 ? (
-                  gLData.map((gl, index) => (
+                {currentRows.length > 0 ? (
+                  currentRows.map((gl, index) => (
                     <tr key={gl.guestLectureId}>
                       <td>{index + 1}</td>
                       <td>{gl.academicYear}</td>

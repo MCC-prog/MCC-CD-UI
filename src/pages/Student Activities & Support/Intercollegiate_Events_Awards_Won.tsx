@@ -6,7 +6,7 @@ import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
 import Select from "react-select";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { useFormik } from "formik";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -56,29 +56,13 @@ const Intercollegiate_Events_Awards_Won: React.FC = () => {
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
 
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  const imgRef = useRef<HTMLInputElement | null>(null);
+
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
-
-    const filtered = cswData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-
-  // Handle column-specific filters
-  const handleFilterChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    column: string
-  ) => {
-    const value = e.target.value.toLowerCase();
-    const updatedFilters = { ...filters, [column]: value };
-    setFilters(updatedFilters);
 
     const filtered = cswData.filter((row) =>
       Object.values(row).some((val) =>
@@ -108,9 +92,9 @@ const Intercollegiate_Events_Awards_Won: React.FC = () => {
   };
 
   // Fetch Intercollegiate events and awards won data from the backend
-  const fetchCSWData = async () => {
+  const fetchIEAWData = async () => {
     try {
-      const response = await axios.get("/teacherDetails/getAllClassRoomTools"); // Replace with your backend API endpoint
+      const response = await axios.get("/intercollegiateEvents/getAll"); // Replace with your backend API endpoint
       setCSWData(response);
       setFilteredData(response);
     } catch (error) {
@@ -122,9 +106,9 @@ const Intercollegiate_Events_Awards_Won: React.FC = () => {
   };
 
   // Open the modal and fetch data
-  const handleListCSWClick = () => {
+  const handleListIEAWClick = () => {
     toggleModal();
-    fetchCSWData();
+    fetchIEAWData();
   };
 
   const mapValueToLabel = (
@@ -141,13 +125,19 @@ const Intercollegiate_Events_Awards_Won: React.FC = () => {
   const handleEdit = async (id: string) => {
     try {
       const response = await api.get(
-        `/teacherDetails/edit?id=${id}&screenName=TEACHERDETAILS`,
+        `/intercollegiateEvents/edit?intercollegiateEventsId=${id}`,
         ""
       );
-      if (!response) {
-        toast.error("No data found for the selected ID.");
-        return;
-      }
+      const academicYearOptions = await api.get("/getAllAcademicYear", "");
+      // Filter the response where isCurrent or isCurrentForAdmission is true
+      const filteredAcademicYearList = academicYearOptions.filter(
+        (year: any) => year.isCurrent || year.isCurrentForAdmission
+      );
+      // Map the filtered data to the required format
+      const academicYearList = filteredAcademicYearList.map((year: any) => ({
+        value: year.year,
+        label: year.display,
+      }));
 
       // Map API response to Formik values
       const mappedValues = {
@@ -156,16 +146,21 @@ const Intercollegiate_Events_Awards_Won: React.FC = () => {
           level // Assuming you have a level options array
         ),
         eventtype: mapValueToLabel(
-          response.eventtype,
+          response.eventType,
           capType // Assuming you have a capType options array
         ),
-        hostingClgNme: response.academicExperience || "",
-        studentName: response.industrialExperience || "",
+        actype: mapValueToLabel(
+          response.academicType,
+          academicTypeAll // Assuming you have an acType options array
+        ),
+        awtype: mapValueToLabel(
+          response.awardType,
+          awardTypeAll // Assuming you have an awType options array
+        ),
+        hostingClgNme: response.hostingCollegeName || "",
+        studentName: response.studentName || "",
         noOfParticipants: response.noOfParticipants || "",
-        file: response.document?.excel || null,
-        academicYear: response.academicYear
-          ? { value: response.academicYear, label: response.academicYear }
-          : null,
+        academicYear: mapValueToLabel(response.academicYear, academicYearList),
         stream: response.streamId
           ? { value: response.streamId.toString(), label: response.streamName }
           : null,
@@ -182,27 +177,35 @@ const Intercollegiate_Events_Awards_Won: React.FC = () => {
           ? moment(response.toDate).format("DD/MM/YYYY")
           : "",
         eventName: response.eventName || "",
-        imageStudent: response.document?.image || null,
+        file: response.documents?.participationCertificate || null,
+        imageStudent: response.documents?.studentImage || null,
+        studentRegNum: response.studentRegisterNo || "",
       };
 
       // Update Formik values
       validation.setValues({
         ...mappedValues,
-        academicYear: null, // Assuming you handle academic year separately
+        academicYear: mappedValues.academicYear
+          ? {
+              ...mappedValues.academicYear,
+              value: String(mappedValues.academicYear.value),
+            }
+          : null,
+        stream: mappedValues.stream || null,
+        department: mappedValues.department || null,
         level: mapValueToLabel(response.level, level),
-        eventtype: mapValueToLabel(response.eventtype, capType),
-        hostingClgNme: response.academicExperience || "",
-        studentName: response.industrialExperience || "",
+        eventtype: mapValueToLabel(response.eventType, capType),
+        actype: mapValueToLabel(response.academicType, academicTypeAll),
+        awtype: mapValueToLabel(response.awardType, awardTypeAll),
+        hostingClgNme: response.hostingCollegeName || "",
+        studentName: response.studentName || "",
         noOfParticipants: response.noOfParticipants || "",
-        studentRegNum: response.studentRegNum || "",
-        actype: mapValueToLabel(
-          response.actype,
-          acType // Assuming you have an acType options array
-        ),
-        awtype: mapValueToLabel(
-          response.awtype,
-          awType // Assuming you have an awType options array
-        ),
+        fromDate: mappedValues.fromDate || "",
+        toDate: mappedValues.toDate || "",
+        eventName: mappedValues.eventName || "",
+        file: mappedValues.file || null,
+        imageStudent: mappedValues.imageStudent || null,
+        studentRegNum: response.studentRegisterNo || "",
       });
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
@@ -228,14 +231,14 @@ const Intercollegiate_Events_Awards_Won: React.FC = () => {
     if (deleteId) {
       try {
         const response = await api.delete(
-          `/teacherDetails/deleteClassRoomTools?id=${id}&screenName=TEACHERDETAILS`,
+          `/intercollegiateEvents/deleteIntercollegiateEvents?intercollegiateEventsId=${id}`,
           ""
         );
         toast.success(
           response.message ||
             "Intercollegiate events and awards won removed successfully!"
         );
-        fetchCSWData();
+        fetchIEAWData();
       } catch (error) {
         toast.error(
           "Failed to remove Intercollegiate events and awards won. Please try again."
@@ -269,12 +272,12 @@ const Intercollegiate_Events_Awards_Won: React.FC = () => {
     { value: "State", label: "State" },
   ];
 
-  const acType = [
+  const academicTypeAll = [
     { value: "Academic", label: "Academic" },
     { value: "Non-Academic", label: "Non-Academic" },
   ];
 
-  const awType = [
+  const awardTypeAll = [
     { value: "Participated", label: "Participated" },
     { value: "Won", label: "Won" },
   ];
@@ -285,7 +288,7 @@ const Intercollegiate_Events_Awards_Won: React.FC = () => {
       try {
         // Ensure you set responseType to 'blob' to handle binary data
         const response = await axios.get(
-          `/studentStrengthProgramWise/download/${fileName}`,
+          `/intercollegiateEvents/download/${fileName}`,
           {
             responseType: "blob",
           }
@@ -320,20 +323,21 @@ const Intercollegiate_Events_Awards_Won: React.FC = () => {
 
   // Handle file deletion
   // Clear the file from the form and show success message
-  const handleDeleteFile = async () => {
+  const handleDeleteFile = async (fileName: string, docType: string) => {
     try {
-      // Call the delete API
       const response = await api.delete(
-        `/studentStrengthProgramWise/deleteTotalStudStrengthDocument?totalStudentStrengthId=${editId}`,
+        `/intercollegiateEvents/deleteIntercollegiateEventsDocument?intercollegiateEventsId=${editId}&docType=${docType}`,
         ""
       );
-      // Show success message
       toast.success(response.message || "File deleted successfully!");
-      // Remove the file from the form
-      validation.setFieldValue("file", null); // Clear the file from Formik state
+      if (docType === "participationCertificate") {
+        validation.setFieldValue("file", null);
+      }
+      if (docType === "studentImage") {
+        validation.setFieldValue("imageStudent", null);
+      }
       setIsFileUploadDisabled(false); // Enable the file upload button
     } catch (error) {
-      // Show error message
       toast.error("Failed to delete the file. Please try again.");
       console.error("Error deleting file:", error);
     }
@@ -438,29 +442,106 @@ const Intercollegiate_Events_Awards_Won: React.FC = () => {
       ),
     }),
     onSubmit: async (values, { resetForm }) => {
-      const payload = {
-        level: values.level?.value || "",
-        type: values.eventtype?.value || "",
-        academicExperience: values.hostingClgNme || 0,
-        industrialExperience: values.studentName || 0,
-      };
-
-      // If editing, include the ID
-      if (isEditMode && editId) {
-        payload["teacherDetailsId"] = editId;
-      }
-
       try {
+        const formData = new FormData();
+        formData.append("academicYear", values.academicYear?.value || "");
+        formData.append("streamId", values.stream?.value || "");
+        formData.append("departmentId", values.department?.value || "");
+        formData.append(
+          "eventType",
+          values.eventtype?.value !== undefined
+            ? String(values.eventtype?.value)
+            : ""
+        );
+        formData.append("noOfParticipants", values.noOfParticipants);
+        formData.append(
+          "level",
+          values.level && typeof values.level === "object"
+            ? String(values.level.value)
+            : ""
+        );
+        formData.append("hostingCollegeName", values.hostingClgNme || "");
+        formData.append("eventName", values.eventName || "");
+        formData.append("studentName", values.studentName || "");
+        formData.append("studentRegisterNo", values.studentRegNum || "");
+        formData.append(
+          "academicType",
+          values.actype && typeof values.actype === "object"
+            ? String(values.actype.value)
+            : ""
+        );
+        formData.append(
+          "awardType",
+          values.awtype && typeof values.awtype === "object"
+            ? String(values.awtype.value)
+            : ""
+        );
+        // If the date is provided, format it to YYYY-MM-DD
+        if (values.fromDate) {
+          const formattedDate = moment(values.fromDate, "DD/MM/YYYY").format(
+            "DD/MM/YYYY"
+          );
+          formData.append("fromDate", formattedDate);
+        }
+        if (values.toDate) {
+          const formattedDate = moment(values.toDate, "DD/MM/YYYY").format(
+            "DD/MM/YYYY"
+          );
+          formData.append("toDate", formattedDate);
+        }
+        if (isEditMode && typeof values.file === "string") {
+          // Pass an empty PDF instead of null
+          formData.append(
+            "participationCertification",
+            new Blob([], { type: "application/pdf" }),
+            "empty.pdf"
+          );
+        } else if (isEditMode && values.file === null) {
+          formData.append(
+            "participationCertification",
+            new Blob([], { type: "application/pdf" }),
+            "empty.pdf"
+          );
+        } else if (values.file) {
+          formData.append("participationCertification", values.file);
+        }
+        if (isEditMode && typeof values.imageStudent === "string") {
+          // Pass an empty JPEG instead of null
+          formData.append(
+            "studentImage",
+            new Blob([], { type: "image/jpeg" }),
+            "empty.jpg"
+          );
+        } else if (isEditMode && values.imageStudent === null) {
+          formData.append(
+            "studentImage",
+            new Blob([], { type: "image/jpeg" }),
+            "empty.jpg"
+          );
+        } else if (values.imageStudent) {
+          formData.append("studentImage", values.imageStudent);
+        }
+        // If in edit mode, append the edit ID
+        if (isEditMode && editId) {
+          formData.append("intercollegiateEventsId", editId);
+        }
+
         if (isEditMode && editId) {
           // Call the update API
-          const response = await api.put(`/teacherDetails/update`, payload);
+          const response = await api.put(
+            `/intercollegiateEvents/update`,
+            formData
+          );
           toast.success(
             response.message ||
               "Intercollegiate events and awards won updated successfully!"
           );
         } else {
           // Call the save API
-          const response = await api.create("/teacherDetails/save", payload);
+          const response = await api.create(
+            "/intercollegiateEvents/save",
+            formData
+          );
           toast.success(
             response.message ||
               "Intercollegiate events and awards won added successfully!"
@@ -468,9 +549,16 @@ const Intercollegiate_Events_Awards_Won: React.FC = () => {
         }
         // Reset the form fields
         resetForm();
+        // Reset the file upload state
+        if (fileRef.current) {
+          fileRef.current.value = "";
+        }
+        if (imgRef.current) {
+          imgRef.current.value = "";
+        }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
-        handleListCSWClick();
+        handleListIEAWClick();
       } catch (error) {
         // Display error message
         toast.error(
@@ -849,7 +937,7 @@ const Intercollegiate_Events_Awards_Won: React.FC = () => {
                     <div className="mb-3">
                       <Label>Academic Type</Label>
                       <Select
-                        options={acType}
+                        options={academicTypeAll}
                         value={validation.values.actype}
                         onChange={(selectedOptions) =>
                           validation.setFieldValue("actype", selectedOptions)
@@ -876,7 +964,7 @@ const Intercollegiate_Events_Awards_Won: React.FC = () => {
                     <div className="mb-3">
                       <Label>Award Type</Label>
                       <Select
-                        options={awType}
+                        options={awardTypeAll}
                         value={validation.values.awtype}
                         onChange={(selectedOptions) =>
                           validation.setFieldValue("awtype", selectedOptions)
@@ -924,6 +1012,7 @@ const Intercollegiate_Events_Awards_Won: React.FC = () => {
                             : ""
                         }`}
                         type="file"
+                        innerRef={fileRef} // Reference for the file input
                         id="formFile"
                         onChange={(event) => {
                           validation.setFieldValue(
@@ -970,7 +1059,12 @@ const Intercollegiate_Events_Awards_Won: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
-                            onClick={() => handleDeleteFile()}
+                            onClick={() =>
+                              handleDeleteFile(
+                                validation.values.file as string,
+                                "participationCertificate"
+                              )
+                            }
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>
@@ -1007,6 +1101,7 @@ const Intercollegiate_Events_Awards_Won: React.FC = () => {
                             : ""
                         }`}
                         type="file"
+                        innerRef={imgRef} // Reference for the image input
                         id="formFile"
                         onChange={(event) => {
                           validation.setFieldValue(
@@ -1045,7 +1140,7 @@ const Intercollegiate_Events_Awards_Won: React.FC = () => {
                             className="text-primary"
                             onClick={() =>
                               handleDownloadFile(
-                                validation.values.file as string
+                                validation.values.imageStudent as string
                               )
                             }
                             title="Download File"
@@ -1055,7 +1150,12 @@ const Intercollegiate_Events_Awards_Won: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
-                            onClick={() => handleDeleteFile()}
+                            onClick={() =>
+                              handleDeleteFile(
+                                validation.values.imageStudent as string,
+                                "studentImage"
+                              )
+                            }
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>
@@ -1074,7 +1174,7 @@ const Intercollegiate_Events_Awards_Won: React.FC = () => {
                       <button
                         className="btn btn-secondary"
                         type="button"
-                        onClick={handleListCSWClick}
+                        onClick={handleListIEAWClick}
                       >
                         List
                       </button>
@@ -1086,7 +1186,12 @@ const Intercollegiate_Events_Awards_Won: React.FC = () => {
           </Card>
         </Container>
         {/* Modal for Listing Intercollegiate events and awards won */}
-        <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg">
+        <Modal
+          isOpen={isModalOpen}
+          toggle={toggleModal}
+          size="lg"
+          style={{ maxWidth: "90%" }}
+        >
           <ModalHeader toggle={toggleModal}>List Teacher Details</ModalHeader>
           <ModalBody>
             {/* Global Search */}
@@ -1098,108 +1203,78 @@ const Intercollegiate_Events_Awards_Won: React.FC = () => {
                 onChange={handleSearch}
               />
             </div>
-            <Table className="table-hover custom-table">
-              <thead>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>
-                    Academic Year
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.academicYear}
-                      onChange={(e) => handleFilterChange(e, "academicYear")}
-                    />
-                  </th>
-                  <th>
-                    Soft Skills
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.noOfParticipants}
-                      onChange={(e) =>
-                        handleFilterChange(e, "noOfParticipants")
-                      }
-                    />
-                  </th>
-                  <th>
-                    Language and Communication Skills
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.hostingClgNme}
-                      onChange={(e) => handleFilterChange(e, "hostingClgNme")}
-                    />
-                  </th>
-                  <th>
-                    Life Skills
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.level}
-                      onChange={(e) => handleFilterChange(e, "level")}
-                    />
-                  </th>
-                  <th>
-                    Type
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.type}
-                      onChange={(e) => handleFilterChange(e, "type")}
-                    />
-                  </th>
-                  <th>
-                    Qualification
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.noOfParticipants}
-                      onChange={(e) =>
-                        handleFilterChange(e, "noOfParticipants")
-                      }
-                    />
-                  </th>
-
+                  <th>Academic Year</th>
+                  <th>School</th>
+                  <th>Department</th>
+                  <th>Event Type</th>
+                  <th>No. of Participants</th>
+                  <th>From Date</th>
+                  <th>To Date</th>
+                  <th>Level</th>
+                  <th>Hosting College Name</th>
+                  <th>Event Name</th>
+                  <th>Student Name</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {currentRows.length > 0 ? (
                   currentRows.map((cds, index) => (
-                    <tr key={cds.teacherDetailsId}>
+                    <tr key={cds.intercollegiateEventsId}>
                       <td>{index + 1}</td>
                       <td>{cds.academicYear}</td>
-                      <td>{cds.softSkills}</td>
                       <td>{cds.streamName}</td>
                       <td>{cds.departmentName}</td>
-                      <td>{cds.type}</td>
+                      <td>{cds.eventType}</td>
                       <td>{cds.noOfParticipants}</td>
+                      <td>{cds.fromDate}</td>
+                      <td>{cds.toDate}</td>
+                      <td>{cds.level}</td>
+                      <td>{cds.hostingCollegeName}</td>
+                      <td>{cds.eventName}</td>
+                      <td>{cds.studentName}</td>
                       <td>
-                        <button
-                          className="btn btn-sm btn-warning me-2"
-                          onClick={() => handleEdit(cds.teacherDetailsId)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="btn btn-sm btn-danger"
-                          onClick={() => handleDelete(cds.teacherDetailsId)}
-                        >
-                          Delete
-                        </button>
+                        <div className="d-flex justify-content-center gap-2">
+                          <button
+                            className="btn btn-sm btn-warning"
+                            onClick={() =>
+                              handleEdit(cds.intercollegiateEventsId)
+                            }
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="btn btn-sm btn-danger"
+                            onClick={() =>
+                              handleDelete(cds.intercollegiateEventsId)
+                            }
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={4} className="text-center">
-                      No Intercollegiate events and awards won data available.
+                    <td colSpan={13} className="text-center py-3">
+                      No intercollegiate event data available.
                     </td>
                   </tr>
                 )}
               </tbody>
             </Table>
+
             {/* Pagination Controls */}
             <div className="d-flex justify-content-between align-items-center mt-3">
               <Button

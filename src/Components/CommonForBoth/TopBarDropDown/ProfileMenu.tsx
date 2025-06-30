@@ -62,7 +62,7 @@ const ProfileMenu = (props: any) => {
           <i className="mdi mdi-chevron-down d-none d-xl-inline-block" />
         </DropdownToggle>
         <DropdownMenu className="dropdown-menu-end">
-          <DropdownItem tag="a" href={process.env.PUBLIC_URL + "/profile"}>
+          {/* <DropdownItem tag="a" href={process.env.PUBLIC_URL + "/profile"}>
             {" "}
             <i className="bx bx-user font-size-16 align-middle me-1" />
             {props.t("Profile")}{" "}
@@ -70,7 +70,7 @@ const ProfileMenu = (props: any) => {
           <DropdownItem tag="a" href={process.env.PUBLIC_URL + "/auth-lock-screen"}>
             <i className="bx bx-lock-open font-size-16 align-middle me-1" />
             {props.t("Lock screen")}
-          </DropdownItem>
+          </DropdownItem> */}
           <div className="dropdown-divider" />
           <Link
             to="/logout"

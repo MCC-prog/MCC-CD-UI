@@ -483,8 +483,8 @@ const New_Courses_Introduced: React.FC = () => {
       <div className="page-content">
         <Container fluid>
           <Breadcrumb
-            title="New Program Introduced"
-            breadcrumbItem="Curriculum"
+            title="Curriculum"
+            breadcrumbItem="New Courses Introduced"
           />
           <Card>
             <CardBody>

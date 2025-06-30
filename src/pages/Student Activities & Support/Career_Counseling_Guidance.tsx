@@ -35,7 +35,7 @@ const api = new APIClient();
 
 const Career_Counseling_Guidance: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [bosData, setBosData] = useState<any[]>([]);
+  const [ccgData, setCCGData] = useState<any[]>([]);
   const [selectedStream, setSelectedStream] = useState<any>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -43,13 +43,23 @@ const Career_Counseling_Guidance: React.FC = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
-  const [filteredData, setFilteredData] = useState(bosData);
+  const [filteredData, setFilteredData] = useState(ccgData);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
-
+  const [filters, setFilters] = useState({
+    academicYear: "",
+    stream: "",
+    department: "",
+    courses: "",
+    areaOfGuidance: "",
+    date: "",
+    noOfParticipants: "",
+    trainerResource: "",
+    outcomes: "",
+  });
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   // Handle global search
@@ -57,7 +67,7 @@ const Career_Counseling_Guidance: React.FC = () => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
 
-    const filtered = bosData.filter((row) =>
+    const filtered = ccgData.filter((row) =>
       Object.values(row).some((val) =>
         String(val || "")
           .toLowerCase()
@@ -66,6 +76,25 @@ const Career_Counseling_Guidance: React.FC = () => {
     );
     setFilteredData(filtered);
   };
+
+   // Handle column-specific filters
+    const handleFilterChange = (
+      e: React.ChangeEvent<HTMLInputElement>,
+      column: string
+    ) => {
+      const value = e.target.value.toLowerCase();
+      const updatedFilters = { ...filters, [column]: value };
+      setFilters(updatedFilters);
+  
+      const filtered = ccgData.filter((row) =>
+        Object.values(row).some((val) =>
+          String(val || "")
+            .toLowerCase()
+            .includes(value)
+        )
+      );
+      setFilteredData(filtered);
+    };
 
   // Calculate the paginated data
   const indexOfLastRow = currentPage * rowsPerPage;
@@ -87,7 +116,7 @@ const Career_Counseling_Guidance: React.FC = () => {
   const fetchCCGData = async () => {
     try {
       const response = await axios.get("/careerCounseling/getAll"); // Replace with your backend API endpoint
-      setBosData(response);
+      setCCGData(response);
       setFilteredData(response);
     } catch (error) {
       console.error("Error fetching BOS data:", error);
@@ -826,25 +855,98 @@ const Career_Counseling_Guidance: React.FC = () => {
             List Career Counseling & Guidance
           </ModalHeader>
           <ModalBody>
+            <div className="mb-3">
+              <Input
+                type="text"
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={handleSearch}
+              />
+            </div>
             <Table className="table-hover custom-table">
               <thead>
                 <tr>
                   <th>#</th>
-                  <th>Academic Year</th>
-                  <th>School</th>
-                  <th>Department</th>
-                  <th>Program</th>
-                  <th>Area of Guidance</th>
-                  <th>Date</th>
-                  <th>No. of Participants/Attendees</th>
-                  <th>Trainer/Resource Person details</th>
-                  <th>Outcomes</th>
+                  <th>Academic Year
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.academicYear || ""}
+                      onChange={(e) => handleFilterChange(e, "academicYear")}
+                    />
+                  </th>
+                  <th>School
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.stream || ""}
+                      onChange={(e) => handleFilterChange(e, "stream")}
+                    />
+                  </th>
+                  <th>Department
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.department || ""}
+                      onChange={(e) => handleFilterChange(e, "department")}
+                    />
+                  </th>
+                  <th>Program
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.courses || ""}
+                      onChange={(e) => handleFilterChange(e, "courses")}
+                    />
+                  </th>
+                  <th>Area of Guidance
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.areaOfGuidance || ""}
+                      onChange={(e) => handleFilterChange(e, "areaOfGuidance")}
+                    />
+                  </th>
+                  <th>Date
+                    <Input
+                      type="date"
+                      placeholder="Filter"
+                      value={filters.date || ""}
+                      onChange={(e) => handleFilterChange(e, "date")}
+                    />
+                  </th>
+                  <th>No. of Participants/Attendees
+                    <Input
+                      type="number"
+                      placeholder="Filter"
+                      value={filters.noOfParticipants || ""}
+                      onChange={(e) =>
+                        handleFilterChange(e, "noOfParticipants")
+                      }
+                    />
+                  </th>
+                  <th>Trainer/Resource Person details
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.trainerResource || ""}
+                      onChange={(e) => handleFilterChange(e, "trainerResource")}
+                    />
+                  </th>
+                  <th>Outcomes
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.outcomes || ""}
+                      onChange={(e) => handleFilterChange(e, "outcomes")}
+                    />
+                  </th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {bosData.length > 0 ? (
-                  bosData.map((bos, index) => (
+                {currentRows.length > 0 ? (
+                  currentRows.map((bos, index) => (
                     <tr key={bos.careerCounselingId}>
                       <td>{index + 1}</td>
                       <td>{bos.academicYear}</td>

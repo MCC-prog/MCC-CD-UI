@@ -36,7 +36,7 @@ const api = new APIClient();
 
 const StudentProgression_Competitive_Exams: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [bosData, setBosData] = useState<any[]>([]);
+  const [sceData, setSCEData] = useState<any[]>([]);
   const [selectedStream, setSelectedStream] = useState<any>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -44,13 +44,25 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
-  const [filteredData, setFilteredData] = useState(bosData);
+  const [filteredData, setFilteredData] = useState(sceData);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
-
+  const [filters, setFilters] = useState({
+    academicYear: null,
+    noOfStaff: "",
+    studentName: "",
+    date: "",
+    compExamName: "",
+    proofOfCAE: "",
+    stream: null,
+    department: null,
+    courses: "",
+    status: null,
+    excel: null,
+  });
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   // Handle global search
@@ -58,7 +70,26 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
 
-    const filtered = bosData.filter((row) =>
+    const filtered = sceData.filter((row) =>
+      Object.values(row).some((val) =>
+        String(val || "")
+          .toLowerCase()
+          .includes(value)
+      )
+    );
+    setFilteredData(filtered);
+  };
+
+  // Handle column-specific filters
+  const handleFilterChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    column: string
+  ) => {
+    const value = e.target.value.toLowerCase();
+    const updatedFilters = { ...filters, [column]: value };
+    setFilters(updatedFilters);
+
+    const filtered = sceData.filter((row) =>
       Object.values(row).some((val) =>
         String(val || "")
           .toLowerCase()
@@ -84,23 +115,26 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
     setIsModalOpen(!isModalOpen);
   };
 
-  // Fetch BOS data from the backend
-  const fetchBosData = async () => {
+  // Fetch Student Progression - Competitive Exams from the backend
+  const fetchSCEData = async () => {
     try {
       const response = await axios.get(
         "/studentProgressionCompetitiveExam/getAll"
       ); // Replace with your backend API endpoint
-      setBosData(response);
+      setSCEData(response);
       setFilteredData(response);
     } catch (error) {
-      console.error("Error fetching BOS data:", error);
+      console.error(
+        "Error fetching Student Progression - Competitive Exams:",
+        error
+      );
     }
   };
 
   // Open the modal and fetch data
   const handleListBosClick = () => {
     toggleModal();
-    fetchBosData();
+    fetchSCEData();
   };
 
   // Map value to label for dropdowns
@@ -207,13 +241,16 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
               value: String(mappedValues.status.value),
             }
           : null,
-        excel: response.document?.excel || null, // Use the file from the response
+        excel: response.documents?.competitiveExam || null, // Use the file from the response
       });
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();
     } catch (error) {
-      console.error("Error fetching BOS data by ID:", error);
+      console.error(
+        "Error fetching Student Progression - Competitive Exams by ID:",
+        error
+      );
     }
   };
 
@@ -222,19 +259,19 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
     setIsDeleteModalOpen(true);
   };
 
-  // Call the delete API and refresh the BOS data
+  // Call the delete API and refresh the Student Progression - Competitive Exams
   const confirmDelete = async (id: string) => {
     if (deleteId) {
       try {
         const response = await api.delete(
-          `/staffProfile/deleteStaffProfile?staffProfileId=${id}`,
+          `/studentProgressionCompetitiveExam/deleteCompetitiveExam?competitiveExamId=${id}`,
           ""
         );
         toast.success(
           response.message ||
             "Student Progression - Competitive Exams removed successfully!"
         );
-        fetchBosData();
+        fetchSCEData();
       } catch (error) {
         toast.error(
           "Failed to remove Student Progression - Competitive Exams. Please try again."
@@ -244,6 +281,63 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
         setIsDeleteModalOpen(false);
         setDeleteId(null);
       }
+    }
+  };
+
+  // Handle file download actions
+  const handleDownloadFile = async (fileName: string) => {
+    if (fileName) {
+      try {
+        // Ensure you set responseType to 'blob' to handle binary data
+        const response = await axios.get(
+          `/studentProgressionCompetitiveExam/download/${fileName}`,
+          {
+            responseType: "blob",
+          }
+        );
+
+        // Create a Blob from the response data
+        const blob = new Blob([response], { type: "*/*" });
+
+        // Create a URL for the Blob
+        const url = window.URL.createObjectURL(blob);
+
+        // Create a temporary anchor element to trigger the download
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = fileName; // Set the file name for the download
+        document.body.appendChild(link);
+        link.click();
+
+        // Clean up the URL and remove the anchor element
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        toast.success("File downloaded successfully!");
+      } catch (error) {
+        toast.error("Failed to download excel file. Please try again.");
+        console.error("Error downloading file:", error);
+      }
+    } else {
+      toast.error("No file available for download.");
+    }
+  };
+
+  // Handle file deletion
+  const handleDeleteFile = async (fileName: string, docType: string) => {
+    try {
+      const response = await api.delete(
+        `/studentProgressionCompetitiveExam/deleteCompetitiveExamDocument?competitiveExamId=${editId}&docType=${docType}`,
+        ""
+      );
+      toast.success(response.message || "File deleted successfully!");
+      if (docType === "competitiveExam") {
+        validation.setFieldValue("excel", null);
+      }
+      setIsFileUploadDisabled(false); // Enable the file upload button
+    } catch (error) {
+      toast.error("Failed to delete the file. Please try again.");
+      console.error("Error deleting file:", error);
     }
   };
 
@@ -678,11 +772,11 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
                           <Button
                             color="link"
                             className="text-primary"
-                            // onClick={() =>
-                            //   handleDownloadFile(
-                            //     validation.values.file as string
-                            //   )
-                            // }
+                            onClick={() =>
+                              handleDownloadFile(
+                                validation.values.excel as string
+                              )
+                            }
                             title="Download File"
                           >
                             <i className="bi bi-download"></i>
@@ -690,7 +784,12 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
-                            // onClick={() => handleDeleteFile()}
+                            onClick={() =>
+                              handleDeleteFile(
+                                validation.values.excel as string,
+                                "competitiveExam"
+                              )
+                            }
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>
@@ -746,23 +845,86 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
             List Student Progression - Competitive Exams
           </ModalHeader>
           <ModalBody>
+            <div className="mb-3">
+              <Input
+                type="text"
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={handleSearch}
+              />
+            </div>
             <Table className="table-hover custom-table">
               <thead>
                 <tr>
                   <th>#</th>
-                  <th>Academic Year</th>
-                  <th>Student Name</th>
-                  <th>Stream</th>
-                  <th>Department</th>
-                  <th>Program</th>
-                  <th>Competitive Exam Name</th>
-                  <th>Status</th>
+                  <th>Academic Year
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.academicYear || ""}
+                      onChange={(e) =>
+                        handleFilterChange(e, "academicYear")
+                      }
+                      />
+                  </th>
+                  <th>Student Name
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.studentName || ""}
+                      onChange={(e) => handleFilterChange(e, "studentName")}
+                    />
+                  </th>
+                  <th>Stream
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.stream || ""}
+                      onChange={(e) => handleFilterChange(e, "streamName")}
+                    />
+                  </th>
+                  <th>Department
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.department || ""}
+                      onChange={(e) =>
+                        handleFilterChange(e, "departmentName")
+                      }
+                    />
+                  </th>
+                  <th>Program
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.courses || ""}
+                      onChange={(e) => handleFilterChange(e, "courses")}
+                    />
+                  </th>
+                  <th>Competitive Exam Name
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.compExamName || ""}
+                      onChange={(e) =>
+                        handleFilterChange(e, "competitiveExamName")
+                      }
+                    />
+                  </th>
+                  <th>Status
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.status || ""}
+                      onChange={(e) => handleFilterChange(e, "status")}
+                    />
+                  </th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {bosData.length > 0 ? (
-                  bosData.map((bos, index) => (
+                {currentRows.length > 0 ? (
+                  currentRows.map((bos, index) => (
                     <tr key={bos.competitiveExamId}>
                       <td>{index + 1}</td>
                       <td>{bos.academicYear}</td>
@@ -804,7 +966,7 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
                 ) : (
                   <tr>
                     <td colSpan={4} className="text-center">
-                      No BOS data available.
+                      No Student Progression - Competitive Exams available.
                     </td>
                   </tr>
                 )}

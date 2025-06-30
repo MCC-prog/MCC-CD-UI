@@ -8,7 +8,7 @@ import ProgramTypeDropdown from "Components/DropDowns/ProgramTypeDropdown";
 import SemesterDropdowns from "Components/DropDowns/SemesterDropdowns";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { useFormik } from "formik";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -35,7 +35,7 @@ const api = new APIClient();
 
 const DetailsOfStudents_MOOC: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [bosData, setBosData] = useState<any[]>([]);
+  const [dosmData, setDOSMData] = useState<any[]>([]);
   const [selectedStream, setSelectedStream] = useState<any>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -43,18 +43,49 @@ const DetailsOfStudents_MOOC: React.FC = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
-  const [filteredData, setFilteredData] = useState(bosData);
+  const [filteredData, setFilteredData] = useState(dosmData);
   const [searchTerm, setSearchTerm] = useState("");
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
+  const [filters, setFilters] = useState({
+    academicYear: null,
+    mccRegNo: "",
+    studentName: "",
+    offeredBy: "",
+    moocCourseRegId: "",
+    moocCoursePursued: "",
+    duration: "",
+    courses: "",
+  });
+
+  const fileRef = useRef<HTMLInputElement | null>(null);
 
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
 
-    const filtered = bosData.filter((row) =>
+    const filtered = dosmData.filter((row) =>
+      Object.values(row).some((val) =>
+        String(val || "")
+          .toLowerCase()
+          .includes(value)
+      )
+    );
+    setFilteredData(filtered);
+  };
+
+  // Handle column-specific filters
+  const handleFilterChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    column: string
+  ) => {
+    const value = e.target.value.toLowerCase();
+    const updatedFilters = { ...filters, [column]: value };
+    setFilters(updatedFilters);
+
+    const filtered = dosmData.filter((row) =>
       Object.values(row).some((val) =>
         String(val || "")
           .toLowerCase()
@@ -80,21 +111,24 @@ const DetailsOfStudents_MOOC: React.FC = () => {
     setIsModalOpen(!isModalOpen);
   };
 
-  // Fetch BOS data from the backend
-  const fetchBosData = async () => {
+  // Fetch Details of Students Enrolled for MOOC from the backend
+  const fetchDOSMData = async () => {
     try {
-      const response = await axios.get("/staffProfile/getAllStaffProfile"); // Replace with your backend API endpoint
-      setBosData(response);
+      const response = await axios.get("/studentsEnrolledForMooc/getAll"); // Replace with your backend API endpoint
+      setDOSMData(response);
       setFilteredData(response);
     } catch (error) {
-      console.error("Error fetching BOS data:", error);
+      console.error(
+        "Error fetching Details of Students Enrolled for MOOC:",
+        error
+      );
     }
   };
 
   // Open the modal and fetch data
-  const handleListBosClick = () => {
+  const handleListDOSMClick = () => {
     toggleModal();
-    fetchBosData();
+    fetchDOSMData();
   };
 
   // Map value to label for dropdowns
@@ -108,11 +142,11 @@ const DetailsOfStudents_MOOC: React.FC = () => {
   };
 
   // Handle edit action
-  // Fetch the data for the selected BOS ID and populate the form fields
+  // Fetch the data for the selected Details of Students Enrolled for MOOCID and populate the form fields
   const handleEdit = async (id: string) => {
     try {
       const response = await api.get(
-        `/staffProfile/edit?staffProfileId=${id}`,
+        `/studentsEnrolledForMooc/edit?competitiveExamId=${id}`,
         ""
       );
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
@@ -129,30 +163,21 @@ const DetailsOfStudents_MOOC: React.FC = () => {
       // Map API response to Formik values
       const mappedValues = {
         academicYear: mapValueToLabel(response.academicYear, academicYearList),
-        stream: response.streamId
-          ? { value: response.streamId.toString(), label: response.streamName }
-          : null,
-        department: response.departmentId
-          ? {
-              value: response.departmentId.toString(),
-              label: response.departmentName,
-            }
-          : null,
-        courses: response.programId
-          ? {
-              value: response.programId.toString(),
-              label: response.programName,
-            }
-          : null,
+        courses: response.courses
+          ? Object.entries(response.courses).map(([key, value]) => ({
+              value: key,
+              label: String(value),
+            }))
+          : [],
         noOfStaff: response.noOfStaff || "",
-        mccRegNo: response.mccRegNo || "",
+        mccRegNo: response.mccRegisterNo || "",
         studentName: response.studentName || "",
         offeredBy: response.offeredBy || "",
-        moocCourseRegId: response.moocCourseRegId || "",
+        moocCourseRegId: response.moocCourseId || "",
         moocCoursePursued: response.moocCoursePursued || "",
         duration: response.duration || "",
         courseDuration: response.courseDuration || "",
-        file: response.file || null, // Assuming 'file' is a string or null
+        file: response.documents.moocCertificate || null, // Assuming 'file' is a string or null
       };
 
       // Update Formik values
@@ -164,26 +189,24 @@ const DetailsOfStudents_MOOC: React.FC = () => {
             }
           : null,
         noOfStaff: response.noOfStaff || "",
-        mccRegNo: response.mccRegNo || "",
+        mccRegNo: response.mccRegisterNo || "",
         studentName: response.studentName || "",
         offeredBy: response.offeredBy || "",
-        moocCourseRegId: response.moocCourseRegId || "",
+        moocCourseRegId: response.moocCourseId || "",
         moocCoursePursued: response.moocCoursePursued || "",
         duration: response.duration || "",
         courseDuration: response.courseDuration || "",
-        file: response.file || null, // Assuming 'file' is a string or null
-        courses: response.programId
-          ? {
-              value: response.programId.toString(),
-              label: response.programName,
-            }
-          : null,
+        file: response.documents.moocCertificate || null, // Assuming 'file' is a string or null
+        courses: mappedValues.courses || [],
       });
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();
     } catch (error) {
-      console.error("Error fetching BOS data by ID:", error);
+      console.error(
+        "Error fetching Details of Students Enrolled for MOOC by ID:",
+        error
+      );
     }
   };
 
@@ -192,25 +215,88 @@ const DetailsOfStudents_MOOC: React.FC = () => {
     setIsDeleteModalOpen(true);
   };
 
-  // Call the delete API and refresh the BOS data
+  // Call the delete API and refresh the Details of Students Enrolled for MOOC
   const confirmDelete = async (id: string) => {
     if (deleteId) {
       try {
         const response = await api.delete(
-          `/staffProfile/deleteStaffProfile?staffProfileId=${id}`,
+          `/studentsEnrolledForMooc/deleteStudentsEnrolledForMooc?competitiveExamId=${id}`,
           ""
         );
         toast.success(
-          response.message || "Staff Profile removed successfully!"
+          response.message ||
+            "Details of Students Enrolled for MOOC removed successfully!"
         );
-        fetchBosData();
+        fetchDOSMData();
       } catch (error) {
-        toast.error("Failed to remove Staff Profile. Please try again.");
-        console.error("Error deleting BOS:", error);
+        toast.error(
+          "Failed to remove Details of Students Enrolled for MOOC. Please try again."
+        );
+        console.error(
+          "Error deleting Details of Students Enrolled for MOOC:",
+          error
+        );
       } finally {
         setIsDeleteModalOpen(false);
         setDeleteId(null);
       }
+    }
+  };
+
+  // Handle file download actions
+  const handleDownloadFile = async (fileName: string) => {
+    if (fileName) {
+      try {
+        // Ensure you set responseType to 'blob' to handle binary data
+        const response = await axios.get(
+          `/studentsEnrolledForMooc/download/${fileName}`,
+          {
+            responseType: "blob",
+          }
+        );
+
+        // Create a Blob from the response data
+        const blob = new Blob([response], { type: "*/*" });
+
+        // Create a URL for the Blob
+        const url = window.URL.createObjectURL(blob);
+
+        // Create a temporary anchor element to trigger the download
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = fileName; // Set the file name for the download
+        document.body.appendChild(link);
+        link.click();
+
+        // Clean up the URL and remove the anchor element
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        toast.success("File downloaded successfully!");
+      } catch (error) {
+        toast.error("Failed to download excel file. Please try again.");
+        console.error("Error downloading file:", error);
+      }
+    } else {
+      toast.error("No file available for download.");
+    }
+  };
+
+  // Handle file deletion
+  const handleDeleteFile = async (fileName: string, docType: string) => {
+    try {
+      const response = await api.delete(
+        `/studentsEnrolledForMooc/deleteStudentsEnrolledForMoocDocument?competitiveExamId=${editId}&docType=${docType}`,
+        ""
+      );
+      toast.success(response.message || "File deleted successfully!");
+      if (docType === "moocCertificate") {
+        validation.setFieldValue("file", null);
+      }
+      setIsFileUploadDisabled(false); // Enable the file upload button
+    } catch (error) {
+      toast.error("Failed to delete the file. Please try again.");
+      console.error("Error deleting file:", error);
     }
   };
 
@@ -226,22 +312,19 @@ const DetailsOfStudents_MOOC: React.FC = () => {
       duration: "",
       courseDuration: "",
       file: null as File | string | null,
-        courses: null as { value: string; label: string } | null,
+      courses: [] as { value: string; label: string }[],
     },
     validationSchema: Yup.object({
       academicYear: Yup.object()
         .nullable()
         .required("Please select academic year"),
       mccRegNo: Yup.string().required("Please enter MCC Register number"),
-      studentName: Yup.number().required(
-        "Please enter student name"
+      studentName: Yup.string().required("Please enter student name"),
+      offeredBy: Yup.string().required("Please enter offered by"),
+      moocCourseRegId: Yup.string().required(
+        "Please enter Mooc Course Id/Registration Number"
       ),
-      date: Yup.string().required("Please select date"),
-      offeredBy: Yup.string().required(
-        "Please enter offered by"
-      ),
-      moocCourseRegId: Yup.string().required("Please enter Mooc Course Id/Registration Number"),
-     file: Yup.mixed()
+      file: Yup.mixed()
         .required("Please upload a file")
         .test("fileSize", "File size is too large", (value: any) => {
           // Skip size validation if file is a string (from existing data)
@@ -262,52 +345,95 @@ const DetailsOfStudents_MOOC: React.FC = () => {
       moocCoursePursued: Yup.string().required(
         "Please enter Mooc Course Pursued"
       ),
-      duration: Yup.string()
-        .url("Please enter a valid URL")
-        .required(
-          "Please enter Duration"
-        ),
-      courses: Yup.object().nullable().required("Please select a program"),
+      duration: Yup.string().required("Please enter Duration"),
+      courses: Yup.array()
+        .of(
+          Yup.object().shape({
+            value: Yup.string().required(),
+            label: Yup.string().required(),
+          })
+        )
+        .min(1, "Please select at least one program")
+        .required("Please select program"),
     }),
     onSubmit: async (values, { resetForm }) => {
-      const payload = {
-        academicYear: values.academicYear?.value || "",
-        noOfStaff: values.noOfStaff || "",
-        mccRegNo: values.mccRegNo || "",
-        studentName: values.studentName || "",
-        offeredBy: values.offeredBy || "",
-        moocCourseRegId: values.moocCourseRegId || "",
-      };
-
-      // If editing, include the ID
-      if (isEditMode && editId) {
-        payload["staffProfileId"] = editId;
-      }
-
       try {
+        const formData = new FormData();
+        formData.append("academicYear", values.academicYear?.value || "");
+        formData.append("studentName", values.studentName);
+        formData.append("mccRegisterNo", values.mccRegNo);
+        formData.append("offeredBy", values.offeredBy);
+        formData.append("moocCourseId", values.moocCourseRegId);
+        formData.append("moocCoursePursued", values.moocCoursePursued);
+        formData.append("duration", values.duration);
+        values.courses.forEach((course, index) => {
+          formData.append(`courseIds[${index}]`, course.value);
+        });
+
+        if (isEditMode && typeof values.file === "string") {
+          formData.append(
+            "file",
+            new Blob([], {
+              type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            }),
+            "empty.xlsx"
+          );
+        } else if (isEditMode && values.file === null) {
+          formData.append(
+            "file",
+            new Blob([], {
+              type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            }),
+            "empty.xlsx"
+          );
+        } else if (values.file) {
+          formData.append("file", values.file);
+        }
+
+        // If in edit mode, append the edit ID
+        if (isEditMode && editId) {
+          formData.append("studentsEnrolledForMoocId", editId);
+        }
+
         if (isEditMode && editId) {
           // Call the update API
-          const response = await api.put(`/staffProfile/update`, payload);
+          const response = await api.put(
+            `/studentsEnrolledForMooc/update`,
+            formData
+          );
           toast.success(
-            response.message || "Staff Profile updated successfully!"
+            response.message ||
+              "Details of Students Enrolled for MOOC updated successfully!"
           );
         } else {
           // Call the save API
-          const response = await api.create("/staffProfile/save", payload);
+          const response = await api.create(
+            "/studentsEnrolledForMooc/save",
+            formData
+          );
           toast.success(
-            response.message || "Staff Profile added successfully!"
+            response.message ||
+              "Details of Students Enrolled for MOOC added successfully!"
           );
         }
         // Reset the form fields
         resetForm();
+        if (fileRef.current) {
+          fileRef.current.value = "";
+        }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
-        // display the BOS List
-        handleListBosClick();
+        // display the Details of Students Enrolled for MOOC
+        handleListDOSMClick();
       } catch (error) {
         // Display error message
-        toast.error("Failed to save Staff Profile. Please try again.");
-        console.error("Error creating BOS:", error);
+        toast.error(
+          "Failed to save Details of Students Enrolled for MOOC. Please try again."
+        );
+        console.error(
+          "Error creating Details of Students Enrolled for MOOC:",
+          error
+        );
       }
     },
   });
@@ -367,7 +493,7 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                         onChange={(e) =>
                           validation.setFieldValue("mccRegNo", e.target.value)
                         }
-                        placeholder="Enter full time"
+                        placeholder="Enter MCC Register number"
                         value={validation.values.mccRegNo}
                       />
                       {validation.touched.mccRegNo &&
@@ -391,7 +517,7 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                             ? "is-invalid"
                             : ""
                         }`}
-                        type="number"
+                        type="text"
                         id="studentName"
                         onChange={(e) =>
                           validation.setFieldValue(
@@ -567,9 +693,7 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                         open={tooltipOpen}
                         onClose={() => setTooltipOpen(false)}
                         onOpen={() => setTooltipOpen(true)}
-                        title={
-                          <span>Upload file. Max size 10MB.</span>
-                        }
+                        title={<span>Upload file. Max size 10MB.</span>}
                         arrow
                       >
                         <i
@@ -586,6 +710,7 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                         }`}
                         type="file"
                         id="formFile"
+                        innerRef={fileRef}
                         onChange={(event) => {
                           validation.setFieldValue(
                             "file",
@@ -619,11 +744,11 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                           <Button
                             color="link"
                             className="text-primary"
-                            //   onClick={() =>
-                            //     handleDownloadFile(
-                            //       validation.values.file as string
-                            //     )
-                            //   }
+                            onClick={() =>
+                              handleDownloadFile(
+                                validation.values.file as string
+                              )
+                            }
                             title="Download File"
                           >
                             <i className="bi bi-download"></i>
@@ -631,7 +756,12 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
-                            //   onClick={() => handleDeleteFile()}
+                            onClick={() =>
+                              handleDeleteFile(
+                                validation.values.file as string,
+                                "moocCertificate"
+                              )
+                            }
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>
@@ -650,7 +780,7 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                       <button
                         className="btn btn-secondary"
                         type="button"
-                        onClick={handleListBosClick}
+                        onClick={handleListDOSMClick}
                       >
                         List
                       </button>
@@ -661,45 +791,147 @@ const DetailsOfStudents_MOOC: React.FC = () => {
             </CardBody>
           </Card>
         </Container>
-        {/* Modal for Listing BOS */}
-        <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg">
-          <ModalHeader toggle={toggleModal}>List Staff Profile</ModalHeader>
+        {/* Modal for Listing Details of Students Enrolled for MOOC*/}
+        <Modal
+          isOpen={isModalOpen}
+          toggle={toggleModal}
+          size="lg"
+          style={{ maxWidth: "90%" }}
+        >
+          <ModalHeader toggle={toggleModal}>
+            List Details of Students Enrolled for MOOC
+          </ModalHeader>
           <ModalBody>
+            <div className="mb-3">
+              <Input
+                type="text"
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={handleSearch}
+              />
+            </div>
             <Table className="table-hover custom-table">
               <thead>
                 <tr>
                   <th>#</th>
-                  <th>Academic Year</th>
-                  <th>Stream</th>
-                  <th>No.Of Staff</th>
-                  <th>Full Time</th>
-                  <th>Part Time</th>
-                  <th>Guest Faculty</th>
+                  <th>
+                    Academic Year
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.academicYear || ""}
+                      onChange={(e) => handleFilterChange(e, "academicYear")}
+                    />
+                  </th>
+                  <th>
+                    MCC Register number
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.mccRegNo || ""}
+                      onChange={(e) => handleFilterChange(e, "mccRegNo")}
+                    />
+                  </th>
+                  <th>
+                    Student Name
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.studentName || ""}
+                      onChange={(e) => handleFilterChange(e, "studentName")}
+                    />
+                  </th>
+                  <th>
+                    Program
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.courses || ""}
+                      onChange={(e) => handleFilterChange(e, "courses")}
+                    />
+                  </th>
+                  <th>
+                    Offered By
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.offeredBy || ""}
+                      onChange={(e) => handleFilterChange(e, "offeredBy")}
+                    />
+                  </th>
+                  <th>
+                    Mooc Course Id/Registration Number
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.moocCourseRegId || ""}
+                      onChange={(e) => handleFilterChange(e, "moocCourseRegId")}
+                    />
+                  </th>
+                  <th>
+                    Mooc Course Pursued
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.moocCoursePursued || ""}
+                      onChange={(e) =>
+                        handleFilterChange(e, "moocCoursePursued")
+                      }
+                    />
+                  </th>
+                  <th>
+                    Duration
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.duration || ""}
+                      onChange={(e) => handleFilterChange(e, "duration")}
+                    />
+                  </th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {bosData.length > 0 ? (
-                  bosData.map((bos, index) => (
-                    <tr key={bos.id}>
+                {currentRows.length > 0 ? (
+                  currentRows.map((dosm, index) => (
+                    <tr key={dosm.studentsEnrolledForMoocId}>
                       <td>{index + 1}</td>
-                      <td>{bos.academicYear}</td>
-                      <td>{bos.streamName}</td>
-                      <td>{bos.noOfStaff}</td>
-                      <td>{bos.mccRegNo}</td>
-                      <td>{bos.studentName}</td>
-                      <td>{bos.offeredBy}</td>
+                      <td>{dosm.academicYear}</td>
+                      <td>{dosm.mccRegisterNo}</td>
+                      <td>{dosm.studentName}</td>
+                      <td>
+                        <ul className="list-disc list-inside">
+                          {Object.values(dosm.courses).map(
+                            (courseName, idx) => (
+                              <li key={idx}>
+                                {typeof courseName === "string" ||
+                                typeof courseName === "number"
+                                  ? courseName
+                                  : String(courseName)}
+                              </li>
+                            )
+                          )}
+                        </ul>
+                      </td>
+                      <td>{dosm.offeredBy}</td>
+                      <td>{dosm.moocCourseId}</td>
+                      <td>{dosm.moocCoursePursued}</td>
+                      <td>{dosm.duration}</td>
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
                             className="btn btn-sm btn-warning me-2"
-                            onClick={() => handleEdit(bos.staffProfileId)}
+                            onClick={() =>
+                              handleEdit(dosm.studentsEnrolledForMoocId)
+                            }
                           >
                             Edit
                           </button>
                           <button
                             className="btn btn-sm btn-danger"
-                            onClick={() => handleDelete(bos.staffProfileId)}
+                            onClick={() =>
+                              handleDelete(dosm.studentsEnrolledForMoocId)
+                            }
                           >
                             Delete
                           </button>
@@ -710,7 +942,7 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                 ) : (
                   <tr>
                     <td colSpan={4} className="text-center">
-                      No BOS data available.
+                      No Details of Students Enrolled for MOOC available.
                     </td>
                   </tr>
                 )}

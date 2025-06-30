@@ -693,7 +693,7 @@ const Teachers_Details: React.FC = () => {
           </Card>
         </Container>
         {/* Modal for Listing BOS */}
-        <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg">
+        <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg" style={{ maxWidth: "90%" }}>
           <ModalHeader toggle={toggleModal}>List Teacher Details</ModalHeader>
           <ModalBody>
             {/* Global Search */}
@@ -788,18 +788,20 @@ const Teachers_Details: React.FC = () => {
                       <td>{bos.qualification}</td>
                       <td>{bos.vidwanId}</td>
                       <td>
-                        <button
-                          className="btn btn-sm btn-warning me-2"
-                          onClick={() => handleEdit(bos.teacherDetailsId)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="btn btn-sm btn-danger"
-                          onClick={() => handleDelete(bos.teacherDetailsId)}
-                        >
-                          Delete
-                        </button>
+                        <div className="d-flex justify-content-center gap-2">
+                          <button
+                            className="btn btn-sm btn-warning me-2"
+                            onClick={() => handleEdit(bos.teacherDetailsId)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="btn btn-sm btn-danger"
+                            onClick={() => handleDelete(bos.teacherDetailsId)}
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))

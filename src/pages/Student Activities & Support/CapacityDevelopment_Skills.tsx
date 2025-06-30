@@ -723,8 +723,15 @@ const CapacityDevelopment_Skills: React.FC = () => {
           </Card>
         </Container>
         {/* Modal for Listing Capacity development & Skills enhancement */}
-        <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg"  style={{ maxWidth: "100%", width: "auto" }}>
-          <ModalHeader toggle={toggleModal}>List Capacity Development & Skills Enhancement</ModalHeader>
+        <Modal
+          isOpen={isModalOpen}
+          toggle={toggleModal}
+          size="lg"
+          style={{ maxWidth: "100%", width: "auto" }}
+        >
+          <ModalHeader toggle={toggleModal}>
+            List Capacity Development & Skills Enhancement
+          </ModalHeader>
           <ModalBody>
             {/* Global Search */}
             <div className="mb-3">
@@ -811,20 +818,24 @@ const CapacityDevelopment_Skills: React.FC = () => {
                       <td>{cds.type}</td>
                       <td>{cds.awarenessOfTrends}</td>
                       <td>
-                        <button
-                          className="btn btn-sm btn-warning me-2"
-                          onClick={() => handleEdit(cds.capacityDevelopmentId)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="btn btn-sm btn-danger"
-                          onClick={() =>
-                            handleDelete(cds.capacityDevelopmentId)
-                          }
-                        >
-                          Delete
-                        </button>
+                        <div className="d-flex justify-content-center gap-2">
+                          <button
+                            className="btn btn-sm btn-warning me-2"
+                            onClick={() =>
+                              handleEdit(cds.capacityDevelopmentId)
+                            }
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="btn btn-sm btn-danger"
+                            onClick={() =>
+                              handleDelete(cds.capacityDevelopmentId)
+                            }
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))

@@ -667,7 +667,7 @@ const Professor_Practice: React.FC = () => {
           </Card>
         </Container>
         {/* Modal for Listing BOS */}
-        <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg">
+        <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg" style={{ maxWidth: "90%" }}>
           <ModalHeader toggle={toggleModal}>
             List Professor Practice
           </ModalHeader>

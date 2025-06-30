@@ -6,7 +6,7 @@ import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
 import Select from "react-select";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { useFormik } from "formik";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -27,18 +27,19 @@ import { APIClient } from "../../helpers/api_helper";
 import { toast, ToastContainer } from "react-toastify";
 import moment from "moment";
 import { Tooltip } from "@mui/material";
+import AssociationDropdown from "Components/DropDowns/AssociationDropdown";
 
 const api = new APIClient();
 
 const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [cswData, setCSWData] = useState<any[]>([]);
+  const [ccacData, setCCACData] = useState<any[]>([]);
   const [editId, setEditId] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
-  const [filteredData, setFilteredData] = useState(cswData);
+  const [filteredData, setFilteredData] = useState(ccacData);
   const [filters, setFilters] = useState({
     academicYear: "",
     level: "",
@@ -56,12 +57,15 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
 
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  const imgRef = useRef<HTMLInputElement | null>(null);
+
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
 
-    const filtered = cswData.filter((row) =>
+    const filtered = ccacData.filter((row) =>
       Object.values(row).some((val) =>
         String(val || "")
           .toLowerCase()
@@ -80,7 +84,7 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
     const updatedFilters = { ...filters, [column]: value };
     setFilters(updatedFilters);
 
-    const filtered = cswData.filter((row) =>
+    const filtered = ccacData.filter((row) =>
       Object.values(row).some((val) =>
         String(val || "")
           .toLowerCase()
@@ -108,10 +112,10 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
   };
 
   // Fetch Cultural & Co-Curricular activities conducted in the college data from the backend
-  const fetchCSWData = async () => {
+  const fetchCCACData = async () => {
     try {
-      const response = await axios.get("/teacherDetails/getAllClassRoomTools"); // Replace with your backend API endpoint
-      setCSWData(response);
+      const response = await axios.get("/cocurricularActivities/getAll"); // Replace with your backend API endpoint
+      setCCACData(response);
       setFilteredData(response);
     } catch (error) {
       console.error(
@@ -122,9 +126,9 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
   };
 
   // Open the modal and fetch data
-  const handleListCSWClick = () => {
+  const handleListCCACClick = () => {
     toggleModal();
-    fetchCSWData();
+    fetchCCACData();
   };
 
   const mapValueToLabel = (
@@ -141,21 +145,24 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
   const handleEdit = async (id: string) => {
     try {
       const response = await api.get(
-        `/teacherDetails/edit?id=${id}&screenName=TEACHERDETAILS`,
+        `/cocurricularActivities/edit?intercollegiateEventsId=${id}`,
         ""
       );
-      if (!response) {
-        toast.error("No data found for the selected ID.");
-        return;
-      }
 
+      const academicYearOptions = await api.get("/getAllAcademicYear", "");
+      // Filter the response where isCurrent or isCurrentForAdmission is true
+      const filteredAcademicYearList = academicYearOptions.filter(
+        (year: any) => year.isCurrent || year.isCurrentForAdmission
+      );
+      // Map the filtered data to the required format
+      const academicYearList = filteredAcademicYearList.map((year: any) => ({
+        value: year.year,
+        label: year.display,
+      }));
       // Map API response to Formik values
       const mappedValues = {
         noOfParticipants: response.noOfParticipants || "",
-        file: response.document?.excel || null,
-        academicYear: response.academicYear
-          ? { value: response.academicYear, label: response.academicYear }
-          : null,
+        academicYear: mapValueToLabel(response.academicYear, academicYearList),
         stream: response.streamId
           ? { value: response.streamId.toString(), label: response.streamName }
           : null,
@@ -165,21 +172,31 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
               label: response.departmentName,
             }
           : null,
-        fromDate: response.fromDate
-          ? moment(response.fromDate).format("DD/MM/YYYY")
-          : "",
-        toDate: response.toDate
-          ? moment(response.toDate).format("DD/MM/YYYY")
-          : "",
+        association: response.associationId
+          ? {
+              value: response.associationId.toString(),
+              label: response.associationName,
+            }
+          : null,
+        fromDate: response.fromDate,
+        toDate: response.toDate,
         eventTitle: response.eventTitle || "",
-        imageStudent: response.document?.image || null,
+        file: response.documents?.CoCurricularActivities || null,
+        imageStudent: response.documents?.studentImage || null,
       };
 
       // Update Formik values
       validation.setValues({
         ...mappedValues,
-        academicYear: null, // Assuming you handle academic year separately
+        academicYear: mappedValues.academicYear
+          ? {
+              ...mappedValues.academicYear,
+              value: String(mappedValues.academicYear.value),
+            }
+          : null,
         noOfParticipants: response.noOfParticipants || "",
+        fromDate: mappedValues.fromDate || "",
+        toDate: mappedValues.toDate || "",
       });
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
@@ -205,14 +222,14 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
     if (deleteId) {
       try {
         const response = await api.delete(
-          `/teacherDetails/deleteClassRoomTools?id=${id}&screenName=TEACHERDETAILS`,
+          `/cocurricularActivities/deleteCocurricularActivities?cocurricularActivitiesId=${id}`,
           ""
         );
         toast.success(
           response.message ||
             "Cultural & Co-Curricular activities conducted in the college removed successfully!"
         );
-        fetchCSWData();
+        fetchCCACData();
       } catch (error) {
         toast.error(
           "Failed to remove Cultural & Co-Curricular activities conducted in the college. Please try again."
@@ -227,13 +244,6 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
       }
     }
   };
-  const dropdownStyles = {
-    menu: (provided: any) => ({
-      ...provided,
-      overflowY: "auto", // Enable scrolling for additional options
-    }),
-    menuPortal: (base: any) => ({ ...base, zIndex: 9999 }), // Ensure the menu is above other elements
-  };
 
   // Handle file download actions
   const handleDownloadFile = async (fileName: string) => {
@@ -241,7 +251,7 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
       try {
         // Ensure you set responseType to 'blob' to handle binary data
         const response = await axios.get(
-          `/studentStrengthProgramWise/download/${fileName}`,
+          `/cocurricularActivities/download/${fileName}`,
           {
             responseType: "blob",
           }
@@ -274,22 +284,21 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
     }
   };
 
-  // Handle file deletion
-  // Clear the file from the form and show success message
-  const handleDeleteFile = async () => {
+  const handleDeleteFile = async (fileName: string, docType: string) => {
     try {
-      // Call the delete API
       const response = await api.delete(
-        `/studentStrengthProgramWise/deleteTotalStudStrengthDocument?totalStudentStrengthId=${editId}`,
+        `/cocurricularActivities/deleteCocurricularActivitiesDocument?cocurricularActivitiesId=${editId}&docType=${docType}`,
         ""
       );
-      // Show success message
       toast.success(response.message || "File deleted successfully!");
-      // Remove the file from the form
-      validation.setFieldValue("file", null); // Clear the file from Formik state
+      if (docType === "CoCurricularActivities") {
+        validation.setFieldValue("file", null);
+      }
+      if (docType === "studentImage") {
+        validation.setFieldValue("imageStudent", null);
+      }
       setIsFileUploadDisabled(false); // Enable the file upload button
     } catch (error) {
-      // Show error message
       toast.error("Failed to delete the file. Please try again.");
       console.error("Error deleting file:", error);
     }
@@ -300,6 +309,7 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
       academicYear: null as { value: string; label: string } | null,
       stream: null as { value: string; label: string } | null,
       department: null as { value: string; label: string } | null,
+      association: null as { value: string; label: string } | null,
       noOfParticipants: "",
       fromDate: "",
       toDate: "",
@@ -348,7 +358,7 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
             return this.createError({ message: "File size is too large" });
           }
           // Check file type
-          const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
+          const allowedTypes = ["application/pdf"];
           if (value instanceof File && !allowedTypes.includes(value.type)) {
             return this.createError({ message: "Unsupported file format" });
           }
@@ -378,24 +388,81 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
       ),
     }),
     onSubmit: async (values, { resetForm }) => {
-      const payload = {};
-
-      // If editing, include the ID
-      if (isEditMode && editId) {
-        payload["teacherDetailsId"] = editId;
-      }
-
       try {
+        const formData = new FormData();
+        formData.append("academicYear", values.academicYear?.value || "");
+        formData.append("streamId", values.stream?.value || "");
+        formData.append("departmentId", values.department?.value || "");
+        formData.append("associationId", values.association?.value || "");
+        formData.append("noOfParticipants", values.noOfParticipants);
+        formData.append("eventTitle", values.eventTitle || "");
+        formData.append("noOfParticipants", values.noOfParticipants || "");
+        // If the date is provided, format it to YYYY-MM-DD
+        if (values.fromDate) {
+          const formattedDate = moment(values.fromDate, "DD/MM/YYYY").format(
+            "DD/MM/YYYY"
+          );
+          formData.append("fromDate", formattedDate);
+        }
+        if (values.toDate) {
+          const formattedDate = moment(values.toDate, "DD/MM/YYYY").format(
+            "DD/MM/YYYY"
+          );
+          formData.append("toDate", formattedDate);
+        }
+        if (isEditMode && typeof values.file === "string") {
+          // Pass an empty PDF instead of null
+          formData.append(
+            "coCurricularActivities",
+            new Blob([], { type: "application/pdf" }),
+            "empty.pdf"
+          );
+        } else if (isEditMode && values.file === null) {
+          formData.append(
+            "coCurricularActivities",
+            new Blob([], { type: "application/pdf" }),
+            "empty.pdf"
+          );
+        } else if (values.file) {
+          formData.append("coCurricularActivities", values.file);
+        }
+        if (isEditMode && typeof values.imageStudent === "string") {
+          // Pass an empty JPEG instead of null
+          formData.append(
+            "studentImage",
+            new Blob([], { type: "image/jpeg" }),
+            "empty.jpg"
+          );
+        } else if (isEditMode && values.imageStudent === null) {
+          formData.append(
+            "studentImage",
+            new Blob([], { type: "image/jpeg" }),
+            "empty.jpg"
+          );
+        } else if (values.imageStudent) {
+          formData.append("studentImage", values.imageStudent);
+        }
+        // If in edit mode, append the edit ID
+        if (isEditMode && editId) {
+          formData.append("coCurricularActivityId", editId);
+        }
+
         if (isEditMode && editId) {
           // Call the update API
-          const response = await api.put(`/teacherDetails/update`, payload);
+          const response = await api.put(
+            `/cocurricularActivities/update`,
+            formData
+          );
           toast.success(
             response.message ||
               "Cultural & Co-Curricular activities conducted in the college updated successfully!"
           );
         } else {
           // Call the save API
-          const response = await api.create("/teacherDetails/save", payload);
+          const response = await api.create(
+            "/cocurricularActivities/save",
+            formData
+          );
           toast.success(
             response.message ||
               "Cultural & Co-Curricular activities conducted in the college added successfully!"
@@ -403,9 +470,15 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
         }
         // Reset the form fields
         resetForm();
+        if (fileRef.current) {
+          fileRef.current.value = "";
+        }
+        if (imgRef.current) {
+          imgRef.current.value = "";
+        }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
-        handleListCSWClick();
+        handleListCCACClick();
       } catch (error) {
         // Display error message
         toast.error(
@@ -506,6 +579,32 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
                         validation.errors.department && (
                           <div className="text-danger">
                             {validation.errors.department}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+
+                  {/* Department Dropdown */}
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Association</Label>
+                      <AssociationDropdown
+                        value={validation.values.association}
+                        onChange={(selectedOption) => {
+                          validation.setFieldValue(
+                            "association",
+                            selectedOption
+                          );
+                        }}
+                        isInvalid={
+                          validation.touched.association &&
+                          !!validation.errors.association
+                        }
+                      />
+                      {validation.touched.association &&
+                        validation.errors.association && (
+                          <div className="text-danger">
+                            {validation.errors.association}
                           </div>
                         )}
                     </div>
@@ -665,6 +764,7 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
                             : ""
                         }`}
                         type="file"
+                        innerRef={fileRef} // Use ref to reset the file input
                         id="formFile"
                         onChange={(event) => {
                           validation.setFieldValue(
@@ -711,7 +811,12 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
-                            onClick={() => handleDeleteFile()}
+                            onClick={() =>
+                              handleDeleteFile(
+                                validation.values.file as string,
+                                "CoCurricularActivities"
+                              )
+                            }
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>
@@ -749,6 +854,7 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
                         }`}
                         type="file"
                         id="formFile"
+                        innerRef={imgRef} // Use ref to reset the file input
                         onChange={(event) => {
                           validation.setFieldValue(
                             "imageStudent",
@@ -786,7 +892,7 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
                             className="text-primary"
                             onClick={() =>
                               handleDownloadFile(
-                                validation.values.file as string
+                                validation.values.imageStudent as string
                               )
                             }
                             title="Download File"
@@ -796,7 +902,12 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
-                            onClick={() => handleDeleteFile()}
+                            onClick={() =>
+                              handleDeleteFile(
+                                validation.values.imageStudent as string,
+                                "studentImage"
+                              )
+                            }
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>
@@ -815,7 +926,7 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
                       <button
                         className="btn btn-secondary"
                         type="button"
-                        onClick={handleListCSWClick}
+                        onClick={handleListCCACClick}
                       >
                         List
                       </button>
@@ -827,7 +938,12 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
           </Card>
         </Container>
         {/* Modal for Listing Cultural & Co-Curricular activities conducted in the college */}
-        <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg">
+        <Modal
+          isOpen={isModalOpen}
+          toggle={toggleModal}
+          size="lg"
+          style={{ maxWidth: "90%" }}
+        >
           <ModalHeader toggle={toggleModal}>List Teacher Details</ModalHeader>
           <ModalBody>
             {/* Global Search */}
@@ -839,96 +955,59 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
                 onChange={handleSearch}
               />
             </div>
-            <Table className="table-hover custom-table">
-              <thead>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>
-                    Academic Year
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.academicYear}
-                      onChange={(e) => handleFilterChange(e, "academicYear")}
-                    />
-                  </th>
-                  <th>
-                    Soft Skills
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.noOfParticipants}
-                      onChange={(e) =>
-                        handleFilterChange(e, "noOfParticipants")
-                      }
-                    />
-                  </th>
-                  <th>
-                    Language and Communication Skills
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.hostingClgNme}
-                      onChange={(e) => handleFilterChange(e, "hostingClgNme")}
-                    />
-                  </th>
-                  <th>
-                    Life Skills
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.level}
-                      onChange={(e) => handleFilterChange(e, "level")}
-                    />
-                  </th>
-                  <th>
-                    Type
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.type}
-                      onChange={(e) => handleFilterChange(e, "type")}
-                    />
-                  </th>
-                  <th>
-                    Qualification
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.noOfParticipants}
-                      onChange={(e) =>
-                        handleFilterChange(e, "noOfParticipants")
-                      }
-                    />
-                  </th>
-
+                  <th>Academic Year</th>
+                  <th>School</th>
+                  <th>Department</th>
+                  <th>Association</th>
+                  <th>From Date</th>
+                  <th>To Date</th>
+                  <th>Event Title</th>
+                  <th>No. of Participants</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {currentRows.length > 0 ? (
                   currentRows.map((cds, index) => (
-                    <tr key={cds.teacherDetailsId}>
+                    <tr key={cds.coCurricularActivityId}>
                       <td>{index + 1}</td>
                       <td>{cds.academicYear}</td>
-                      <td>{cds.softSkills}</td>
                       <td>{cds.streamName}</td>
                       <td>{cds.departmentName}</td>
-                      <td>{cds.type}</td>
+                      <td>{cds.associationName}</td>
+                      <td>{cds.fromDate}</td>
+                      <td>{cds.toDate}</td>
+                      <td>{cds.eventTitle}</td>
                       <td>{cds.noOfParticipants}</td>
                       <td>
-                        <button
-                          className="btn btn-sm btn-warning me-2"
-                          onClick={() => handleEdit(cds.teacherDetailsId)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="btn btn-sm btn-danger"
-                          onClick={() => handleDelete(cds.teacherDetailsId)}
-                        >
-                          Delete
-                        </button>
+                        <div className="d-flex justify-content-center gap-2">
+                          <button
+                            className="btn btn-sm btn-warning me-2"
+                            onClick={() =>
+                              handleEdit(cds.coCurricularActivityId)
+                            }
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="btn btn-sm btn-danger"
+                            onClick={() =>
+                              handleDelete(cds.coCurricularActivityId)
+                            }
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
