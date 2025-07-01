@@ -1192,7 +1192,7 @@ const Intercollegiate_Events_Awards_Won: React.FC = () => {
           size="lg"
           style={{ maxWidth: "90%" }}
         >
-          <ModalHeader toggle={toggleModal}>List Teacher Details</ModalHeader>
+          <ModalHeader toggle={toggleModal}>List Intercollegiate events and awards won</ModalHeader>
           <ModalBody>
             {/* Global Search */}
             <div className="mb-3">

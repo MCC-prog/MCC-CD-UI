@@ -944,7 +944,7 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
           size="lg"
           style={{ maxWidth: "90%" }}
         >
-          <ModalHeader toggle={toggleModal}>List Teacher Details</ModalHeader>
+          <ModalHeader toggle={toggleModal}>List Cultural & Co-Curricular activities conducted in the college</ModalHeader>
           <ModalBody>
             {/* Global Search */}
             <div className="mb-3">

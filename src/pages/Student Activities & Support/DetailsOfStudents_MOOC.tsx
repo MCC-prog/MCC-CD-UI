@@ -810,84 +810,24 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                 onChange={handleSearch}
               />
             </div>
-            <Table className="table-hover custom-table">
-              <thead>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>
-                    Academic Year
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.academicYear || ""}
-                      onChange={(e) => handleFilterChange(e, "academicYear")}
-                    />
-                  </th>
-                  <th>
-                    MCC Register number
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.mccRegNo || ""}
-                      onChange={(e) => handleFilterChange(e, "mccRegNo")}
-                    />
-                  </th>
-                  <th>
-                    Student Name
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.studentName || ""}
-                      onChange={(e) => handleFilterChange(e, "studentName")}
-                    />
-                  </th>
-                  <th>
-                    Program
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.courses || ""}
-                      onChange={(e) => handleFilterChange(e, "courses")}
-                    />
-                  </th>
-                  <th>
-                    Offered By
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.offeredBy || ""}
-                      onChange={(e) => handleFilterChange(e, "offeredBy")}
-                    />
-                  </th>
-                  <th>
-                    Mooc Course Id/Registration Number
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.moocCourseRegId || ""}
-                      onChange={(e) => handleFilterChange(e, "moocCourseRegId")}
-                    />
-                  </th>
-                  <th>
-                    Mooc Course Pursued
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.moocCoursePursued || ""}
-                      onChange={(e) =>
-                        handleFilterChange(e, "moocCoursePursued")
-                      }
-                    />
-                  </th>
-                  <th>
-                    Duration
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.duration || ""}
-                      onChange={(e) => handleFilterChange(e, "duration")}
-                    />
-                  </th>
+                  <th>Academic Year</th>
+                  <th>MCC Register number</th>
+                  <th>Student Name</th>
+                  <th>Program</th>
+                  <th>Offered By</th>
+                  <th>Mooc Course Id/Registration Number</th>
+                  <th>Mooc Course Pursued</th>
+                  <th>Duration</th>
                   <th>Actions</th>
                 </tr>
               </thead>

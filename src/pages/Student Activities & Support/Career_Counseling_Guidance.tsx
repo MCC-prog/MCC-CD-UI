@@ -77,24 +77,24 @@ const Career_Counseling_Guidance: React.FC = () => {
     setFilteredData(filtered);
   };
 
-   // Handle column-specific filters
-    const handleFilterChange = (
-      e: React.ChangeEvent<HTMLInputElement>,
-      column: string
-    ) => {
-      const value = e.target.value.toLowerCase();
-      const updatedFilters = { ...filters, [column]: value };
-      setFilters(updatedFilters);
-  
-      const filtered = ccgData.filter((row) =>
-        Object.values(row).some((val) =>
-          String(val || "")
-            .toLowerCase()
-            .includes(value)
-        )
-      );
-      setFilteredData(filtered);
-    };
+  // Handle column-specific filters
+  const handleFilterChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    column: string
+  ) => {
+    const value = e.target.value.toLowerCase();
+    const updatedFilters = { ...filters, [column]: value };
+    setFilters(updatedFilters);
+
+    const filtered = ccgData.filter((row) =>
+      Object.values(row).some((val) =>
+        String(val || "")
+          .toLowerCase()
+          .includes(value)
+      )
+    );
+    setFilteredData(filtered);
+  };
 
   // Calculate the paginated data
   const indexOfLastRow = currentPage * rowsPerPage;
@@ -863,84 +863,25 @@ const Career_Counseling_Guidance: React.FC = () => {
                 onChange={handleSearch}
               />
             </div>
-            <Table className="table-hover custom-table">
-              <thead>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>Academic Year
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.academicYear || ""}
-                      onChange={(e) => handleFilterChange(e, "academicYear")}
-                    />
-                  </th>
-                  <th>School
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.stream || ""}
-                      onChange={(e) => handleFilterChange(e, "stream")}
-                    />
-                  </th>
-                  <th>Department
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.department || ""}
-                      onChange={(e) => handleFilterChange(e, "department")}
-                    />
-                  </th>
-                  <th>Program
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.courses || ""}
-                      onChange={(e) => handleFilterChange(e, "courses")}
-                    />
-                  </th>
-                  <th>Area of Guidance
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.areaOfGuidance || ""}
-                      onChange={(e) => handleFilterChange(e, "areaOfGuidance")}
-                    />
-                  </th>
-                  <th>Date
-                    <Input
-                      type="date"
-                      placeholder="Filter"
-                      value={filters.date || ""}
-                      onChange={(e) => handleFilterChange(e, "date")}
-                    />
-                  </th>
-                  <th>No. of Participants/Attendees
-                    <Input
-                      type="number"
-                      placeholder="Filter"
-                      value={filters.noOfParticipants || ""}
-                      onChange={(e) =>
-                        handleFilterChange(e, "noOfParticipants")
-                      }
-                    />
-                  </th>
-                  <th>Trainer/Resource Person details
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.trainerResource || ""}
-                      onChange={(e) => handleFilterChange(e, "trainerResource")}
-                    />
-                  </th>
-                  <th>Outcomes
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.outcomes || ""}
-                      onChange={(e) => handleFilterChange(e, "outcomes")}
-                    />
-                  </th>
+                  <th>Academic Year</th>
+                  <th>School</th>
+                  <th>Department</th>
+                  <th>Program</th>
+                  <th>Area of Guidance</th>
+                  <th>Date</th>
+                  <th>No. of Participants/Attendees</th>
+                  <th>Trainer/Resource Person details</th>
+                  <th>Outcomes</th>
                   <th>Actions</th>
                 </tr>
               </thead>

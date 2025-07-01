@@ -6,7 +6,7 @@ import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
 import Select from "react-select";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { useFormik } from "formik";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -56,29 +56,12 @@ const SportsEvents_Conducted_College: React.FC = () => {
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
 
+  const fileRef = useRef<HTMLInputElement | null>(null);
+
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
-
-    const filtered = cswData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-
-  // Handle column-specific filters
-  const handleFilterChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    column: string
-  ) => {
-    const value = e.target.value.toLowerCase();
-    const updatedFilters = { ...filters, [column]: value };
-    setFilters(updatedFilters);
 
     const filtered = cswData.filter((row) =>
       Object.values(row).some((val) =>
@@ -110,7 +93,7 @@ const SportsEvents_Conducted_College: React.FC = () => {
   // Fetch Sports Events conducted in the college data from the backend
   const fetchCSWData = async () => {
     try {
-      const response = await axios.get("/teacherDetails/getAllClassRoomTools"); // Replace with your backend API endpoint
+      const response = await axios.get("/sportsEvents/getAll"); // Replace with your backend API endpoint
       setCSWData(response);
       setFilteredData(response);
     } catch (error) {
@@ -141,7 +124,7 @@ const SportsEvents_Conducted_College: React.FC = () => {
   const handleEdit = async (id: string) => {
     try {
       const response = await api.get(
-        `/teacherDetails/edit?id=${id}&screenName=TEACHERDETAILS`,
+        `/sportsEvents/edit?sportsEventsId=${id}`,
         ""
       );
       if (!response) {
@@ -152,15 +135,11 @@ const SportsEvents_Conducted_College: React.FC = () => {
       // Map API response to Formik values
       const mappedValues = {
         noOfParticipants: response.noOfParticipants || "",
-        file: response.document?.excel || null,
-        fromDate: response.fromDate
-          ? moment(response.fromDate).format("DD/MM/YYYY")
-          : "",
-        toDate: response.toDate
-          ? moment(response.toDate).format("DD/MM/YYYY")
-          : "",
+        file: response.documents?.SportsEventsReport || null,
+        fromDate: response.fromDate,
+        toDate: response.toDate,
         nameOfEvent: response.nameOfEvent || "",
-        imageStudent: response.document?.image || null,
+        level: response.level || "",
       };
 
       // Update Formik values
@@ -168,6 +147,8 @@ const SportsEvents_Conducted_College: React.FC = () => {
         ...mappedValues,
         level: response.level || "",
         noOfParticipants: response.noOfParticipants || "",
+        fromDate: mappedValues.fromDate || "",
+        toDate: mappedValues.toDate || "",
       });
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
@@ -193,7 +174,7 @@ const SportsEvents_Conducted_College: React.FC = () => {
     if (deleteId) {
       try {
         const response = await api.delete(
-          `/teacherDetails/deleteClassRoomTools?id=${id}&screenName=TEACHERDETAILS`,
+          `/sportsEvents/deleteSportsEvents?sportsEventsId=${id}`,
           ""
         );
         toast.success(
@@ -228,12 +209,9 @@ const SportsEvents_Conducted_College: React.FC = () => {
     if (fileName) {
       try {
         // Ensure you set responseType to 'blob' to handle binary data
-        const response = await axios.get(
-          `/studentStrengthProgramWise/download/${fileName}`,
-          {
-            responseType: "blob",
-          }
-        );
+        const response = await axios.get(`/sportsEvents/download/${fileName}`, {
+          responseType: "blob",
+        });
 
         // Create a Blob from the response data
         const blob = new Blob([response], { type: "*/*" });
@@ -264,20 +242,18 @@ const SportsEvents_Conducted_College: React.FC = () => {
 
   // Handle file deletion
   // Clear the file from the form and show success message
-  const handleDeleteFile = async () => {
+  const handleDeleteFile = async (fileName: string, docType: string) => {
     try {
-      // Call the delete API
       const response = await api.delete(
-        `/studentStrengthProgramWise/deleteTotalStudStrengthDocument?totalStudentStrengthId=${editId}`,
+        `/sportsEvents/deleteSportsEventsDocument?sportsEventsId=${editId}&docType=${docType}`,
         ""
       );
-      // Show success message
       toast.success(response.message || "File deleted successfully!");
-      // Remove the file from the form
-      validation.setFieldValue("file", null); // Clear the file from Formik state
+      if (docType === "SportsEventsReport") {
+        validation.setFieldValue("file", null);
+      }
       setIsFileUploadDisabled(false); // Enable the file upload button
     } catch (error) {
-      // Show error message
       toast.error("Failed to delete the file. Please try again.");
       console.error("Error deleting file:", error);
     }
@@ -291,10 +267,9 @@ const SportsEvents_Conducted_College: React.FC = () => {
       toDate: "",
       nameOfEvent: "",
       file: null as File | string | null,
-      imageStudent: null as File | string | null,
     },
     validationSchema: Yup.object({
-   nameOfEvent: Yup.string().required("Please enter nameOfEvent"),
+      nameOfEvent: Yup.string().required("Please enter nameOfEvent"),
       noOfParticipants: Yup.string().required(
         "Please enter no. of participants"
       ),
@@ -335,24 +310,56 @@ const SportsEvents_Conducted_College: React.FC = () => {
       level: Yup.string().required("Please enter level"),
     }),
     onSubmit: async (values, { resetForm }) => {
-      const payload = {};
-
-      // If editing, include the ID
-      if (isEditMode && editId) {
-        payload["teacherDetailsId"] = editId;
-      }
-
       try {
+        const formData = new FormData();
+        formData.append("level", values.level);
+        formData.append("nameOfEvent", values.nameOfEvent);
+        formData.append("noOfParticipants", values.noOfParticipants || "");
+        // If the date is provided, format it to YYYY-MM-DD
+        if (values.fromDate) {
+          const formattedDate = moment(values.fromDate, "DD/MM/YYYY").format(
+            "DD/MM/YYYY"
+          );
+          formData.append("fromDate", formattedDate);
+        }
+        if (values.toDate) {
+          const formattedDate = moment(values.toDate, "DD/MM/YYYY").format(
+            "DD/MM/YYYY"
+          );
+          formData.append("toDate", formattedDate);
+        }
+        if (isEditMode && typeof values.file === "string") {
+          // Pass an empty PDF instead of null
+          formData.append(
+            "file",
+            new Blob([], { type: "application/pdf" }),
+            "empty.pdf"
+          );
+        } else if (isEditMode && values.file === null) {
+          formData.append(
+            "file",
+            new Blob([], { type: "application/pdf" }),
+            "empty.pdf"
+          );
+        } else if (values.file) {
+          formData.append("file", values.file);
+        }
+
+        // If in edit mode, append the edit ID
+        if (isEditMode && editId) {
+          formData.append("sportsEventsId", editId);
+        }
+
         if (isEditMode && editId) {
           // Call the update API
-          const response = await api.put(`/teacherDetails/update`, payload);
+          const response = await api.put(`/sportsEvents/update`, formData);
           toast.success(
             response.message ||
               "Sports Events conducted in the college updated successfully!"
           );
         } else {
           // Call the save API
-          const response = await api.create("/teacherDetails/save", payload);
+          const response = await api.create("/sportsEvents/save", formData);
           toast.success(
             response.message ||
               "Sports Events conducted in the college added successfully!"
@@ -360,6 +367,9 @@ const SportsEvents_Conducted_College: React.FC = () => {
         }
         // Reset the form fields
         resetForm();
+        if (fileRef.current) {
+          fileRef.current.value = "";
+        }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         handleListCSWClick();
@@ -569,6 +579,7 @@ const SportsEvents_Conducted_College: React.FC = () => {
                             : ""
                         }`}
                         type="file"
+                        innerRef={fileRef}
                         id="formFile"
                         onChange={(event) => {
                           validation.setFieldValue(
@@ -615,7 +626,12 @@ const SportsEvents_Conducted_College: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
-                            onClick={() => handleDeleteFile()}
+                            onClick={() =>
+                              handleDeleteFile(
+                                validation.values.file as string,
+                                "SportsEventsReport"
+                              )
+                            }
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>
@@ -624,7 +640,7 @@ const SportsEvents_Conducted_College: React.FC = () => {
                       )}
                     </div>
                   </Col>
-    <Col lg={4}>
+                  <Col lg={4}>
                     <div className="mb-3">
                       <Label>Download </Label>
                       <div>
@@ -660,8 +676,15 @@ const SportsEvents_Conducted_College: React.FC = () => {
           </Card>
         </Container>
         {/* Modal for Listing Sports Events conducted in the college */}
-        <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg">
-          <ModalHeader toggle={toggleModal}>List Teacher Details</ModalHeader>
+        <Modal
+          isOpen={isModalOpen}
+          toggle={toggleModal}
+          size="lg"
+          style={{ maxWidth: "90%" }}
+        >
+          <ModalHeader toggle={toggleModal}>
+            List Sports Events conducted in the college
+          </ModalHeader>
           <ModalBody>
             {/* Global Search */}
             <div className="mb-3">
@@ -672,68 +695,21 @@ const SportsEvents_Conducted_College: React.FC = () => {
                 onChange={handleSearch}
               />
             </div>
-            <Table className="table-hover custom-table">
-              <thead>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>
-                    Academic Year
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.academicYear}
-                      onChange={(e) => handleFilterChange(e, "academicYear")}
-                    />
-                  </th>
-                  <th>
-                    Soft Skills
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.noOfParticipants}
-                      onChange={(e) =>
-                        handleFilterChange(e, "noOfParticipants")
-                      }
-                    />
-                  </th>
-                  <th>
-                    Language and Communication Skills
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.hostingClgNme}
-                      onChange={(e) => handleFilterChange(e, "hostingClgNme")}
-                    />
-                  </th>
-                  <th>
-                    Life Skills
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.level}
-                      onChange={(e) => handleFilterChange(e, "level")}
-                    />
-                  </th>
-                  <th>
-                    Type
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.type}
-                      onChange={(e) => handleFilterChange(e, "type")}
-                    />
-                  </th>
-                  <th>
-                    Qualification
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.noOfParticipants}
-                      onChange={(e) =>
-                        handleFilterChange(e, "noOfParticipants")
-                      }
-                    />
-                  </th>
+                  <th>Level </th>
+                  <th>From Date </th>
+                  <th>To Date</th>
+                  <th>Name of the event</th>
+                  <th>No. of Participants </th>
 
                   <th>Actions</th>
                 </tr>
@@ -741,24 +717,23 @@ const SportsEvents_Conducted_College: React.FC = () => {
               <tbody>
                 {currentRows.length > 0 ? (
                   currentRows.map((cds, index) => (
-                    <tr key={cds.teacherDetailsId}>
+                    <tr key={cds.sportsEventsId}>
                       <td>{index + 1}</td>
-                      <td>{cds.academicYear}</td>
-                      <td>{cds.softSkills}</td>
-                      <td>{cds.streamName}</td>
-                      <td>{cds.departmentName}</td>
-                      <td>{cds.type}</td>
+                      <td>{cds.level}</td>
+                      <td>{cds.fromDate}</td>
+                      <td>{cds.toDate}</td>
+                      <td>{cds.nameOfEvent}</td>
                       <td>{cds.noOfParticipants}</td>
                       <td>
                         <button
                           className="btn btn-sm btn-warning me-2"
-                          onClick={() => handleEdit(cds.teacherDetailsId)}
+                          onClick={() => handleEdit(cds.sportsEventsId)}
                         >
                           Edit
                         </button>
                         <button
                           className="btn btn-sm btn-danger"
-                          onClick={() => handleDelete(cds.teacherDetailsId)}
+                          onClick={() => handleDelete(cds.sportsEventsId)}
                         >
                           Delete
                         </button>
@@ -768,8 +743,7 @@ const SportsEvents_Conducted_College: React.FC = () => {
                 ) : (
                   <tr>
                     <td colSpan={4} className="text-center">
-                      No Cultural & Co-Curricular activities conducted in the
-                      college data available.
+                      No Sports Events conducted in the college data available.
                     </td>
                   </tr>
                 )}

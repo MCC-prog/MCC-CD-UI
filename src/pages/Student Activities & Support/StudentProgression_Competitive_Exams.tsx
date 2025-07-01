@@ -853,72 +853,23 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
                 onChange={handleSearch}
               />
             </div>
-            <Table className="table-hover custom-table">
-              <thead>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>Academic Year
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.academicYear || ""}
-                      onChange={(e) =>
-                        handleFilterChange(e, "academicYear")
-                      }
-                      />
-                  </th>
-                  <th>Student Name
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.studentName || ""}
-                      onChange={(e) => handleFilterChange(e, "studentName")}
-                    />
-                  </th>
-                  <th>Stream
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.stream || ""}
-                      onChange={(e) => handleFilterChange(e, "streamName")}
-                    />
-                  </th>
-                  <th>Department
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.department || ""}
-                      onChange={(e) =>
-                        handleFilterChange(e, "departmentName")
-                      }
-                    />
-                  </th>
-                  <th>Program
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.courses || ""}
-                      onChange={(e) => handleFilterChange(e, "courses")}
-                    />
-                  </th>
-                  <th>Competitive Exam Name
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.compExamName || ""}
-                      onChange={(e) =>
-                        handleFilterChange(e, "competitiveExamName")
-                      }
-                    />
-                  </th>
-                  <th>Status
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.status || ""}
-                      onChange={(e) => handleFilterChange(e, "status")}
-                    />
-                  </th>
+                  <th>Academic Year</th>
+                  <th>Student Name</th>
+                  <th>Stream</th>
+                  <th>Department</th>
+                  <th>Program</th>
+                  <th>Competitive Exam Name</th>
+                  <th>Status</th>
                   <th>Actions</th>
                 </tr>
               </thead>

@@ -1098,7 +1098,9 @@ const Conference_Seminars_Workshops: React.FC = () => {
           size="lg"
           style={{ maxWidth: "100%", width: "auto" }}
         >
-          <ModalHeader toggle={toggleModal}>List Conference, Seminars & Workshops</ModalHeader>
+          <ModalHeader toggle={toggleModal}>
+            List Conference, Seminars & Workshops
+          </ModalHeader>
           <ModalBody>
             {/* Global Search */}
             <div className="mb-3">
@@ -1109,111 +1111,27 @@ const Conference_Seminars_Workshops: React.FC = () => {
                 onChange={handleSearch}
               />
             </div>
-            <Table className="table-hover custom-table">
-              <thead>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>
-                    Academic Year
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.academicYear}
-                      onChange={(e) => handleFilterChange(e, "academicYear")}
-                    />
-                  </th>
-                  <th>
-                    Level
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.level}
-                      onChange={(e) => handleFilterChange(e, "level")}
-                    />
-                  </th>
-                  <th>
-                    Stream
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.stream}
-                      onChange={(e) => handleFilterChange(e, "stream")}
-                    />
-                  </th>
-                  <th>
-                    Department
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.department}
-                      onChange={(e) => handleFilterChange(e, "department")}
-                    />
-                  </th>
-                  <th>
-                    Conference Title
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.conferenceTitle}
-                      onChange={(e) => handleFilterChange(e, "conferenceTitle")}
-                    />
-                  </th>
-                  <th>
-                    From Date
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.fromDate}
-                      onChange={(e) => handleFilterChange(e, "fromDate")}
-                    />
-                  </th>
-                  <th>
-                    To Date
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.toDate}
-                      onChange={(e) => handleFilterChange(e, "toDate")}
-                    />
-                  </th>
-                  <th>
-                    Collaborating Organisation
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.collaboratingOrganisation}
-                      onChange={(e) =>
-                        handleFilterChange(e, "collaboratingOrganisation")
-                      }
-                    />
-                  </th>
-                  <th>
-                    Location
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.location}
-                      onChange={(e) => handleFilterChange(e, "location")}
-                    />
-                  </th>
-                  <th>
-                    Funding
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.funding}
-                      onChange={(e) => handleFilterChange(e, "funding")}
-                    />
-                  </th>
-                  <th>
-                    Amount
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.amount}
-                      onChange={(e) => handleFilterChange(e, "amount")}
-                    />
-                  </th>
+                  <th>Academic Year</th>
+                  <th>Level</th>
+                  <th>Stream</th>
+                  <th>Department</th>
+                  <th>Conference Title</th>
+                  <th>From Date</th>
+                  <th>To Date</th>
+                  <th>Collaborating Organisation</th>
+                  <th>Location</th>
+                  <th>Funding</th>
+                  <th>Amount</th>
                   <th>Actions</th>
                 </tr>
               </thead>

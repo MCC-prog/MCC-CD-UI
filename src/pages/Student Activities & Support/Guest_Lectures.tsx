@@ -398,6 +398,30 @@ const Guest_Lectures: React.FC = () => {
       ),
       titleOfTalk: Yup.string().required("Please enter title of talk"),
       targetAudience: Yup.string().required("Please enter target audience"),
+      guestLecture: Yup.mixed().test(
+        "fileValidation",
+        "Please upload a valid file",
+        function (value) {
+          // Skip validation if the file upload is disabled (file exists)
+          if (isFileUploadDisabled) {
+            return true;
+          }
+          // Perform validation if the file upload is enabled (file doesn't exist)
+          if (!value) {
+            return this.createError({ message: "Please upload a file" });
+          }
+          // Check file size (2MB limit)
+          if (value instanceof File && value.size > 2 * 1024 * 1024) {
+            return this.createError({ message: "File size is too large" });
+          }
+          // Check file type
+          const allowedTypes = ["application/pdf"];
+          if (value instanceof File && !allowedTypes.includes(value.type)) {
+            return this.createError({ message: "Unsupported file format" });
+          }
+          return true;
+        }
+      ),
     }),
     onSubmit: async (values, { resetForm }) => {
       try {
@@ -987,99 +1011,26 @@ const Guest_Lectures: React.FC = () => {
                 onChange={handleSearch}
               />
             </div>
-            <Table className="table-hover custom-table">
-              <thead>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>
-                    Academic Year
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.academicYear}
-                      onChange={(e) => handleFilterChange(e, "academicYear")}
-                    />
-                  </th>
-                  <th>Stream
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.stream}
-                      onChange={(e) => handleFilterChange(e, "stream")}
-                    />
-                  </th>
-                  <th>Department
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.department}
-                      onChange={(e) => handleFilterChange(e, "department")}
-                    />
-                  </th>
-                  <th>Semester Type
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.semType}
-                      onChange={(e) => handleFilterChange(e, "semType")}
-                    />
-                  </th>
-                  <th>Resource Person
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.resourcePersonName}
-                      onChange={(e) =>
-                        handleFilterChange(e, "resourcePersonName")
-                      }
-                    />
-                  </th>
-                  <th>Resource Person Designation
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.resourcePersonDesignation}
-                      onChange={(e) =>
-                        handleFilterChange(e, "resourcePersonDesignation")
-                      }
-                    />
-                  </th>
-                  <th>Organisation
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.organisation}
-                      onChange={(e) => handleFilterChange(e, "organisation")}
-                    />
-                  </th>
-                  <th>Title of Talk
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.titleOfTalk}
-                      onChange={(e) => handleFilterChange(e, "titleOfTalk")}
-                    />
-                  </th>
-                  <th>Target Audience
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.targetAudience}
-                      onChange={(e) =>
-                        handleFilterChange(e, "targetAudience")
-                      }
-                    />
-                  </th>
-                  <th>No.Of Participants
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.noOfParticipants}
-                      onChange={(e) =>
-                        handleFilterChange(e, "noOfParticipants")
-                      }
-                    />
-                  </th>
+                  <th>Academic Year</th>
+                  <th>Stream</th>
+                  <th>Department</th>
+                  <th>Semester Type</th>
+                  <th>Resource Person</th>
+                  <th>Resource Person Designation</th>
+                  <th>Organisation</th>
+                  <th>Title of Talk</th>
+                  <th>Target Audience</th>
+                  <th>No.Of Participants</th>
                   <th>Actions</th>
                 </tr>
               </thead>

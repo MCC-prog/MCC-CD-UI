@@ -874,86 +874,24 @@ const StudentProgression_Higher_Education: React.FC = () => {
                 onChange={handleSearch}
               />
             </div>
-            <Table className="table-hover custom-table">
-              <thead>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>
-                    Academic Year
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.academicYear || ""}
-                      onChange={(e) => handleFilterChange(e, "academicYear")}
-                    />
-                  </th>
-                  <th>
-                    MCC Register number
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.mccRegNo || ""}
-                      onChange={(e) => handleFilterChange(e, "mccRegisterNo")}
-                    />
-                  </th>
-                  <th>
-                    Student Name
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.studentName || ""}
-                      onChange={(e) => handleFilterChange(e, "studentName")}
-                    />
-                  </th>
-                  <th>
-                    Course Pursued in MCC
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.coursePurused || ""}
-                      onChange={(e) =>
-                        handleFilterChange(e, "coursePursuedInMcc")
-                      }
-                    />
-                  </th>
-                  <th>
-                    Heigher Education Course
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.heigherEduCu || ""}
-                      onChange={(e) =>
-                        handleFilterChange(e, "higherEducationCourse")
-                      }
-                    />
-                  </th>
-                  <th>
-                    University
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.university || ""}
-                      onChange={(e) => handleFilterChange(e, "university")}
-                    />
-                  </th>
-                  <th>
-                    Location
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.location || ""}
-                      onChange={(e) => handleFilterChange(e, "location")}
-                    />
-                  </th>
-                  <th>
-                    Course Duration
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.courseDuration || ""}
-                      onChange={(e) => handleFilterChange(e, "courseDuration")}
-                    />
-                  </th>
+                  <th>Academic Year</th>
+                  <th>MCC Register number</th>
+                  <th>Student Name</th>
+                  <th>Course Pursued in MCC</th>
+                  <th>Heigher Education Course</th>
+                  <th>University</th>
+                  <th>Location</th>
+                  <th>Course Duration</th>
                   <th>Actions</th>
                 </tr>
               </thead>
