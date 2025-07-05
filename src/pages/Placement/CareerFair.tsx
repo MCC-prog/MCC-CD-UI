@@ -1,7 +1,7 @@
 import Breadcrumb from "Components/Common/Breadcrumb";
 import { ToastContainer } from "react-toastify";
 import { useFormik } from "formik";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
     Button,
     Card,
@@ -10,13 +10,15 @@ import {
     Container,
     Input,
     Label,
+    Modal,
+    ModalBody,
+    ModalFooter,
     Row,
 } from "reactstrap";
 import * as Yup from "yup";
 import { APIClient } from "../../helpers/api_helper";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { SEMESTER_NO_OPTIONS } from "../../Components/constants/layout";
 import axios from "axios";
 
 const api = new APIClient();
@@ -25,23 +27,39 @@ const CareerFair: React.FC = () => {
     // State variables for managing modal, edit mode, and delete confirmation
     const [isEditMode, setIsEditMode] = useState(false);
     const [editId, setEditId] = useState<string | null>(null);
-
     const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
-    const [currentPage, setCurrentPage] = useState(1);
-    const rowsPerPage = 10;
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-    const fileRef = useRef<HTMLInputElement | null>(null);
-    // Calculate the paginated data
-    const indexOfLastRow = currentPage * rowsPerPage;
-    const indexOfFirstRow = indexOfLastRow - rowsPerPage;
+    const fetchCareerFair = async () => {
+        try {
+            const response = await api.get("/careerFair/getAllCareerFair", "");
+            if (response && Array.isArray(response) && response.length > 0) {
+                // Get the latest uploaded file (last item in the array)
+                const data = response[response.length - 1];
+                setEditId(data.id?.toString() || null);
+                setIsEditMode(!!data.file?.CareerFair);
+                setIsFileUploadDisabled(!!data.file?.CareerFair);
+                validation.setFieldValue("careerFairFile", data.file?.CareerFair || null, false);
+            } else {
+                setIsEditMode(false); // No file, not in edit mode
+            }
+        } catch (error) {
+            toast.error("Failed to fetch Career Fair data.");
+            setIsEditMode(false);
+        }
+    };
+    // Fetch the Career Fair data when the component mounts
+    useEffect(() => {
+        fetchCareerFair();
+    }, []);
 
     // Handle file download actions
     const handleDownloadFile = async (fileName: string) => {
         if (fileName) {
             try {
                 // Ensure you set responseType to 'blob' to handle binary data
-                const response = await axios.get(`/bos/download/${fileName}`, {
-                    responseType: "blob",
+                const response = await axios.get(`/careerFair/download/${fileName}`, {
+                    responseType: 'blob'
                 });
 
                 // Create a Blob from the response data
@@ -51,7 +69,7 @@ const CareerFair: React.FC = () => {
                 const url = window.URL.createObjectURL(blob);
 
                 // Create a temporary anchor element to trigger the download
-                const link = document.createElement("a");
+                const link = document.createElement('a');
                 link.href = url;
                 link.download = fileName; // Set the file name for the download
                 document.body.appendChild(link);
@@ -63,7 +81,7 @@ const CareerFair: React.FC = () => {
 
                 toast.success("File downloaded successfully!");
             } catch (error) {
-                toast.error("Failed to download MOM file. Please try again.");
+                toast.error("Failed to download CareerFair file. Please try again.");
                 console.error("Error downloading file:", error);
             }
         } else {
@@ -75,18 +93,15 @@ const CareerFair: React.FC = () => {
     // Clear the file from the form and show success message
     const handleDeleteFile = async () => {
         try {
-            // Call the delete API
+            // Call the delete API with the filename
             const response = await api.delete(
-                `/bos/deleteBosDocument?bosDocumentId=${editId}`,
-                ""
+                `/careerFair/deleteCareerFairDocument?fileName=${validation.values.careerFairFile}`,
+                ''
             );
-            // Show success message
             toast.success(response.message || "File deleted successfully!");
-            // Remove the file from the form
-            validation.setFieldValue("file", null); // Clear the file from Formik state
-            setIsFileUploadDisabled(false); // Enable the file upload button
+            validation.setFieldValue("careerFairFile", null);
+            setIsFileUploadDisabled(false);
         } catch (error) {
-            // Show error message
             toast.error("Failed to delete the file. Please try again.");
             console.error("Error deleting file:", error);
         }
@@ -96,44 +111,10 @@ const CareerFair: React.FC = () => {
     // Initialize Formik with validation schema and initial values
     const validation = useFormik({
         initialValues: {
-            academicYear: null as { value: string; label: string } | null,
-            semesterType: null as { value: string; label: string } | null,
-            semesterNo: null as { value: string; label: string } | null,
-            stream: null as { value: string; label: string } | null,
-            department: null as { value: string; label: string } | null,
-            otherDepartment: "",
-            file: null as File | string | null,
-            programType: null as { value: string; label: string } | null,
-            degree: null as { value: string; label: string } | null,
-            program: [] as { value: string; label: string }[],
-            revisionPercentage: "",
-            conductedDate: "",
+            careerFairFile: null as File | string | null,
         },
         validationSchema: Yup.object({
-            academicYear: Yup.object<{ value: string; label: string }>()
-                .nullable()
-                .required("Please select academic year"),
-            semesterType: Yup.object<{ value: string; label: string }>()
-                .nullable()
-                .required("Please select a semester type"), // Single object for single-select
-            semesterNo: Yup.object<{ value: string; label: string }>()
-                .nullable()
-                .required("Please select a semester number"),
-            stream: Yup.object<{ value: string; label: string }>()
-                .nullable()
-                .required("Please select school"),
-            department: Yup.object<{ value: string; label: string }>()
-                .nullable()
-                .required("Please select department"),
-            otherDepartment: Yup.string().when(
-                "department",
-                (department: any, schema) => {
-                    return department?.value === "Others"
-                        ? schema.required("Please specify the department")
-                        : schema;
-                }
-            ),
-            file: Yup.mixed().test(
+            careerFairFile: Yup.mixed().test(
                 "fileValidation",
                 "Please upload a valid file",
                 function (value) {
@@ -156,89 +137,41 @@ const CareerFair: React.FC = () => {
                     }
                     return true;
                 }
-            ),
-            programType: Yup.object<{ value: string; label: string }>()
-                .nullable()
-                .required("Please select program type"),
-            degree: Yup.object<{ value: string; label: string }>()
-                .nullable()
-                .required("Please select degree"),
-            program: Yup.array()
-                .min(1, "Please select at least one program")
-                .required("Please select programs"),
-            revisionPercentage: Yup.number()
-                .typeError("Please enter a valid number")
-                .min(0, "Percentage cannot be less than 0")
-                .max(100, "Percentage cannot be more than 100")
-                .required("Please enter revision percentage"),
-            conductedDate: Yup.date().required("Please select conducted date"),
+            )
         }),
         onSubmit: async (values, { resetForm }) => {
             // Create FormData object
             const formData = new FormData();
 
-            // Append fields to FormData
-            formData.append("academicYear", values.academicYear?.value || "");
-            formData.append("departmentId", values.department?.value || "");
-            formData.append("yearOfIntroduction", values.conductedDate || "");
-            formData.append("semType", values.semesterType?.value || "");
-            formData.append("semesterNo", String(values.semesterNo?.value || ""));
-            formData.append("programTypeId", values.programType?.value || "");
-            formData.append("percentage", values.revisionPercentage || "");
-            formData.append("streamId", values.stream?.value || "");
-            formData.append(
-                "courseIds",
-                values.program.map((option) => option.value).join(",") || ""
-            );
-            formData.append("programId", values.degree?.value || "");
-            formData.append("bosId", editId || "");
-            formData.append("otherDepartment", values.otherDepartment || "");
+            formData.append("id", editId || "");
 
-            if (isEditMode && typeof values.file === "string") {
-                formData.append(
-                    "mom",
-                    new Blob([], { type: "application/pdf" }),
-                    "empty.pdf"
-                );
-            } else if (isEditMode && values.file === null) {
-                formData.append(
-                    "mom",
-                    new Blob([], { type: "application/pdf" }),
-                    "empty.pdf"
-                );
-            } else if (values.file) {
-                formData.append("mom", values.file);
+            // Append the file with the key `file`
+            if (typeof values.careerFairFile === "string") {
+                formData.append("careerFair", "null");
+            } else if (values.careerFairFile instanceof File) {
+                formData.append("careerFair", values.careerFairFile);
             }
-
             try {
-                if (isEditMode && editId) {
-                    // Call the update API
-                    const response = await api.put(`/bos/updateCurriculumBos`, formData);
-                    toast.success(
-                        response.message || "Curriculum BOS updated successfully!"
-                    );
-                } else {
-                    // Call the save API
-                    const response = await api.create("/bos/saveCurriculumBos", formData);
-                    toast.success(
-                        response.message || "Curriculum BOS added successfully!"
-                    );
-                }
-                // Reset the form fields
-                resetForm();
-                if (fileRef.current) {
-                    fileRef.current.value = "";
-                }
-                setIsEditMode(false); // Reset edit mode
-                setEditId(null); // Clear the edit ID
-                // display the BOS List
-             
+                const response = isEditMode && editId
+                    ? await api.put(`/careerFair`, formData, {
+                        headers: {
+                            'Content-Type': 'multipart/form-data'
+                        }
+                    })
+                    : await api.create(`/careerFair`, formData, {
+                        headers: {
+                            'Content-Type': 'multipart/form-data'
+                        }
+                    });
+
+                toast.success(response.message || "Research Guide record saved successfully!");
+                // Refresh the page data to show the uploaded file
+                fetchCareerFair();
             } catch (error) {
-                // Display error message
-                toast.error("Failed to save Curriculum BOS. Please try again.");
-                console.error("Error creating BOS:", error);
+                toast.error("Failed to save Research Guide. Please try again.");
+                console.error("Error creating/updating Research Guide:", error);
             }
-        },
+        }
     });
 
     return (
@@ -249,34 +182,19 @@ const CareerFair: React.FC = () => {
                     <Card>
                         <CardBody>
                             <form onSubmit={validation.handleSubmit}>
+                                <Input type="hidden" name="id" value={editId || ""} />
                                 <Row>
-                                    <Col sm={4}>
+                                    <Col lg={4}>
                                         <div className="mb-3">
-                                            <Label htmlFor="formFile" className="form-label">
-                                                Upload Career Fair File
-                                            </Label>
+                                            <Label>Report On Career Fair</Label>
                                             <Input
-                                                className={`form-control ${validation.touched.file && validation.errors.file
-                                                        ? "is-invalid"
-                                                        : ""
-                                                    }`}
                                                 type="file"
-                                                id="formFile"
-                                                innerRef={fileRef}
-                                                onChange={(event) => {
-                                                    validation.setFieldValue(
-                                                        "file",
-                                                        event.currentTarget.files
-                                                            ? event.currentTarget.files[0]
-                                                            : null
-                                                    );
-                                                }}
+                                                onChange={(e) => validation.setFieldValue("careerFairFile", e.target.files?.[0] || null)}
+                                                className={`form-control ${validation.touched.careerFairFile && validation.errors.careerFairFile ? "is-invalid" : ""}`}
                                                 disabled={isFileUploadDisabled} // Disable the button if a file exists
                                             />
-                                            {validation.touched.file && validation.errors.file && (
-                                                <div className="text-danger">
-                                                    {validation.errors.file}
-                                                </div>
+                                            {validation.touched.careerFairFile && validation.errors.careerFairFile && (
+                                                <div className="text-danger">{validation.errors.careerFairFile}</div>
                                             )}
                                             {/* Show a message if the file upload button is disabled */}
                                             {isFileUploadDisabled && (
@@ -285,22 +203,19 @@ const CareerFair: React.FC = () => {
                                                 </div>
                                             )}
                                             {/* Only show the file name if it is a string (from the edit API) */}
-                                            {typeof validation.values.file === "string" && (
+                                            {typeof validation.values.careerFairFile === "string" && (
                                                 <div className="mt-2 d-flex align-items-center">
-                                                    <span
-                                                        className="me-2"
-                                                        style={{ fontWeight: "bold", color: "green" }}
-                                                    >
-                                                        {validation.values.file}
+                                                    <span className="me-2" style={{ fontWeight: "bold", color: "green" }}>
+                                                        {validation.values.careerFairFile}
                                                     </span>
                                                     <Button
                                                         color="link"
                                                         className="text-primary"
-                                                        onClick={() =>
-                                                            handleDownloadFile(
-                                                                validation.values.file as string
-                                                            )
-                                                        }
+                                                        onClick={() => {
+                                                            if (typeof validation.values.careerFairFile === "string") {
+                                                                handleDownloadFile(validation.values.careerFairFile);
+                                                            }
+                                                        }}
                                                         title="Download File"
                                                     >
                                                         <i className="bi bi-download"></i>
@@ -308,7 +223,7 @@ const CareerFair: React.FC = () => {
                                                     <Button
                                                         color="link"
                                                         className="text-danger"
-                                                        onClick={() => handleDeleteFile()}
+                                                        onClick={() => setShowDeleteModal(true)}
                                                         title="Delete File"
                                                     >
                                                         <i className="bi bi-trash"></i>
@@ -317,14 +232,15 @@ const CareerFair: React.FC = () => {
                                             )}
                                         </div>
                                     </Col>
-                                   
                                 </Row>
                                 <Row>
                                     <Col lg={12}>
                                         <div className="mt-3 d-flex justify-content-between">
-                                            <button className="btn btn-primary" type="submit">
-                                                {isEditMode ? "Update" : "Save"}
-                                            </button>
+                                            {(!validation.values.careerFairFile || typeof validation.values.careerFairFile !== "string") && (
+                                                <button className="btn btn-primary" type="submit">
+                                                    {isEditMode ? "Update" : "Save"}
+                                                </button>
+                                            )}
                                         </div>
                                     </Col>
                                 </Row>
@@ -334,6 +250,22 @@ const CareerFair: React.FC = () => {
                 </Container>
             </div>
             <ToastContainer />
+            <Modal isOpen={showDeleteModal} toggle={() => setShowDeleteModal(false)}>
+                <ModalBody>
+                    Are you sure you want to delete this file?
+                </ModalBody>
+                <ModalFooter>
+                    <Button color="danger" onClick={() => {
+                        handleDeleteFile();
+                        setShowDeleteModal(false);
+                    }}>
+                        Yes
+                    </Button>
+                    <Button color="secondary" onClick={() => setShowDeleteModal(false)}>
+                        No
+                    </Button>
+                </ModalFooter>
+            </Modal>
         </React.Fragment>
     );
 };

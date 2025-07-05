@@ -42,7 +42,10 @@ const TrainingsAndWorkshops: React.FC = () => {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [deleteId, setDeleteId] = useState<string | null>(null);
     // State variable for managing file upload status
-    const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
+    const [isFileUploadDisabled, setIsFileUploadDisabled] = useState({
+        attendance: false,
+        report: false,
+    });
     // State variable for managing the modal for listing BOS
     const [isModalOpen, setIsModalOpen] = useState(false);
     // State variable for managing the list of BOS data
@@ -50,8 +53,6 @@ const TrainingsAndWorkshops: React.FC = () => {
     // State variables for managing selected options in dropdowns
     const [selectedStream, setSelectedStream] = useState<any>(null);
     const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
-    const [selectedProgramType, setSelectedProgramType] = useState<any>(null);
-    const [selectedDegree, setSelectedDegree] = useState<any>(null);
     // State variable for managing search term and pagination
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
@@ -59,14 +60,16 @@ const TrainingsAndWorkshops: React.FC = () => {
     // State variable for managing filters
     const [filters, setFilters] = useState({
         academicYear: "",
-        semesterType: "",
-        semesterNo: "",
         stream: "",
-        department: "",
-        programType: "",
         program: "",
-        yearOfIntroduction: "",
-        percentage: "",
+        academicTraining: "",
+        startDate: "",
+        endDate: "",
+        targetAudience: "",
+        no_ofParticipants: "",
+        totalHours: "",
+        resourcePersons: "",
+        partnerOrganization: "",
     });
     const [filteredData, setFilteredData] = useState(bosData);
 
@@ -125,20 +128,20 @@ const TrainingsAndWorkshops: React.FC = () => {
     };
 
     // Fetch BOS data from the backend
-    const fetchBosData = async () => {
+    const fetchTrainingAndWorkshopsData = async () => {
         try {
-            const response = await api.get("/bos/getAllBos", "");
+            const response = await api.get("/trainingProgramsWorkshop/getAllTrainingProgramsWorkshop", "");
             setBosData(response);
             setFilteredData(response);
         } catch (error) {
-            console.error("Error fetching BOS data:", error);
+            console.error("Error fetching Training Programs/Workshop data:", error);
         }
     };
 
     // Open the modal and fetch data
-    const handleListBosClick = () => {
+    const handleListTrainingAndWorkshopClick = () => {
         toggleModal();
-        fetchBosData();
+        fetchTrainingAndWorkshopsData();
     };
 
     // Map value to label for dropdowns
@@ -155,7 +158,7 @@ const TrainingsAndWorkshops: React.FC = () => {
     // Fetch the data for the selected BOS ID and populate the form fields
     const handleEdit = async (id: string) => {
         try {
-            const response = await api.get(`/bos/edit?bosId=${id}`, "");
+            const response = await api.get(`/trainingProgramsWorkshop?trainingProgramsWorkshopId=${id}`, "");
             const academicYearOptions = await api.get("/getAllAcademicYear", "");
             // Filter the response where isCurrent or isCurrentForAdmission is true
             const filteredAcademicYearList = academicYearOptions.filter(
@@ -167,18 +170,12 @@ const TrainingsAndWorkshops: React.FC = () => {
                 label: year.display,
             }));
 
-            const semesterNoOptions = SEMESTER_NO_OPTIONS;
-
             // Map API response to Formik values
             const mappedValues = {
                 academicYear: mapValueToLabel(response.academicYear, academicYearList),
-                semesterType: response.semType
-                    ? { value: response.semType, label: response.semType.toUpperCase() }
+                academicTraining: response.academicTraining
+                    ? { value: response.academicTraining, label: response.academicTraining }
                     : null,
-                semesterNo: mapValueToLabel(
-                    String(response.semesterNo),
-                    semesterNoOptions
-                ) as { value: string; label: string } | null,
                 stream: response.streamId
                     ? { value: response.streamId.toString(), label: response.streamName }
                     : null,
@@ -188,34 +185,41 @@ const TrainingsAndWorkshops: React.FC = () => {
                         label: response.departmentName,
                     }
                     : null,
-                programType: response.programTypeId
-                    ? {
-                        value: response.programTypeId.toString(),
-                        label: response.programTypeName,
-                    }
+                program: response.programName
+                    ? { value: response.programName, label: response.programName }
                     : null,
-                degree: response.programId
-                    ? {
-                        value: response.programId.toString(),
-                        label: response.programName,
-                    }
-                    : null,
-                program: Yup.string()
-                    .oneOf(["UG", "PG"], "Please select a valid program")
-                    .required("Please select program"),
                 revisionPercentage: response.percentage || "",
-                startDate: response.yearOfIntroduction
-                    ? response.yearOfIntroduction
+                startDate: response.startDate
+                    ? moment(response.startDate, "YYYY-MM-DD").format("DD/MM/YYYY")
                     : "",
-                endDate: response.yearOfIntroduction
-                    ? response.yearOfIntroduction
+                endDate: response.endDate
+                    ? moment(response.endDate, "YYYY-MM-DD").format("DD/MM/YYYY")
                     : "",
                 otherDepartment: "", // Add default value for otherDepartment
-                file: response.documents?.mom || null,
+                targetAudience: response.targetAudience || "",
+                no_ofParticipants: response.noOfParticipants || "",
+                totalHours: response.totalHours || "",
+                resourcePersons: response.resourcePersons || "",
+                partnerOrganization: response.partneringOrganization || "",
+                attendance: response.file.Attendance || null,
+                report: response.file.Report || null,
             };
-
+            // Update Formik values
+            validation.setValues({
+                ...mappedValues,
+                academicYear: mappedValues.academicYear
+                    ? {
+                        ...mappedValues.academicYear,
+                        value: String(mappedValues.academicYear.value),
+                    }
+                    : null
+            });
             setIsEditMode(true); // Set edit mode
             setEditId(id); // Store the ID of the record being edited
+            setIsFileUploadDisabled({
+                attendance: !!response.file?.Attendance,
+                report: !!response.file?.Report,
+            });
             toggleModal();
         } catch (error) {
             console.error("Error fetching BOS data by ID:", error);
@@ -234,14 +238,14 @@ const TrainingsAndWorkshops: React.FC = () => {
     const confirmDelete = async (id: string) => {
         if (deleteId) {
             try {
-                const response = await api.delete(`/bos/deleteBos?bosId=${id}`, "");
+                const response = await api.delete(`/trainingProgramsWorkshop/deleteTrainingProgramsWorkshop?trainingProgramsWorkshopId=${id}`, "");
                 toast.success(
-                    response.message || "Curriculum BOS removed successfully!"
+                    response.message || "Training and Workshop record removed successfully!"
                 );
-                fetchBosData();
+                fetchTrainingAndWorkshopsData();
             } catch (error) {
-                toast.error("Failed to remove Curriculum BOS. Please try again.");
-                console.error("Error deleting BOS:", error);
+                toast.error("Failed to remove Training and Workshop record. Please try again.");
+                console.error("Error deleting Training and Workshop record:", error);
             } finally {
                 setIsDeleteModalOpen(false);
                 setDeleteId(null);
@@ -254,7 +258,7 @@ const TrainingsAndWorkshops: React.FC = () => {
         if (fileName) {
             try {
                 // Ensure you set responseType to 'blob' to handle binary data
-                const response = await axios.get(`/bos/download/${fileName}`, {
+                const response = await axios.get(`trainingProgramsWorkshop/download/${fileName}`, {
                     responseType: "blob",
                 });
 
@@ -277,7 +281,7 @@ const TrainingsAndWorkshops: React.FC = () => {
 
                 toast.success("File downloaded successfully!");
             } catch (error) {
-                toast.error("Failed to download MOM file. Please try again.");
+                toast.error("Failed to download file. Please try again.");
                 console.error("Error downloading file:", error);
             }
         } else {
@@ -287,22 +291,17 @@ const TrainingsAndWorkshops: React.FC = () => {
 
     // Handle file deletion
     // Clear the file from the form and show success message
-    const handleDeleteFile = async () => {
+    const handleDeleteFile = async (fileName: string, fileKey: "attendance" | "report") => {
         try {
-            // Call the delete API
-            const response = await api.delete(
-                `/bos/deleteBosDocument?bosDocumentId=${editId}`,
+            await api.delete(
+                `/trainingProgramsWorkshop/deleteTrainingProgramsWorkshopDocument?fileName=${encodeURIComponent(fileName)}`,
                 ""
             );
-            // Show success message
-            toast.success(response.message || "File deleted successfully!");
-            // Remove the file from the form
-            validation.setFieldValue("file", null); // Clear the file from Formik state
-            setIsFileUploadDisabled(false); // Enable the file upload button
-        } catch (error) {
-            // Show error message
-            toast.error("Failed to delete the file. Please try again.");
-            console.error("Error deleting file:", error);
+            toast.success("File deleted successfully!");
+            validation.setFieldValue(fileKey, null);
+            setIsFileUploadDisabled(prev => ({ ...prev, [fileKey]: false }));
+        } catch {
+            toast.error("Failed to delete file.");
         }
     };
 
@@ -311,165 +310,128 @@ const TrainingsAndWorkshops: React.FC = () => {
     const validation = useFormik({
         initialValues: {
             academicYear: null as { value: string; label: string } | null,
-            semesterType: null as { value: string; label: string } | null,
-            semesterNo: null as { value: string; label: string } | null,
             stream: null as { value: string; label: string } | null,
-            department: null as { value: string; label: string } | null,
-            otherDepartment: "",
-            file: null as File | string | null,
-            programType: null as { value: string; label: string } | null,
-            degree: null as { value: string; label: string } | null,
             program: null as { value: string; label: string } | null,
-            revisionPercentage: "",
+            academicTraining: null as { value: string; label: string } | null,
             startDate: "",
-            endDate:"",
-            targetAudience: null as { value: string; label: string } | null,
-            no_ofParticipants: null as { value: string; label: string } | null,
+            endDate: "",
+            targetAudience: "",
+            no_ofParticipants: "",
             totalHours: "",
             resourcePersons: "",
             partnerOrganization: "",
-            academicTraining:null as { value: string; label: string } | null,
+            attendance: null as File | null,
+            report: null as File | null,
         },
         validationSchema: Yup.object({
-            academicYear: Yup.object<{ value: string; label: string }>()
-                .nullable()
-                .required("Please select academic year"),
-            semesterType: Yup.object<{ value: string; label: string }>()
-                .nullable()
-                .required("Please select a semester type"), // Single object for single-select
-            semesterNo: Yup.object<{ value: string; label: string }>()
-                .nullable()
-                .required("Please select a semester number"),
-            stream: Yup.object<{ value: string; label: string }>()
-                .nullable()
-                .required("Please select school"),
-            department: Yup.object<{ value: string; label: string }>()
-                .nullable()
-                .required("Please select department"),
-            otherDepartment: Yup.string().when(
-                "department",
-                (department: any, schema) => {
-                    return department?.value === "Others"
-                        ? schema.required("Please specify the department")
-                        : schema;
-                }
-            ),
-            file: Yup.mixed().test(
-                "fileValidation",
-                "Please upload a valid file",
-                function (value) {
-                    // Skip validation if the file upload is disabled (file exists)
-                    if (isFileUploadDisabled) {
-                        return true;
-                    }
-                    // Perform validation if the file upload is enabled (file doesn't exist)
-                    if (!value) {
-                        return this.createError({ message: "Please upload a file" });
-                    }
-                    // Check file size (2MB limit)
-                    if (value instanceof File && value.size > 2 * 1024 * 1024) {
-                        return this.createError({ message: "File size is too large" });
-                    }
-                    // Check file type
-                    const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
-                    if (value instanceof File && !allowedTypes.includes(value.type)) {
-                        return this.createError({ message: "Unsupported file format" });
-                    }
-                    return true;
-                }
-            ),
-            programType: Yup.object<{ value: string; label: string }>()
-                .nullable()
-                .required("Please select program type"),
-            degree: Yup.object<{ value: string; label: string }>()
-                .nullable()
-                .required("Please select degree"),
-            program: Yup.string()
-                .oneOf(["UG", "PG"], "Please select a valid program")
-                .required("Please select program"),
-            revisionPercentage: Yup.number()
-                .typeError("Please enter a valid number")
-                .min(0, "Percentage cannot be less than 0")
-                .max(100, "Percentage cannot be more than 100")
-                .required("Please enter revision percentage"),
-            startDate: Yup.date().required("Please select start date"),
-            endDate: Yup.date().required("Please select end date"),
+            academicYear: Yup.object<{ value: string; label: string }>().nullable().required("Please select academic year"),
+            stream: Yup.object<{ value: string; label: string }>().nullable().required("Please select school"),
+            program: Yup.object<{ value: string; label: string }>().nullable().required("Please select type of funding"),
+            academicTraining: Yup.object<{ value: string; label: string }>().nullable().required("Please select academic training"),
+            startDate: Yup.string().required("Please select start date"),
+            endDate: Yup.string().required("Please select end date"),
             targetAudience: Yup.string().required("Please enter target audience"),
             no_ofParticipants: Yup.string().required("Please enter number of participants"),
             totalHours: Yup.string().required("Please enter total hours"),
-            resourcePersons: Yup.string().required("Please enter resource person"),
+            resourcePersons: Yup.string().required("Please enter resource persons"),
             partnerOrganization: Yup.string().required("Please enter partner organization"),
-            academicTraining: Yup.string()
-                .required("Please select academic training"),
-
+            attendance: Yup.mixed()
+                .test(
+                    "fileValidation",
+                    "Please upload a valid file",
+                    function (value) {
+                        // Skip validation if file upload is disabled (file exists)
+                        if (this.parent && this.parent.attendance && typeof this.parent.attendance === "string") {
+                            return true;
+                        }
+                        // Perform validation if the file upload is enabled (file doesn't exist)
+                        if (!value) {
+                            return this.createError({ message: "Please upload a file" });
+                        }
+                        // Check file size (2MB limit)
+                        if (value instanceof File && value.size > 2 * 1024 * 1024) {
+                            return this.createError({ message: "File size is too large" });
+                        }
+                        // Check file type
+                        const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
+                        if (value instanceof File && !allowedTypes.includes(value.type)) {
+                            return this.createError({ message: "Unsupported file format" });
+                        }
+                        return true;
+                    }
+                ),
+            report: Yup.mixed()
+                .test(
+                    "fileValidation",
+                    "Please upload a valid file",
+                    function (value) {
+                        // Skip validation if file upload is disabled (file exists)
+                        if (this.parent && this.parent.report && typeof this.parent.report === "string") {
+                            return true;
+                        }
+                        // Perform validation if the file upload is enabled (file doesn't exist)
+                        if (!value) {
+                            return this.createError({ message: "Please upload a file" });
+                        }
+                        // Check file size (2MB limit)
+                        if (value instanceof File && value.size > 2 * 1024 * 1024) {
+                            return this.createError({ message: "File size is too large" });
+                        }
+                        // Check file type
+                        const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
+                        if (value instanceof File && !allowedTypes.includes(value.type)) {
+                            return this.createError({ message: "Unsupported file format" });
+                        }
+                        return true;
+                    }
+                ),
         }),
         onSubmit: async (values, { resetForm }) => {
-            // Create FormData object
             const formData = new FormData();
-
-            // Append fields to FormData
             formData.append("academicYear", values.academicYear?.value || "");
-            formData.append("departmentId", values.department?.value || "");
-            formData.append("startDate", values.startDate || "");
-            formData.append("endDate", values.endDate || "");
-            formData.append("semType", values.semesterType?.value || "");
-            formData.append("semesterNo", String(values.semesterNo?.value || ""));
-            formData.append("programTypeId", values.programType?.value || "");
-            formData.append("percentage", values.revisionPercentage || "");
             formData.append("streamId", values.stream?.value || "");
-            formData.append("programId", values.degree?.value || "");
-            formData.append("bosId", editId || "");
-            formData.append("otherDepartment", values.otherDepartment || "");
-            formData.append("targetAudience", values.targetAudience?.value || "");
-            formData.append("no_ofParticipants", values.no_ofParticipants?.value || "");
-            formData.append("totalHours", values.totalHours || "");
-            formData.append("resourcePersons", values.resourcePersons || "");
-            formData.append("partnerOrganization", values.partnerOrganization || "");
+            formData.append("programName", values.program?.value || "");
             formData.append("academicTraining", values.academicTraining?.value || "");
+            formData.append("startDate", values.startDate);
+            formData.append("endDate", values.endDate);
+            formData.append("targetAudience", values.targetAudience);
+            formData.append("noOfParticipants", values.no_ofParticipants);
+            formData.append("totalHours", values.totalHours);
+            formData.append("resourcePersons", values.resourcePersons);
+            formData.append("partneringOrganization", values.partnerOrganization);
+            formData.append("id", editId || "");
+            // Attendance file: if string (existing file), send null; if File, send file
+            if (typeof values.attendance === "string" && values.attendance) {
+                formData.append("attendance", "");
+            } else if (values.attendance) {
+                formData.append("attendance", values.attendance);
+            } else {
+                formData.append("attendance", "");
+            }
 
-            if (isEditMode && typeof values.file === "string") {
-                formData.append(
-                    "mom",
-                    new Blob([], { type: "application/pdf" }),
-                    "empty.pdf"
-                );
-            } else if (isEditMode && values.file === null) {
-                formData.append(
-                    "mom",
-                    new Blob([], { type: "application/pdf" }),
-                    "empty.pdf"
-                );
-            } else if (values.file) {
-                formData.append("mom", values.file);
+            // Report file: if string (existing file), send null; if File, send file
+            if (typeof values.report === "string" && values.report) {
+                formData.append("report", "null");
+            } else if (values.report) {
+                formData.append("report", values.report);
+            } else {
+                formData.append("report", "null");
             }
 
             try {
                 if (isEditMode && editId) {
-                    // Call the update API
-                    const response = await api.put(`/bos/updateCurriculumBos`, formData);
-                    toast.success(
-                        response.message || "Curriculum BOS updated successfully!"
-                    );
+                    await api.put("/trainingProgramsWorkshop", formData);
+                    toast.success("Record updated successfully!");
                 } else {
-                    // Call the save API
-                    const response = await api.create("/bos/saveCurriculumBos", formData);
-                    toast.success(
-                        response.message || "Curriculum BOS added successfully!"
-                    );
+                    await api.create("/trainingProgramsWorkshop", formData);
+                    toast.success("Record saved successfully!");
                 }
-                // Reset the form fields
                 resetForm();
-                if (fileRef.current) {
-                    fileRef.current.value = "";
-                }
-                setIsEditMode(false); // Reset edit mode
-                setEditId(null); // Clear the edit ID
-                // display the BOS List
-                handleListBosClick();
+                setIsEditMode(false);
+                setEditId(null);
+                fetchTrainingAndWorkshopsData();
             } catch (error) {
-                // Display error message
-                toast.error("Failed to save Curriculum BOS. Please try again.");
-                console.error("Error creating BOS:", error);
+                toast.error("Failed to save record. Please try again.");
             }
         },
     });
@@ -539,38 +501,41 @@ const TrainingsAndWorkshops: React.FC = () => {
                                             <Input
                                                 type="select"
                                                 value={validation.values.program?.value || ""}
-                                                onChange={e => validation.setFieldValue("program", e.target.value)}
-                                                className={validation.touched.program && validation.errors.program ? "is-invalid" : ""}
-                                            />
+                                                onChange={(e) =>
+                                                    validation.setFieldValue("program", { value: e.target.value, label: e.target.value })
+                                                }
+                                                className={`form-control ${validation.touched.program && validation.errors.program ? "is-invalid" : ""
+                                                    }`}
+                                            >
+                                                <option value="">Select Type of Funding</option>
+                                                <option value="UG">UG</option>
+                                                <option value="PG">PG</option>
+                                            </Input>
                                             {validation.touched.program && validation.errors.program && (
-                                                <div className="text-danger">
-                                                    {Array.isArray(validation.errors.program)
-                                                        ? validation.errors.program.join(", ")
-                                                        : validation.errors.program}
-                                                </div>
+                                                <div className="text-danger">{validation.errors.program}</div>
                                             )}
                                         </div>
                                     </Col>
+
                                     <Col lg={4}>
                                         <div className="mb-3">
                                             <Label>Academic training</Label>
                                             <Input
-                                            type="select"
-                                            name="academicTraining"
-                                            value={validation.values.academicTraining?.value || ""}
-                                            onChange={e => validation.setFieldValue("academicTraining", e.target.value)}
-                                            className={validation.touched.academicTraining && validation.errors.academicTraining ? "is-invalid" : ""}
-                                            >
-                                            <option value="">Select Academic training</option>
-                                            <option value="Recruitment training">Recruitment training</option>
-                                            <option value="Expand Talks">Expand Talks</option>
-                                            <option value="Seminars/workshops/Webinars">Seminars/workshops/Webinars</option>
-                                            <option value="Events and Competitions">Events and Competitions</option>
-                                            <option value="Domain Training">Domain Training</option>
-                                            <option value="Career Fair">Career Fair</option>
+                                                type="select"
+                                                name="academicTraining"
+                                                value={validation.values.academicTraining?.value || ""}
+                                                onChange={e => validation.setFieldValue("academicTraining", { value: e.target.value, label: e.target.value })}
+                                                className={validation.touched.academicTraining && validation.errors.academicTraining ? "is-invalid" : ""}>
+                                                <option value="">Select Academic training</option>
+                                                <option value="Recruitment training">Recruitment training</option>
+                                                <option value="Expand Talks">Expand Talks</option>
+                                                <option value="Seminars/workshops/Webinars">Seminars/workshops/Webinars</option>
+                                                <option value="Events and Competitions">Events and Competitions</option>
+                                                <option value="Domain Training">Domain Training</option>
+                                                <option value="Career Fair">Career Fair</option>
                                             </Input>
                                             {validation.touched.academicTraining && validation.errors.academicTraining && (
-                                            <div className="text-danger">{validation.errors.academicTraining}</div>
+                                                <div className="text-danger">{validation.errors.academicTraining}</div>
                                             )}
                                         </div>
                                     </Col>
@@ -651,66 +616,66 @@ const TrainingsAndWorkshops: React.FC = () => {
                                         </div>
                                     </Col>
                                     <Col lg={4}>
-                                                        <div className="mb-3">
-                                                          <Label>Target Audience</Label>
-                                                          <Input
-                                                            type="text"
-                                                            name="targetAudience"
-                                                            value={validation.values.targetAudience?.value}
-                                                            onChange={e => validation.setFieldValue("targetAudience", e.target.value)}
-                                                            placeholder="Enter Target Audience"
-                                                            className={
-                                                              validation.touched.targetAudience &&
-                                                              validation.errors.targetAudience
-                                                                ? "is-invalid"
-                                                                : ""
-                                                            }
-                                                          />
-                                                          {validation.touched.targetAudience &&
-                                                            validation.errors.targetAudience && (
-                                                              <div className="text-danger">
-                                                                {validation.errors.targetAudience}
-                                                              </div>
-                                                            )}
-                                                        </div>
+                                        <div className="mb-3">
+                                            <Label>Target Audience</Label>
+                                            <Input
+                                                type="text"
+                                                name="targetAudience"
+                                                value={validation.values.targetAudience}
+                                                onChange={e => validation.setFieldValue("targetAudience", e.target.value)}
+                                                placeholder="Enter Target Audience"
+                                                className={
+                                                    validation.touched.targetAudience &&
+                                                        validation.errors.targetAudience
+                                                        ? "is-invalid"
+                                                        : ""
+                                                }
+                                            />
+                                            {validation.touched.targetAudience &&
+                                                validation.errors.targetAudience && (
+                                                    <div className="text-danger">
+                                                        {validation.errors.targetAudience}
+                                                    </div>
+                                                )}
+                                        </div>
                                     </Col>
                                     <Col lg={4}>
-                                                        <div className="mb-3">
-                                                          <Label>Number of Participants</Label>
-                                                          <Input
-                                                            type="text"
-                                                            name="no_ofParticipants"
-                                                            value={validation.values.no_ofParticipants?.value}
-                                                            onChange={e => validation.setFieldValue("no_ofParticipants", e.target.value)}
-                                                            placeholder="Enter No. of Participants"
-                                                            className={
-                                                              validation.touched.no_ofParticipants &&
-                                                              validation.errors.no_ofParticipants
-                                                                ? "is-invalid"
-                                                                : ""
-                                                            }
-                                                          />
-                                                          {validation.touched.no_ofParticipants &&
-                                                            validation.errors.no_ofParticipants && (
-                                                              <div className="text-danger">
-                                                                {validation.errors.no_ofParticipants}
-                                                              </div>
-                                                            )}
-                                                        </div>
+                                        <div className="mb-3">
+                                            <Label>Number of Participants</Label>
+                                            <Input
+                                                type="text"
+                                                name="no_ofParticipants"
+                                                value={validation.values.no_ofParticipants}
+                                                onChange={e => validation.setFieldValue("no_ofParticipants", e.target.value)}
+                                                placeholder="Enter No. of Participants"
+                                                className={
+                                                    validation.touched.no_ofParticipants &&
+                                                        validation.errors.no_ofParticipants
+                                                        ? "is-invalid"
+                                                        : ""
+                                                }
+                                            />
+                                            {validation.touched.no_ofParticipants &&
+                                                validation.errors.no_ofParticipants && (
+                                                    <div className="text-danger">
+                                                        {validation.errors.no_ofParticipants}
+                                                    </div>
+                                                )}
+                                        </div>
                                     </Col>
                                     <Col lg={4}>
                                         <div className="mb-3">
                                             <Label>Total number of hours</Label>
                                             <Input
-                                            type="text"
-                                            name="totalHours"
-                                            value={validation.values.totalHours}
-                                            onChange={e => validation.setFieldValue("totalHours", e.target.value)}
-                                            placeholder="Enter total number of hours"
-                                            className={validation.touched.totalHours && validation.errors.totalHours ? "is-invalid" : ""}
+                                                type="text"
+                                                name="totalHours"
+                                                value={validation.values.totalHours}
+                                                onChange={e => validation.setFieldValue("totalHours", e.target.value)}
+                                                placeholder="Enter total number of hours"
+                                                className={validation.touched.totalHours && validation.errors.totalHours ? "is-invalid" : ""}
                                             />
                                             {validation.touched.totalHours && validation.errors.totalHours && (
-                                            <div className="text-danger">{validation.errors.totalHours}</div>
+                                                <div className="text-danger">{validation.errors.totalHours}</div>
                                             )}
                                         </div>
                                     </Col>
@@ -718,85 +683,71 @@ const TrainingsAndWorkshops: React.FC = () => {
                                         <div className="mb-3">
                                             <Label>Resource persons</Label>
                                             <Input
-                                            type="text"
-                                            name="resourcePersons"
-                                            value={validation.values.resourcePersons}
-                                            onChange={e => validation.setFieldValue("resourcePersons", e.target.value)}
-                                            placeholder="Enter resource persons"
-                                            className={validation.touched.resourcePersons && validation.errors.resourcePersons ? "is-invalid" : ""}
+                                                type="text"
+                                                name="resourcePersons"
+                                                value={validation.values.resourcePersons}
+                                                onChange={e => validation.setFieldValue("resourcePersons", e.target.value)}
+                                                placeholder="Enter resource persons"
+                                                className={validation.touched.resourcePersons && validation.errors.resourcePersons ? "is-invalid" : ""}
                                             />
                                             {validation.touched.resourcePersons && validation.errors.resourcePersons && (
-                                            <div className="text-danger">{validation.errors.resourcePersons}</div>
+                                                <div className="text-danger">{validation.errors.resourcePersons}</div>
                                             )}
                                         </div>
-                                        </Col>
+                                    </Col>
                                     <Col lg={4}>
-                                    <div className="mb-3">
-                                        <Label>Partnering organisation</Label>
-                                        <Input
-                                        type="text"
-                                        name="partnerOrganization"
-                                        value={validation.values.partnerOrganization}
-                                        onChange={e => validation.setFieldValue("partnerOrganization", e.target.value)}
-                                        placeholder="Enter partnering organisation"
-                                        className={validation.touched.partnerOrganization && validation.errors.partnerOrganization ? "is-invalid" : ""}
-                                        />
-                                        {validation.touched.partnerOrganization && validation.errors.partnerOrganization && (
-                                        <div className="text-danger">{validation.errors.partnerOrganization}</div>
-                                        )}
-                                    </div>
+                                        <div className="mb-3">
+                                            <Label>Partnering organisation</Label>
+                                            <Input
+                                                type="text"
+                                                name="partnerOrganization"
+                                                value={validation.values.partnerOrganization}
+                                                onChange={e => validation.setFieldValue("partnerOrganization", e.target.value)}
+                                                placeholder="Enter partnering organisation"
+                                                className={validation.touched.partnerOrganization && validation.errors.partnerOrganization ? "is-invalid" : ""}
+                                            />
+                                            {validation.touched.partnerOrganization && validation.errors.partnerOrganization && (
+                                                <div className="text-danger">{validation.errors.partnerOrganization}</div>
+                                            )}
+                                        </div>
                                     </Col>
                                     <Col sm={4}>
                                         <div className="mb-3">
-                                            <Label htmlFor="formFile" className="form-label">
+                                            <Label htmlFor="attendance" className="form-label">
                                                 Upload Attendance Report
                                             </Label>
                                             <Input
-                                                className={`form-control ${validation.touched.file && validation.errors.file
-                                                    ? "is-invalid"
-                                                    : ""
-                                                    }`}
+                                                className={`form-control ${validation.touched.attendance && validation.errors.attendance ? "is-invalid" : ""}`}
                                                 type="file"
-                                                id="formFile"
-                                                innerRef={fileRef}
-                                                onChange={(event) => {
-                                                    validation.setFieldValue(
-                                                        "file",
-                                                        event.currentTarget.files
-                                                            ? event.currentTarget.files[0]
-                                                            : null
-                                                    );
+                                                id="attendance"
+                                                onChange={event => {
+                                                    if (isFileUploadDisabled.attendance && typeof validation.values.attendance === "string") return;
+                                                    validation.setFieldValue("attendance", event.currentTarget.files?.[0] || null);
+                                                    validation.setFieldTouched("attendance", true, true);
                                                 }}
-                                                disabled={isFileUploadDisabled} // Disable the button if a file exists
+                                                disabled={isFileUploadDisabled.attendance}
                                             />
-                                            {validation.touched.file && validation.errors.file && (
-                                                <div className="text-danger">
-                                                    {validation.errors.file}
-                                                </div>
+                                            {validation.touched.attendance && validation.errors.attendance && (
+                                                <div className="text-danger">{validation.errors.attendance}</div>
                                             )}
-                                            {/* Show a message if the file upload button is disabled */}
-                                            {isFileUploadDisabled && (
+                                            {isFileUploadDisabled.attendance && (
                                                 <div className="text-warning mt-2">
                                                     Please remove the existing file to upload a new one.
                                                 </div>
                                             )}
-                                            {/* Only show the file name if it is a string (from the edit API) */}
-                                            {typeof validation.values.file === "string" && (
+                                            {typeof validation.values.attendance === "string" && (
                                                 <div className="mt-2 d-flex align-items-center">
-                                                    <span
-                                                        className="me-2"
-                                                        style={{ fontWeight: "bold", color: "green" }}
-                                                    >
-                                                        {validation.values.file}
+                                                    <span className="me-2" style={{ fontWeight: "bold", color: "green" }}>
+                                                        {validation.values.attendance}
                                                     </span>
                                                     <Button
                                                         color="link"
                                                         className="text-primary"
-                                                        onClick={() =>
-                                                            handleDownloadFile(
-                                                                validation.values.file as string
-                                                            )
-                                                        }
+                                                        onClick={() => {
+                                                            if (typeof validation.values.attendance === "string") {
+                                                                handleDownloadFile(validation.values.attendance);
+                                                            }
+                                                        }}
                                                         title="Download File"
                                                     >
                                                         <i className="bi bi-download"></i>
@@ -804,7 +755,11 @@ const TrainingsAndWorkshops: React.FC = () => {
                                                     <Button
                                                         color="link"
                                                         className="text-danger"
-                                                        onClick={() => handleDeleteFile()}
+                                                        onClick={() => {
+                                                            if (typeof validation.values.attendance === "string") {
+                                                                handleDeleteFile(validation.values.attendance, "attendance");
+                                                            }
+                                                        }}
                                                         title="Delete File"
                                                     >
                                                         <i className="bi bi-trash"></i>
@@ -813,57 +768,44 @@ const TrainingsAndWorkshops: React.FC = () => {
                                             )}
                                         </div>
                                     </Col>
+
                                     <Col sm={4}>
                                         <div className="mb-3">
-                                            <Label htmlFor="formFile" className="form-label">
-                                                Upload Report                                           
+                                            <Label htmlFor="report" className="form-label">
+                                                Upload Report
                                             </Label>
                                             <Input
-                                                className={`form-control ${validation.touched.file && validation.errors.file
-                                                    ? "is-invalid"
-                                                    : ""
-                                                    }`}
+                                                className={`form-control ${validation.touched.report && validation.errors.report ? "is-invalid" : ""}`}
                                                 type="file"
-                                                id="formFile"
-                                                innerRef={fileRef}
-                                                onChange={(event) => {
-                                                    validation.setFieldValue(
-                                                        "file",
-                                                        event.currentTarget.files
-                                                            ? event.currentTarget.files[0]
-                                                            : null
-                                                    );
+                                                id="report"
+                                                onChange={event => {
+                                                    if (isFileUploadDisabled.report && typeof validation.values.report === "string") return;
+                                                    validation.setFieldValue("report", event.currentTarget.files?.[0] || null);
+                                                    validation.setFieldTouched("report", true, true);
                                                 }}
-                                                disabled={isFileUploadDisabled} // Disable the button if a file exists
+                                                disabled={isFileUploadDisabled.report}
                                             />
-                                            {validation.touched.file && validation.errors.file && (
-                                                <div className="text-danger">
-                                                    {validation.errors.file}
-                                                </div>
+                                            {validation.touched.report && validation.errors.report && (
+                                                <div className="text-danger">{validation.errors.report}</div>
                                             )}
-                                            {/* Show a message if the file upload button is disabled */}
-                                            {isFileUploadDisabled && (
+                                            {isFileUploadDisabled.report && (
                                                 <div className="text-warning mt-2">
                                                     Please remove the existing file to upload a new one.
                                                 </div>
                                             )}
-                                            {/* Only show the file name if it is a string (from the edit API) */}
-                                            {typeof validation.values.file === "string" && (
+                                            {typeof validation.values.report === "string" && (
                                                 <div className="mt-2 d-flex align-items-center">
-                                                    <span
-                                                        className="me-2"
-                                                        style={{ fontWeight: "bold", color: "green" }}
-                                                    >
-                                                        {validation.values.file}
+                                                    <span className="me-2" style={{ fontWeight: "bold", color: "green" }}>
+                                                        {validation.values.report}
                                                     </span>
                                                     <Button
                                                         color="link"
                                                         className="text-primary"
-                                                        onClick={() =>
-                                                            handleDownloadFile(
-                                                                validation.values.file as string
-                                                            )
-                                                        }
+                                                        onClick={() => {
+                                                            if (typeof validation.values.report === "string") {
+                                                                handleDownloadFile(validation.values.report);
+                                                            }
+                                                        }}
                                                         title="Download File"
                                                     >
                                                         <i className="bi bi-download"></i>
@@ -871,7 +813,11 @@ const TrainingsAndWorkshops: React.FC = () => {
                                                     <Button
                                                         color="link"
                                                         className="text-danger"
-                                                        onClick={() => handleDeleteFile()}
+                                                        onClick={() => {
+                                                            if (typeof validation.values.report === "string") {
+                                                                handleDeleteFile(validation.values.report, "report");
+                                                            }
+                                                        }}
                                                         title="Delete File"
                                                     >
                                                         <i className="bi bi-trash"></i>
@@ -890,9 +836,9 @@ const TrainingsAndWorkshops: React.FC = () => {
                                             <button
                                                 className="btn btn-secondary"
                                                 type="button"
-                                                onClick={handleListBosClick}
+                                                onClick={handleListTrainingAndWorkshopClick}
                                             >
-                                               List Programs
+                                                List Training and Workshops
                                             </button>
                                         </div>
                                     </Col>
@@ -908,7 +854,7 @@ const TrainingsAndWorkshops: React.FC = () => {
                     size="lg"
                     style={{ maxWidth: "100%", width: "auto" }}
                 >
-                    <ModalHeader toggle={toggleModal}>List BOS</ModalHeader>
+                    <ModalHeader toggle={toggleModal}>List Trainings and Workshops Data</ModalHeader>
                     <ModalBody>
                         {/* Global Search */}
                         <div className="mb-3">
@@ -931,25 +877,16 @@ const TrainingsAndWorkshops: React.FC = () => {
                                             type="text"
                                             placeholder="Filter"
                                             value={filters.academicYear}
-                                            onChange={(e) => handleFilterChange(e, "academicYear")}
+                                            onChange={e => handleFilterChange(e, "academicYear")}
                                         />
                                     </th>
                                     <th>
-                                        Stream
+                                        School
                                         <Input
                                             type="text"
                                             placeholder="Filter"
                                             value={filters.stream}
-                                            onChange={(e) => handleFilterChange(e, "stream")}
-                                        />
-                                    </th>
-                                    <th>
-                                        Program Type
-                                        <Input
-                                            type="text"
-                                            placeholder="Filter"
-                                            value={filters.programType}
-                                            onChange={(e) => handleFilterChange(e, "programType")}
+                                            onChange={e => handleFilterChange(e, "stream")}
                                         />
                                     </th>
                                     <th>
@@ -958,33 +895,111 @@ const TrainingsAndWorkshops: React.FC = () => {
                                             type="text"
                                             placeholder="Filter"
                                             value={filters.program}
-                                            onChange={(e) => handleFilterChange(e, "program")}
+                                            onChange={e => handleFilterChange(e, "program")}
                                         />
                                     </th>
-                                    
+                                    <th>
+                                        Academic Training
+                                        <Input
+                                            type="text"
+                                            placeholder="Filter"
+                                            value={filters.academicTraining}
+                                            onChange={e => handleFilterChange(e, "academicTraining")}
+                                        />
+                                    </th>
+                                    <th>
+                                        Start Date
+                                        <Input
+                                            type="text"
+                                            placeholder="Filter"
+                                            value={filters.startDate}
+                                            onChange={e => handleFilterChange(e, "startDate")}
+                                        />
+                                    </th>
+                                    <th>
+                                        End Date
+                                        <Input
+                                            type="text"
+                                            placeholder="Filter"
+                                            value={filters.endDate}
+                                            onChange={e => handleFilterChange(e, "endDate")}
+                                        />
+                                    </th>
+                                    <th>
+                                        Target Audience
+                                        <Input
+                                            type="text"
+                                            placeholder="Filter"
+                                            value={filters.targetAudience}
+                                            onChange={e => handleFilterChange(e, "targetAudience")}
+                                        />
+                                    </th>
+                                    <th>
+                                        Number of Participants
+                                        <Input
+                                            type="text"
+                                            placeholder="Filter"
+                                            value={filters.no_ofParticipants}
+                                            onChange={e => handleFilterChange(e, "no_ofParticipants")}
+                                        />
+                                    </th>
+                                    <th>
+                                        Total Hours
+                                        <Input
+                                            type="text"
+                                            placeholder="Filter"
+                                            value={filters.totalHours}
+                                            onChange={e => handleFilterChange(e, "totalHours")}
+                                        />
+                                    </th>
+                                    <th>
+                                        Resource Persons
+                                        <Input
+                                            type="text"
+                                            placeholder="Filter"
+                                            value={filters.resourcePersons}
+                                            onChange={e => handleFilterChange(e, "resourcePersons")}
+                                        />
+                                    </th>
+                                    <th>
+                                        Partner Organization
+                                        <Input
+                                            type="text"
+                                            placeholder="Filter"
+                                            value={filters.partnerOrganization}
+                                            onChange={e => handleFilterChange(e, "partnerOrganization")}
+                                        />
+                                    </th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {currentRows.length > 0 ? (
-                                    currentRows.map((bos, index) => (
-                                        <tr key={bos.bosDataId}>
+                                    currentRows.map((row, index) => (
+                                        <tr key={row.id || index}>
                                             <td>{indexOfFirstRow + index + 1}</td>
-                                            <td>{bos.academicYear}</td>
-                                            <td>{bos.streamName}</td>
-                                            <td>{bos.programTypeName}</td>
-                                            <td>{bos.programName}</td>
+                                            <td>{row.academicYear}</td>
+                                            <td>{row.streamName}</td>
+                                            <td>{row.programName}</td>
+                                            <td>{row.academicTraining}</td>
+                                            <td>{row.startDate}</td>
+                                            <td>{row.endDate}</td>
+                                            <td>{row.targetAudience}</td>
+                                            <td>{row.noOfParticipants}</td>
+                                            <td>{row.totalHours}</td>
+                                            <td>{row.resourcePersons}</td>
+                                            <td>{row.partneringOrganization}</td>
                                             <td>
                                                 <div className="d-flex justify-content-center gap-2">
                                                     <button
                                                         className="btn btn-sm btn-warning"
-                                                        onClick={() => handleEdit(bos.bosDataId)}
+                                                        onClick={() => handleEdit(row.id)}
                                                     >
                                                         Edit
                                                     </button>
                                                     <button
                                                         className="btn btn-sm btn-danger"
-                                                        onClick={() => handleDelete(bos.bosDataId)}
+                                                        onClick={() => handleDelete(row.id)}
                                                     >
                                                         Delete
                                                     </button>
@@ -994,8 +1009,8 @@ const TrainingsAndWorkshops: React.FC = () => {
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={11} className="text-center">
-                                            No BOS data available.
+                                        <td colSpan={16} className="text-center">
+                                            No data available.
                                         </td>
                                     </tr>
                                 )}
