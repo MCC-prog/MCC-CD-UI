@@ -421,7 +421,7 @@ const Innovative_Teaching_Methodologies: React.FC = () => {
       <div className="page-content">
         <Container fluid>
           <Breadcrumb
-            title="Innovative teaching methodology"
+            title="Curriculum"
             breadcrumbItem="Innovative teaching methodology"
           />
           <Card>

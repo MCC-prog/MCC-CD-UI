@@ -267,8 +267,8 @@ const UsageOf_Ict_Tools: React.FC = () => {
             title="Usage of Ict tools"
             breadcrumbItem="Usage of Ict tools"
           />
-          <Card>
-            <CardBody>
+          <Card style={{ minHeight: "300px", overflow: "visible" }}>
+            <CardBody style={{ overflow: "visible" }}>
               <form onSubmit={validation.handleSubmit}>
                 <Row>
                   <Col lg={4}>

@@ -242,8 +242,6 @@ const New_Programs_Introduced: React.FC = () => {
       // Update Formik values
       validation.setValues({
         ...mappedValues,
-        file: response.documents?.mom || null,
-        syllabusFile: response.documents?.syllabus || null,
         academicYear: mappedValues.academicYear
           ? {
               ...mappedValues.academicYear,
@@ -264,8 +262,6 @@ const New_Programs_Introduced: React.FC = () => {
       setSelectedDegree(degreeOption);
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
-      // Disable the file upload button if a file exists
-      setIsFileUploadDisabled(!!response.documents?.mom);
       toggleModal();
     } catch (error) {
       console.error("Error fetching BOS data by ID:", error);
@@ -342,17 +338,20 @@ const New_Programs_Introduced: React.FC = () => {
 
   // Handle file deletion
   // Clear the file from the form and show success message
-  const handleDeleteFile = async (fieldName: "file" | "syllabusFile") => {
+  const handleDeleteFile = async ( p0: string, docType: string) => {
     try {
       // Call the delete API
       const response = await api.delete(
-        `/newProgram/deleteNewProgramDocument?newProgramId=${editId}`,
+        `/newProgram/deleteNewProgramDocument?newProgramId=${editId}&docType=${docType}`,
         ""
       );
       // Show success message
       toast.success(response.message || "File deleted successfully!");
-      // Remove the file from the form
-      validation.setFieldValue(fieldName, null); // Clear the file from Formik state
+       if (docType === "mom") {
+        validation.setFieldValue("file", null);
+      } else if (docType === "syllabus") {
+        validation.setFieldValue("syllabusFile", null);
+      }
       setIsFileUploadDisabled(false); // Enable the file upload button
     } catch (error) {
       // Show error message
@@ -500,7 +499,7 @@ const New_Programs_Introduced: React.FC = () => {
         if (isEditMode && editId) {
           // Call the update API
           const response = await api.put(
-            `/newProgram/updateCurriculumBos`,
+            `/newProgram/updateProgram`,
             formData
           );
           toast.success(
@@ -542,7 +541,7 @@ const New_Programs_Introduced: React.FC = () => {
       <div className="page-content">
         <Container fluid>
           <Breadcrumb
-            title="New Program Introduced"
+            title="Curricuum"
             breadcrumbItem="New Program Introduced"
           />
           <Card>
@@ -827,7 +826,7 @@ const New_Programs_Introduced: React.FC = () => {
                         }`}
                         type="file"
                         innerRef={fileRef}
-                        id="mom"
+                        id="formFile"
                         onChange={(event) => {
                           validation.setFieldValue(
                             "file",
@@ -836,6 +835,7 @@ const New_Programs_Introduced: React.FC = () => {
                               : null
                           );
                         }}
+                        disabled={isFileUploadDisabled} // Disable the button if a file exists
                       />
                       {validation.touched.file && validation.errors.file && (
                         <div className="text-danger">
@@ -861,10 +861,8 @@ const New_Programs_Introduced: React.FC = () => {
                             color="link"
                             className="text-primary"
                             onClick={() =>
-                              handleDownloadFile(
-                                validation.values.file
-                                  ? (validation.values.file as string)
-                                  : ""
+                             handleDownloadFile(
+                                validation.values.file as string
                               )
                             }
                             title="Download File"
@@ -874,7 +872,8 @@ const New_Programs_Introduced: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
-                            onClick={() => handleDeleteFile("file")}
+                            onClick={() => handleDeleteFile(validation.values.file as string,
+                                "mom")}
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>
@@ -896,7 +895,7 @@ const New_Programs_Introduced: React.FC = () => {
                             : ""
                         }`}
                         type="file"
-                        id="syllabusFile"
+                        id="formFile"
                         innerRef={sylRef}
                         onChange={(event) => {
                           validation.setFieldValue(
@@ -906,6 +905,7 @@ const New_Programs_Introduced: React.FC = () => {
                               : null
                           );
                         }}
+                        disabled={isFileUploadDisabled} // Disable the button if a file exists
                       />
                       {validation.touched.syllabusFile &&
                         validation.errors.syllabusFile && (
@@ -932,10 +932,8 @@ const New_Programs_Introduced: React.FC = () => {
                             color="link"
                             className="text-primary"
                             onClick={() =>
-                              handleDownloadFile(
-                                validation.values.syllabusFile
-                                  ? (validation.values.syllabusFile as string)
-                                  : ""
+                               handleDownloadFile(
+                                validation.values.syllabusFile as string
                               )
                             }
                             title="Download File"
@@ -945,7 +943,9 @@ const New_Programs_Introduced: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
-                            onClick={() => handleDeleteFile("syllabusFile")}
+                            onClick={() => handleDeleteFile(validation.values.syllabusFile as string, 
+                                "syllabus"
+                            )}
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>

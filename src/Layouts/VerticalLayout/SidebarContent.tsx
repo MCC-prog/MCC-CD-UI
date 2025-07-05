@@ -179,10 +179,10 @@ const SidebarContent = (props: any) => {
                 <li>
                   <Link to="/Experiential_Learning">
                     <span
-                      className="badge rounded-pill text-bg-success float-end"
+                      className="badge rounded-pill text-bg-warning float-end"
                       key="t-new"
                     >
-                      New
+                      In Progress
                     </span>
                     {props.t("6. Experiential Learning ")}
                   </Link>
@@ -211,11 +211,23 @@ const SidebarContent = (props: any) => {
                 </li>
                 <li>
                   <Link to="/Advanced_Learners">
+                    <span
+                      className="badge rounded-pill text-bg-warning float-end"
+                      key="t-new"
+                    >
+                      In Progress
+                    </span>
                     {props.t("2. Advanced Learners")}
                   </Link>
                 </li>
                 <li>
                   <Link to="/Student_Centric_Teaching">
+                    <span
+                      className="badge rounded-pill text-bg-warning float-end"
+                      key="t-new"
+                    >
+                      In Progress
+                    </span>
                     {props.t("3. Student Centric Teaching Methodology")}
                   </Link>
                 </li>
@@ -333,7 +345,9 @@ const SidebarContent = (props: any) => {
               </Link>
               <ul className="sub-menu">
                 <li>
-                  <Link to="/Management_Funded_Project">{props.t("1. Management funded Project")}</Link>
+                  <Link to="/Management_Funded_Project">
+                    {props.t("1. Management funded Project")}
+                  </Link>
                 </li>
                 <li>
                   <Link to="/Government_Or_NGO_Funded_Projects">
@@ -348,13 +362,19 @@ const SidebarContent = (props: any) => {
                   </Link>
                 </li>
                 <li>
-                  <Link to="/Research_Guides">{props.t("4. Research Guides")}</Link>
+                  <Link to="/Research_Guides">
+                    {props.t("4. Research Guides")}
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/Research_Publications">{props.t("5. Research Publications")}</Link>
+                  <Link to="/Research_Publications">
+                    {props.t("5. Research Publications")}
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/Books_Chapters">{props.t("6. Books/Chapters")}</Link>
+                  <Link to="/Books_Chapters">
+                    {props.t("6. Books/Chapters")}
+                  </Link>
                 </li>
                 <li>
                   <Link to="/FP_And_Presentation_Research_Papers">
@@ -472,7 +492,9 @@ const SidebarContent = (props: any) => {
                   </Link>
                 </li>
                 <li>
-                  <Link to="/Guest_Lectures">{props.t("3. Guest Lectures")}</Link>
+                  <Link to="/Guest_Lectures">
+                    {props.t("3. Guest Lectures")}
+                  </Link>
                 </li>
                 <li>
                   <Link to="/Career_Counseling_Guidance">

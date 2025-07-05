@@ -723,8 +723,15 @@ const CapacityDevelopment_Skills: React.FC = () => {
           </Card>
         </Container>
         {/* Modal for Listing Capacity development & Skills enhancement */}
-        <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg"  style={{ maxWidth: "100%", width: "auto" }}>
-          <ModalHeader toggle={toggleModal}>List Capacity Development & Skills Enhancement</ModalHeader>
+        <Modal
+          isOpen={isModalOpen}
+          toggle={toggleModal}
+          size="lg"
+          style={{ maxWidth: "100%", width: "auto" }}
+        >
+          <ModalHeader toggle={toggleModal}>
+            List Capacity Development & Skills Enhancement
+          </ModalHeader>
           <ModalBody>
             {/* Global Search */}
             <div className="mb-3">
@@ -735,66 +742,22 @@ const CapacityDevelopment_Skills: React.FC = () => {
                 onChange={handleSearch}
               />
             </div>
-            <Table className="table-hover custom-table">
-              <thead>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>
-                    Academic Year
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.academicYear}
-                      onChange={(e) => handleFilterChange(e, "academicYear")}
-                    />
-                  </th>
-                  <th>
-                    Soft Skills
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.qualification}
-                      onChange={(e) => handleFilterChange(e, "qualification")}
-                    />
-                  </th>
-                  <th>
-                    Language and Communication Skills
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.LanguageAndCommunication}
-                      onChange={(e) =>
-                        handleFilterChange(e, "LanguageAndCommunication")
-                      }
-                    />
-                  </th>
-                  <th>
-                    Life Skills
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.lifeSkills}
-                      onChange={(e) => handleFilterChange(e, "lifeSkills")}
-                    />
-                  </th>
-                  <th>
-                    Type
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.type}
-                      onChange={(e) => handleFilterChange(e, "type")}
-                    />
-                  </th>
-                  <th>
-                    Awareness of trends in technology
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.qualification}
-                      onChange={(e) => handleFilterChange(e, "qualification")}
-                    />
-                  </th>
+                  <th>Academic Year</th>
+                  <th>Soft Skills</th>
+                  <th>Language and Communication Skills</th>
+                  <th>Life Skills</th>
+                  <th>Type</th>
+                  <th>Awareness of trends in technology</th>
 
                   <th>Actions</th>
                 </tr>
@@ -811,20 +774,24 @@ const CapacityDevelopment_Skills: React.FC = () => {
                       <td>{cds.type}</td>
                       <td>{cds.awarenessOfTrends}</td>
                       <td>
-                        <button
-                          className="btn btn-sm btn-warning me-2"
-                          onClick={() => handleEdit(cds.capacityDevelopmentId)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="btn btn-sm btn-danger"
-                          onClick={() =>
-                            handleDelete(cds.capacityDevelopmentId)
-                          }
-                        >
-                          Delete
-                        </button>
+                        <div className="d-flex justify-content-center gap-2">
+                          <button
+                            className="btn btn-sm btn-warning me-2"
+                            onClick={() =>
+                              handleEdit(cds.capacityDevelopmentId)
+                            }
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="btn btn-sm btn-danger"
+                            onClick={() =>
+                              handleDelete(cds.capacityDevelopmentId)
+                            }
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))

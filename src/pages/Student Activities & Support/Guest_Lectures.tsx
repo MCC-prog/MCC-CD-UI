@@ -46,6 +46,21 @@ const Guest_Lectures: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
   const [filteredData, setFilteredData] = useState(gLData);
+  const [filters, setFilters] = useState({
+    academicYear: "",
+    stream: "",
+    department: "",
+    courses: "",
+    semType: "",
+    date: "",
+    resourcePersonName: "",
+    organisation: "",
+    resourcePersonDesignation: "",
+    titleOfTalk: "",
+    targetAudience: "",
+    noOfParticipants: "",
+    guestLecture: "",
+  });
   const [searchTerm, setSearchTerm] = useState("");
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
   const [tooltipOpen, setTooltipOpen] = useState(false);
@@ -67,7 +82,24 @@ const Guest_Lectures: React.FC = () => {
     );
     setFilteredData(filtered);
   };
+  // Handle column-specific filters
+  const handleFilterChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    column: string
+  ) => {
+    const value = e.target.value.toLowerCase();
+    const updatedFilters = { ...filters, [column]: value };
+    setFilters(updatedFilters);
 
+    const filtered = gLData.filter((row) =>
+      Object.values(row).some((val) =>
+        String(val || "")
+          .toLowerCase()
+          .includes(value)
+      )
+    );
+    setFilteredData(filtered);
+  };
   // Calculate the paginated data
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
@@ -366,6 +398,30 @@ const Guest_Lectures: React.FC = () => {
       ),
       titleOfTalk: Yup.string().required("Please enter title of talk"),
       targetAudience: Yup.string().required("Please enter target audience"),
+      guestLecture: Yup.mixed().test(
+        "fileValidation",
+        "Please upload a valid file",
+        function (value) {
+          // Skip validation if the file upload is disabled (file exists)
+          if (isFileUploadDisabled) {
+            return true;
+          }
+          // Perform validation if the file upload is enabled (file doesn't exist)
+          if (!value) {
+            return this.createError({ message: "Please upload a file" });
+          }
+          // Check file size (2MB limit)
+          if (value instanceof File && value.size > 2 * 1024 * 1024) {
+            return this.createError({ message: "File size is too large" });
+          }
+          // Check file type
+          const allowedTypes = ["application/pdf"];
+          if (value instanceof File && !allowedTypes.includes(value.type)) {
+            return this.createError({ message: "Unsupported file format" });
+          }
+          return true;
+        }
+      ),
     }),
     onSubmit: async (values, { resetForm }) => {
       try {
@@ -834,7 +890,8 @@ const Guest_Lectures: React.FC = () => {
                       </Tooltip>
                       <Input
                         className={`form-control ${
-                          validation.touched.guestLecture && validation.errors.guestLecture
+                          validation.touched.guestLecture &&
+                          validation.errors.guestLecture
                             ? "is-invalid"
                             : ""
                         }`}
@@ -851,11 +908,12 @@ const Guest_Lectures: React.FC = () => {
                         }}
                         disabled={isFileUploadDisabled} // Disable the button if a file exists
                       />
-                      {validation.touched.guestLecture && validation.errors.guestLecture && (
-                        <div className="text-danger">
-                          {validation.errors.guestLecture}
-                        </div>
-                      )}
+                      {validation.touched.guestLecture &&
+                        validation.errors.guestLecture && (
+                          <div className="text-danger">
+                            {validation.errors.guestLecture}
+                          </div>
+                        )}
                       {/* Show a message if the file upload button is disabled */}
                       {isFileUploadDisabled && (
                         <div className="text-warning mt-2">
@@ -945,8 +1003,22 @@ const Guest_Lectures: React.FC = () => {
         >
           <ModalHeader toggle={toggleModal}>List Guest Lectures</ModalHeader>
           <ModalBody>
-            <Table className="table-hover custom-table">
-              <thead>
+            <div className="mb-3">
+              <Input
+                type="text"
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={handleSearch}
+              />
+            </div>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
@@ -963,8 +1035,8 @@ const Guest_Lectures: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {gLData.length > 0 ? (
-                  gLData.map((gl, index) => (
+                {currentRows.length > 0 ? (
+                  currentRows.map((gl, index) => (
                     <tr key={gl.guestLectureId}>
                       <td>{index + 1}</td>
                       <td>{gl.academicYear}</td>

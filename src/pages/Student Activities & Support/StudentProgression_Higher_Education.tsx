@@ -8,7 +8,7 @@ import ProgramTypeDropdown from "Components/DropDowns/ProgramTypeDropdown";
 import SemesterDropdowns from "Components/DropDowns/SemesterDropdowns";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { useFormik } from "formik";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -35,7 +35,7 @@ const api = new APIClient();
 
 const StudentProgression_Higher_Education: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [bosData, setBosData] = useState<any[]>([]);
+  const [sheData, setSHEData] = useState<any[]>([]);
   const [selectedStream, setSelectedStream] = useState<any>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -43,18 +43,49 @@ const StudentProgression_Higher_Education: React.FC = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
-  const [filteredData, setFilteredData] = useState(bosData);
+  const [filteredData, setFilteredData] = useState(sheData);
   const [searchTerm, setSearchTerm] = useState("");
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
+  const [filters, setFilters] = useState({
+    academicYear: null,
+    studentName: "",
+    mccRegNo: "",
+    coursePurused: "",
+    heigherEduCu: "",
+    university: "",
+    location: "",
+    icalepal: "",
+    courseDuration: "",
+  });
+  const fileRef = useRef<HTMLInputElement | null>(null);
 
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
 
-    const filtered = bosData.filter((row) =>
+    const filtered = sheData.filter((row) =>
+      Object.values(row).some((val) =>
+        String(val || "")
+          .toLowerCase()
+          .includes(value)
+      )
+    );
+    setFilteredData(filtered);
+  };
+
+  // Handle column-specific filters
+  const handleFilterChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    column: string
+  ) => {
+    const value = e.target.value.toLowerCase();
+    const updatedFilters = { ...filters, [column]: value };
+    setFilters(updatedFilters);
+
+    const filtered = sheData.filter((row) =>
       Object.values(row).some((val) =>
         String(val || "")
           .toLowerCase()
@@ -80,21 +111,26 @@ const StudentProgression_Higher_Education: React.FC = () => {
     setIsModalOpen(!isModalOpen);
   };
 
-  // Fetch BOS data from the backend
-  const fetchBosData = async () => {
+  // Fetch Student Progression - Higher Education from the backend
+  const fetchSHEData = async () => {
     try {
-      const response = await axios.get("/staffProfile/getAllStaffProfile"); // Replace with your backend API endpoint
-      setBosData(response);
+      const response = await axios.get(
+        "/studentProgressionHigherEducation/getAll"
+      ); // Replace with your backend API endpoint
+      setSHEData(response);
       setFilteredData(response);
     } catch (error) {
-      console.error("Error fetching BOS data:", error);
+      console.error(
+        "Error fetching Student Progression - Higher Education:",
+        error
+      );
     }
   };
 
   // Open the modal and fetch data
-  const handleListBosClick = () => {
+  const handleListSHEClick = () => {
     toggleModal();
-    fetchBosData();
+    fetchSHEData();
   };
 
   // Map value to label for dropdowns
@@ -108,11 +144,11 @@ const StudentProgression_Higher_Education: React.FC = () => {
   };
 
   // Handle edit action
-  // Fetch the data for the selected BOS ID and populate the form fields
+  // Fetch the data for the selected Student Progression - Higher EducationID and populate the form fields
   const handleEdit = async (id: string) => {
     try {
       const response = await api.get(
-        `/staffProfile/edit?staffProfileId=${id}`,
+        `/studentProgressionHigherEducation/edit?higherEducationId=${id}`,
         ""
       );
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
@@ -132,27 +168,15 @@ const StudentProgression_Higher_Education: React.FC = () => {
         stream: response.streamId
           ? { value: response.streamId.toString(), label: response.streamName }
           : null,
-        department: response.departmentId
-          ? {
-              value: response.departmentId.toString(),
-              label: response.departmentName,
-            }
-          : null,
-        courses: response.programId
-          ? {
-              value: response.programId.toString(),
-              label: response.programName,
-            }
-          : null,
-        noOfStaff: response.noOfStaff || "",
-        mccRegNo: response.mccRegNo || "",
-        coursePurused: response.coursePurused || "",
-        heigherEduCu: response.heigherEduCu || "",
+        mccRegNo: response.mccRegisterNo || "",
+        studentName: response.studentName || "",
+        coursePurused: response.coursePursuedInMcc || "",
+        heigherEduCu: response.higherEducationCourse || "",
         university: response.university || "",
         location: response.location || "",
-        icalepal: response.icalepal || "",
+        icalepal: response.enrollmentProof || "",
         courseDuration: response.courseDuration || "",
-        file: response.file || null, // Assuming 'file' is a string or null
+        file: response.documents.higherEducation || null, // Assuming 'file' is a string or null
       };
 
       // Update Formik values
@@ -163,21 +187,24 @@ const StudentProgression_Higher_Education: React.FC = () => {
               value: String(mappedValues.academicYear.value),
             }
           : null,
-        noOfStaff: response.noOfStaff || "",
-        mccRegNo: response.mccRegNo || "",
-        coursePurused: response.coursePurused || "",
-        heigherEduCu: response.heigherEduCu || "",
+        mccRegNo: response.mccRegisterNo || "",
+        studentName: response.studentName || "",
+        coursePurused: response.coursePursuedInMcc || "",
+        heigherEduCu: response.higherEducationCourse || "",
         university: response.university || "",
         location: response.location || "",
-        icalepal: response.icalepal || "",
+        icalepal: response.enrollmentProof || "",
         courseDuration: response.courseDuration || "",
-        file: response.file || null, // Assuming 'file' is a string or null
+        file: response.documents.higherEducation || null, // Assuming 'file' is a string or null
       });
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();
     } catch (error) {
-      console.error("Error fetching BOS data by ID:", error);
+      console.error(
+        "Error fetching Student Progression - Higher Education by ID:",
+        error
+      );
     }
   };
 
@@ -186,21 +213,27 @@ const StudentProgression_Higher_Education: React.FC = () => {
     setIsDeleteModalOpen(true);
   };
 
-  // Call the delete API and refresh the BOS data
+  // Call the delete API and refresh the Student Progression - Higher Education
   const confirmDelete = async (id: string) => {
     if (deleteId) {
       try {
         const response = await api.delete(
-          `/staffProfile/deleteStaffProfile?staffProfileId=${id}`,
+          `/studentProgressionHigherEducation/deleteHigherEducation?higherEducationId=${id}`,
           ""
         );
         toast.success(
-          response.message || "Staff Profile removed successfully!"
+          response.message ||
+            "Student Progression - Higher Education removed successfully!"
         );
-        fetchBosData();
+        fetchSHEData();
       } catch (error) {
-        toast.error("Failed to remove Staff Profile. Please try again.");
-        console.error("Error deleting BOS:", error);
+        toast.error(
+          "Failed to remove Student Progression - Higher Education. Please try again."
+        );
+        console.error(
+          "Error deleting Student Progression - Higher Education:",
+          error
+        );
       } finally {
         setIsDeleteModalOpen(false);
         setDeleteId(null);
@@ -208,11 +241,68 @@ const StudentProgression_Higher_Education: React.FC = () => {
     }
   };
 
+  // Handle file download actions
+  const handleDownloadFile = async (fileName: string) => {
+    if (fileName) {
+      try {
+        // Ensure you set responseType to 'blob' to handle binary data
+        const response = await axios.get(
+          `/studentProgressionHigherEducation/download/${fileName}`,
+          {
+            responseType: "blob",
+          }
+        );
+
+        // Create a Blob from the response data
+        const blob = new Blob([response], { type: "*/*" });
+
+        // Create a URL for the Blob
+        const url = window.URL.createObjectURL(blob);
+
+        // Create a temporary anchor element to trigger the download
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = fileName; // Set the file name for the download
+        document.body.appendChild(link);
+        link.click();
+
+        // Clean up the URL and remove the anchor element
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        toast.success("File downloaded successfully!");
+      } catch (error) {
+        toast.error("Failed to download excel file. Please try again.");
+        console.error("Error downloading file:", error);
+      }
+    } else {
+      toast.error("No file available for download.");
+    }
+  };
+
+  // Handle file deletion
+  const handleDeleteFile = async (fileName: string, docType: string) => {
+    try {
+      const response = await api.delete(
+        `/studentProgressionHigherEducation/deleteHigherEducationDocument?higherEducationId=${editId}&docType=${docType}`,
+        ""
+      );
+      toast.success(response.message || "File deleted successfully!");
+      if (docType === "higherEducation") {
+        validation.setFieldValue("file", null);
+      }
+      setIsFileUploadDisabled(false); // Enable the file upload button
+    } catch (error) {
+      toast.error("Failed to delete the file. Please try again.");
+      console.error("Error deleting file:", error);
+    }
+  };
+
   const validation = useFormik({
     initialValues: {
       academicYear: null as { value: string; label: string } | null,
-      noOfStaff: "",
       mccRegNo: "",
+      studentName: "",
       coursePurused: "",
       heigherEduCu: "",
       university: "",
@@ -225,13 +315,13 @@ const StudentProgression_Higher_Education: React.FC = () => {
       academicYear: Yup.object()
         .nullable()
         .required("Please select academic year"),
-      mccRegNo: Yup.string().required("Please enter area of guidance"),
-      coursePurused: Yup.number().required(
-        "Please enter No. of Participants/Attendees"
+      mccRegNo: Yup.string().required("Please enter MCC Register number"),
+      studentName: Yup.string().required("Please enter student name"),
+      coursePurused: Yup.string().required(
+        "Please enter course pursued in MCC"
       ),
-      date: Yup.string().required("Please select date"),
       heigherEduCu: Yup.string().required(
-        "Please enter trainer/resource person details"
+        "Please enter heigher education course"
       ),
       university: Yup.string().required("Please enter university"),
       file: Yup.mixed()
@@ -254,51 +344,88 @@ const StudentProgression_Higher_Education: React.FC = () => {
         }),
       location: Yup.string().required("Please enter location"),
       icalepal: Yup.string()
-        .url("Please enter a valid URL")
+        // .url("Please enter a valid URL")
         .required(
           "Please provide a link for Id Card/Acceptance/Admission Letter-Enrollment Proof"
         ),
       courseDuration: Yup.string().required("Please enter course duration"),
     }),
     onSubmit: async (values, { resetForm }) => {
-      const payload = {
-        academicYear: values.academicYear?.value || "",
-        noOfStaff: values.noOfStaff || "",
-        mccRegNo: values.mccRegNo || "",
-        coursePurused: values.coursePurused || "",
-        heigherEduCu: values.heigherEduCu || "",
-        university: values.university || "",
-      };
-
-      // If editing, include the ID
-      if (isEditMode && editId) {
-        payload["staffProfileId"] = editId;
-      }
-
       try {
+        const formData = new FormData();
+        formData.append("academicYear", values.academicYear?.value || "");
+        formData.append("studentName", values.studentName);
+        formData.append("mccRegisterNo", values.mccRegNo);
+        formData.append("coursePursuedInMcc", values.coursePurused);
+        formData.append("higherEducationCourse", values.heigherEduCu);
+        formData.append("university", values.university);
+        formData.append("location", values.location);
+        formData.append("enrollmentProof", values.icalepal);
+        formData.append("courseDuration", values.courseDuration);
+        if (isEditMode && typeof values.file === "string") {
+          formData.append(
+            "excel",
+            new Blob([], {
+              type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            }),
+            "empty.xlsx"
+          );
+        } else if (isEditMode && values.file === null) {
+          formData.append(
+            "excel",
+            new Blob([], {
+              type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            }),
+            "empty.xlsx"
+          );
+        } else if (values.file) {
+          formData.append("excel", values.file);
+        }
+
+        // If in edit mode, append the edit ID
+        if (isEditMode && editId) {
+          formData.append("higherEducationId", editId);
+        }
+
         if (isEditMode && editId) {
           // Call the update API
-          const response = await api.put(`/staffProfile/update`, payload);
+          const response = await api.put(
+            `/studentProgressionHigherEducation/update`,
+            formData
+          );
           toast.success(
-            response.message || "Staff Profile updated successfully!"
+            response.message ||
+              "Student Progression - Higher Education updated successfully!"
           );
         } else {
           // Call the save API
-          const response = await api.create("/staffProfile/save", payload);
+          const response = await api.create(
+            "/studentProgressionHigherEducation/save",
+            formData
+          );
           toast.success(
-            response.message || "Staff Profile added successfully!"
+            response.message ||
+              "Student Progression - Higher Education added successfully!"
           );
         }
         // Reset the form fields
         resetForm();
+        if (fileRef.current) {
+          fileRef.current.value = "";
+        }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
-        // display the BOS List
-        handleListBosClick();
+        // display the Student Progression - Higher EducationList
+        handleListSHEClick();
       } catch (error) {
         // Display error message
-        toast.error("Failed to save Staff Profile. Please try again.");
-        console.error("Error creating BOS:", error);
+        toast.error(
+          "Failed to save Student Progression - Higher Education. Please try again."
+        );
+        console.error(
+          "Error creating Student Progression - Higher Education:",
+          error
+        );
       }
     },
   });
@@ -358,13 +485,45 @@ const StudentProgression_Higher_Education: React.FC = () => {
                         onChange={(e) =>
                           validation.setFieldValue("mccRegNo", e.target.value)
                         }
-                        placeholder="Enter full time"
+                        placeholder="Enter MCC Register number"
                         value={validation.values.mccRegNo}
                       />
                       {validation.touched.mccRegNo &&
                         validation.errors.mccRegNo && (
                           <div className="text-danger">
                             {validation.errors.mccRegNo}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+
+                  <Col sm={4}>
+                    <div className="mb-3">
+                      <Label htmlFor="formFile" className="form-label">
+                        Student Name
+                      </Label>
+                      <Input
+                        className={`form-control ${
+                          validation.touched.studentName &&
+                          validation.errors.studentName
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        type="text"
+                        id="studentName"
+                        onChange={(e) =>
+                          validation.setFieldValue(
+                            "studentName",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Enter student name"
+                        value={validation.values.studentName}
+                      />
+                      {validation.touched.studentName &&
+                        validation.errors.studentName && (
+                          <div className="text-danger">
+                            {validation.errors.studentName}
                           </div>
                         )}
                     </div>
@@ -382,7 +541,7 @@ const StudentProgression_Higher_Education: React.FC = () => {
                             ? "is-invalid"
                             : ""
                         }`}
-                        type="number"
+                        type="text"
                         id="coursePurused"
                         onChange={(e) =>
                           validation.setFieldValue(
@@ -390,7 +549,7 @@ const StudentProgression_Higher_Education: React.FC = () => {
                             e.target.value
                           )
                         }
-                        placeholder="Enter part time"
+                        placeholder="Enter Course Pursued in MCC"
                         value={validation.values.coursePurused}
                       />
                       {validation.touched.coursePurused &&
@@ -422,7 +581,7 @@ const StudentProgression_Higher_Education: React.FC = () => {
                             e.target.value
                           )
                         }
-                        placeholder="Enter guest faculty"
+                        placeholder="Enter Heigher Education Course"
                         value={validation.values.heigherEduCu}
                       />
                       {validation.touched.heigherEduCu &&
@@ -451,7 +610,7 @@ const StudentProgression_Higher_Education: React.FC = () => {
                         onChange={(e) =>
                           validation.setFieldValue("university", e.target.value)
                         }
-                        placeholder="Enter professor of practice"
+                        placeholder="Enter University"
                         value={validation.values.university}
                       />
                       {validation.touched.university &&
@@ -522,7 +681,7 @@ const StudentProgression_Higher_Education: React.FC = () => {
                             ? "is-invalid"
                             : ""
                         }`}
-                        type="url"
+                        type="text"
                         id="icalepal"
                         onChange={(e) =>
                           validation.setFieldValue("icalepal", e.target.value)
@@ -600,6 +759,7 @@ const StudentProgression_Higher_Education: React.FC = () => {
                         }`}
                         type="file"
                         id="formFile"
+                        innerRef={fileRef}
                         onChange={(event) => {
                           validation.setFieldValue(
                             "file",
@@ -633,11 +793,11 @@ const StudentProgression_Higher_Education: React.FC = () => {
                           <Button
                             color="link"
                             className="text-primary"
-                            //   onClick={() =>
-                            //     handleDownloadFile(
-                            //       validation.values.file as string
-                            //     )
-                            //   }
+                            onClick={() =>
+                              handleDownloadFile(
+                                validation.values.file as string
+                              )
+                            }
                             title="Download File"
                           >
                             <i className="bi bi-download"></i>
@@ -645,7 +805,12 @@ const StudentProgression_Higher_Education: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
-                            //   onClick={() => handleDeleteFile()}
+                            onClick={() =>
+                              handleDeleteFile(
+                                validation.values.file as string,
+                                "higherEducation"
+                              )
+                            }
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>
@@ -655,7 +820,6 @@ const StudentProgression_Higher_Education: React.FC = () => {
                     </div>
                   </Col>
 
-                  
                   <Col lg={4}>
                     <div className="mb-3">
                       <Label>Download </Label>
@@ -670,7 +834,6 @@ const StudentProgression_Higher_Education: React.FC = () => {
                       </div>
                     </div>
                   </Col>
-                  
                 </Row>
                 <Row>
                   <Col lg={12}>
@@ -681,57 +844,81 @@ const StudentProgression_Higher_Education: React.FC = () => {
                       <button
                         className="btn btn-secondary"
                         type="button"
-                        onClick={handleListBosClick}
+                        onClick={handleListSHEClick}
                       >
                         List
                       </button>
                     </div>
                   </Col>
-
                 </Row>
               </form>
             </CardBody>
           </Card>
         </Container>
-        {/* Modal for Listing BOS */}
-        <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg">
-          <ModalHeader toggle={toggleModal}>List Staff Profile</ModalHeader>
+        {/* Modal for Listing Student Progression - Higher Education*/}
+        <Modal
+          isOpen={isModalOpen}
+          toggle={toggleModal}
+          size="lg"
+          style={{ maxWidth: "90%" }}
+        >
+          <ModalHeader toggle={toggleModal}>
+            List Student Progression - Higher Education
+          </ModalHeader>
           <ModalBody>
-            <Table className="table-hover custom-table">
-              <thead>
+            <div className="mb-3">
+              <Input
+                type="text"
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={handleSearch}
+              />
+            </div>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
-                  <th>Stream</th>
-                  <th>No.Of Staff</th>
-                  <th>Full Time</th>
-                  <th>Part Time</th>
-                  <th>Guest Faculty</th>
+                  <th>MCC Register number</th>
+                  <th>Student Name</th>
+                  <th>Course Pursued in MCC</th>
+                  <th>Heigher Education Course</th>
+                  <th>University</th>
+                  <th>Location</th>
+                  <th>Course Duration</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {bosData.length > 0 ? (
-                  bosData.map((bos, index) => (
-                    <tr key={bos.id}>
+                {currentRows.length > 0 ? (
+                  currentRows.map((she, index) => (
+                    <tr key={she.higherEducationId}>
                       <td>{index + 1}</td>
-                      <td>{bos.academicYear}</td>
-                      <td>{bos.streamName}</td>
-                      <td>{bos.noOfStaff}</td>
-                      <td>{bos.mccRegNo}</td>
-                      <td>{bos.coursePurused}</td>
-                      <td>{bos.heigherEduCu}</td>
+                      <td>{she.academicYear}</td>
+                      <td>{she.mccRegisterNo}</td>
+                      <td>{she.studentName}</td>
+                      <td>{she.coursePursuedInMcc}</td>
+                      <td>{she.higherEducationCourse}</td>
+                      <td>{she.university}</td>
+                      <td>{she.location}</td>
+                      <td>{she.courseDuration}</td>
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
                             className="btn btn-sm btn-warning me-2"
-                            onClick={() => handleEdit(bos.staffProfileId)}
+                            onClick={() => handleEdit(she.higherEducationId)}
                           >
                             Edit
                           </button>
                           <button
                             className="btn btn-sm btn-danger"
-                            onClick={() => handleDelete(bos.staffProfileId)}
+                            onClick={() => handleDelete(she.higherEducationId)}
                           >
                             Delete
                           </button>
@@ -742,7 +929,7 @@ const StudentProgression_Higher_Education: React.FC = () => {
                 ) : (
                   <tr>
                     <td colSpan={4} className="text-center">
-                      No BOS data available.
+                      No Student Progression - Higher Education available.
                     </td>
                   </tr>
                 )}

@@ -497,7 +497,7 @@ const Value_Added_Program: React.FC = () => {
       <div className="page-content">
         <Container fluid>
           <Breadcrumb
-            title="Value Added Program"
+            title="Curriculum"
             breadcrumbItem="Value Added Program"
           />
           <Card>

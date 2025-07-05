@@ -716,11 +716,11 @@ body[data-sidebar="greatwhale"] {
 
 // colored sidebar
 .bg-colored {
-  background-color: $primary !important;
+  background-color: maroon !important;
 }
 body[data-sidebar="colored"] {
   .vertical-menu {
-    background-color: $primary;
+    background-color: maroon;
   }
 
   @media (max-width: 991.98px) {
@@ -763,13 +763,13 @@ body[data-sidebar="colored"] {
 
 body[data-sidebar="winter"] {
   .vertical-menu {
-    background-image: linear-gradient(to right, #556ee6, #34c38f);
+    background-image: linear-gradient(to right, #D39D55);
     background-repeat: repeat-x;
   }
 
   @media (max-width: 991.98px) {
     .navbar-brand-box {
-      background-image: linear-gradient(to right, #556ee6, #34c38f);
+      background-image: linear-gradient(to right, #D39D55);
       background-repeat: repeat-x;
     }
   }
@@ -777,14 +777,14 @@ body[data-sidebar="winter"] {
   &.vertical-collpsed {
     .vertical-menu {
       .navbar-brand-box {
-        background-image: linear-gradient(to right, #556ee6, #34c38f);
+        background-image: linear-gradient(to right, #D39D55);
         background-repeat: repeat-x;
       }
       #sidebar-menu {
         > ul {
           > li {
             &:hover > a {
-              background-image: linear-gradient(to right, #556ee6, #34c38f);
+              background-image: linear-gradient(to right, #D39D55);
               background-repeat: repeat-x;
             }
           }
@@ -795,7 +795,7 @@ body[data-sidebar="winter"] {
 
   &[data-sidebar-size="small"] {
     .menu-title {
-      background-image: linear-gradient(to right, #556ee6, #34c38f);
+      background-image: linear-gradient(to right, #D39D55);
     }
   }
 }
@@ -804,13 +804,13 @@ body[data-sidebar="winter"] {
 
 body[data-sidebar="ladylip"] {
   .vertical-menu {
-    background-image: linear-gradient(to right, #556ee6, #f46a6a);
+    background-image: linear-gradient(to right, #3674B5);
     background-repeat: repeat-x;
   }
 
   @media (max-width: 991.98px) {
     .navbar-brand-box {
-      background-image: linear-gradient(to right, #556ee6, #f46a6a);
+      background-image: linear-gradient(to right, #3674B5);
       background-repeat: repeat-x;
     }
   }
@@ -818,14 +818,14 @@ body[data-sidebar="ladylip"] {
   &.vertical-collpsed {
     .vertical-menu {
       .navbar-brand-box {
-        background-image: linear-gradient(to right, #556ee6, #f46a6a);
+        background-image: linear-gradient(to right, #3674B5);
         background-repeat: repeat-x;
       }
       #sidebar-menu {
         > ul {
           > li {
             &:hover > a {
-              background-image: linear-gradient(to right, #556ee6, #f46a6a);
+              background-image: linear-gradient(to right, #3674B5);
               background-repeat: repeat-x;
             }
           }
@@ -835,7 +835,7 @@ body[data-sidebar="ladylip"] {
   }
   &[data-sidebar-size="small"] {
     .menu-title {
-      background-image: linear-gradient(to right, #556ee6, #f46a6a);
+      background-image: linear-gradient(to right, #3674B5);
     }
   }
 }
@@ -844,12 +844,12 @@ body[data-sidebar="ladylip"] {
 
 body[data-sidebar="plumplate"] {
   .vertical-menu {
-    background-image: linear-gradient(to right, #556ee6, #f1b44c);
+    background-image: linear-gradient(to right, #03346E);
     background-repeat: repeat-x;
   }
   @media (max-width: 991.98px) {
     .navbar-brand-box {
-      background-image: linear-gradient(to right, #556ee6, #f1b44c);
+      background-image: linear-gradient(to right, #03346E);
       background-repeat: repeat-x;
     }
   }
@@ -857,14 +857,14 @@ body[data-sidebar="plumplate"] {
   &.vertical-collpsed {
     .vertical-menu {
       .navbar-brand-box {
-        background-image: linear-gradient(to right, #556ee6, #f1b44c);
+        background-image: linear-gradient(to right, #03346E);
         background-repeat: repeat-x;
       }
       #sidebar-menu {
         > ul {
           > li {
             &:hover > a {
-              background-image: linear-gradient(to right, #556ee6, #f1b44c);
+              background-image: linear-gradient(to right, #03346E);
               background-repeat: repeat-x;
             }
           }
@@ -874,7 +874,7 @@ body[data-sidebar="plumplate"] {
   }
   &[data-sidebar-size="small"] {
     .menu-title {
-      background-image: linear-gradient(to right, #556ee6, #f1b44c);
+      background-image: linear-gradient(to right, #03346E);
     }
   }
 }
@@ -883,13 +883,13 @@ body[data-sidebar="plumplate"] {
 
 body[data-sidebar="strongbliss"] {
   .vertical-menu {
-    background-image: linear-gradient(to right, #f46a6a, #f1b44c);
+    background-image: linear-gradient(to right, #301B3F);
     background-repeat: repeat-x;
   }
 
   @media (max-width: 991.98px) {
     .navbar-brand-box {
-      background-image: linear-gradient(to right, #f46a6a, #f1b44c);
+      background-image: linear-gradient(to right, #301B3F);
       background-repeat: repeat-x;
     }
   }
@@ -897,14 +897,14 @@ body[data-sidebar="strongbliss"] {
   &.vertical-collpsed {
     .vertical-menu {
       .navbar-brand-box {
-        background-image: linear-gradient(to right, #f46a6a, #f1b44c);
+        background-image: linear-gradient(to right, #301B3F);
         background-repeat: repeat-x;
       }
       #sidebar-menu {
         > ul {
           > li {
             &:hover > a {
-              background-image: linear-gradient(to right, #f46a6a, #f1b44c);
+              background-image: linear-gradient(to right, #301B3F);
               background-repeat: repeat-x;
             }
           }
@@ -914,7 +914,7 @@ body[data-sidebar="strongbliss"] {
   }
   &[data-sidebar-size="small"] {
     .menu-title {
-      background-image: linear-gradient(to right, #f46a6a, #f1b44c);
+      background-image: linear-gradient(to right, #301B3F);
     }
   }
 }
@@ -922,13 +922,13 @@ body[data-sidebar="strongbliss"] {
 //greatwhale
 body[data-sidebar="greatwhale"] {
   .vertical-menu {
-    background-image: linear-gradient(to right, darken($primary, 15%), #50a5f1);
+    background-image: linear-gradient(to right, #27391C);
     background-repeat: repeat-x;
   }
 
   @media (max-width: 991.98px) {
     .navbar-brand-box {
-      background-image: linear-gradient(to right, #556ee6, #50a5f1);
+      background-image: linear-gradient(to right, #27391C);
       background-repeat: repeat-x;
     }
   }
@@ -938,8 +938,7 @@ body[data-sidebar="greatwhale"] {
       .navbar-brand-box {
         background-image: linear-gradient(
           to right,
-          darken($primary, 15%),
-          #50a5f1
+          #27391C
         );
         background-repeat: repeat-x;
       }
@@ -949,8 +948,7 @@ body[data-sidebar="greatwhale"] {
             &:hover > a {
               background-image: linear-gradient(
                 to right,
-                darken($primary, 15%),
-                #50a5f1
+                #27391C
               );
               background-repeat: repeat-x;
             }
@@ -961,7 +959,7 @@ body[data-sidebar="greatwhale"] {
   }
   &[data-sidebar-size="small"] {
     .menu-title {
-      background-image: linear-gradient(to right, #556ee6, #50a5f1);
+      background-image: linear-gradient(to right, #27391C);
     }
   }
 }
@@ -1064,19 +1062,19 @@ body[data-sidebar-image="img4"] {
   background-color: $primary;
 }
 .gradient-winter {
-  background-image: linear-gradient(to right, #556ee6, #34c38f);
+  background-image: linear-gradient(to right, #D39D55);
   background-repeat: repeat-x;
 }
 .gradient-lady-lip {
-  background-image: linear-gradient(to right, #556ee6, #f46a6a);
+  background-image: linear-gradient(to right, #3674B5);
   background-repeat: repeat-x;
 }
 .gradient-plum-plate {
-  background-image: linear-gradient(to right, #556ee6, #f1b44c);
+  background-image: linear-gradient(to right, #03346E);
 }
 .gradient-strong-bliss {
-  background-image: linear-gradient(to right, #f46a6a, #f1b44c);
+  background-image: linear-gradient(to right, #301B3F);
 }
 .gradient-strong-great-whale {
-  background-image: linear-gradient(to right, darken($primary, 10%), #50a5f1);
+  background-image: linear-gradient(to right, #27391C);
 }

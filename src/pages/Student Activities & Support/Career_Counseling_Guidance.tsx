@@ -35,7 +35,7 @@ const api = new APIClient();
 
 const Career_Counseling_Guidance: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [bosData, setBosData] = useState<any[]>([]);
+  const [ccgData, setCCGData] = useState<any[]>([]);
   const [selectedStream, setSelectedStream] = useState<any>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -43,13 +43,23 @@ const Career_Counseling_Guidance: React.FC = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
-  const [filteredData, setFilteredData] = useState(bosData);
+  const [filteredData, setFilteredData] = useState(ccgData);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
-
+  const [filters, setFilters] = useState({
+    academicYear: "",
+    stream: "",
+    department: "",
+    courses: "",
+    areaOfGuidance: "",
+    date: "",
+    noOfParticipants: "",
+    trainerResource: "",
+    outcomes: "",
+  });
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   // Handle global search
@@ -57,7 +67,26 @@ const Career_Counseling_Guidance: React.FC = () => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
 
-    const filtered = bosData.filter((row) =>
+    const filtered = ccgData.filter((row) =>
+      Object.values(row).some((val) =>
+        String(val || "")
+          .toLowerCase()
+          .includes(value)
+      )
+    );
+    setFilteredData(filtered);
+  };
+
+  // Handle column-specific filters
+  const handleFilterChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    column: string
+  ) => {
+    const value = e.target.value.toLowerCase();
+    const updatedFilters = { ...filters, [column]: value };
+    setFilters(updatedFilters);
+
+    const filtered = ccgData.filter((row) =>
       Object.values(row).some((val) =>
         String(val || "")
           .toLowerCase()
@@ -87,7 +116,7 @@ const Career_Counseling_Guidance: React.FC = () => {
   const fetchCCGData = async () => {
     try {
       const response = await axios.get("/careerCounseling/getAll"); // Replace with your backend API endpoint
-      setBosData(response);
+      setCCGData(response);
       setFilteredData(response);
     } catch (error) {
       console.error("Error fetching BOS data:", error);
@@ -826,8 +855,22 @@ const Career_Counseling_Guidance: React.FC = () => {
             List Career Counseling & Guidance
           </ModalHeader>
           <ModalBody>
-            <Table className="table-hover custom-table">
-              <thead>
+            <div className="mb-3">
+              <Input
+                type="text"
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={handleSearch}
+              />
+            </div>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
@@ -843,8 +886,8 @@ const Career_Counseling_Guidance: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {bosData.length > 0 ? (
-                  bosData.map((bos, index) => (
+                {currentRows.length > 0 ? (
+                  currentRows.map((bos, index) => (
                     <tr key={bos.careerCounselingId}>
                       <td>{index + 1}</td>
                       <td>{bos.academicYear}</td>
