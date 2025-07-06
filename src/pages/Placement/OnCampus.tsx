@@ -2,13 +2,11 @@ import Breadcrumb from "Components/Common/Breadcrumb";
 import AcademicYearDropdown from "Components/DropDowns/AcademicYearDropdown";
 import DegreeDropdown from "Components/DropDowns/DegreeDropdown";
 import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
-import ProgramDropdown from "Components/DropDowns/ProgramDropdown";
 import ProgramTypeDropdown from "Components/DropDowns/ProgramTypeDropdown";
-import SemesterDropdowns from "Components/DropDowns/SemesterDropdowns";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { ToastContainer } from "react-toastify";
 import { useFormik } from "formik";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
     Button,
     Card,
@@ -30,7 +28,6 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { SEMESTER_NO_OPTIONS } from "../../Components/constants/layout";
 import axios from "axios";
-import moment from "moment";
 
 const api = new APIClient();
 
@@ -43,15 +40,18 @@ const OnCampus: React.FC = () => {
     const [deleteId, setDeleteId] = useState<string | null>(null);
     // State variable for managing file upload status
     const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
-    // State variable for managing the modal for listing BOS
+    // State variable for managing the modal for listing On-Campus placement
     const [isModalOpen, setIsModalOpen] = useState(false);
-    // State variable for managing the list of BOS data
-    const [bosData, setBosData] = useState<any[]>([]);
+    // State variable for managing the list of On-Campus placement data
+    const [campusData, setCampusData] = useState<any[]>([]);
     // State variables for managing selected options in dropdowns
     const [selectedStream, setSelectedStream] = useState<any>(null);
     const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
     const [selectedProgramType, setSelectedProgramType] = useState<any>(null);
     const [selectedDegree, setSelectedDegree] = useState<any>(null);
+    // State variable for managing program options in the dropdown
+    // This will be used to populate the program dropdown based on selected program
+    const [programOptions, setProgramOptions] = useState<{ value: string; label: string }[]>([]);
     // State variable for managing search term and pagination
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
@@ -68,7 +68,7 @@ const OnCampus: React.FC = () => {
         yearOfIntroduction: "",
         percentage: "",
     });
-    const [filteredData, setFilteredData] = useState(bosData);
+    const [filteredData, setFilteredData] = useState(campusData);
 
     const fileRef = useRef<HTMLInputElement | null>(null);
 
@@ -77,7 +77,7 @@ const OnCampus: React.FC = () => {
         const value = e.target.value.toLowerCase();
         setSearchTerm(value);
 
-        const filtered = bosData.filter((row) =>
+        const filtered = campusData.filter((row) =>
             Object.values(row).some((val) =>
                 String(val || "")
                     .toLowerCase()
@@ -96,7 +96,7 @@ const OnCampus: React.FC = () => {
         const updatedFilters = { ...filters, [column]: value };
         setFilters(updatedFilters);
 
-        const filtered = bosData.filter((row) =>
+        const filtered = campusData.filter((row) =>
             Object.values(row).some((val) =>
                 String(val || "")
                     .toLowerCase()
@@ -119,26 +119,26 @@ const OnCampus: React.FC = () => {
     // Calculate total pages
     const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
-    // Toggle the modal for listing BOS
+    // Toggle the modal for listing On-Campus placement
     const toggleModal = () => {
         setIsModalOpen(!isModalOpen);
     };
 
-    // Fetch BOS data from the backend
-    const fetchBosData = async () => {
+    // Fetch On-Campus placement data from the backend
+    const fetchOnCampusPlacementData = async () => {
         try {
-            const response = await api.get("/bos/getAllBos", "");
-            setBosData(response);
+            const response = await api.get("/onOffCampusPlacementData/getAllOnOffCampusPlacementData?screenType=on", "");
+            setCampusData(response);
             setFilteredData(response);
         } catch (error) {
-            console.error("Error fetching BOS data:", error);
+            console.error("Error fetching On-Campus placement data:", error);
         }
     };
 
     // Open the modal and fetch data
-    const handleListBosClick = () => {
+    const handleListOnCampusClick = () => {
         toggleModal();
-        fetchBosData();
+        fetchOnCampusPlacementData();
     };
 
     // Map value to label for dropdowns
@@ -152,10 +152,10 @@ const OnCampus: React.FC = () => {
     };
 
     // Handle edit action
-    // Fetch the data for the selected BOS ID and populate the form fields
+    // Fetch the data for the selected On-Campus placement ID and populate the form fields
     const handleEdit = async (id: string) => {
         try {
-            const response = await api.get(`/bos/edit?bosId=${id}`, "");
+            const response = await api.get(`/onOffCampusPlacementData?OnOffCampusPlacementDataId=${id}&screenType=on`, "");
             const academicYearOptions = await api.get("/getAllAcademicYear", "");
             // Filter the response where isCurrent or isCurrentForAdmission is true
             const filteredAcademicYearList = academicYearOptions.filter(
@@ -167,18 +167,9 @@ const OnCampus: React.FC = () => {
                 label: year.display,
             }));
 
-            const semesterNoOptions = SEMESTER_NO_OPTIONS;
-
             // Map API response to Formik values
             const mappedValues = {
                 academicYear: mapValueToLabel(response.academicYear, academicYearList),
-                semesterType: response.semType
-                    ? { value: response.semType, label: response.semType.toUpperCase() }
-                    : null,
-                semesterNo: mapValueToLabel(
-                    String(response.semesterNo),
-                    semesterNoOptions
-                ) as { value: string; label: string } | null,
                 stream: response.streamId
                     ? { value: response.streamId.toString(), label: response.streamName }
                     : null,
@@ -194,24 +185,8 @@ const OnCampus: React.FC = () => {
                         label: response.programTypeName,
                     }
                     : null,
-                degree: response.programId
-                    ? {
-                        value: response.programId.toString(),
-                        label: response.programName,
-                    }
-                    : null,
-                program: response.courses
-                    ? Object.entries(response.courses).map(([key, value]) => ({
-                        value: key,
-                        label: String(value),
-                    }))
-                    : [],
-                revisionPercentage: response.percentage || "",
-                conductedDate: response.yearOfIntroduction
-                    ? response.yearOfIntroduction
-                    : "",
-                otherDepartment: "", // Add default value for otherDepartment
-                file: response.documents?.mom || null,
+
+                otherDepartment: "",
             };
 
             // Update Formik values
@@ -224,18 +199,23 @@ const OnCampus: React.FC = () => {
                         value: String(mappedValues.academicYear.value),
                     }
                     : null,
-                semesterNo: mappedValues.semesterNo
-                    ? {
-                        ...mappedValues.semesterNo,
-                        value: String(mappedValues.semesterNo.value),
-                    }
-                    : null,
+                program: response.programId
+                    ? { value: response.programId.toString(), label: response.programName }
+                    : null
             });
-            setIsEditMode(true); // Set edit mode
-            setEditId(id); // Store the ID of the record being edited
+            // In your handleEdit, after setting Formik values:
+            if (response.file?.file) {
+                validation.setFieldValue("file", response.file.file);
+                setIsFileUploadDisabled(true);
+            } else {
+                validation.setFieldValue("file", null);
+                setIsFileUploadDisabled(false);
+            }
+            setIsEditMode(true);
+            setEditId(id);
             toggleModal();
         } catch (error) {
-            console.error("Error fetching BOS data by ID:", error);
+            console.error("Error fetching On-Campus placement data by ID:", error);
         }
     };
 
@@ -247,18 +227,18 @@ const OnCampus: React.FC = () => {
     };
 
     // Confirm deletion of the record
-    // Call the delete API and refresh the BOS data
+    // Call the delete API and refresh the On-Campus placement data
     const confirmDelete = async (id: string) => {
         if (deleteId) {
             try {
-                const response = await api.delete(`/bos/deleteBos?bosId=${id}`, "");
+                const response = await api.delete(`/onOffCampusPlacementData/deleteOnOffCampusPlacementData?onOffCampusPlacementDataId=${id}`, "");
                 toast.success(
-                    response.message || "Curriculum BOS removed successfully!"
+                    response.message || "On-Campus placement removed successfully!"
                 );
-                fetchBosData();
+                fetchOnCampusPlacementData();
             } catch (error) {
-                toast.error("Failed to remove Curriculum BOS. Please try again.");
-                console.error("Error deleting BOS:", error);
+                toast.error("Failed to remove On-Campus placement. Please try again.");
+                console.error("Error deleting On-Campus placement:", error);
             } finally {
                 setIsDeleteModalOpen(false);
                 setDeleteId(null);
@@ -271,7 +251,7 @@ const OnCampus: React.FC = () => {
         if (fileName) {
             try {
                 // Ensure you set responseType to 'blob' to handle binary data
-                const response = await axios.get(`/bos/download/${fileName}`, {
+                const response = await axios.get(`/onOffCampusPlacementData/download/${fileName}`, {
                     responseType: "blob",
                 });
 
@@ -304,11 +284,11 @@ const OnCampus: React.FC = () => {
 
     // Handle file deletion
     // Clear the file from the form and show success message
-    const handleDeleteFile = async () => {
+    const handleDeleteFile = async (fileName: string) => {
         try {
             // Call the delete API
             const response = await api.delete(
-                `/bos/deleteBosDocument?bosDocumentId=${editId}`,
+                `/onOffCampusPlacementData/deleteOnOffCampusPlacementDataDocument?fileName=${fileName}`,
                 ""
             );
             // Show success message
@@ -316,6 +296,8 @@ const OnCampus: React.FC = () => {
             // Remove the file from the form
             validation.setFieldValue("file", null); // Clear the file from Formik state
             setIsFileUploadDisabled(false); // Enable the file upload button
+            validation.setFieldValue("file", null);
+            setIsFileUploadDisabled(false);
         } catch (error) {
             // Show error message
             toast.error("Failed to delete the file. Please try again.");
@@ -328,30 +310,26 @@ const OnCampus: React.FC = () => {
     const validation = useFormik({
         initialValues: {
             academicYear: null as { value: string; label: string } | null,
-            semesterType: null as { value: string; label: string } | null,
-            semesterNo: null as { value: string; label: string } | null,
             stream: null as { value: string; label: string } | null,
             department: null as { value: string; label: string } | null,
             otherDepartment: "",
             file: null as File | string | null,
             programType: null as { value: string; label: string } | null,
-            degree: null as { value: string; label: string } | null,
-            program: [] as { value: string; label: string }[],
-            revisionPercentage: "",
+            program: null as { value: string; label: string } | null
         },
         validationSchema: Yup.object({
             academicYear: Yup.object<{ value: string; label: string }>()
                 .nullable()
                 .required("Please select academic year"),
-            semesterType: Yup.object<{ value: string; label: string }>()
-                .nullable()
-                .required("Please select a semester type"), // Single object for single-select
-            semesterNo: Yup.object<{ value: string; label: string }>()
-                .nullable()
-                .required("Please select a semester number"),
             stream: Yup.object<{ value: string; label: string }>()
                 .nullable()
                 .required("Please select school"),
+            programType: Yup.object<{ value: string; label: string }>()
+                .nullable()
+                .required("Please select program type"),
+            program: Yup.object<{ value: string; label: string }>()
+                .nullable()
+                .required("Please select programs"),
             department: Yup.object<{ value: string; label: string }>()
                 .nullable()
                 .required("Please select department"),
@@ -386,22 +364,7 @@ const OnCampus: React.FC = () => {
                     }
                     return true;
                 }
-            ),
-            programType: Yup.object<{ value: string; label: string }>()
-                .nullable()
-                .required("Please select program type"),
-            degree: Yup.object<{ value: string; label: string }>()
-                .nullable()
-                .required("Please select degree"),
-            program: Yup.array()
-                .min(1, "Please select at least one program")
-                .required("Please select programs"),
-            revisionPercentage: Yup.number()
-                .typeError("Please enter a valid number")
-                .min(0, "Percentage cannot be less than 0")
-                .max(100, "Percentage cannot be more than 100")
-                .required("Please enter revision percentage"),
-            conductedDate: Yup.date().required("Please select conducted date"),
+            )
         }),
         onSubmit: async (values, { resetForm }) => {
             // Create FormData object
@@ -411,44 +374,40 @@ const OnCampus: React.FC = () => {
             formData.append("academicYear", values.academicYear?.value || "");
             formData.append("departmentId", values.department?.value || "");
             formData.append("programTypeId", values.programType?.value || "");
-            formData.append("percentage", values.revisionPercentage || "");
             formData.append("streamId", values.stream?.value || "");
-            formData.append(
-                "courseIds",
-                values.program.map((option) => option.value).join(",") || ""
-            );
-            formData.append("programId", values.degree?.value || "");
-            formData.append("bosId", editId || "");
+            formData.append("programId", values.program?.value || "");
+            formData.append("id", editId || "");
             formData.append("otherDepartment", values.otherDepartment || "");
+            formData.append("screenType", "on");
 
             if (isEditMode && typeof values.file === "string") {
                 formData.append(
-                    "mom",
+                    "file",
                     new Blob([], { type: "application/pdf" }),
                     "empty.pdf"
                 );
             } else if (isEditMode && values.file === null) {
                 formData.append(
-                    "mom",
+                    "file",
                     new Blob([], { type: "application/pdf" }),
                     "empty.pdf"
                 );
             } else if (values.file) {
-                formData.append("mom", values.file);
+                formData.append("file", values.file);
             }
 
             try {
                 if (isEditMode && editId) {
                     // Call the update API
-                    const response = await api.put(`/bos/updateCurriculumBos`, formData);
+                    const response = await api.put(`/onOffCampusPlacementData`, formData);
                     toast.success(
-                        response.message || "Curriculum BOS updated successfully!"
+                        response.message || "On-Campus placement updated successfully!"
                     );
                 } else {
                     // Call the save API
-                    const response = await api.create("/bos/saveCurriculumBos", formData);
+                    const response = await api.create("/onOffCampusPlacementData", formData);
                     toast.success(
-                        response.message || "Curriculum BOS added successfully!"
+                        response.message || "On-Campus placement added successfully!"
                     );
                 }
                 // Reset the form fields
@@ -458,21 +417,45 @@ const OnCampus: React.FC = () => {
                 }
                 setIsEditMode(false); // Reset edit mode
                 setEditId(null); // Clear the edit ID
-                // display the BOS List
-                handleListBosClick();
+                // display the On-Campus placement List
+                handleListOnCampusClick();
             } catch (error) {
                 // Display error message
-                toast.error("Failed to save Curriculum BOS. Please try again.");
-                console.error("Error creating BOS:", error);
+                toast.error("Failed to save On-Campus placement. Please try again.");
+                console.error("Error creating On-Campus placement:", error);
             }
         },
     });
+
+    // Fetch programs when programType changes
+    useEffect(() => {
+        const fetchPrograms = async () => {
+            if (validation.values.programType && validation.values.programType.value) {
+                try {
+                    const response = await api.get(
+                        `/ProgramsByProgramTypeId?programTypeId=${validation.values.programType.value}`,
+                        ""
+                    );
+                    const options = (response || []).map((item: any) => ({
+                        value: item.id.toString(),
+                        label: item.name,
+                    }));
+                    setProgramOptions(options);
+                } catch (error) {
+                    setProgramOptions([]);
+                }
+            } else {
+                setProgramOptions([]);
+            }
+        };
+        fetchPrograms();
+    }, [validation.values.programType]);
 
     return (
         <React.Fragment>
             <div className="page-content">
                 <Container fluid>
-                <Breadcrumb title="Placement" breadcrumbItem="On Campus Placement Data" />
+                    <Breadcrumb title="Placement" breadcrumbItem="On Campus Placement Data" />
                     <Card>
                         <CardBody>
                             <form onSubmit={validation.handleSubmit}>
@@ -502,7 +485,7 @@ const OnCampus: React.FC = () => {
                                                 )}
                                         </div>
                                     </Col>
-                                 
+
 
                                     {/* Stream Dropdown */}
                                     <Col lg={4}>
@@ -566,9 +549,9 @@ const OnCampus: React.FC = () => {
                                                 <Input
                                                     type="text"
                                                     className={`form-control ${validation.touched.otherDepartment &&
-                                                            validation.errors.otherDepartment
-                                                            ? "is-invalid"
-                                                            : ""
+                                                        validation.errors.otherDepartment
+                                                        ? "is-invalid"
+                                                        : ""
                                                         }`}
                                                     value={validation.values.otherDepartment}
                                                     onChange={(e) =>
@@ -601,7 +584,7 @@ const OnCampus: React.FC = () => {
                                                         selectedOption
                                                     );
                                                     setSelectedProgramType(selectedOption);
-                                                    validation.setFieldValue("degree", null);
+                                                    validation.setFieldValue("program", null);
                                                 }}
                                                 isInvalid={
                                                     validation.touched.programType &&
@@ -619,79 +602,71 @@ const OnCampus: React.FC = () => {
                                     <Col lg={4}>
                                         <div className="mb-3">
                                             <Label>Program</Label>
-                                            <ProgramDropdown
-                                                degreeId={selectedDegree?.value}
-                                                value={validation.values.program}
-                                                onChange={(selectedOptions) =>
-                                                    validation.setFieldValue("program", selectedOptions)
-                                                }
-                                                isInvalid={
-                                                    validation.touched.program &&
-                                                    !!validation.errors.program
-                                                }
-                                            />
-                                            {validation.touched.program &&
-                                                validation.errors.program && (
-                                                    <div className="text-danger">
-                                                        {Array.isArray(validation.errors.program)
-                                                            ? validation.errors.program.join(", ")
-                                                            : validation.errors.program}
-                                                    </div>
-                                                )}
+                                            <Input
+                                                type="select"
+                                                name="program"
+                                                value={validation.values.program?.value || ""}
+                                                onChange={e => {
+                                                    const selected = programOptions.find(opt => opt.value === e.target.value);
+                                                    validation.setFieldValue("program", selected || null);
+                                                }}
+                                                className={validation.touched.program && validation.errors.program ? "is-invalid" : ""}
+                                            >
+                                                <option value="">Select Program</option>
+                                                {programOptions.map(option => (
+                                                    <option key={option.value} value={option.value}>
+                                                        {option.label}
+                                                    </option>
+                                                ))}
+                                            </Input>
+                                            {validation.touched.program && validation.errors.program && (
+                                                <div className="text-danger">
+                                                    {typeof validation.errors.program === "string"
+                                                        ? validation.errors.program
+                                                        : ""}
+                                                </div>
+                                            )}
                                         </div>
                                     </Col>
-                                    
                                     <Col sm={4}>
                                         <div className="mb-3">
                                             <Label htmlFor="formFile" className="form-label">
                                                 Upload Placement Details
                                             </Label>
                                             <Input
-                                                className={`form-control ${validation.touched.file && validation.errors.file
-                                                        ? "is-invalid"
-                                                        : ""
-                                                    }`}
+                                                className={`form-control ${validation.touched.file && validation.errors.file ? "is-invalid" : ""}`}
                                                 type="file"
                                                 id="formFile"
                                                 innerRef={fileRef}
                                                 onChange={(event) => {
                                                     validation.setFieldValue(
                                                         "file",
-                                                        event.currentTarget.files
-                                                            ? event.currentTarget.files[0]
-                                                            : null
+                                                        event.currentTarget.files ? event.currentTarget.files[0] : null
                                                     );
+                                                    validation.setFieldTouched("file", true, true);
                                                 }}
-                                                disabled={isFileUploadDisabled} // Disable the button if a file exists
+                                                disabled={isFileUploadDisabled}
                                             />
                                             {validation.touched.file && validation.errors.file && (
                                                 <div className="text-danger">
                                                     {validation.errors.file}
                                                 </div>
                                             )}
-                                            {/* Show a message if the file upload button is disabled */}
                                             {isFileUploadDisabled && (
                                                 <div className="text-warning mt-2">
                                                     Please remove the existing file to upload a new one.
                                                 </div>
                                             )}
-                                            {/* Only show the file name if it is a string (from the edit API) */}
-                                            {typeof validation.values.file === "string" && (
+                                            {/* Show file name, download, and delete buttons if file is a string */}
+                                            {typeof validation.values.file === "string" && validation.values.file && (
                                                 <div className="mt-2 d-flex align-items-center">
-                                                    <span
-                                                        className="me-2"
-                                                        style={{ fontWeight: "bold", color: "green" }}
-                                                    >
+                                                    <span className="me-2" style={{ fontWeight: "bold", color: "green" }}>
                                                         {validation.values.file}
                                                     </span>
                                                     <Button
                                                         color="link"
                                                         className="text-primary"
-                                                        onClick={() =>
-                                                            handleDownloadFile(
-                                                                validation.values.file as string
-                                                            )
-                                                        }
+                                                        onClick={() => handleDownloadFile(validation.values.file as string)}
                                                         title="Download File"
                                                     >
                                                         <i className="bi bi-download"></i>
@@ -699,7 +674,7 @@ const OnCampus: React.FC = () => {
                                                     <Button
                                                         color="link"
                                                         className="text-danger"
-                                                        onClick={() => handleDeleteFile()}
+                                                        onClick={() => handleDeleteFile(validation.values.file as string)}
                                                         title="Delete File"
                                                     >
                                                         <i className="bi bi-trash"></i>
@@ -732,9 +707,9 @@ const OnCampus: React.FC = () => {
                                             <button
                                                 className="btn btn-secondary"
                                                 type="button"
-                                                onClick={handleListBosClick}
+                                                onClick={handleListOnCampusClick}
                                             >
-                                                List placement details
+                                                List On-Campus placement details
                                             </button>
                                         </div>
                                     </Col>
@@ -743,14 +718,14 @@ const OnCampus: React.FC = () => {
                         </CardBody>
                     </Card>
                 </Container>
-                {/* Modal for Listing BOS */}
+                {/* Modal for Listing On-Campus placement */}
                 <Modal
                     isOpen={isModalOpen}
                     toggle={toggleModal}
                     size="lg"
                     style={{ maxWidth: "100%", width: "auto" }}
                 >
-                    <ModalHeader toggle={toggleModal}>List BOS</ModalHeader>
+                    <ModalHeader toggle={toggleModal}>List On-Campus placement</ModalHeader>
                     <ModalBody>
                         {/* Global Search */}
                         <div className="mb-3">
@@ -811,32 +786,32 @@ const OnCampus: React.FC = () => {
                                             value={filters.program}
                                             onChange={(e) => handleFilterChange(e, "program")}
                                         />
-                                    </th> 
+                                    </th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {currentRows.length > 0 ? (
-                                    currentRows.map((bos, index) => (
-                                        <tr key={bos.bosDataId}>
+                                    currentRows.map((campus, index) => (
+                                        <tr key={campus.id}>
                                             <td>{indexOfFirstRow + index + 1}</td>
-                                            <td>{bos.academicYear}</td>
-                                            <td>{bos.streamName}</td>
-                                            <td>{bos.departmentName}</td>
-                                            <td>{bos.programTypeName}</td>
-                                            <td>{bos.programName}</td>
-                                            
+                                            <td>{campus.academicYear}</td>
+                                            <td>{campus.streamName}</td>
+                                            <td>{campus.departmentName}</td>
+                                            <td>{campus.programTypeName}</td>
+                                            <td>{campus.programName}</td>
+
                                             <td>
                                                 <div className="d-flex justify-content-center gap-2">
                                                     <button
                                                         className="btn btn-sm btn-warning"
-                                                        onClick={() => handleEdit(bos.bosDataId)}
+                                                        onClick={() => handleEdit(campus.id)}
                                                     >
                                                         Edit
                                                     </button>
                                                     <button
                                                         className="btn btn-sm btn-danger"
-                                                        onClick={() => handleDelete(bos.bosDataId)}
+                                                        onClick={() => handleDelete(campus.id)}
                                                     >
                                                         Delete
                                                     </button>
@@ -847,7 +822,7 @@ const OnCampus: React.FC = () => {
                                 ) : (
                                     <tr>
                                         <td colSpan={11} className="text-center">
-                                            No BOS data available.
+                                            No On-Campus Placement data available.
                                         </td>
                                     </tr>
                                 )}
