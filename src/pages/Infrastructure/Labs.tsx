@@ -34,30 +34,21 @@ const Labs: React.FC = () => {
     const [deleteId, setDeleteId] = useState<string | null>(null);
     // State variable for managing file upload status
     const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
-    // State variable for managing the modal for listing Off-Campus placement
+    // State variable for managing the modal for listing Labs Data
     const [isModalOpen, setIsModalOpen] = useState(false);
-    // State variable for managing the list of Off-Campus placement data
-    const [campusData, setCampusData] = useState<any[]>([]);
-    // State variable for managing program options in the dropdown
-    // This will be used to populate the program dropdown based Off selected program
-    const [programOptions, setProgramOptions] = useState<{ value: string; label: string }[]>([]);
+    // State variable for managing the list of Labs Data data
+    const [labData, setLabData] = useState<any[]>([]);
+
     // State variable for managing search term and pagination
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const rowsPerPage = 10;
     // State variable for managing filters
     const [filters, setFilters] = useState({
-        academicYear: "",
-        semesterType: "",
-        semesterNo: "",
-        stream: "",
-        department: "",
-        programType: "",
-        program: "",
-        yearOfIntroduction: "",
-        percentage: "",
+        blockName: "",
+        noOfLabs: ""
     });
-    const [filteredData, setFilteredData] = useState(campusData);
+    const [filteredData, setFilteredData] = useState(labData);
 
     const fileRef = useRef<HTMLInputElement | null>(null);
 
@@ -66,7 +57,7 @@ const Labs: React.FC = () => {
         const value = e.target.value.toLowerCase();
         setSearchTerm(value);
 
-        const filtered = campusData.filter((row) =>
+        const filtered = labData.filter((row) =>
             Object.values(row).some((val) =>
                 String(val || "")
                     .toLowerCase()
@@ -85,7 +76,7 @@ const Labs: React.FC = () => {
         const updatedFilters = { ...filters, [column]: value };
         setFilters(updatedFilters);
 
-        const filtered = campusData.filter((row) =>
+        const filtered = labData.filter((row) =>
             Object.values(row).some((val) =>
                 String(val || "")
                     .toLowerCase()
@@ -108,95 +99,47 @@ const Labs: React.FC = () => {
     // Calculate total pages
     const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
-    // Toggle the modal for listing Off-Campus placement
+    // Toggle the modal for listing Labs Data
     const toggleModal = () => {
         setIsModalOpen(!isModalOpen);
     };
 
-    // Fetch Off-Campus placement data from the backend
-    const fetchOnCampusPlacementData = async () => {
+    // Fetch Labs Data data from the backend
+    const fetchLabsData = async () => {
         try {
-            const response = await api.get("/onOffCampusPlacementData/getAllOnOffCampusPlacementData?screenType=off", "");
-            setCampusData(response);
+            const response = await api.get("/labs/getAllLabs", "");
+            setLabData(response);
             setFilteredData(response);
         } catch (error) {
-            console.error("Error fetching Off-Campus placement data:", error);
+            console.error("Error fetching Labs Data data:", error);
         }
     };
 
     // Open the modal and fetch data
-    const handleListOnCampusClick = () => {
+    const handleListLabClick = () => {
         toggleModal();
-        fetchOnCampusPlacementData();
-    };
-
-    // Map value to label for dropdowns
-    const mapValueToLabel = (
-        value: string | number | null,
-        options: { value: string | number; label: string }[]
-    ): { value: string | number; label: string } | null => {
-        if (!value) return null;
-        const matchedOption = options.find((option) => option.value === value);
-        return matchedOption ? matchedOption : { value, label: String(value) };
+        fetchLabsData();
     };
 
     // Handle edit action
-    // Fetch the data for the selected Off-Campus placement ID and populate the form fields
+    // Fetch the data for the selected Labs Data ID and populate the form fields
     const handleEdit = async (id: string) => {
         try {
-            const response = await api.get(`/onOffCampusPlacementData?OnOffCampusPlacementDataId=${id}&screenType=off`, "");
-            const academicYearOptions = await api.get("/getAllAcademicYear", "");
-            // Filter the response where isCurrent or isCurrentForAdmission is true
-            const filteredAcademicYearList = academicYearOptions.filter(
-                (year: any) => year.isCurrent || year.isCurrentForAdmission
-            );
-            // Map the filtered data to the required format
-            const academicYearList = filteredAcademicYearList.map((year: any) => ({
-                value: year.year,
-                label: year.display,
-            }));
-
+            const response = await api.get(`/labs?labsId=${id}`, "");
             // Map API response to Formik values
             const mappedValues = {
-                academicYear: mapValueToLabel(response.academicYear, academicYearList),
-                stream: response.streamId
-                    ? { value: response.streamId.toString(), label: response.streamName }
-                    : null,
-                department: response.departmentId
-                    ? {
-                        value: response.departmentId.toString(),
-                        label: response.departmentName,
-                    }
-                    : null,
-                programType: response.programTypeId
-                    ? {
-                        value: response.programTypeId.toString(),
-                        label: response.programTypeName,
-                    }
-                    : null,
-                otherDepartment: "",
-                blockName: response.blockName || "", // Ensure blockName is included
+                blockName: response.blockName || "",
+                noOfLabs: response.noOfLabs || "",
+                file: response.file?.Labs || null
             };
 
             // Update Formik values
             validation.setValues({
-                ...mappedValues,
-                file: response.documents?.mom || null,
-                academicYear: mappedValues.academicYear
-                    ? {
-                        ...mappedValues.academicYear,
-                        value: String(mappedValues.academicYear.value),
-                    }
-                    : null,
-                program: response.programId
-                    ? { value: response.programId.toString(), label: response.programName }
-                    : null,
-                noOfClassrooms: response.noOfClassrooms || "",
-                noOfSmartboards: response.noOfSmartboards || ""
+                ...mappedValues
             });
             // In your handleEdit, after setting Formik values:
-            if (response.file?.file) {
-                validation.setFieldValue("file", response.file.file);
+            if (response.file?.Labs) {
+                validation.setFieldValue("file", response.file.Labs);
                 setIsFileUploadDisabled(true);
             } else {
                 validation.setFieldValue("file", null);
@@ -206,7 +149,7 @@ const Labs: React.FC = () => {
             setEditId(id);
             toggleModal();
         } catch (error) {
-            console.error("Error fetching Off-Campus placement data by ID:", error);
+            console.error("Error fetching Labs Data data by ID:", error);
         }
     };
 
@@ -218,18 +161,18 @@ const Labs: React.FC = () => {
     };
 
     // Confirm deletion of the record
-    // Call the delete API and refresh the Off-Campus placement data
+    // Call the delete API and refresh the Labs Data data
     const confirmDelete = async (id: string) => {
         if (deleteId) {
             try {
-                const response = await api.delete(`/onOffCampusPlacementData/deleteOnOffCampusPlacementData?onOffCampusPlacementDataId=${id}`, "");
+                const response = await api.delete(`/labs/deleteLabs?labsId=${id}`, "");
                 toast.success(
-                    response.message || "Off-Campus placement removed successfully!"
+                    response.message || "Labs Data removed successfully!"
                 );
-                fetchOnCampusPlacementData();
+                fetchLabsData();
             } catch (error) {
-                toast.error("Failed to remove Off-Campus placement. Please try again.");
-                console.error("Error deleting Off-Campus placement:", error);
+                toast.error("Failed to remove Labs Data. Please try again.");
+                console.error("Error deleting Labs Data:", error);
             } finally {
                 setIsDeleteModalOpen(false);
                 setDeleteId(null);
@@ -242,7 +185,7 @@ const Labs: React.FC = () => {
         if (fileName) {
             try {
                 // Ensure you set responseType to 'blob' to handle binary data
-                const response = await axios.get(`/onOffCampusPlacementData/download/${fileName}`, {
+                const response = await axios.get(`/labs/download/${fileName}`, {
                     responseType: "blob",
                 });
 
@@ -279,7 +222,7 @@ const Labs: React.FC = () => {
         try {
             // Call the delete API
             const response = await api.delete(
-                `/onOffCampusPlacementData/deleteOnOffCampusPlacementDataDocument?fileName=${fileName}`,
+                `/labs/deleteLabsDocument?fileName=${fileName}`,
                 ""
             );
             // Show success message
@@ -300,30 +243,13 @@ const Labs: React.FC = () => {
     // Initialize Formik with validation schema and initial values
     const validation = useFormik({
         initialValues: {
-            academicYear: null as { value: string; label: string } | null,
-            stream: null as { value: string; label: string } | null,
-            department: null as { value: string; label: string } | null,
-            otherDepartment: "",
-            file: null as File | string | null,
-            programType: null as { value: string; label: string } | null,
-            program: null as { value: string; label: string } | null,
             blockName: "",
-            noOfClassrooms: "",
-            noOfSmartboards: "",
-            
+            noOfLabs: "",
+            file: null as File | string | null,
         },
         validationSchema: Yup.object({
             blockName: Yup.string().required("Please select block name"),
-            noOfClassrooms: Yup.number().required("Please enter number of classrooms"),
-            noOfSmartboards: Yup.number().required("Please enter number of smartboards"),
-            otherDepartment: Yup.string().when(
-                "department",
-                (department: any, schema) => {
-                    return department?.value === "Others"
-                        ? schema.required("Please specify the department")
-                        : schema;
-                }
-            ),
+            noOfLabs: Yup.number().required("Please enter number of labs"),
             file: Yup.mixed().test(
                 "fileValidation",
                 "Please upload a valid file",
@@ -352,42 +278,42 @@ const Labs: React.FC = () => {
         onSubmit: async (values, { resetForm }) => {
             // Create FormData object
             const formData = new FormData();
-
             // Append fields to FormData
-          
-            formData.append("otherDepartment", values.otherDepartment || "");
-            formData.append("screenType", "off");
-
+            formData.append("id", editId || "");
+            formData.append("blockName", values.blockName);
+            formData.append("noOfLabs", String(values.noOfLabs));
             if (isEditMode && typeof values.file === "string") {
                 formData.append(
-                    "file",
+                    "labs",
                     new Blob([], { type: "application/pdf" }),
                     "empty.pdf"
                 );
             } else if (isEditMode && values.file === null) {
                 formData.append(
-                    "file",
+                    "labs",
                     new Blob([], { type: "application/pdf" }),
                     "empty.pdf"
                 );
             } else if (values.file) {
-                formData.append("file", values.file);
+                formData.append("labs", values.file);
             }
 
             try {
-                if (isEditMode && editId) {
-                    // Call the update API
-                    const response = await api.put(`/onOffCampusPlacementData`, formData);
-                    toast.success(
-                        response.message || "Off-Campus placement updated successfully!"
-                    );
-                } else {
-                    // Call the save API
-                    const response = await api.create("/onOffCampusPlacementData", formData);
-                    toast.success(
-                        response.message || "Classroom details added successfully!"
-                    );
-                }
+                const response = isEditMode && editId
+                    ? await api.put(`/labs`, formData, {
+                        headers: {
+                            'Content-Type': 'multipart/form-data'
+                        }
+                    })
+                    : await api.create(`/labs`, formData, {
+                        headers: {
+                            'Content-Type': 'multipart/form-data'
+                        }
+                    });
+
+                toast.success(
+                    response.message || "Labs Data updated successfully!"
+                );
                 // Reset the form fields
                 resetForm();
                 if (fileRef.current) {
@@ -395,95 +321,70 @@ const Labs: React.FC = () => {
                 }
                 setIsEditMode(false); // Reset edit mode
                 setEditId(null); // Clear the edit ID
-                // display the Off-Campus placement List
-                handleListOnCampusClick();
+                // display the Labs Data List
+                handleListLabClick();
             } catch (error) {
                 // Display error message
-                toast.error("Failed to save Classroom details. Please try again.");
-                console.error("Error creating Classroom details:", error);
+                toast.error("Failed to save Labs details. Please try again.");
+                console.error("Error creating Labs details:", error);
             }
         },
     });
-
-    // Fetch programs when programType changes
-    useEffect(() => {
-        const fetchPrograms = async () => {
-            if (validation.values.programType && validation.values.programType.value) {
-                try {
-                    const response = await api.get(
-                        `/ProgramsByProgramTypeId?programTypeId=${validation.values.programType.value}`,
-                        ""
-                    );
-                    const options = (response || []).map((item: any) => ({
-                        value: item.id.toString(),
-                        label: item.name,
-                    }));
-                    setProgramOptions(options);
-                } catch (error) {
-                    setProgramOptions([]);
-                }
-            } else {
-                setProgramOptions([]);
-            }
-        };
-        fetchPrograms();
-    }, [validation.values.programType]);
 
     return (
         <React.Fragment>
             <div className="page-content">
                 <Container fluid>
-                    <Breadcrumb title="Placement" breadcrumbItem="Labs" />
+                    <Breadcrumb title="Placement" breadcrumbItem="Class Rooms" />
                     <Card>
                         <CardBody>
                             <form onSubmit={validation.handleSubmit}>
                                 <Row>
-                                <Col sm={4}>
-                                    <div className="mb-3">
-                                        <Label htmlFor="blockName" className="form-label">
-                                            Block Name
-                                        </Label>
-                                        <Input
-                                            type="select"
-                                            name="blockName"
-                                            id="blockName"
-                                            value={validation.values.blockName || ""}
-                                            onChange={e => validation.setFieldValue("blockName", e.target.value)}
-                                            className={validation.touched.blockName && validation.errors?.blockName ? "is-invalid" : ""}
-                                        >
-                                            <option value="">Select Block Name</option>
-                                            <option value="DJB">DJB</option>
-                                            <option value="GJB">GJB</option>
-                                            <option value="MTB">MTB</option>
-                                            <option value="LSCB">LSCB</option>
-                                            <option value="MOC">MOC</option>
-                                            <option value="AB">AB</option>
-                                        </Input>
-                                        {validation.touched.blockName && validation.errors?.blockName && (
-                                            <div className="text-danger">{validation.errors.blockName}</div>
-                                        )}
-                                    </div>
-                                </Col> 
-                                <Col sm={4}>
-        <div className="mb-3">
-            <Label htmlFor="noOfClassrooms" className="form-label">
-                No. of Labs
-            </Label>
-            <Input
-                type="number"
-                name="noOfClassrooms"
-                id="noOfClassrooms"
-                value={validation.values.noOfClassrooms || ""}
-                onChange={e => validation.setFieldValue("noOfClassrooms", e.target.value)}
-                placeholder="Enter number of labs"
-                className={validation.touched.noOfClassrooms && validation.errors?.noOfClassrooms ? "is-invalid" : ""}
-            />
-            {validation.touched.noOfClassrooms && validation.errors?.noOfClassrooms && (
-                <div className="text-danger">{validation.errors.noOfClassrooms}</div>
-            )}
-        </div>
-    </Col>
-      
+                                    <Col sm={4}>
+                                        <div className="mb-3">
+                                            <Label htmlFor="blockName" className="form-label">
+                                                Block Name
+                                            </Label>
+                                            <Input
+                                                type="select"
+                                                name="blockName"
+                                                id="blockName"
+                                                value={validation.values.blockName || ""}
+                                                onChange={e => validation.setFieldValue("blockName", e.target.value)}
+                                                className={validation.touched.blockName && validation.errors?.blockName ? "is-invalid" : ""}
+                                            >
+                                                <option value="">Select Block Name</option>
+                                                <option value="DJB">DJB</option>
+                                                <option value="GJB">GJB</option>
+                                                <option value="MTB">MTB</option>
+                                                <option value="LSCB">LSCB</option>
+                                                <option value="MOC">MOC</option>
+                                                <option value="AB">AB</option>
+                                            </Input>
+                                            {validation.touched.blockName && validation.errors?.blockName && (
+                                                <div className="text-danger">{validation.errors.blockName}</div>
+                                            )}
+                                        </div>
+                                    </Col>
+                                    <Col sm={4}>
+                                        <div className="mb-3">
+                                            <Label htmlFor="noOfLabs" className="form-label">
+                                                No. of Labs
+                                            </Label>
+                                            <Input
+                                                type="number"
+                                                name="noOfLabs"
+                                                id="noOfLabs"
+                                                value={validation.values.noOfLabs || ""}
+                                                onChange={e => validation.setFieldValue("noOfLabs", e.target.value)}
+                                                placeholder="Enter number of classrooms"
+                                                className={validation.touched.noOfLabs && validation.errors?.noOfLabs ? "is-invalid" : ""}
+                                            />
+                                            {validation.touched.noOfLabs && validation.errors?.noOfLabs && (
+                                                <div className="text-danger">{validation.errors.noOfLabs}</div>
+                                            )}
+                                        </div>
+                                    </Col>
                                     <Col sm={4}>
                                         <div className="mb-3">
                                             <Label htmlFor="formFile" className="form-label">
@@ -539,7 +440,6 @@ const Labs: React.FC = () => {
                                             )}
                                         </div>
                                     </Col>
-                                    
                                 </Row>
                                 <Row>
                                     <Col lg={12}>
@@ -547,7 +447,13 @@ const Labs: React.FC = () => {
                                             <button className="btn btn-primary" type="submit">
                                                 {isEditMode ? "Update" : "Save"}
                                             </button>
-                                            
+                                            <button
+                                                className="btn btn-secondary"
+                                                type="button"
+                                                onClick={handleListLabClick}
+                                            >
+                                                List Activities
+                                            </button>
                                         </div>
                                     </Col>
                                 </Row>
@@ -555,14 +461,14 @@ const Labs: React.FC = () => {
                         </CardBody>
                     </Card>
                 </Container>
-                {/* Modal for Listing Off-Campus placement */}
+                {/* Modal for Listing Labs Data */}
                 <Modal
                     isOpen={isModalOpen}
                     toggle={toggleModal}
                     size="lg"
                     style={{ maxWidth: "100%", width: "auto" }}
                 >
-                    <ModalHeader toggle={toggleModal}>List Off-Campus placement</ModalHeader>
+                    <ModalHeader toggle={toggleModal}>List Labs data</ModalHeader>
                     <ModalBody>
                         {/* Global Search */}
                         <div className="mb-3">
@@ -580,48 +486,21 @@ const Labs: React.FC = () => {
                                 <tr>
                                     <th>#</th>
                                     <th>
-                                        Academic Year
+                                        Block Name
                                         <Input
                                             type="text"
                                             placeholder="Filter"
-                                            value={filters.academicYear}
-                                            onChange={(e) => handleFilterChange(e, "academicYear")}
+                                            value={filters.blockName}
+                                            onChange={(e) => handleFilterChange(e, "blockName")}
                                         />
                                     </th>
                                     <th>
-                                        Stream
+                                        No. of Labs
                                         <Input
                                             type="text"
                                             placeholder="Filter"
-                                            value={filters.stream}
-                                            onChange={(e) => handleFilterChange(e, "stream")}
-                                        />
-                                    </th>
-                                    <th>
-                                        Department
-                                        <Input
-                                            type="text"
-                                            placeholder="Filter"
-                                            value={filters.department}
-                                            onChange={(e) => handleFilterChange(e, "department")}
-                                        />
-                                    </th>
-                                    <th>
-                                        Program Type
-                                        <Input
-                                            type="text"
-                                            placeholder="Filter"
-                                            value={filters.programType}
-                                            onChange={(e) => handleFilterChange(e, "programType")}
-                                        />
-                                    </th>
-                                    <th>
-                                        Program
-                                        <Input
-                                            type="text"
-                                            placeholder="Filter"
-                                            value={filters.program}
-                                            onChange={(e) => handleFilterChange(e, "program")}
+                                            value={filters.noOfLabs}
+                                            onChange={(e) => handleFilterChange(e, "noOfLabs")}
                                         />
                                     </th>
                                     <th>Actions</th>
@@ -629,26 +508,22 @@ const Labs: React.FC = () => {
                             </thead>
                             <tbody>
                                 {currentRows.length > 0 ? (
-                                    currentRows.map((campus, index) => (
-                                        <tr key={campus.id}>
+                                    currentRows.map((lab, index) => (
+                                        <tr key={lab.id}>
                                             <td>{indexOfFirstRow + index + 1}</td>
-                                            <td>{campus.academicYear}</td>
-                                            <td>{campus.streamName}</td>
-                                            <td>{campus.departmentName}</td>
-                                            <td>{campus.programTypeName}</td>
-                                            <td>{campus.programName}</td>
-
+                                            <td>{lab.blockName}</td>
+                                            <td>{lab.noOfLabs}</td>
                                             <td>
                                                 <div className="d-flex justify-content-center gap-2">
                                                     <button
                                                         className="btn btn-sm btn-warning"
-                                                        onClick={() => handleEdit(campus.id)}
+                                                        onClick={() => handleEdit(lab.id)}
                                                     >
                                                         Edit
                                                     </button>
                                                     <button
                                                         className="btn btn-sm btn-danger"
-                                                        onClick={() => handleDelete(campus.id)}
+                                                        onClick={() => handleDelete(lab.id)}
                                                     >
                                                         Delete
                                                     </button>
@@ -659,7 +534,7 @@ const Labs: React.FC = () => {
                                 ) : (
                                     <tr>
                                         <td colSpan={11} className="text-center">
-                                            No Off-Campus Placement data available.
+                                            No Labs related data available.
                                         </td>
                                     </tr>
                                 )}

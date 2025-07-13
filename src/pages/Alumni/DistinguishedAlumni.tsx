@@ -1,14 +1,10 @@
 import Breadcrumb from "Components/Common/Breadcrumb";
 import AcademicYearDropdown from "Components/DropDowns/AcademicYearDropdown";
-import DegreeDropdown from "Components/DropDowns/DegreeDropdown";
 import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
-import ProgramDropdown from "Components/DropDowns/ProgramDropdown";
-import ProgramTypeDropdown from "Components/DropDowns/ProgramTypeDropdown";
-import SemesterDropdowns from "Components/DropDowns/SemesterDropdowns";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { ToastContainer } from "react-toastify";
 import { useFormik } from "formik";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -30,7 +26,6 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { SEMESTER_NO_OPTIONS } from "../../Components/constants/layout";
 import axios from "axios";
-import moment from "moment";
 
 const api = new APIClient();
 
@@ -43,10 +38,10 @@ const DistinguishedAlumni: React.FC = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   // State variable for managing file upload status
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
-  // State variable for managing the modal for listing BOS
+  // State variable for managing the modal for listing Alumini
   const [isModalOpen, setIsModalOpen] = useState(false);
-  // State variable for managing the list of BOS data
-  const [bosData, setBosData] = useState<any[]>([]);
+  // State variable for managing the list of Alumini data
+  const [bosData, setAluminiData] = useState<any[]>([]);
   // State variables for managing selected options in dropdowns
   const [selectedStream, setSelectedStream] = useState<any>(null);
   const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
@@ -59,19 +54,39 @@ const DistinguishedAlumni: React.FC = () => {
   // State variable for managing filters
   const [filters, setFilters] = useState({
     academicYear: "",
-    name:"",
+    name: "",
     registerNumber: "",
     batch: "",
     stream: "",
     department: "",
     programType: "",
     program: "",
-    yearOfIntroduction: "",
-    percentage: "",
+    jobRole: ""
   });
   const [filteredData, setFilteredData] = useState(bosData);
 
   const fileRef = useRef<HTMLInputElement | null>(null);
+
+  const [programOptions, setProgramOptions] = useState<{ value: string; label: string }[]>([]);
+
+  useEffect(() => {
+    const fetchPrograms = async () => {
+      try {
+        const response = await api.get("/getAllProgram", "");
+        // Map API response to dropdown options
+        const options = response
+          .filter((p: any) => p.isOpen) // Only open programs
+          .map((p: any) => ({
+            value: String(p.id),
+            label: `${p.code} - ${p.name}`,
+          }));
+        setProgramOptions(options);
+      } catch (error) {
+        console.error("Error fetching programs:", error);
+      }
+    };
+    fetchPrograms();
+  }, []);
 
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -120,26 +135,26 @@ const DistinguishedAlumni: React.FC = () => {
   // Calculate total pages
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
-  // Toggle the modal for listing BOS
+  // Toggle the modal for listing Alumini
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };
 
-  // Fetch BOS data from the backend
-  const fetchBosData = async () => {
+  // Fetch Alumini data from the backend
+  const fetchAluminiData = async () => {
     try {
-      const response = await api.get("/bos/getAllBos", "");
-      setBosData(response);
+      const response = await api.get("/distinguishAlumniOfTheLastFiveYears/getAllDistinguishAlumniOfTheLastFiveYears", "");
+      setAluminiData(response);
       setFilteredData(response);
     } catch (error) {
-      console.error("Error fetching BOS data:", error);
+      console.error("Error fetching Alumini data:", error);
     }
   };
 
   // Open the modal and fetch data
-  const handleListBosClick = () => {
+  const handleListAluminiClick = () => {
     toggleModal();
-    fetchBosData();
+    fetchAluminiData();
   };
 
   // Map value to label for dropdowns
@@ -153,10 +168,10 @@ const DistinguishedAlumni: React.FC = () => {
   };
 
   // Handle edit action
-  // Fetch the data for the selected BOS ID and populate the form fields
+  // Fetch the data for the selected Alumini ID and populate the form fields
   const handleEdit = async (id: string) => {
     try {
-      const response = await api.get(`/bos/edit?bosId=${id}`, "");
+      const response = await api.get(`/distinguishAlumniOfTheLastFiveYears?distinguishAlumniOfTheLastFiveYearsId=${id}`, "");
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
       // Filter the response where isCurrent or isCurrentForAdmission is true
       const filteredAcademicYearList = academicYearOptions.filter(
@@ -168,79 +183,65 @@ const DistinguishedAlumni: React.FC = () => {
         label: year.display,
       }));
 
-      const semesterNoOptions = SEMESTER_NO_OPTIONS;
-
       // Map API response to Formik values
       const mappedValues = {
         academicYear: mapValueToLabel(response.academicYear, academicYearList),
-        semesterType: response.semType
-          ? { value: response.semType, label: response.semType.toUpperCase() }
-          : null,
-        semesterNo: mapValueToLabel(
-          String(response.semesterNo),
-          semesterNoOptions
-        ) as { value: string; label: string } | null,
         stream: response.streamId
           ? { value: response.streamId.toString(), label: response.streamName }
           : null,
         department: response.departmentId
           ? {
-              value: response.departmentId.toString(),
-              label: response.departmentName,
-            }
+            value: response.departmentId.toString(),
+            label: response.departmentName,
+          }
           : null,
-        programType: response.programTypeId
+        program: response.programId
           ? {
-              value: response.programTypeId.toString(),
-              label: response.programTypeName,
-            }
+            value: response.programId.toString(),
+            label: response.programName,
+          } : null,
+        otherDepartment: "", // default
+        name: response.name || "",
+        registerNumber: response.registerNumber || "",
+        batch: response.batchId
+        ? {
+          value: response.batchId.toString(),
+          label: response.batchName,
+        }
+        : null,
+        jobRole: response.jobRole
+          ? { value: response.jobRole, label: response.jobRole }
           : null,
-        degree: response.programId
-          ? {
-              value: response.programId.toString(),
-              label: response.programName,
-            }
-          : null,
-        program: response.courses
-          ? Object.entries(response.courses).map(([key, value]) => ({
-              value: key,
-              label: String(value),
-            }))
-          : [],
-        revisionPercentage: response.percentage || "",
-        conductedDate: response.yearOfIntroduction
-          ? response.yearOfIntroduction
-          : "",
-        otherDepartment: "", // Add default value for otherDepartment
-        file: response.documents?.mom || null,
-        name: response.name || "", // Add default value for name
-        registerNumber: response.registerNumber || "", // Add default value for registerNumber
-        batch: response.batch || "", // Add default value for batch
       };
 
       // Update Formik values
       validation.setValues({
         ...mappedValues,
-        file: response.documents?.mom || null,
         academicYear: mappedValues.academicYear
-          ? {
-              ...mappedValues.academicYear,
-              value: String(mappedValues.academicYear.value),
-            }
+          ? { ...mappedValues.academicYear, value: String(mappedValues.academicYear.value) }
           : null,
-        semesterNo: mappedValues.semesterNo
-          ? {
-              ...mappedValues.semesterNo,
-              value: String(mappedValues.semesterNo.value),
-            }
+        stream: mappedValues.stream
+          ? { ...mappedValues.stream, value: String(mappedValues.stream.value) }
           : null,
-        jobRole: response.jobRole || "", // Ensure jobRole is included with a default value
+        department: mappedValues.department
+          ? { ...mappedValues.department, value: String(mappedValues.department.value) }
+          : null,
+        program: mappedValues.program
+          ? { ...mappedValues.program, value: String(mappedValues.program.value) }
+          : null,
+        batch: mappedValues.batch
+          ? { ...mappedValues.batch, value: String(mappedValues.batch.value) }
+          : null,
+        jobRole: mappedValues.jobRole
+          ? { ...mappedValues.jobRole, value: String(mappedValues.jobRole.value) }
+          : null,
       });
+
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();
     } catch (error) {
-      console.error("Error fetching BOS data by ID:", error);
+      console.error("Error fetching Alumini data by ID:", error);
     }
   };
 
@@ -252,79 +253,22 @@ const DistinguishedAlumni: React.FC = () => {
   };
 
   // Confirm deletion of the record
-  // Call the delete API and refresh the BOS data
+  // Call the delete API and refresh the Alumini data
   const confirmDelete = async (id: string) => {
     if (deleteId) {
       try {
-        const response = await api.delete(`/bos/deleteBos?bosId=${id}`, "");
+        const response = await api.delete(`/distinguishAlumniOfTheLastFiveYears/deleteDistinguishAlumniOfTheLastFiveYears?distinguishAlumniOfTheLastFiveYearsId=${id}`, "");
         toast.success(
-          response.message || "Curriculum BOS removed successfully!"
+          response.message || "Curriculum Alumini removed successfully!"
         );
-        fetchBosData();
+        fetchAluminiData();
       } catch (error) {
-        toast.error("Failed to remove Curriculum BOS. Please try again.");
-        console.error("Error deleting BOS:", error);
+        toast.error("Failed to remove Curriculum Alumini. Please try again.");
+        console.error("Error deleting Alumini:", error);
       } finally {
         setIsDeleteModalOpen(false);
         setDeleteId(null);
       }
-    }
-  };
-
-  // Handle file download actions
-  const handleDownloadFile = async (fileName: string) => {
-    if (fileName) {
-      try {
-        // Ensure you set responseType to 'blob' to handle binary data
-        const response = await axios.get(`/bos/download/${fileName}`, {
-          responseType: "blob",
-        });
-
-        // Create a Blob from the response data
-        const blob = new Blob([response], { type: "*/*" });
-
-        // Create a URL for the Blob
-        const url = window.URL.createObjectURL(blob);
-
-        // Create a temporary anchor element to trigger the download
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = fileName; // Set the file name for the download
-        document.body.appendChild(link);
-        link.click();
-
-        // Clean up the URL and remove the anchor element
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-
-        toast.success("File downloaded successfully!");
-      } catch (error) {
-        toast.error("Failed to download MOM file. Please try again.");
-        console.error("Error downloading file:", error);
-      }
-    } else {
-      toast.error("No file available for download.");
-    }
-  };
-
-  // Handle file deletion
-  // Clear the file from the form and show success message
-  const handleDeleteFile = async () => {
-    try {
-      // Call the delete API
-      const response = await api.delete(
-        `/bos/deleteBosDocument?bosDocumentId=${editId}`,
-        ""
-      );
-      // Show success message
-      toast.success(response.message || "File deleted successfully!");
-      // Remove the file from the form
-      validation.setFieldValue("file", null); // Clear the file from Formik state
-      setIsFileUploadDisabled(false); // Enable the file upload button
-    } catch (error) {
-      // Show error message
-      toast.error("Failed to delete the file. Please try again.");
-      console.error("Error deleting file:", error);
     }
   };
 
@@ -333,17 +277,10 @@ const DistinguishedAlumni: React.FC = () => {
   const validation = useFormik({
     initialValues: {
       academicYear: null as { value: string; label: string } | null,
-      semesterType: null as { value: string; label: string } | null,
-      semesterNo: null as { value: string; label: string } | null,
       stream: null as { value: string; label: string } | null,
       department: null as { value: string; label: string } | null,
       otherDepartment: "",
-      file: null as File | string | null,
-      programType: null as { value: string; label: string } | null,
-      degree: null as { value: string; label: string } | null,
-      program: [] as { value: string; label: string }[],
-      revisionPercentage: "",
-      conductedDate: "",
+      program: null as { value: string; label: string } | null,
       name: "",
       registerNumber: "",
       batch: null as { value: string; label: string } | null,
@@ -353,12 +290,6 @@ const DistinguishedAlumni: React.FC = () => {
       academicYear: Yup.object<{ value: string; label: string }>()
         .nullable()
         .required("Please select academic year"),
-      semesterType: Yup.object<{ value: string; label: string }>()
-        .nullable()
-        .required("Please select a semester type"), // Single object for single-select
-      semesterNo: Yup.object<{ value: string; label: string }>()
-        .nullable()
-        .required("Please select a semester number"),
       stream: Yup.object<{ value: string; label: string }>()
         .nullable()
         .required("Please select school"),
@@ -373,53 +304,17 @@ const DistinguishedAlumni: React.FC = () => {
             : schema;
         }
       ),
-      jobRole:Yup.object<{ value: string; label: string }>()
-      .nullable()
-      .required("Please select job role"),
+      jobRole: Yup.object<{ value: string; label: string }>()
+        .nullable()
+        .required("Please select job role"),
       name: Yup.string().required("Please enter name"),
       registerNumber: Yup.string().required("Please enter register number"),
       batch: Yup.object<{ value: string; label: string }>()
-      .nullable()
-      .required("Please select batch"),
-      file: Yup.mixed().test(
-        "fileValidation",
-        "Please upload a valid file",
-        function (value) {
-          // Skip validation if the file upload is disabled (file exists)
-          if (isFileUploadDisabled) {
-            return true;
-          }
-          // Perform validation if the file upload is enabled (file doesn't exist)
-          if (!value) {
-            return this.createError({ message: "Please upload a file" });
-          }
-          // Check file size (2MB limit)
-          if (value instanceof File && value.size > 2 * 1024 * 1024) {
-            return this.createError({ message: "File size is too large" });
-          }
-          // Check file type
-          const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
-          if (value instanceof File && !allowedTypes.includes(value.type)) {
-            return this.createError({ message: "Unsupported file format" });
-          }
-          return true;
-        }
-      ),
-      programType: Yup.object<{ value: string; label: string }>()
         .nullable()
-        .required("Please select program type"),
-      degree: Yup.object<{ value: string; label: string }>()
+        .required("Please select batch"),
+      program: Yup.object<{ value: string; label: string }>()
         .nullable()
-        .required("Please select degree"),
-      program: Yup.array()
-        .min(1, "Please select at least one program")
-        .required("Please select programs"),
-      revisionPercentage: Yup.number()
-        .typeError("Please enter a valid number")
-        .min(0, "Percentage cannot be less than 0")
-        .max(100, "Percentage cannot be more than 100")
-        .required("Please enter revision percentage"),
-      conductedDate: Yup.date().required("Please select conducted date"),
+        .required("Please select program"),
     }),
     onSubmit: async (values, { resetForm }) => {
       // Create FormData object
@@ -428,50 +323,33 @@ const DistinguishedAlumni: React.FC = () => {
       // Append fields to FormData
       formData.append("academicYear", values.academicYear?.value || "");
       formData.append("departmentId", values.department?.value || "");
-      formData.append("yearOfIntroduction", values.conductedDate || "");
-      formData.append("semType", values.semesterType?.value || "");
-      formData.append("semesterNo", String(values.semesterNo?.value || ""));
-      formData.append("programTypeId", values.programType?.value || "");
-      formData.append("percentage", values.revisionPercentage || "");
       formData.append("streamId", values.stream?.value || "");
-      formData.append(
-        "courseIds",
-        values.program.map((option) => option.value).join(",") || ""
-      );
-      formData.append("programId", values.degree?.value || "");
-      formData.append("bosId", editId || "");
-      formData.append("otherDepartment", values.otherDepartment || "");
-
-      if (isEditMode && typeof values.file === "string") {
-        formData.append(
-          "mom",
-          new Blob([], { type: "application/pdf" }),
-          "empty.pdf"
-        );
-      } else if (isEditMode && values.file === null) {
-        formData.append(
-          "mom",
-          new Blob([], { type: "application/pdf" }),
-          "empty.pdf"
-        );
-      } else if (values.file) {
-        formData.append("mom", values.file);
-      }
+      formData.append("id", editId || "");
+      formData.append("name", values.name || "");
+      formData.append("registerNumber", values.registerNumber || "");
+      formData.append("batchId", values.batch?.value || "");
+      formData.append("jobRole", values.jobRole?.value || "");
+      formData.append("programId", values.program?.value || "");
 
       try {
-        if (isEditMode && editId) {
-          // Call the update API
-          const response = await api.put(`/bos/updateCurriculumBos`, formData);
+        const response = isEditMode && editId
+          ? await api.put(`/distinguishAlumniOfTheLastFiveYears`, formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          })
+          : await api.create(`/distinguishAlumniOfTheLastFiveYears`, formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          });
+
           toast.success(
-            response.message || "Curriculum BOS updated successfully!"
+            response.message || "Curriculum Alumini updated successfully!"
           );
-        } else {
-          // Call the save API
-          const response = await api.create("/bos/saveCurriculumBos", formData);
-          toast.success(
-            response.message || "Curriculum BOS added successfully!"
-          );
-        }
+        // Refresh the page data to show the uploaded file
+        fetchAluminiData();
+
         // Reset the form fields
         resetForm();
         if (fileRef.current) {
@@ -479,12 +357,12 @@ const DistinguishedAlumni: React.FC = () => {
         }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
-        // display the BOS List
-        handleListBosClick();
+        // display the Alumini List
+        handleListAluminiClick();
       } catch (error) {
         // Display error message
-        toast.error("Failed to save Curriculum BOS. Please try again.");
-        console.error("Error creating BOS:", error);
+        toast.error("Failed to save Curriculum Alumini. Please try again.");
+        console.error("Error creating Alumini:", error);
       }
     },
   });
@@ -493,7 +371,7 @@ const DistinguishedAlumni: React.FC = () => {
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <Breadcrumb title="Curricuum" breadcrumbItem="BOS" />
+          <Breadcrumb title="Curricuum" breadcrumbItem="Alumini" />
           <Card>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
@@ -523,62 +401,67 @@ const DistinguishedAlumni: React.FC = () => {
                         )}
                     </div>
                   </Col>
-                <Col lg={4}>
-                <div className="mb-3">
-                    <Label>Name</Label>
-                    <Input
-                    type="text"
-                    name="name"
-                    value={validation.values.name || ""}
-                    onChange={e => validation.setFieldValue("name", e.target.value)}
-                    placeholder="Enter Name"
-                    className={validation.touched.name && validation.errors.name ? "is-invalid" : ""}
-                    />
-                    {validation.touched.name && validation.errors.name && (
-                    <div className="text-danger">{validation.errors.name}</div>
-                    )}
-                </div>
-                </Col>
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Name</Label>
+                      <Input
+                        type="text"
+                        name="name"
+                        value={validation.values.name || ""}
+                        onChange={e => validation.setFieldValue("name", e.target.value)}
+                        placeholder="Enter Name"
+                        className={validation.touched.name && validation.errors.name ? "is-invalid" : ""}
+                      />
+                      {validation.touched.name && validation.errors.name && (
+                        <div className="text-danger">{validation.errors.name}</div>
+                      )}
+                    </div>
+                  </Col>
 
-                <Col lg={4}>
-                <div className="mb-3">
-                    <Label>Register Number</Label>
-                    <Input
-                    type="text"
-                    name="registerNumber"
-                    value={validation.values.registerNumber || ""}
-                    onChange={e => validation.setFieldValue("registerNumber", e.target.value)}
-                    placeholder="Enter Register Number"
-                    className={validation.touched.registerNumber && validation.errors.registerNumber ? "is-invalid" : ""}
-                    />
-                    {validation.touched.registerNumber && validation.errors.registerNumber && (
-                    <div className="text-danger">{validation.errors.registerNumber}</div>
-                    )}
-                </div>
-                </Col>
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Register Number</Label>
+                      <Input
+                        type="text"
+                        name="registerNumber"
+                        value={validation.values.registerNumber || ""}
+                        onChange={e => validation.setFieldValue("registerNumber", e.target.value)}
+                        placeholder="Enter Register Number"
+                        className={validation.touched.registerNumber && validation.errors.registerNumber ? "is-invalid" : ""}
+                      />
+                      {validation.touched.registerNumber && validation.errors.registerNumber && (
+                        <div className="text-danger">{validation.errors.registerNumber}</div>
+                      )}
+                    </div>
+                  </Col>
 
-                <Col lg={4}>
-                <div className="mb-3">
-                    <Label>Batch</Label>
-                    <Input
-                    type="select"
-                    name="batch"
-                    value={validation.values.batch?.value || ""}
-                    onChange={e => validation.setFieldValue("batch", e.target.value)}
-                    className={validation.touched.batch && validation.errors.batch ? "is-invalid" : ""}
-                    >
-                    <option value="">Select Batch</option>
-                    {/* Example batch options, replace with your actual batch list if needed */}
-                    <option value="2020-2023">2020-2023</option>
-                    <option value="2021-2024">2021-2024</option>
-                    <option value="2022-2025">2022-2025</option>
-                    </Input>
-                    {validation.touched.batch && validation.errors.batch && (
-                    <div className="text-danger">{validation.errors.batch}</div>
-                    )}
-                </div>
-                </Col>
-              
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Batch</Label>
+                      <Input
+                        type="select"
+                        name="batch"
+                        value={validation.values.batch?.value || ""}
+                        onChange={e => {
+                          const val = e.target.value;
+                          const selected = val
+                            ? { value: val, label: val }
+                            : null;
+                          validation.setFieldValue("batch", selected);
+                        }}
+                        className={validation.touched.batch && validation.errors.batch ? "is-invalid" : ""}
+                      >
+                        <option value="">Select Batch</option>
+                        <option value="2023">b2</option>
+                        <option value="2024">b1</option>
+                        <option value="2025">b0</option>
+                      </Input>
+                      {validation.touched.batch && validation.errors.batch && (
+                        <div className="text-danger">{validation.errors.batch}</div>
+                      )}
+                    </div>
+                  </Col>
+
                   {/* Stream Dropdown */}
                   <Col lg={4}>
                     <div className="mb-3">
@@ -640,12 +523,11 @@ const DistinguishedAlumni: React.FC = () => {
                         <Label>Specify Department</Label>
                         <Input
                           type="text"
-                          className={`form-control ${
-                            validation.touched.otherDepartment &&
+                          className={`form-control ${validation.touched.otherDepartment &&
                             validation.errors.otherDepartment
-                              ? "is-invalid"
-                              : ""
-                          }`}
+                            ? "is-invalid"
+                            : ""
+                            }`}
                           value={validation.values.otherDepartment}
                           onChange={(e) =>
                             validation.setFieldValue(
@@ -668,46 +550,57 @@ const DistinguishedAlumni: React.FC = () => {
                   <Col lg={4}>
                     <div className="mb-3">
                       <Label>Program</Label>
-                      <ProgramDropdown
-                        degreeId={selectedDegree?.value}
-                        value={validation.values.program}
-                        onChange={(selectedOptions) =>
-                          validation.setFieldValue("program", selectedOptions)
-                        }
-                        isInvalid={
-                          validation.touched.program &&
-                          !!validation.errors.program
-                        }
-                      />
-                      {validation.touched.program &&
-                        validation.errors.program && (
-                          <div className="text-danger">
-                            {Array.isArray(validation.errors.program)
-                              ? validation.errors.program.join(", ")
-                              : validation.errors.program}
-                          </div>
-                        )}
+                      <Input
+                        type="select"
+                        name="program"
+                        value={validation.values.program?.value || ""}
+                        onChange={e => {
+                          const selected = programOptions.find(opt => opt.value === e.target.value) || null;
+                          validation.setFieldValue("program", selected);
+                        }}
+                        className={validation.touched.program && validation.errors.program ? "is-invalid" : ""}
+                      >
+                        <option value="">Select Program</option>
+                        {programOptions.map(opt => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </Input>
+                      {validation.touched.program && validation.errors.program && (
+                        <div className="text-danger">
+                          {Array.isArray(validation.errors.program)
+                            ? validation.errors.program.join(", ")
+                            : validation.errors.program}
+                        </div>
+                      )}
                     </div>
                   </Col>
                   <Col lg={4}>
-                <div className="mb-3">
-                    <Label>Job Role</Label>
-                    <Input
-                    type="select"
-                    name="jobRole"
-                    value={validation.values.jobRole?.value || ""}
-                    onChange={e => validation.setFieldValue("jobRole", e.target.value)}
-                    className={validation.touched.jobRole && validation.errors.jobRole ? "is-invalid" : ""}
-                    >
-                    <option value="">Select Job Role</option>
-                    <option value="Higher Education">Higher Education</option>
-                    <option value="Company">Company</option>
-                    </Input>
-                    {validation.touched.jobRole && validation.errors.jobRole && (
-                    <div className="text-danger">{validation.errors.jobRole}</div>
-                    )}
-                </div>
-                </Col>
+                    <div className="mb-3">
+                      <Label>Job Role</Label>
+                      <Input
+                        type="select"
+                        name="jobRole"
+                        value={validation.values.jobRole?.value || ""}
+                        onChange={e => {
+                          const val = e.target.value;
+                          const selected = val
+                            ? { value: val, label: val }
+                            : null;
+                          validation.setFieldValue("jobRole", selected);
+                        }}
+                        className={validation.touched.jobRole && validation.errors.jobRole ? "is-invalid" : ""}
+                      >
+                        <option value="">Select Job Role</option>
+                        <option value="Higher Education">Higher Education</option>
+                        <option value="Company">Company</option>
+                      </Input>
+                      {validation.touched.jobRole && validation.errors.jobRole && (
+                        <div className="text-danger">{validation.errors.jobRole}</div>
+                      )}
+                    </div>
+                  </Col>
                 </Row>
                 <Row>
                   <Col lg={12}>
@@ -718,7 +611,7 @@ const DistinguishedAlumni: React.FC = () => {
                       <button
                         className="btn btn-secondary"
                         type="button"
-                        onClick={handleListBosClick}
+                        onClick={handleListAluminiClick}
                       >
                         List Alumni
                       </button>
@@ -729,14 +622,14 @@ const DistinguishedAlumni: React.FC = () => {
             </CardBody>
           </Card>
         </Container>
-        {/* Modal for Listing BOS */}
+        {/* Modal for Listing Alumini */}
         <Modal
           isOpen={isModalOpen}
           toggle={toggleModal}
           size="lg"
           style={{ maxWidth: "100%", width: "auto" }}
         >
-          <ModalHeader toggle={toggleModal}>List BOS</ModalHeader>
+          <ModalHeader toggle={toggleModal}>List Alumini</ModalHeader>
           <ModalBody>
             {/* Global Search */}
             <div className="mb-3">
@@ -806,7 +699,6 @@ const DistinguishedAlumni: React.FC = () => {
                       onChange={(e) => handleFilterChange(e, "department")}
                     />
                   </th>
-                 
                   <th>
                     Program
                     <Input
@@ -816,33 +708,42 @@ const DistinguishedAlumni: React.FC = () => {
                       onChange={(e) => handleFilterChange(e, "program")}
                     />
                   </th>
-                 
+                  <th>
+                    Job Role
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.jobRole}
+                      onChange={(e) => handleFilterChange(e, "jobRole")}
+                    />
+                  </th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {currentRows.length > 0 ? (
-                  currentRows.map((bos, index) => (
-                    <tr key={bos.bosDataId}>
+                  currentRows.map((alumini, index) => (
+                    <tr key={alumini.bosDataId}>
                       <td>{indexOfFirstRow + index + 1}</td>
-                      <td>{bos.academicYear}</td>
-                      <td>{bos.name}</td>
-                      <td>{bos.registerNumber}</td> 
-                      <td>{bos.batch}</td>
-                      <td>{bos.streamName}</td>
-                      <td>{bos.departmentName}</td>
-                      <td>{bos.programName}</td>
+                      <td>{alumini.academicYear}</td>
+                      <td>{alumini.name}</td>
+                      <td>{alumini.registerNumber}</td>
+                      <td>{alumini.batchName}</td>
+                      <td>{alumini.streamName}</td>
+                      <td>{alumini.departmentName}</td>
+                      <td>{alumini.programName}</td>
+                      <td>{alumini.jobRole}</td>
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
                             className="btn btn-sm btn-warning"
-                            onClick={() => handleEdit(bos.bosDataId)}
+                            onClick={() => handleEdit(alumini.id)}
                           >
                             Edit
                           </button>
                           <button
                             className="btn btn-sm btn-danger"
-                            onClick={() => handleDelete(bos.bosDataId)}
+                            onClick={() => handleDelete(alumini.id)}
                           >
                             Delete
                           </button>
@@ -853,7 +754,7 @@ const DistinguishedAlumni: React.FC = () => {
                 ) : (
                   <tr>
                     <td colSpan={11} className="text-center">
-                      No BOS data available.
+                      No Alumini data available.
                     </td>
                   </tr>
                 )}

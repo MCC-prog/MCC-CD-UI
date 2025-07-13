@@ -21,6 +21,10 @@ const Sidebar = (props: any) => {
                 height: "auto",
                 objectFit: "contain",
                 display: "block",
+                background: "transparent",
+                opacity: 0.95, // slightly more visible
+                mixBlendMode: "screen", // better blending for dark backgrounds
+                filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.3))", // subtle shadow for visibility
               }}
             />
           </span>

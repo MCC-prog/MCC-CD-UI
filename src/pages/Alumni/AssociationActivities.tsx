@@ -1,14 +1,9 @@
 import Breadcrumb from "Components/Common/Breadcrumb";
 import AcademicYearDropdown from "Components/DropDowns/AcademicYearDropdown";
-import DegreeDropdown from "Components/DropDowns/DegreeDropdown";
-import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
-import ProgramDropdown from "Components/DropDowns/ProgramDropdown";
-import ProgramTypeDropdown from "Components/DropDowns/ProgramTypeDropdown";
-import SemesterDropdowns from "Components/DropDowns/SemesterDropdowns";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { ToastContainer } from "react-toastify";
 import { useFormik } from "formik";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -43,10 +38,10 @@ const AssociationActivites: React.FC = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   // State variable for managing file upload status
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
-  // State variable for managing the modal for listing BOS
+  // State variable for managing the modal for listing Association
   const [isModalOpen, setIsModalOpen] = useState(false);
-  // State variable for managing the list of BOS data
-  const [bosData, setBosData] = useState<any[]>([]);
+  // State variable for managing the list of Association data
+  const [bosData, setAssoData] = useState<any[]>([]);
   // State variables for managing selected options in dropdowns
   const [selectedStream, setSelectedStream] = useState<any>(null);
   const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
@@ -59,18 +54,33 @@ const AssociationActivites: React.FC = () => {
   // State variable for managing filters
   const [filters, setFilters] = useState({
     academicYear: "",
-    semesterType: "",
     semester: "",
     stream: "",
-    department: "",
-    programType: "",
     program: "",
-    yearOfIntroduction: "",
-    percentage: "",
+    activityName: "",
+    dateOfActivity: ""
   });
   const [filteredData, setFilteredData] = useState(bosData);
-
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const [programOptions, setProgramOptions] = useState<{ value: string; label: string }[]>([]);
+  useEffect(() => {
+    const fetchPrograms = async () => {
+      try {
+        const response = await api.get("/getAllProgram", "");
+        // Map API response to dropdown options
+        const options = response
+          .filter((p: any) => p.isOpen) // Only open programs
+          .map((p: any) => ({
+            value: String(p.id),
+            label: `${p.code} - ${p.name}`,
+          }));
+        setProgramOptions(options);
+      } catch (error) {
+        console.error("Error fetching programs:", error);
+      }
+    };
+    fetchPrograms();
+  }, []);
 
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -119,26 +129,26 @@ const AssociationActivites: React.FC = () => {
   // Calculate total pages
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
-  // Toggle the modal for listing BOS
+  // Toggle the modal for listing Association
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };
 
-  // Fetch BOS data from the backend
-  const fetchBosData = async () => {
+  // Fetch Association data from the backend
+  const fetchAssociationData = async () => {
     try {
-      const response = await api.get("/bos/getAllBos", "");
-      setBosData(response);
+      const response = await api.get("associationActivitie/getAllAssociationActivitie", "");
+      setAssoData(response);
       setFilteredData(response);
     } catch (error) {
-      console.error("Error fetching BOS data:", error);
+      console.error("Error fetching Association data:", error);
     }
   };
 
   // Open the modal and fetch data
-  const handleListBosClick = () => {
+  const handleListAssoClick = () => {
     toggleModal();
-    fetchBosData();
+    fetchAssociationData();
   };
 
   // Map value to label for dropdowns
@@ -152,10 +162,10 @@ const AssociationActivites: React.FC = () => {
   };
 
   // Handle edit action
-  // Fetch the data for the selected BOS ID and populate the form fields
+  // Fetch the data for the selected Association ID and populate the form fields
   const handleEdit = async (id: string) => {
     try {
-      const response = await api.get(`/bos/edit?bosId=${id}`, "");
+      const response = await api.get(`/associationActivitie?associationActivitieId=${id}`, "");
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
       // Filter the response where isCurrent or isCurrentForAdmission is true
       const filteredAcademicYearList = academicYearOptions.filter(
@@ -172,9 +182,6 @@ const AssociationActivites: React.FC = () => {
       // Map API response to Formik values
       const mappedValues = {
         academicYear: mapValueToLabel(response.academicYear, academicYearList),
-        semesterType: response.semType
-          ? { value: response.semType, label: response.semType.toUpperCase() }
-          : null,
         semester: mapValueToLabel(
           String(response.semester),
           semesterNoOptions
@@ -182,60 +189,34 @@ const AssociationActivites: React.FC = () => {
         stream: response.streamId
           ? { value: response.streamId.toString(), label: response.streamName }
           : null,
-        department: response.departmentId
-          ? {
-              value: response.departmentId.toString(),
-              label: response.departmentName,
-            }
+        program: response.programId
+          ? { value: response.programId.toString(), label: response.programName }
           : null,
-        programType: response.programTypeId
-          ? {
-              value: response.programTypeId.toString(),
-              label: response.programTypeName,
-            }
-          : null,
-        degree: response.programId
-          ? {
-              value: response.programId.toString(),
-              label: response.programName,
-            }
-          : null,
-        program: response.courses
-          ? Object.entries(response.courses).map(([key, value]) => ({
-              value: key,
-              label: String(value),
-            }))
-          : [],
-        revisionPercentage: response.percentage || "",
-        conductedDate: response.yearOfIntroduction
-          ? response.yearOfIntroduction
+        file: response.file?.Activity || null,
+        activityDate: response.activityDate
+          ? moment(response.activityDate, "YYYY-MM-DD").format("DD/MM/YYYY") // Convert to dd/mm/yyyy for the input
           : "",
-        otherDepartment: "", // Add default value for otherDepartment
-        file: response.documents?.mom || null,
+        id: response.id || "",
+        activityName: response.activityName || "",
       };
 
       // Update Formik values
       validation.setValues({
         ...mappedValues,
-        file: response.documents?.mom || null,
         academicYear: mappedValues.academicYear
-          ? {
-              ...mappedValues.academicYear,
-              value: String(mappedValues.academicYear.value),
-            }
+          ? { ...mappedValues.academicYear, value: String(mappedValues.academicYear.value) }
           : null,
-        semester: mappedValues.semester
-          ? {
-              ...mappedValues.semester,
-              value: String(mappedValues.semester.value),
-            }
+        stream: mappedValues.stream
+          ? { ...mappedValues.stream, value: String(mappedValues.stream.value) }
           : null,
+        activityDate: mappedValues.activityDate || "",
+        activityName: response.activityName || ""
       });
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();
     } catch (error) {
-      console.error("Error fetching BOS data by ID:", error);
+      console.error("Error fetching Association data by ID:", error);
     }
   };
 
@@ -247,18 +228,18 @@ const AssociationActivites: React.FC = () => {
   };
 
   // Confirm deletion of the record
-  // Call the delete API and refresh the BOS data
+  // Call the delete API and refresh the Association data
   const confirmDelete = async (id: string) => {
     if (deleteId) {
       try {
-        const response = await api.delete(`/bos/deleteBos?bosId=${id}`, "");
+        const response = await api.delete(`/associationActivitie/deleteAssociationActivitie?associationActivitieId=${id}`, "");
         toast.success(
-          response.message || "Curriculum BOS removed successfully!"
+          response.message || "Association Activity removed successfully!"
         );
-        fetchBosData();
+        fetchAssociationData();
       } catch (error) {
-        toast.error("Failed to remove Curriculum BOS. Please try again.");
-        console.error("Error deleting BOS:", error);
+        toast.error("Failed to remove Association Activity. Please try again.");
+        console.error("Error deleting Association:", error);
       } finally {
         setIsDeleteModalOpen(false);
         setDeleteId(null);
@@ -271,7 +252,7 @@ const AssociationActivites: React.FC = () => {
     if (fileName) {
       try {
         // Ensure you set responseType to 'blob' to handle binary data
-        const response = await axios.get(`/bos/download/${fileName}`, {
+        const response = await axios.get(`/associationActivitie/download/${fileName}`, {
           responseType: "blob",
         });
 
@@ -304,11 +285,11 @@ const AssociationActivites: React.FC = () => {
 
   // Handle file deletion
   // Clear the file from the form and show success message
-  const handleDeleteFile = async () => {
+  const handleDeleteFile = async (fileName: string) => {
     try {
       // Call the delete API
       const response = await api.delete(
-        `/bos/deleteBosDocument?bosDocumentId=${editId}`,
+        `/associationActivitie/deleteAssociationActivitieDocument?fileName=${fileName}`,
         ""
       );
       // Show success message
@@ -328,133 +309,92 @@ const AssociationActivites: React.FC = () => {
   const validation = useFormik({
     initialValues: {
       academicYear: null as { value: string; label: string } | null,
-      semesterType: null as { value: string; label: string } | null,
       semester: null as { value: string; label: string } | null,
       stream: null as { value: string; label: string } | null,
-      department: null as { value: string; label: string } | null,
-      otherDepartment: "",
       file: null as File | string | null,
-      programType: null as { value: string; label: string } | null,
-      degree: null as { value: string; label: string } | null,
-      program: [] as { value: string; label: string }[],
-      revisionPercentage: "",
-      conductedDate: "",
+      program: null as { value: string; label: string } | null,
+      activityName: "",
+      activityDate: "",
     },
     validationSchema: Yup.object({
       academicYear: Yup.object<{ value: string; label: string }>()
         .nullable()
         .required("Please select academic year"),
-      semesterType: Yup.object<{ value: string; label: string }>()
-        .nullable()
-        .required("Please select a semester type"), // Single object for single-select
       semester: Yup.object<{ value: string; label: string }>()
         .nullable()
         .required("Please select a semester number"),
       stream: Yup.object<{ value: string; label: string }>()
         .nullable()
         .required("Please select school"),
-      department: Yup.object<{ value: string; label: string }>()
+      program: Yup.object<{ value: string; label: string }>()
         .nullable()
-        .required("Please select department"),
-      otherDepartment: Yup.string().when(
-        "department",
-        (department: any, schema) => {
-          return department?.value === "Others"
-            ? schema.required("Please specify the department")
-            : schema;
-        }
-      ),
+        .required("Please select program"),
+      activityName: Yup.string().required("Please enter activity name"),
+      activityDate: Yup.string().required("Please select date"),
       file: Yup.mixed().test(
         "fileValidation",
         "Please upload a valid file",
         function (value) {
-          // Skip validation if the file upload is disabled (file exists)
           if (isFileUploadDisabled) {
             return true;
           }
-          // Perform validation if the file upload is enabled (file doesn't exist)
           if (!value) {
             return this.createError({ message: "Please upload a file" });
           }
-          // Check file size (2MB limit)
           if (value instanceof File && value.size > 2 * 1024 * 1024) {
             return this.createError({ message: "File size is too large" });
           }
-          // Check file type
           const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
           if (value instanceof File && !allowedTypes.includes(value.type)) {
             return this.createError({ message: "Unsupported file format" });
           }
           return true;
         }
-      ),
-      programType: Yup.object<{ value: string; label: string }>()
-        .nullable()
-        .required("Please select program type"),
-      degree: Yup.object<{ value: string; label: string }>()
-        .nullable()
-        .required("Please select degree"),
-      program: Yup.array()
-        .min(1, "Please select at least one program")
-        .required("Please select programs"),
-      revisionPercentage: Yup.number()
-        .typeError("Please enter a valid number")
-        .min(0, "Percentage cannot be less than 0")
-        .max(100, "Percentage cannot be more than 100")
-        .required("Please enter revision percentage"),
-      conductedDate: Yup.date().required("Please select date of Activity"),
+      )
     }),
     onSubmit: async (values, { resetForm }) => {
-      // Create FormData object
       const formData = new FormData();
-
-      // Append fields to FormData
       formData.append("academicYear", values.academicYear?.value || "");
-      formData.append("departmentId", values.department?.value || "");
-      formData.append("yearOfIntroduction", values.conductedDate || "");
-      formData.append("semType", values.semesterType?.value || "");
       formData.append("semester", String(values.semester?.value || ""));
-      formData.append("programTypeId", values.programType?.value || "");
-      formData.append("percentage", values.revisionPercentage || "");
       formData.append("streamId", values.stream?.value || "");
-      formData.append(
-        "courseIds",
-        values.program.map((option) => option.value).join(",") || ""
-      );
-      formData.append("programId", values.degree?.value || "");
-      formData.append("bosId", editId || "");
-      formData.append("otherDepartment", values.otherDepartment || "");
-
+      formData.append("programId", values.program?.value || "");
+      formData.append("activityName", values.activityName || "");
+      formData.append("id", editId || "");
+      formData.append("activityDate", values.activityDate || "");
       if (isEditMode && typeof values.file === "string") {
         formData.append(
-          "mom",
+          "activity",
           new Blob([], { type: "application/pdf" }),
           "empty.pdf"
         );
       } else if (isEditMode && values.file === null) {
         formData.append(
-          "mom",
+          "activity",
           new Blob([], { type: "application/pdf" }),
           "empty.pdf"
         );
       } else if (values.file) {
-        formData.append("mom", values.file);
+        formData.append("activity", values.file);
       }
 
       try {
-        if (isEditMode && editId) {
-          // Call the update API
-          const response = await api.put(`/bos/updateCurriculumBos`, formData);
-          toast.success(
-            response.message || "Curriculum BOS updated successfully!"
-          );
-        } else {
-          // Call the save API
-          const response = await api.create("/bos/saveCurriculumBos", formData);
-          toast.success(
-            response.message || "Curriculum BOS added successfully!"
-          );
-        }
+        const response = isEditMode && editId
+          ? await api.put(`/associationActivitie`, formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          })
+          : await api.create(`/associationActivitie`, formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          });
+
+        toast.success(
+          response.message || "Curriculum Alumini updated successfully!"
+        );
+
+        fetchAssociationData();
         // Reset the form fields
         resetForm();
         if (fileRef.current) {
@@ -462,12 +402,12 @@ const AssociationActivites: React.FC = () => {
         }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
-        // display the BOS List
-        handleListBosClick();
+        // display the Association List
+        handleListAssoClick();
       } catch (error) {
         // Display error message
-        toast.error("Failed to save Curriculum BOS. Please try again.");
-        console.error("Error creating BOS:", error);
+        toast.error("Failed to save Association Activity. Please try again.");
+        console.error("Error creating Association:", error);
       }
     },
   });
@@ -506,26 +446,32 @@ const AssociationActivites: React.FC = () => {
                         )}
                     </div>
                   </Col>
-                                                   <Col lg={4}>
-                                   <div className="mb-3">
-                                     <Label>Semester</Label>
-                                     <Input
-                                       type="select"
-                                       name="semester"
-                                       value={validation.values.semester?.value || ""}
-                                       onChange={e => validation.setFieldValue("semester", e.target.value)}
-                                       className={validation.touched.semester && validation.errors.semester ? "is-invalid" : ""}
-                                     >
-                                       <option value="">Select Semester</option>
-                                       {[...Array(8)].map((_, i) => (
-                                         <option key={i + 1} value={i + 1}>{i + 1}</option>
-                                       ))}
-                                     </Input>
-                                     {validation.touched.semester && validation.errors.semester && (
-                                       <div className="text-danger">{validation.errors.semester}</div>
-                                     )}
-                                   </div>
-                                 </Col>
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Semester</Label>
+                      <Input
+                        type="select"
+                        name="semester"
+                        value={validation.values.semester?.value || ""}
+                        onChange={e => {
+                          const val = e.target.value;
+                          const selected = val
+                            ? { value: val, label: `Semester ${val}` }
+                            : null;
+                          validation.setFieldValue("semester", selected);
+                        }}
+                        className={validation.touched.semester && validation.errors.semester ? "is-invalid" : ""}
+                      >
+                        <option value="">Select Semester</option>
+                        {[...Array(8)].map((_, i) => (
+                          <option key={i + 1} value={i + 1}>{i + 1}</option>
+                        ))}
+                      </Input>
+                      {validation.touched.semester && validation.errors.semester && (
+                        <div className="text-danger">{validation.errors.semester}</div>
+                      )}
+                    </div>
+                  </Col>
                   {/* Stream Dropdown */}
                   <Col lg={4}>
                     <div className="mb-3">
@@ -551,32 +497,55 @@ const AssociationActivites: React.FC = () => {
                         )}
                     </div>
                   </Col>
-
-                
                   {/* Program Type Dropdown */}
-                  
                   <Col lg={4}>
                     <div className="mb-3">
                       <Label>Program</Label>
-                      <ProgramDropdown
-                        degreeId={selectedDegree?.value}
-                        value={validation.values.program}
-                        onChange={(selectedOptions) =>
-                          validation.setFieldValue("program", selectedOptions)
-                        }
-                        isInvalid={
-                          validation.touched.program &&
-                          !!validation.errors.program
+                      <Input
+                        type="select"
+                        name="program"
+                        value={validation.values.program?.value || ""}
+                        onChange={e => {
+                          const selected = programOptions.find(opt => opt.value === e.target.value) || null;
+                          validation.setFieldValue("program", selected);
+                        }}
+                        className={validation.touched.program && validation.errors.program ? "is-invalid" : ""}
+                      >
+                        <option value="">Select Program</option>
+                        {programOptions.map(opt => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </Input>
+                      {validation.touched.program && validation.errors.program && (
+                        <div className="text-danger">
+                          {Array.isArray(validation.errors.program)
+                            ? validation.errors.program.join(", ")
+                            : validation.errors.program}
+                        </div>
+                      )}
+                    </div>
+                  </Col>
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Activity Name</Label>
+                      <Input
+                        type="text"
+                        name="activityName"
+                        placeholder="Enter Activity Name"
+                        value={validation.values.activityName}
+                        onChange={validation.handleChange}
+                        onBlur={validation.handleBlur}
+                        className={
+                          validation.touched.activityName && validation.errors.activityName
+                            ? "is-invalid"
+                            : ""
                         }
                       />
-                      {validation.touched.program &&
-                        validation.errors.program && (
-                          <div className="text-danger">
-                            {Array.isArray(validation.errors.program)
-                              ? validation.errors.program.join(", ")
-                              : validation.errors.program}
-                          </div>
-                        )}
+                      {validation.touched.activityName && validation.errors.activityName && (
+                        <div className="text-danger">{validation.errors.activityName}</div>
+                      )}
                     </div>
                   </Col>
                   <Col lg={4}>
@@ -584,18 +553,17 @@ const AssociationActivites: React.FC = () => {
                       <Label>Date of Activity</Label>
                       <Input
                         type="date" // Use native date input
-                        className={`form-control ${
-                          validation.touched.conductedDate &&
-                          validation.errors.conductedDate
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                        className={`form-control ${validation.touched.activityDate &&
+                          validation.errors.activityDate
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         value={
-                          validation.values.conductedDate
+                          validation.values.activityDate
                             ? moment(
-                                validation.values.conductedDate,
-                                "DD/MM/YYYY"
-                              ).format("YYYY-MM-DD") // Convert to yyyy-mm-dd for the input
+                              validation.values.activityDate,
+                              "DD/MM/YYYY"
+                            ).format("YYYY-MM-DD") // Convert to yyyy-mm-dd for the input
                             : ""
                         }
                         onChange={(e) => {
@@ -604,32 +572,30 @@ const AssociationActivites: React.FC = () => {
                             "YYYY-MM-DD"
                           ).format("DD/MM/YYYY"); // Convert to dd/mm/yyyy
                           validation.setFieldValue(
-                            "conductedDate",
+                            "activityDate",
                             formattedDate
                           );
                         }}
                         placeholder="dd/mm/yyyy"
                       />
-                      {validation.touched.conductedDate &&
-                        validation.errors.conductedDate && (
+                      {validation.touched.activityDate &&
+                        validation.errors.activityDate && (
                           <div className="text-danger">
-                            {validation.errors.conductedDate}
+                            {validation.errors.activityDate}
                           </div>
                         )}
                     </div>
                   </Col>
-                 
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
                         Upload Report Activity
                       </Label>
                       <Input
-                        className={`form-control ${
-                          validation.touched.file && validation.errors.file
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                        className={`form-control ${validation.touched.file && validation.errors.file
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         type="file"
                         id="formFile"
                         innerRef={fileRef}
@@ -641,7 +607,7 @@ const AssociationActivites: React.FC = () => {
                               : null
                           );
                         }}
-                        disabled={isFileUploadDisabled} // Disable the button if a file exists
+                        disabled={typeof validation.values.file === "string"} // Disable if file exists (edit mode)
                       />
                       {validation.touched.file && validation.errors.file && (
                         <div className="text-danger">
@@ -649,7 +615,7 @@ const AssociationActivites: React.FC = () => {
                         </div>
                       )}
                       {/* Show a message if the file upload button is disabled */}
-                      {isFileUploadDisabled && (
+                      {typeof validation.values.file === "string" && (
                         <div className="text-warning mt-2">
                           Please remove the existing file to upload a new one.
                         </div>
@@ -678,7 +644,7 @@ const AssociationActivites: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
-                            onClick={() => handleDeleteFile()}
+                            onClick={() => handleDeleteFile(validation.values.file as string)}
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>
@@ -711,7 +677,7 @@ const AssociationActivites: React.FC = () => {
                       <button
                         className="btn btn-secondary"
                         type="button"
-                        onClick={handleListBosClick}
+                        onClick={handleListAssoClick}
                       >
                         List Activities
                       </button>
@@ -722,7 +688,7 @@ const AssociationActivites: React.FC = () => {
             </CardBody>
           </Card>
         </Container>
-        {/* Modal for Listing BOS */}
+        {/* Modal for Listing Association */}
         <Modal
           isOpen={isModalOpen}
           toggle={toggleModal}
@@ -782,29 +748,51 @@ const AssociationActivites: React.FC = () => {
                       onChange={(e) => handleFilterChange(e, "program")}
                     />
                   </th>
+                  <th>
+                    Activity Name
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.activityName}
+                      onChange={(e) => handleFilterChange(e, "activityName")}
+                    />
+                  </th>
+                  <th>
+                    Date of Activity
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.dateOfActivity}
+                      onChange={(e) =>
+                        handleFilterChange(e, "dateOfActivity")
+                      }
+                    />
+                  </th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {currentRows.length > 0 ? (
-                  currentRows.map((bos, index) => (
-                    <tr key={bos.bosDataId}>
+                  currentRows.map((activity, index) => (
+                    <tr key={activity.bosDataId}>
                       <td>{indexOfFirstRow + index + 1}</td>
-                      <td>{bos.academicYear}</td>
-                      <td>{bos.semester}</td>
-                      <td>{bos.streamName}</td>
-                      <td>{bos.programName}</td>
+                      <td>{activity.academicYear}</td>
+                      <td>{activity.semester}</td>
+                      <td>{activity.streamName}</td>
+                      <td>{activity.programName}</td>
+                      <td>{activity.activityName}</td>
+                      <td>{activity.activityDate}</td>
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
                             className="btn btn-sm btn-warning"
-                            onClick={() => handleEdit(bos.bosDataId)}
+                            onClick={() => handleEdit(activity.id)}
                           >
                             Edit
                           </button>
                           <button
                             className="btn btn-sm btn-danger"
-                            onClick={() => handleDelete(bos.bosDataId)}
+                            onClick={() => handleDelete(activity.id)}
                           >
                             Delete
                           </button>
