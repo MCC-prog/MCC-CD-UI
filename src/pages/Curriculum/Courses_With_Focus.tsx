@@ -778,9 +778,6 @@ const Courses_With_Focus: React.FC = () => {
         coursesWithFocusId: isEditMode && editId ? Number(editId) : null,
       };
 
-      console.log(values.fileGId, "File G ID");
-      console.log("CoursesWithFocusRequestDto:", coursesWithFocusRequestDto);
-
       formData.append(
         "coursesWithFocusRequestDto",
         new Blob([JSON.stringify(coursesWithFocusRequestDto)], { type: "application/json" })

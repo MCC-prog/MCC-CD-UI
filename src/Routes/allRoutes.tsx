@@ -69,12 +69,23 @@ import Internships from "pages/Placement/Internships";
 import CareerFair from "pages/Placement/CareerFair";
 import OnCampus from "pages/Placement/OnCampus";
 import TrainingsAndWorkshops from "pages/Placement/TrainingsAndWorkshops";
+import ClassRooms from "pages/Infrastructure/ClassRooms";
+import Labs from "pages/Infrastructure/Labs";
+import ActivitiesPeace from "pages/InstitutionValues/ActivitiesPeace";
+import EquityPrograms from "pages/InstitutionValues/EquityPrograms";
+import ConstitutionalValues from "pages/InstitutionValues/ConstitutionalValues";
+import BestPractices from "pages/InstitutionValues/BestPractices";
+import NationalInternationalDays from "../pages/InstitutionValues/NationalInternationalDays";
+import AssociationActivites from "pages/Alumni/AssociationActivities";
+import Scholarships from "pages/Alumni/Scholarships";
+import FinancialContribution from "pages/Alumni/FinancialContribution";
+import DistinguishedAlumni from "pages/Alumni/DistinguishedAlumni";
 
 
 const authProtectedRoutes = [
   { path: "/dashboard", component: <Dashboard /> },
   { path: "/profile", component: <UserProfile /> },
-  { path: "/Bos_Data", component: <Bos /> },
+  { path: "/Bos_Data", component: <Bos /> }, 
   { path: "/New_Programs_Introduced", component: <New_Programs_Introduced /> },
   { path: "/New_Courses_Introduced", component: <New_Courses_Introduced /> },
   { path: "/Experiential_Learning", component: <Experimental_Learning /> },
@@ -162,8 +173,24 @@ const authProtectedRoutes = [
   { path: "/placement/offCampus", component: <OffCampus /> },
   { path: "/placement/trainingsAndWorkshops", component: <TrainingsAndWorkshops /> },
   { path: "/placement/Internships", component: <Internships /> },
-  { path: "/placement/careerFair", component: <CareerFair/> }
+  { path: "/placement/careerFair", component: <CareerFair/> },
 
+  //_____________Infrastructure_____________//
+  { path: "/infrastructure/classroom", component: <ClassRooms/> },
+  { path: "/infrastructure/labs", component: <Labs/> },
+
+    //_______________Institutional Values_________________//
+    { path: "/institutionalvalues/activitiesPeace", component: <ActivitiesPeace/> },
+    { path: "/institutionalvalues/equityPrograms", component: <EquityPrograms/> },
+    { path: "/institutionalvalues/constitutionValues", component: <ConstitutionalValues/> },
+    { path: "/institutionalvalues/nationalInternationalDays", component: <NationalInternationalDays/> },
+    { path: "/institutionalvalues/bestPractices", component: <BestPractices/> },
+
+    //_________________Alumni___________________________//
+    { path: "/Alumni/associationActivities", component: <AssociationActivites/> },
+    { path: "/Alumni/scholarships", component: <Scholarships/> },
+    { path: "/Alumni/financialContribution", component: <FinancialContribution/> },
+    { path: "/Alumni/distinguishedAlumni", component: <DistinguishedAlumni/> },
 ];
 
 const publicRoutes = [

@@ -613,26 +613,26 @@ const SidebarContent = (props: any) => {
             </li>
 
             <li>
-              <Link to="/#" className="has-arrow">
+              <Link to="/Alumni/associationActivities" className="has-arrow">
                 <i className="bx bx-group"></i>
                 <span>{props.t("ALUMNI")}</span>
               </Link>
               <ul className="sub-menu">
                 <li>
-                  <Link to="/#">{props.t("1. Association Activities")}</Link>
+                  <Link to="/Alumni/associationActivities">{props.t("1. Association Activities")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">
+                  <Link to="/Alumni/scholarships">
                     {props.t("2. Scholarships provided by Alumni Association")}
                   </Link>
                 </li>
                 <li>
-                  <Link to="/#">
+                  <Link to="/Alumni/financialContribution">
                     {props.t("3. Financial Contribution by Alumni")}
                   </Link>
                 </li>
                 <li>
-                  <Link to="/#">
+                  <Link to= "/Alumni/distinguishedAlumni">
                     {props.t("4. Distinguished Alumni of the last five years")}
                   </Link>
                 </li>
@@ -640,54 +640,54 @@ const SidebarContent = (props: any) => {
             </li>
 
             <li>
-              <Link to="/#" className="has-arrow">
+              <Link to="/institutionalvalues/activitiesPeace" className="has-arrow">
                 <i className="bx bx-globe"></i>
                 <span>{props.t("INSTITUTIONAL VALUES")}</span>
               </Link>
               <ul className="sub-menu">
                 <li>
-                  <Link to="/#">
+                  <Link to="/institutionalvalues/activitiesPeace">
                     {props.t(
                       "1. Activities hosted to build universal values of peace, truth & harmony"
                     )}
                   </Link>
                 </li>
                 <li>
-                  <Link to="/#">
+                  <Link to = "/institutionalvalues/equityPrograms">
                     {props.t("2. Gender sensitization & equity programs")}
                   </Link>
                 </li>
                 <li>
-                  <Link to="/#">
+                  <Link to="/institutionalvalues/constitutionValues">
                     {props.t(
                       "3. Programs for imbibing Constitutional Values among students"
                     )}
                   </Link>
                 </li>
                 <li>
-                  <Link to="/#">
+                  <Link to="/institutionalvalues/nationalInternationalDays">
                     {props.t(
                       "4. Commemoration of major National/International Days"
                     )}
                   </Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("5. Best Practices")}</Link>
+                  <Link to="/institutionalvalues/bestPractices">{props.t("5. Best Practices")}</Link>
                 </li>
               </ul>
             </li>
 
             <li>
-              <Link to="/#" className="has-arrow">
+              <Link to="/infrastructure/classroom" className="has-arrow">
                 <i className="bx bx-building-house"></i>
                 <span>{props.t("INFRASTRUCTURE")}</span>
               </Link>
               <ul className="sub-menu">
                 <li>
-                  <Link to="/#">{props.t("1. Classrooms")}</Link>
+                  <Link to="/infrastructure/classroom">{props.t("1. Classrooms")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("2. Labs")}</Link>
+                  <Link to="/infrastructure/labs">{props.t("2. Labs")}</Link>
                 </li>
                 <li>
                   <Link to="/#">

@@ -24,8 +24,6 @@ import {
   TabPane,
   Toast,
 } from "reactstrap";
-import { Link } from "react-router-dom";
-import classNames from "classnames";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
 import ProgramTypeDropdown from "Components/DropDowns/ProgramTypeDropdown";
@@ -36,6 +34,7 @@ import moment from "moment";
 import { toast, ToastContainer } from "react-toastify";
 import { APIClient } from "../../helpers/api_helper";
 import { SEMESTER_NO_OPTIONS } from "Components/constants/layout";
+import axios from "axios";
 
 const api = new APIClient();
 
@@ -61,51 +60,44 @@ const Experiential_Learning: React.FC = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [experientialLearningData, setExperientialLearningData] = useState<
-    any[]
-  >([]);
+  const [experientialLearningData, setExperientialLearningData] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
-  // State variable for managing filters
   const [filters, setFilters] = useState({
     academicYear: "",
-    semesterType: "",
-    semesterNo: "",
+    semType: "",
+    semNumber: "",
     stream: "",
     department: "",
     programType: "",
     program: "",
-    yearOfIntroduction: "",
-    percentage: "",
+    courseTitle: "",
+    programTitle: "",
+    degree: ""
   });
   const [filteredData, setFilteredData] = useState(experientialLearningData);
+
   const fellowshipFileRef = useRef<HTMLInputElement>(null);
   const studentExcelRef = useRef<HTMLInputElement>(null);
-
   const bootcampFileRef = useRef<HTMLInputElement>(null);
   const bootcampStudentExcelRef = useRef<HTMLInputElement>(null);
-
   const fieldProjectFileRef = useRef<HTMLInputElement>(null);
   const communicationLetterRef = useRef<HTMLInputElement>(null);
   const fieldStudentExcelRef = useRef<HTMLInputElement>(null);
 
-  // Handle global search
+  // Search/filter logic
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
-
     const filtered = experientialLearningData.filter((row) =>
       Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
+        String(val || "").toLowerCase().includes(value)
       )
     );
     setFilteredData(filtered);
   };
 
-  // Handle column-specific filters
   const handleFilterChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     column: string
@@ -116,33 +108,26 @@ const Experiential_Learning: React.FC = () => {
 
     const filtered = experientialLearningData.filter((row) =>
       Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
+        String(val || "").toLowerCase().includes(value)
       )
     );
     setFilteredData(filtered);
   };
 
-  // Calculate the paginated data
+  // Pagination
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
   const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
+  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
-  // Handle page change
   const handlePageChange = (pageNumber: number) => {
     setCurrentPage(pageNumber);
   };
 
-  // Calculate total pages
-  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+  // Modal logic
+  const toggleModal = () => setIsModalOpen(!isModalOpen);
 
-  // Toggle the modal for listing BOS
-  const toggleModal = () => {
-    setIsModalOpen(!isModalOpen);
-  };
-
-  // Fetch BOS data from the backend
+  // Fetch data
   const fetchExperientialLearningData = async () => {
     try {
       const response = await api.get(
@@ -156,15 +141,12 @@ const Experiential_Learning: React.FC = () => {
     }
   };
 
-  // Open the modal and fetch data
   const handleListBosClick = () => {
     toggleModal();
     fetchExperientialLearningData();
   };
 
-  const toggleWizard = () => {
-    setShowWizard(!showWizard);
-  };
+  const toggleWizard = () => setShowWizard(!showWizard);
 
   const mapValueToLabel = (
     value: string | number | null,
@@ -174,8 +156,71 @@ const Experiential_Learning: React.FC = () => {
     const matchedOption = options.find((option) => option.value === value);
     return matchedOption ? matchedOption : { value, label: String(value) };
   };
-  // Handle edit action
-  // Fetch the data for the selected BOS ID and populate the form fields
+
+  // Handle file download actions
+  const handleDownloadFile = async (fileName: string) => {
+    if (fileName) {
+      let updatedfileName = fileName.split("/").pop() || fileName;
+      try {
+        // Ensure you set responseType to 'blob' to handle binary data
+        const response = await axios.get(`/experientialLearning/download/${updatedfileName}`, {
+          responseType: 'blob'
+        });
+
+        // Create a Blob from the response data
+        const blob = new Blob([response], { type: "*/*" });
+
+        // Create a URL for the Blob
+        const url = window.URL.createObjectURL(blob);
+
+        // Create a temporary anchor element to trigger the download
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = updatedfileName; // Set the file name for the download
+        document.body.appendChild(link);
+        link.click();
+
+        // Clean up the URL and remove the anchor element
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        toast.success("File downloaded successfully!");
+      } catch (error) {
+        toast.error("Failed to download upload ltter file. Please try again.");
+        console.error("Error downloading file:", error);
+      }
+    } else {
+      toast.error("No file available for download.");
+    }
+  };
+
+  // Handle file deletion
+  // Clear the file from the form and show success message
+  const handleDeleteFileWithKey = async (
+    tab: string,
+    fileField: string,
+    fileNameField: string,
+    fileKey?: any
+  ) => {
+    if (fileKey) {
+      try {
+        await api.delete(
+          `/experientialLearning/deleteCoursesWithFocusDocument?experientialLearningDocumentId=${fileKey}`,
+          ""
+        );
+        toast.success("File deleted successfully!");
+      } catch (error) {
+        toast.error("Failed to delete file. Please try again.");
+        console.error("Error deleting file:", error);
+        return;
+      }
+    }
+    // Clear Formik fields
+    validation.setFieldValue(`${tab}.${fileField}`, null);
+    validation.setFieldValue(`${tab}.${fileNameField}`, "");
+  };
+
+  // ----------- HANDLE EDIT -----------
   const handleEdit = async (id: string) => {
     try {
       const response = await api.get(
@@ -183,26 +228,35 @@ const Experiential_Learning: React.FC = () => {
         ""
       );
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
-      // Filter the response where isCurrent or isCurrentForAdmission is true
       const filteredAcademicYearList = academicYearOptions.filter(
         (year: any) => year.isCurrent || year.isCurrentForAdmission
       );
-      // Map the filtered data to the required format
       const academicYearList = filteredAcademicYearList.map((year: any) => ({
         value: year.year,
         label: year.display,
       }));
 
       const semesterNoOptions = SEMESTER_NO_OPTIONS;
+      // fellowship file
+      const fellowshipFileInfo = getFileInfoByFolder(response.fellowship?.file, "Fellowship");
+      const studentExcelFileInfo = getFileInfoByFolder(response.fellowship?.file, "StudentExcelSheet");
+      // bootcamp file
+      const bootcampFileInfo = getFileInfoByFolder(response.bootcamp?.file, "Bootcamp");
+      const bootcampStudentExcelFileInfo = getFileInfoByFolder(response.bootcamp?.file, "StudentExcelSheet");
+
+      // field project file
+      const fieldProjectFileInfo = getFileInfoByFolder(response.fieldProject?.file, "FieldProject");
+      const communicationLetterFileInfo = getFileInfoByFolder(response.fieldProject?.file, "CommunicationLetter");
+      const fieldProjectstudentExcelFileInfo = getFileInfoByFolder(response.fieldProject?.file, "StudentExcelSheet");
 
       // Map API response to Formik values
       const mappedValues = {
         academicYear: mapValueToLabel(response.academicYear, academicYearList),
-        semesterType: response.semType
+        semType: response.semType
           ? { value: response.semType, label: response.semType.toUpperCase() }
           : null,
-        semesterNo: mapValueToLabel(
-          String(response.semesterNo),
+        semNumber: mapValueToLabel(
+          String(response.semNumber),
           semesterNoOptions
         ) as { value: string; label: string } | null,
         stream: response.streamId
@@ -210,76 +264,259 @@ const Experiential_Learning: React.FC = () => {
           : null,
         department: response.departmentId
           ? {
-              value: response.departmentId.toString(),
-              label: response.departmentName,
-            }
+            value: response.departmentId.toString(),
+            label: response.departmentName,
+          }
           : null,
         programType: response.programTypeId
           ? {
-              value: response.programTypeId.toString(),
-              label: response.programTypeName,
-            }
+            value: response.programTypeId.toString(),
+            label: response.programTypeName,
+          }
           : null,
         degree: response.programId
           ? {
-              value: response.programId.toString(),
-              label: response.programName,
-            }
+            value: response.programId.toString(),
+            label: response.programName,
+          }
           : null,
         program: response.courses
           ? Object.entries(response.courses).map(([key, value]) => ({
-              value: key,
-              label: String(value),
-            }))
+            value: key,
+            label: String(value),
+          }))
           : [],
-        revisionPercentage: response.percentage || "",
-        conductedDate: response.yearOfIntroduction
-          ? response.yearOfIntroduction
-          : "",
-        otherDepartment: "",
-        file: response.documents?.mom || null,
-        // Add these lines:
-        programName: response.programName || "",
-        courseTitile: response.courseTitile || "",
-        pedagogy: response.pedagogy || { pedagogyFile: null },
-        internship: response.internship || {
-          totalJoiningStudentsOfIntern: "",
-          orgNameOfIntern: "",
-          locationOfIntern: "",
+        programTitle: response.programTitle || "",
+        courseTitle: response.courseTitle || "",
+        pedagogy: {
+          pedagogyFile: null,
+          pedagogyFileName: "",
+          pedagogyFileKey: "",
         },
-        fieldProject: response.fieldProject || {
-          totalParticipatingStudents: "",
-          fieldProjectStartDate: null,
-          fieldProjectEndDate: null,
-          locationOfOrganisation: "",
+        internship: {
+          totalJoiningStudentsOfIntern: response.internship?.totalInternStudents || "",
+          orgNameOfIntern: response.internship?.internOrgName || "",
+          locationOfIntern: response.internship?.internOrgLocation || "",
+        },
+        fieldProject: {
+          totalParticipatingStudents: response.fieldProject?.totalFieldProjectStudents || "",
+          fieldProjectStartDate: response.fieldProject?.fieldProjectStratDate
+            ? moment(response.fieldProject.fieldProjectStratDate, "YYYY-MM-DD").format("DD-MM-YYYY")
+            : "",
+          fieldProjectEndDate: response.fieldProject?.fieldProjectEndDate
+            ? moment(response.fieldProject.fieldProjectEndDate, "YYYY-MM-DD").format("DD-MM-YYYY")
+            : "",
+          locationOfOrganisation: response.fieldProject?.fielsProjectOrgLocation || "",
           fieldProjectFile: null,
+          fieldProjectFileName: fieldProjectFileInfo.fileName || "",
+          fieldProjectFileKey: fieldProjectFileInfo.fileKey || "",
           communicationLetter: null,
+          communicationLetterFileName: communicationLetterFileInfo.fileName || "",
+          communicationLetterFileKey: communicationLetterFileInfo.fileKey || "",
           studentExcelSheet: null,
+          studentExcelSheetFileName: fieldProjectstudentExcelFileInfo.fileName || "",
+          studentExcelSheetFileKey: fieldProjectstudentExcelFileInfo.fileKey || ""
         },
-        dissertation: response.dissertation || {
-          totalParticipatingStudentsdissertation: "",
-          dissertationStartDate: null,
-          dissertationEndDate: null,
+        dissertation: {
+          totalParticipatingStudentsdissertation: response.dissertations?.totalDissertationsStudents || "",
+          dissertationStartDate: response.dissertations?.dissertationsStartDate || "",
+          dissertationEndDate: response.dissertations?.dissertationsEndDate || "",
         },
-        fellowship: response.fellowship || {
+        fellowship: {
           studentExcelSheet: null,
+          studentExcelSheetFileName: studentExcelFileInfo.fileName,
+          studentExcelSheetFileKey: studentExcelFileInfo.fileKey,
           fellowshipFile: null,
+          fellowshipFileName: fellowshipFileInfo.fileName,
+          fellowshipFileKey: fellowshipFileInfo.fileKey
         },
-        bootcamp: response.bootcamp || {
+        bootcamp: {
           studentExcelSheet: null,
+          studentExcelSheetFileName: bootcampStudentExcelFileInfo.fileName,
+          studentExcelSheetFileKey: bootcampStudentExcelFileInfo.fileKey,
           bootcampFile: null,
-        },
+          bootcampFileName: bootcampFileInfo.fileName,
+          bootcampFileKey: bootcampFileInfo.fileKey
+        }
       };
 
-      setIsEditMode(true); // Set edit mode
-      setEditId(id); // Store the ID of the record being edited
-      // Disable the file upload button if a file exists
+      validation.setValues((prevValues) => ({
+        ...prevValues,
+        ...mappedValues,
+        academicYear: mappedValues.academicYear
+          ? { ...mappedValues.academicYear, value: String(mappedValues.academicYear.value) }
+          : null,
+        semType: mappedValues.semType
+          ? { ...mappedValues.semType }
+          : null,
+        semNumber: mappedValues.semNumber
+          ? { ...mappedValues.semNumber, value: String(mappedValues.semNumber.value) }
+          : null,
+        stream: mappedValues.stream
+          ? { ...mappedValues.stream }
+          : null,
+        department: mappedValues.department
+          ? { ...mappedValues.department }
+          : null,
+        programType: mappedValues.programType
+          ? { ...mappedValues.programType }
+          : null,
+        degree: mappedValues.degree
+          ? { ...mappedValues.degree }
+          : null,
+        program: Array.isArray(mappedValues.program) ? mappedValues.program : [],
+
+        pedagogy: {
+          pedagogyFile: null,
+          pedagogyFileName: (response.pedagogy?.file && Object.values(response.pedagogy.file)[0]) || "",
+          pedagogyFileKey: response.pedagogy?.file ? Object.keys(response.pedagogy.file)[0] : "",
+        },
+
+        internship: {
+          totalJoiningStudentsOfIntern: mappedValues.internship?.totalJoiningStudentsOfIntern || "",
+          orgNameOfIntern: mappedValues.internship?.orgNameOfIntern || "",
+          locationOfIntern: mappedValues.internship?.locationOfIntern || "",
+        },
+
+        fieldProject: {
+          totalParticipatingStudents: mappedValues.fieldProject?.totalParticipatingStudents || "",
+          fieldProjectStartDate: response.fieldProject?.fieldProjectStratDate
+            ? moment(response.fieldProject.fieldProjectStratDate, "YYYY-MM-DD").format("DD-MM-YYYY")
+            : "",
+          fieldProjectEndDate: response.fieldProject?.fieldProjectEndDate
+            ? moment(response.fieldProject.fieldProjectEndDate, "YYYY-MM-DD").format("DD-MM-YYYY")
+            : "",
+          locationOfOrganisation: mappedValues.fieldProject?.locationOfOrganisation || "",
+          //file
+          fieldProjectFile: null,
+          fieldProjectFileName: fieldProjectFileInfo.fileName || "",
+          fieldProjectFileKey: fieldProjectFileInfo.fileKey || "",
+          //file
+          communicationLetter: null,
+          communicationLetterFileName: communicationLetterFileInfo.fileName || "",
+          communicationLetterFileKey: communicationLetterFileInfo.fileKey || "",
+          //file
+          studentExcelSheet: null,
+          studentExcelSheetFileName: fieldProjectstudentExcelFileInfo.fileName || "",
+          studentExcelSheetFileKey: fieldProjectstudentExcelFileInfo.fileKey || "",
+        },
+
+        dissertation: {
+          totalParticipatingStudentsdissertation: mappedValues.dissertation?.totalParticipatingStudentsdissertation || "",
+          dissertationStartDate: mappedValues.dissertation?.dissertationStartDate || "",
+          dissertationEndDate: mappedValues.dissertation?.dissertationEndDate || "",
+        },
+
+        fellowship: {
+          studentExcelSheet: null,
+          studentExcelSheetFileName: studentExcelFileInfo.fileName || "",
+          studentExcelSheetFileKey: studentExcelFileInfo.fileKey || "",
+          fellowshipFile: null,
+          fellowshipFileName: fellowshipFileInfo.fileName || "",
+          fellowshipFileKey: fellowshipFileInfo.fileKey || "",
+        },
+
+        bootcamp: {
+          studentExcelSheet: null,
+          studentExcelSheetFileName: bootcampStudentExcelFileInfo.fileName || "",
+          studentExcelSheetFileKey: bootcampStudentExcelFileInfo.fileKey || "",
+          bootcampFile: null,
+          bootcampFileName: bootcampFileInfo.fileName || "",
+          bootcampFileKey: bootcampFileInfo.fileKey || "",
+        }
+      }));
+
+
+      // Determine which tab to show based on max data and file
+      const tabMap: Record<string, number> = {
+        pedagogy: 1,
+        internship: 2,
+        fieldProject: 3,
+        dissertation: 4,
+        fellowship: 5,
+        bootcamp: 6,
+      };
+      const maxTab = getMaxDataTabWithFile(response);
+      // Normalize "dissertations" to "dissertation"
+      const normalizedTab =
+        maxTab === "dissertations" ? "dissertation" : maxTab;
+      if (
+        normalizedTab &&
+        Object.keys(tabMap).includes(normalizedTab)
+      ) {
+        setActiveTab1(
+          normalizedTab as
+          | "pedagogy"
+          | "internship"
+          | "fieldProject"
+          | "dissertation"
+          | "fellowship"
+          | "bootcamp"
+        );
+        setActiveTab(tabMap[normalizedTab]);
+        setShowWizard(true);
+      }
+      setIsEditMode(true);
+      setEditId(id);
       setIsFileUploadDisabled(!!response.documents?.mom);
       toggleModal();
     } catch (error) {
       console.error("Error fetching BOS data by ID:", error);
     }
   };
+
+  function getFileInfoByFolder(fileObj: any, folder: string) {
+    if (!fileObj) return { fileName: "", fileKey: "" };
+    const entry = Object.entries(fileObj).find(
+      ([, path]) => typeof path === "string" && path.startsWith(folder + "/")
+    );
+    if (!entry) return { fileName: "", fileKey: "" };
+    const [key, path] = entry;
+    return typeof path === "string" ? { fileName: path.split("/").pop(), fileKey: key } : { fileName: "", fileKey: "" };
+  }
+
+  function getMaxDataTabWithFile(response: any) {
+    const tabs = [
+      "pedagogy",
+      "internship",
+      "fieldProject",
+      "dissertation",
+      "fellowship",
+      "bootcamp",
+    ];
+    let tabWithFile: string | null = null;
+    let maxTab: string | null = null;
+    let maxCount = -1;
+
+    for (const tab of tabs) {
+      // For backward compatibility, check both "dissertation" and "dissertations"
+      const obj = response[tab] || response[tab + "s"];
+      if (!obj) continue;
+
+      // Check if file exists and is not empty
+      const hasFile = obj.file && Object.keys(obj.file).length > 0;
+      if (hasFile && !tabWithFile) {
+        tabWithFile = tab;
+      }
+
+      // Count non-null, non-empty fields (excluding file)
+      const count = Object.entries(obj).filter(
+        ([key, value]) =>
+          key !== "file" &&
+          value !== null &&
+          value !== "" &&
+          value !== undefined
+      ).length;
+
+      if (count > maxCount) {
+        maxTab = tab;
+        maxCount = count;
+      }
+    }
+
+    // Prefer tab with file, otherwise tab with max filled fields
+    return tabWithFile || maxTab;
+  }
 
   // Handle delete action
   // Set the ID of the record to be deleted and open the confirmation modal
@@ -289,18 +526,22 @@ const Experiential_Learning: React.FC = () => {
   };
 
   // Confirm deletion of the record
-  // Call the delete API and refresh the BOS data
+  // Call the correct delete API and refresh the data
   const confirmDelete = async (id: string) => {
     if (deleteId) {
       try {
-        const response = await api.delete(`/bos/deleteBos?bosId=${id}`, "");
+        // Use the correct API for experiential learning delete
+        const response = await api.delete(
+          `/experientialLearning/deleteCoursesWithFocus?experientialLearningId=${deleteId}`,
+          ""
+        );
         toast.success(
-          response.message || "Curriculum BOS removed successfully!"
+          response.message || "Experiential Learning record removed successfully!"
         );
         fetchExperientialLearningData();
       } catch (error) {
-        toast.error("Failed to remove Curriculum BOS. Please try again.");
-        console.error("Error deleting BOS:", error);
+        toast.error("Failed to remove Experiential Learning record. Please try again.");
+        console.error("Error deleting Experiential Learning:", error);
       } finally {
         setIsDeleteModalOpen(false);
         setDeleteId(null);
@@ -499,18 +740,18 @@ const Experiential_Learning: React.FC = () => {
     academicYear: Yup.object()
       .nullable()
       .required("Please select academic year"),
-    semesterType: Yup.object<{ value: string; label: string }>()
+    semType: Yup.object<{ value: string; label: string }>()
       .nullable()
       .required("Please select semester type"),
-    semesterNo: Yup.object().nullable().required("Please select semester"),
+    semNumber: Yup.object().nullable().required("Please select semester"),
     stream: Yup.object().nullable().required("Please select stream"),
     degree: Yup.object().nullable().required("Please select degree"),
     department: Yup.object<{ value: string; label: string }>()
       .nullable()
       .required("Please select department"),
     programType: Yup.object().nullable().required("Please select program type"),
-    courseTitile: Yup.string().required("Please enter Course Title"),
-    programName: Yup.string().required("Please enter Program Name"),
+    courseTitle: Yup.string().required("Please enter Course Title"),
+    programTitle: Yup.string().required("Please enter Program Title"),
   });
 
   // Add similar ones for Field Project, Dissertation, Fellowship, Bootcamp
@@ -552,25 +793,31 @@ const Experiential_Learning: React.FC = () => {
     const newTab = tabMap[newTabIndex];
     const currentTab = activeTab1;
 
-    const currentTabData = currentTab ? validation.values[currentTab] : {};
-    const newTabData = newTab ? validation.values[newTab] : {};
+    // If no tab is active, allow switching
+    if (!currentTab) {
+      setActiveTab(newTabIndex);
+      setActiveTab1(newTab);
+      return;
+    }
 
-    const isCurrentTabFilled = Object.values(currentTabData || {}).some(
-      (val) => !!val
+    // Check if current tab has any filled value
+    const currentTabData = validation.values[currentTab] || {};
+    const isCurrentTabFilled = Object.values(currentTabData).some(
+      (val) => val !== null && val !== "" && !(typeof val === "object" && Object.keys(val).length === 0)
     );
-    const isNewTabFilled = Object.values(newTabData || {}).some((val) => !!val);
 
-    if (isCurrentTabFilled && newTab !== currentTab) {
+    // If trying to switch to the same tab, allow
+    if (currentTab === newTab) {
+      setActiveTab(newTabIndex);
+      setActiveTab1(newTab);
+      return;
+    }
+
+    if (isCurrentTabFilled) {
       toast.warning("You already filled one tab. Clear it before switching.");
       return;
     }
 
-    if (!isCurrentTabFilled && isNewTabFilled) {
-      toast.warning("At least one tab should be filled.");
-      return;
-    }
-
-    // Allow tab switch
     setActiveTab(newTabIndex);
     setActiveTab1(newTab);
   };
@@ -595,17 +842,19 @@ const Experiential_Learning: React.FC = () => {
   const validation = useFormik({
     initialValues: {
       academicYear: null as { value: string; label: string } | null,
-      semesterType: null as { value: string; label: string } | null,
-      semesterNo: null as { value: string; label: string } | null,
+      semType: null as { value: string; label: string } | null,
+      semNumber: null as { value: string; label: string } | null,
       stream: null as { value: string; label: string } | null,
       department: null as { value: string; label: string } | null,
       degree: null as { value: string; label: string } | null,
       programType: null as { value: string; label: string } | null,
-      programName: "",
-      courseTitile: "",
+      programTitle: "",
+      courseTitle: "",
       file: null,
       pedagogy: {
         pedagogyFile: null,
+        pedagogyFileName: "",
+        pedagogyFileKey: ""
       },
       internship: {
         totalJoiningStudentsOfIntern: "",
@@ -618,8 +867,14 @@ const Experiential_Learning: React.FC = () => {
         fieldProjectEndDate: null,
         locationOfOrganisation: "",
         fieldProjectFile: null,
+        fieldProjectFileName: "",
+        fieldProjectFileKey: "",
         communicationLetter: null,
+        communicationLetterFileName: "",
+        communicationLetterFileKey: "",
         studentExcelSheet: null,
+        studentExcelSheetFileName: "",
+        studentExcelSheetFileKey: ""
       },
       dissertation: {
         totalParticipatingStudentsdissertation: "",
@@ -628,94 +883,40 @@ const Experiential_Learning: React.FC = () => {
       },
       fellowship: {
         studentExcelSheet: null,
+        studentExcelSheetFileName: "",
+        studentExcelSheetFileKey: "",
         fellowshipFile: null,
+        fellowshipFileName: "",
+        fellowshipFileKey: ""
       },
       bootcamp: {
         studentExcelSheet: null,
+        studentExcelSheetFileName: "",
+        studentExcelSheetFileKey: "",
         bootcampFile: null,
+        bootcampFileName: "",
+        bootcampFileKey: ""
       },
     },
     validationSchema: combinedSchema,
     onSubmit: async (values, { resetForm }) => {
-      console.log("Submitting form...", values);
       if (!isAnyTabFilled(values)) {
         toast.warning("You must fill at least one experiential tab.");
         return;
       }
       const formData = new FormData();
-      // formData.append("pedagogyFile", values.pedagogy.pedagogyFile || "");
-      // formData.append(
-      //   "internship",
-      //   JSON.stringify({
-      //     totalJoiningStudentsOfIntern:
-      //       values.internship.totalJoiningStudentsOfIntern,
-      //     orgNameOfIntern: values.internship.orgNameOfIntern,
-      //     locationOfIntern: values.internship.locationOfIntern,
-      //   }) || ""
-      // );
-      // formData.append(
-      //   "fieldProject",
-      //   JSON.stringify({
-      //     totalParticipatingStudents:
-      //       values.fieldProject.totalParticipatingStudents,
-      //     fieldProjectStartDate: values.fieldProject.fieldProjectStartDate
-      //       ? moment(values.fieldProject.fieldProjectStartDate).format(
-      //           "YYYY-MM-DD"
-      //         )
-      //       : "",
-      //     fieldProjectEndDate: values.fieldProject.fieldProjectEndDate
-      //       ? moment(values.fieldProject.fieldProjectEndDate).format(
-      //           "YYYY-MM-DD"
-      //         )
-      //       : "",
-      //     locationOfOrganisation: values.fieldProject.locationOfOrganisation,
-      //     fieldProjectFile: values.fieldProject.fieldProjectFile || "",
-      //     communicationLetter: values.fieldProject.communicationLetter || "",
-      //     studentExcelSheet: values.fieldProject.studentExcelSheet || "",
-      //   }) || ""
-      // );
-      // formData.append(
-      //   "dissertation",
-      //   JSON.stringify({
-      //     totalParticipatingStudentsdissertation:
-      //       values.dissertation.totalParticipatingStudentsdissertation,
-      //     dissertationStartDate: values.dissertation.dissertationStartDate
-      //       ? moment(values.dissertation.dissertationStartDate).format(
-      //           "YYYY-MM-DD"
-      //         )
-      //       : "",
-      //     dissertationEndDate: values.dissertation.dissertationEndDate
-      //       ? moment(values.dissertation.dissertationEndDate).format(
-      //           "YYYY-MM-DD"
-      //         )
-      //       : "",
-      //   }) || ""
-      // );
-      // formData.append(
-      //   "fellowship",
-      //   JSON.stringify({
-      //     studentExcelSheet: values.fellowship.studentExcelSheet || "",
-      //     fellowshipFile: values.fellowship.fellowshipFile || "",
-      //   })
-      // );
-      // formData.append(
-      //   "bootcamp",
-      //   JSON.stringify({
-      //     studentExcelSheet: values.bootcamp.studentExcelSheet || "",
-      //     bootcampFile: values.bootcamp.bootcampFile || "",
-      //   }) || ""
-      // );
       // Construct dtoPayload object from form values
       const dtoPayload = {
+        id: isEditMode && editId ? editId : null,
         academicYear: values.academicYear?.value || "",
-        semesterType: values.semesterType?.value || "",
-        semesterNo: values.semesterNo?.value || "",
+        semType: values.semType?.value || "",
+        semNumber: values.semNumber?.value || "",
         streamId: values.stream?.value || "",
         departmentId: values.department?.value || "",
         programTypeId: values.programType?.value || "",
         programId: values.degree?.value || "",
-        programName: values.programName,
-        courseTitile: values.courseTitile,
+        programTitle: values.programTitle,
+        courseTitle: values.courseTitle,
         pedagogy: values.pedagogy || null,
         internship: {
           totalInternStudents:
@@ -728,13 +929,13 @@ const Experiential_Learning: React.FC = () => {
             values.fieldProject.totalParticipatingStudents || "",
           fieldProjectStratDate: values.fieldProject.fieldProjectStartDate
             ? moment(values.fieldProject.fieldProjectStartDate).format(
-                "YYYY-MM-DD"
-              )
+              "YYYY-MM-DD"
+            )
             : null,
           fieldProjectEndDate: values.fieldProject.fieldProjectEndDate
             ? moment(values.fieldProject.fieldProjectEndDate).format(
-                "YYYY-MM-DD"
-              )
+              "YYYY-MM-DD"
+            )
             : null,
           fielsProjectOrgLocation:
             values.fieldProject.locationOfOrganisation || "",
@@ -744,13 +945,13 @@ const Experiential_Learning: React.FC = () => {
             values.dissertation.totalParticipatingStudentsdissertation || "",
           dissertationsStartDate: values.dissertation.dissertationStartDate
             ? moment(values.dissertation.dissertationStartDate).format(
-                "YYYY-MM-DD"
-              )
+              "YYYY-MM-DD"
+            )
             : null,
           dissertationsEndDate: values.dissertation.dissertationEndDate
             ? moment(values.dissertation.dissertationEndDate).format(
-                "YYYY-MM-DD"
-              )
+              "YYYY-MM-DD"
+            )
             : null,
         },
         fellowship: values.fellowship || null,
@@ -795,15 +996,15 @@ const Experiential_Learning: React.FC = () => {
         const response =
           isEditMode && editId
             ? await api.put(`/experientialLearning`, formData, {
-                headers: {
-                  "Content-Type": "multipart/form-data",
-                },
-              })
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            })
             : await api.create(`/experientialLearning`, formData, {
-                headers: {
-                  "Content-Type": "multipart/form-data",
-                },
-              });
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            });
 
         toast.success(
           response.message || "Experiential Learning record saved successfully!"
@@ -860,36 +1061,36 @@ const Experiential_Learning: React.FC = () => {
                   {/* Semester Dropdowns */}
                   <Col lg={8}>
                     <SemesterDropdowns
-                      semesterTypeValue={validation.values.semesterType}
-                      semesterNoValue={validation.values.semesterNo}
+                      semesterTypeValue={validation.values.semType}
+                      semesterNoValue={validation.values.semNumber}
                       onSemesterTypeChange={(selectedOption) =>
-                        validation.setFieldValue("semesterType", selectedOption)
+                        validation.setFieldValue("semType", selectedOption)
                       }
                       onSemesterNoChange={(selectedOption) =>
-                        validation.setFieldValue("semesterNo", selectedOption)
+                        validation.setFieldValue("semNumber", selectedOption)
                       }
                       isSemesterTypeInvalid={
-                        validation.touched.semesterType &&
-                        !!validation.errors.semesterType
+                        validation.touched.semType &&
+                        !!validation.errors.semType
                       }
                       isSemesterNoInvalid={
-                        validation.touched.semesterNo &&
-                        !!validation.errors.semesterNo
+                        validation.touched.semNumber &&
+                        !!validation.errors.semNumber
                       }
                       semesterTypeError={
-                        validation.touched.semesterType
-                          ? validation.errors.semesterType
+                        validation.touched.semType
+                          ? validation.errors.semType
                           : null
                       }
                       semesterNoError={
-                        validation.touched.semesterNo
-                          ? Array.isArray(validation.errors.semesterNo)
-                            ? validation.errors.semesterNo[0]
-                            : validation.errors.semesterNo
+                        validation.touched.semNumber
+                          ? Array.isArray(validation.errors.semNumber)
+                            ? validation.errors.semNumber[0]
+                            : validation.errors.semNumber
                           : null
                       }
-                      semesterTypeTouched={!!validation.touched.semesterType}
-                      semesterNoTouched={!!validation.touched.semesterNo}
+                      semesterTypeTouched={!!validation.touched.semType}
+                      semesterNoTouched={!!validation.touched.semNumber}
                     />
                   </Col>
 
@@ -1005,21 +1206,21 @@ const Experiential_Learning: React.FC = () => {
                       <Label>Program Title</Label>
                       <Input
                         type="text"
-                        name="programName"
-                        value={validation.values.programName}
+                        name="programTitle"
+                        value={validation.values.programTitle}
                         onChange={validation.handleChange}
                         placeholder="Enter Program Name"
                         className={
-                          validation.touched.programName &&
-                          validation.errors.programName
+                          validation.touched.programTitle &&
+                            validation.errors.programTitle
                             ? "is-invalid"
                             : ""
                         }
                       />
-                      {validation.touched.programName &&
-                        validation.errors.programName && (
+                      {validation.touched.programTitle &&
+                        validation.errors.programTitle && (
                           <div className="text-danger">
-                            {validation.errors.programName}
+                            {validation.errors.programTitle}
                           </div>
                         )}
                     </div>
@@ -1029,21 +1230,21 @@ const Experiential_Learning: React.FC = () => {
                       <Label>Course Title</Label>
                       <Input
                         type="text"
-                        name="courseTitile"
-                        value={validation.values.courseTitile}
+                        name="courseTitle"
+                        value={validation.values.courseTitle}
                         onChange={validation.handleChange}
                         placeholder="Enter Program Name"
                         className={
-                          validation.touched.courseTitile &&
-                          validation.errors.courseTitile
+                          validation.touched.courseTitle &&
+                            validation.errors.courseTitle
                             ? "is-invalid"
                             : ""
                         }
                       />
-                      {validation.touched.courseTitile &&
-                        validation.errors.courseTitile && (
+                      {validation.touched.courseTitle &&
+                        validation.errors.courseTitle && (
                           <div className="text-danger">
-                            {validation.errors.courseTitile}
+                            {validation.errors.courseTitle}
                           </div>
                         )}
                     </div>
@@ -1070,23 +1271,22 @@ const Experiential_Learning: React.FC = () => {
                         {[1, 2, 3, 4, 5, 6].map((tab) => (
                           <Button
                             key={tab}
-                            className={`step-button ${
-                              activeTab === tab ? "active" : ""
-                            }`}
+                            className={`step-button ${activeTab === tab ? "active" : ""
+                              }`}
                             onClick={() => handleTabChange(tab)}
                           >
                             {tab}.
                             {tab === 1
                               ? "Pedagogy"
                               : tab === 2
-                              ? "Internship"
-                              : tab === 3
-                              ? "Field Project"
-                              : tab === 4
-                              ? "Projects/Dissertation"
-                              : tab === 5
-                              ? "Fellowship"
-                              : "Bootcamp"}
+                                ? "Internship"
+                                : tab === 3
+                                  ? "Field Project"
+                                  : tab === 4
+                                    ? "Projects/Dissertation"
+                                    : tab === 5
+                                      ? "Fellowship"
+                                      : "Bootcamp"}
                           </Button>
                         ))}
                       </div>
@@ -1096,58 +1296,67 @@ const Experiential_Learning: React.FC = () => {
                             <Row>
                               <Col sm={4}>
                                 <div className="mb-3">
-                                  <Label
-                                    htmlFor="formFile"
-                                    className="form-label"
-                                  >
+                                  <Label htmlFor="pedagogyFile" className="form-label">
                                     Upload file
                                   </Label>
-                                  <Input
-                                    className={`form-control ${
-                                      validation.touched.pedagogy
-                                        ?.pedagogyFile &&
-                                      validation.errors.pedagogy?.pedagogyFile
+                                  {validation.values.pedagogy.pedagogyFileName ? (
+                                    <div className="d-flex align-items-center gap-2">
+                                      <span>{validation.values.pedagogy.pedagogyFileName}</span>
+                                      <Button
+                                        color="link"
+                                        className="text-primary"
+                                        onClick={() =>
+                                          handleDownloadFile(validation.values.pedagogy.pedagogyFileName)
+                                        }
+                                        title="Download File"
+                                      >
+                                        <i className="bi bi-download"></i>
+                                      </Button>
+                                      <Button
+                                        color="link"
+                                        className="text-danger"
+                                        onClick={() => {
+                                          // If editing, get the file key from the API response
+                                          handleDeleteFileWithKey(
+                                            "pedagogy",
+                                            "pedagogyFile",
+                                            "pedagogyFileName",
+                                            validation.values.pedagogy.pedagogyFileKey
+                                          );
+                                        }}
+                                        title="Delete File"
+                                      >
+                                        <i className="bi bi-trash"></i>
+                                      </Button>
+                                    </div>
+                                  ) : (
+                                    <Input
+                                      className={`form-control ${validation.touched.pedagogy?.pedagogyFile &&
+                                        validation.errors.pedagogy?.pedagogyFile
                                         ? "is-invalid"
                                         : ""
-                                    }`}
-                                    type="file"
-                                    id="pedagogyFile"
-                                    onChange={(event) => {
-                                      validation.setFieldValue(
-                                        "pedagogy.pedagogyFile",
-                                        event.currentTarget.files
-                                          ? event.currentTarget.files[0]
-                                          : null
-                                      );
-                                    }}
-                                  />
+                                        }`}
+                                      type="file"
+                                      id="pedagogyFile"
+                                      disabled={!!validation.values.pedagogy.pedagogyFileName}
+                                      onChange={(event) => {
+                                        const file = event.currentTarget.files?.[0] || null;
+                                        validation.setFieldValue("pedagogy.pedagogyFile", file);
+                                        validation.setFieldValue(
+                                          "pedagogy.pedagogyFileName",
+                                          file ? file.name : ""
+                                        );
+                                        validation.setFieldValue("pedagogy.pedagogyFileKey", undefined);
+                                      }}
+                                    />
+                                  )}
                                   {validation.touched.pedagogy?.pedagogyFile &&
-                                    validation.errors.pedagogy
-                                      ?.pedagogyFile && (
+                                    validation.errors.pedagogy?.pedagogyFile && (
                                       <div className="text-danger">
-                                        {
-                                          validation.errors.pedagogy
-                                            .pedagogyFile
-                                        }
+                                        {validation.errors.pedagogy.pedagogyFile}
                                       </div>
                                     )}
                                 </div>
-                              </Col>
-                            </Row>
-                            <Row className="mt-3">
-                              <Col className="d-flex justify-content-center">
-                                <button
-                                  type="button"
-                                  className="btn btn-danger"
-                                  onClick={() =>
-                                    validation.setFieldValue("pedagogy", {
-                                      pedagogyFile: null,
-                                    })
-                                  }
-                                  disabled={isFileUploadDisabled}
-                                >
-                                  Clear
-                                </button>
                               </Col>
                             </Row>
                           </Form>
@@ -1170,14 +1379,13 @@ const Experiential_Learning: React.FC = () => {
                                       e.target.value
                                     )
                                   }
-                                  className={`form-control ${
-                                    validation.touched.internship
-                                      ?.totalJoiningStudentsOfIntern &&
+                                  className={`form-control ${validation.touched.internship
+                                    ?.totalJoiningStudentsOfIntern &&
                                     validation.errors.internship
                                       ?.totalJoiningStudentsOfIntern
-                                      ? "is-invalid"
-                                      : ""
-                                  }`}
+                                    ? "is-invalid"
+                                    : ""
+                                    }`}
                                 />
                               </Col>
                               <Col lg="4">
@@ -1195,14 +1403,13 @@ const Experiential_Learning: React.FC = () => {
                                       e.target.value
                                     )
                                   }
-                                  className={`form-control ${
-                                    validation.touched.internship
-                                      ?.orgNameOfIntern &&
+                                  className={`form-control ${validation.touched.internship
+                                    ?.orgNameOfIntern &&
                                     validation.errors.internship
                                       ?.orgNameOfIntern
-                                      ? "is-invalid"
-                                      : ""
-                                  }`}
+                                    ? "is-invalid"
+                                    : ""
+                                    }`}
                                 />
                               </Col>
                               <Col lg="4">
@@ -1220,14 +1427,13 @@ const Experiential_Learning: React.FC = () => {
                                       e.target.value
                                     )
                                   }
-                                  className={`form-control ${
-                                    validation.touched.internship
-                                      ?.locationOfIntern &&
+                                  className={`form-control ${validation.touched.internship
+                                    ?.locationOfIntern &&
                                     validation.errors.internship
                                       ?.locationOfIntern
-                                      ? "is-invalid"
-                                      : ""
-                                  }`}
+                                    ? "is-invalid"
+                                    : ""
+                                    }`}
                                 />
                               </Col>
                             </Row>
@@ -1271,14 +1477,13 @@ const Experiential_Learning: React.FC = () => {
                                         e.target.value
                                       )
                                     }
-                                    className={`form-control ${
-                                      validation.touched.fieldProject
-                                        ?.totalParticipatingStudents &&
+                                    className={`form-control ${validation.touched.fieldProject
+                                      ?.totalParticipatingStudents &&
                                       validation.errors.fieldProject
                                         ?.totalParticipatingStudents
-                                        ? "is-invalid"
-                                        : ""
-                                    }`}
+                                      ? "is-invalid"
+                                      : ""
+                                      }`}
                                   />
                                 </div>
                               </Col>
@@ -1291,33 +1496,19 @@ const Experiential_Learning: React.FC = () => {
                                     type="date"
                                     placeholder="Enter Duration of field project start date"
                                     value={
-                                      validation.values.fieldProject
-                                        .fieldProjectStartDate
-                                        ? moment(
-                                            validation.values.fieldProject
-                                              .fieldProjectStartDate,
-                                            "DD/MM/YYYY"
-                                          ).format("YYYY-MM-DD") // Convert to yyyy-mm-dd for the input
+                                      validation.values.fieldProject.fieldProjectStartDate
+                                        ? moment(validation.values.fieldProject.fieldProjectStartDate, "DD-MM-YYYY").format("YYYY-MM-DD")
                                         : ""
                                     }
                                     onChange={(e) => {
-                                      const formattedDate = moment(
-                                        e.target.value,
-                                        "YYYY-MM-DD"
-                                      ).format("DD/MM/YYYY"); // Convert to dd/mm/yyyy
-                                      validation.setFieldValue(
-                                        "fieldProject.fieldProjectStartDate",
-                                        formattedDate
-                                      );
+                                      const formattedDate = moment(e.target.value, "YYYY-MM-DD").format("DD-MM-YYYY");
+                                      validation.setFieldValue("fieldProject.fieldProjectStartDate", formattedDate);
                                     }}
-                                    className={`form-control ${
-                                      validation.touched.fieldProject
-                                        ?.fieldProjectStartDate &&
-                                      validation.errors.fieldProject
-                                        ?.fieldProjectStartDate
-                                        ? "is-invalid"
-                                        : ""
-                                    }`}
+                                    className={`form-control ${validation.touched.fieldProject?.fieldProjectStartDate &&
+                                      validation.errors.fieldProject?.fieldProjectStartDate
+                                      ? "is-invalid"
+                                      : ""
+                                      }`}
                                   />
                                 </div>
                               </Col>
@@ -1330,33 +1521,19 @@ const Experiential_Learning: React.FC = () => {
                                     type="date"
                                     placeholder="Enter Duration of field project end date"
                                     value={
-                                      validation.values.fieldProject
-                                        .fieldProjectEndDate
-                                        ? moment(
-                                            validation.values.fieldProject
-                                              .fieldProjectEndDate,
-                                            "DD/MM/YYYY"
-                                          ).format("YYYY-MM-DD") // Convert to yyyy-mm-dd for the input
+                                      validation.values.fieldProject.fieldProjectEndDate
+                                        ? moment(validation.values.fieldProject.fieldProjectEndDate, "DD-MM-YYYY").format("YYYY-MM-DD")
                                         : ""
                                     }
                                     onChange={(e) => {
-                                      const formattedDate = moment(
-                                        e.target.value,
-                                        "YYYY-MM-DD"
-                                      ).format("DD/MM/YYYY"); // Convert to dd/mm/yyyy
-                                      validation.setFieldValue(
-                                        "fieldProject.fieldProjectEndDate",
-                                        formattedDate
-                                      );
+                                      const formattedDate = moment(e.target.value, "YYYY-MM-DD").format("DD-MM-YYYY");
+                                      validation.setFieldValue("fieldProject.fieldProjectEndDate", formattedDate);
                                     }}
-                                    className={`form-control ${
-                                      validation.touched.fieldProject
-                                        ?.fieldProjectEndDate &&
-                                      validation.errors.fieldProject
-                                        ?.fieldProjectEndDate
-                                        ? "is-invalid"
-                                        : ""
-                                    }`}
+                                    className={`form-control ${validation.touched.fieldProject?.fieldProjectEndDate &&
+                                      validation.errors.fieldProject?.fieldProjectEndDate
+                                      ? "is-invalid"
+                                      : ""
+                                      }`}
                                   />
                                 </div>
                               </Col>
@@ -1377,120 +1554,179 @@ const Experiential_Learning: React.FC = () => {
                                       e.target.value
                                     )
                                   }
-                                  className={`form-control ${
-                                    validation.touched.fieldProject
-                                      ?.locationOfOrganisation &&
+                                  className={`form-control ${validation.touched.fieldProject
+                                    ?.locationOfOrganisation &&
                                     validation.errors.fieldProject
                                       ?.locationOfOrganisation
-                                      ? "is-invalid"
-                                      : ""
-                                  }`}
+                                    ? "is-invalid"
+                                    : ""
+                                    }`}
                                 />
                               </Col>
                               <Col sm={4}>
                                 <div className="mb-3">
-                                  <Label
-                                    htmlFor="formFile"
-                                    className="form-label"
-                                  >
-                                    Field project
+                                  <Label htmlFor="fieldProjectFile" className="form-label">
+                                    Field Project File
                                   </Label>
-                                  <Input
-                                    className={`form-control ${
-                                      validation.touched.fieldProject
-                                        ?.fieldProjectFile &&
-                                      validation.errors.fieldProject
-                                        ?.fieldProjectFile
-                                        ? "is-invalid"
-                                        : ""
-                                    }`}
-                                    type="file"
-                                    id="fieldProjectFile"
-                                    innerRef={fieldProjectFileRef}
-                                    onChange={(event) => {
-                                      validation.setFieldValue(
-                                        "fieldProject.fieldProjectFile",
-                                        event.currentTarget.files
-                                          ? event.currentTarget.files[0]
-                                          : null
-                                      );
-                                    }}
-                                  />
-                                  {validation.touched.fieldProject
-                                    ?.fieldProjectFile &&
-                                    validation.errors.fieldProject
-                                      ?.fieldProjectFile && (
-                                      <div className="text-danger">
-                                        {
-                                          validation.errors.fieldProject
-                                            .fieldProjectFile
+                                  {validation.values.fieldProject.fieldProjectFileName ? (
+                                    <div className="d-flex align-items-center gap-2">
+                                      <span>{validation.values.fieldProject.fieldProjectFileName || "No file selected"}</span>
+                                      <Button
+                                        color="link"
+                                        className="text-primary"
+                                        onClick={() =>
+                                          handleDownloadFile(validation.values.fieldProject.fieldProjectFileName || "")
                                         }
-                                      </div>
-                                    )}
-                                </div>
-                              </Col>
-                              <Col sm={4}>
-                                <div className="mb-3">
-                                  <Label
-                                    htmlFor="formFile"
-                                    className="form-label"
-                                  >
-                                    Communication letter
-                                  </Label>
-                                  <Input
-                                    type="file"
-                                    className={`form-control ${
-                                      validation.touched.fieldProject
-                                        ?.communicationLetter &&
-                                      validation.errors.fieldProject
-                                        ?.communicationLetter
+                                        title="Download File"
+                                      >
+                                        <i className="bi bi-download"></i>
+                                      </Button>
+                                      <Button
+                                        color="link"
+                                        className="text-danger"
+                                        onClick={() => {
+                                          handleDeleteFileWithKey(
+                                            "fieldProject",
+                                            "fieldProjectFile",
+                                            "fieldProjectFileName",
+                                            validation.values.fieldProject.fieldProjectFileKey
+                                          );
+                                        }}
+                                        title="Delete File"
+                                      >
+                                        <i className="bi bi-trash"></i>
+                                      </Button>
+                                    </div>
+                                  ) : (
+                                    <Input
+                                      className={`form-control ${validation.touched.fieldProject?.fieldProjectFile &&
+                                        validation.errors.fieldProject?.fieldProjectFile
                                         ? "is-invalid"
                                         : ""
-                                    }`}
-                                    id="communicationLetter"
-                                    innerRef={communicationLetterRef}
-                                    onChange={(event) => {
-                                      validation.setFieldValue(
-                                        "fieldProject.communicationLetter",
-                                        event.currentTarget.files
-                                          ? event.currentTarget.files[0]
-                                          : null
-                                      );
-                                    }}
-                                  />
+                                        }`}
+                                      type="file"
+                                      id="fieldProjectFile"
+                                      disabled={!!validation.values.fieldProject.fieldProjectFile}
+                                      onChange={(event) => {
+                                        const file = event.currentTarget.files?.[0] || null;
+                                        validation.setFieldValue("fieldProject.fieldProjectFile", file);
+                                        validation.setFieldValue("fieldProject.fieldProjectFileName", file ? file.name : "");
+                                        validation.setFieldValue("fieldProject.fieldProjectFileKey", undefined);
+                                      }}
+                                    />
+                                  )}
                                 </div>
                               </Col>
-                            </Row>
-                            <Row>
+
+                              {/* Communication Letter */}
                               <Col sm={4}>
                                 <div className="mb-3">
-                                  <Label
-                                    htmlFor="formFile"
-                                    className="form-label"
-                                  >
-                                    Student xlame Excel sheet
+                                  <Label htmlFor="communicationLetter" className="form-label">
+                                    Communication Letter
                                   </Label>
-                                  <Input
-                                    type="file"
-                                    className={`form-control ${
-                                      validation.touched.fieldProject
-                                        ?.studentExcelSheet &&
-                                      validation.errors.fieldProject
-                                        ?.studentExcelSheet
+                                  {validation.values.fieldProject.communicationLetterFileName ? (
+                                    <div className="d-flex align-items-center gap-2">
+                                      <span>{validation.values.fieldProject.communicationLetterFileName || "No file selected"}</span>
+                                      <Button
+                                        color="link"
+                                        className="text-primary"
+                                        onClick={() =>
+                                          handleDownloadFile(validation.values.fieldProject.communicationLetterFileName || "")
+                                        }
+                                        title="Download File"
+                                      >
+                                        <i className="bi bi-download"></i>
+                                      </Button>
+                                      <Button
+                                        color="link"
+                                        className="text-danger"
+                                        onClick={() => {
+                                          handleDeleteFileWithKey(
+                                            "fieldProject",
+                                            "communicationLetter",
+                                            "communicationLetterFileName",
+                                            validation.values.fieldProject.communicationLetterFileKey
+                                          );
+                                        }}
+                                        title="Delete File"
+                                      >
+                                        <i className="bi bi-trash"></i>
+                                      </Button>
+                                    </div>
+                                  ) : (
+                                    <Input
+                                      className={`form-control ${validation.touched.fieldProject?.communicationLetter &&
+                                        validation.errors.fieldProject?.communicationLetter
                                         ? "is-invalid"
                                         : ""
-                                    }`}
-                                    id="studentExcelSheet"
-                                    innerRef={fieldStudentExcelRef}
-                                    onChange={(event) => {
-                                      validation.setFieldValue(
-                                        "fieldProject.studentExcelSheet",
-                                        event.currentTarget.files
-                                          ? event.currentTarget.files[0]
-                                          : null
-                                      );
-                                    }}
-                                  />
+                                        }`}
+                                      type="file"
+                                      id="communicationLetter"
+                                      disabled={!!validation.values.fieldProject.communicationLetter}
+                                      onChange={(event) => {
+                                        const file = event.currentTarget.files?.[0] || null;
+                                        validation.setFieldValue("fieldProject.communicationLetter", file);
+                                        validation.setFieldValue("fieldProject.communicationLetterFileName", file ? file.name : "");
+                                        validation.setFieldValue("fieldProject.communicationLetterFileKey", undefined);
+                                      }}
+                                    />
+                                  )}
+                                </div>
+                              </Col>
+
+                              {/* Student Excel Sheet */}
+                              <Col sm={4}>
+                                <div className="mb-3">
+                                  <Label htmlFor="studentExcelSheet" className="form-label">
+                                    Student Excel Sheet
+                                  </Label>
+                                  {validation.values.fieldProject.studentExcelSheetFileName ? (
+                                    <div className="d-flex align-items-center gap-2">
+                                      <span>{validation.values.fieldProject.studentExcelSheetFileName || "No file selected"}</span>
+                                      <Button
+                                        color="link"
+                                        className="text-primary"
+                                        onClick={() =>
+                                          handleDownloadFile(validation.values.fieldProject.studentExcelSheetFileName || "")
+                                        }
+                                        title="Download File"
+                                      >
+                                        <i className="bi bi-download"></i>
+                                      </Button>
+                                      <Button
+                                        color="link"
+                                        className="text-danger"
+                                        onClick={() => {
+                                          handleDeleteFileWithKey(
+                                            "fieldProject",
+                                            "studentExcelSheet",
+                                            "studentExcelSheetFileName",
+                                            validation.values.fieldProject.studentExcelSheetFileKey
+                                          );
+                                        }}
+                                        title="Delete File"
+                                      >
+                                        <i className="bi bi-trash"></i>
+                                      </Button>
+                                    </div>
+                                  ) : (
+                                    <Input
+                                      className={`form-control ${validation.touched.fieldProject?.studentExcelSheet &&
+                                        validation.errors.fieldProject?.studentExcelSheet
+                                        ? "is-invalid"
+                                        : ""
+                                        }`}
+                                      type="file"
+                                      id="studentExcelSheet"
+                                      disabled={!!validation.values.fieldProject.studentExcelSheet}
+                                      onChange={(event) => {
+                                        const file = event.currentTarget.files?.[0] || null;
+                                        validation.setFieldValue("fieldProject.studentExcelSheet", file);
+                                        validation.setFieldValue("fieldProject.studentExcelSheetFileName", file ? file.name : "");
+                                        validation.setFieldValue("fieldProject.studentExcelSheetFileKey", undefined);
+                                      }}
+                                    />
+                                  )}
                                 </div>
                               </Col>
                             </Row>
@@ -1549,14 +1785,13 @@ const Experiential_Learning: React.FC = () => {
                                         e.target.value
                                       )
                                     }
-                                    className={`form-control ${
-                                      validation.touched.dissertation
-                                        ?.totalParticipatingStudentsdissertation &&
+                                    className={`form-control ${validation.touched.dissertation
+                                      ?.totalParticipatingStudentsdissertation &&
                                       validation.errors.dissertation
                                         ?.totalParticipatingStudentsdissertation
-                                        ? "is-invalid"
-                                        : ""
-                                    }`}
+                                      ? "is-invalid"
+                                      : ""
+                                      }`}
                                   />
                                 </div>
                               </Col>
@@ -1572,10 +1807,10 @@ const Experiential_Learning: React.FC = () => {
                                       validation.values.dissertation
                                         .dissertationStartDate
                                         ? moment(
-                                            validation.values.dissertation
-                                              .dissertationStartDate,
-                                            "DD/MM/YYYY"
-                                          ).format("YYYY-MM-DD") // Convert to yyyy-mm-dd for the input
+                                          validation.values.dissertation
+                                            .dissertationStartDate,
+                                          "DD/MM/YYYY"
+                                        ).format("YYYY-MM-DD") // Convert to yyyy-mm-dd for the input
                                         : ""
                                     }
                                     onChange={(e) => {
@@ -1588,14 +1823,13 @@ const Experiential_Learning: React.FC = () => {
                                         formattedDate
                                       );
                                     }}
-                                    className={`form-control ${
-                                      validation.touched.dissertation
-                                        ?.dissertationStartDate &&
+                                    className={`form-control ${validation.touched.dissertation
+                                      ?.dissertationStartDate &&
                                       validation.errors.dissertation
                                         ?.dissertationStartDate
-                                        ? "is-invalid"
-                                        : ""
-                                    }`}
+                                      ? "is-invalid"
+                                      : ""
+                                      }`}
                                   />
                                 </div>
                               </Col>
@@ -1611,10 +1845,10 @@ const Experiential_Learning: React.FC = () => {
                                       validation.values.dissertation
                                         .dissertationEndDate
                                         ? moment(
-                                            validation.values.dissertation
-                                              .dissertationEndDate,
-                                            "DD/MM/YYYY"
-                                          ).format("YYYY-MM-DD") // Convert to yyyy-mm-dd for the input
+                                          validation.values.dissertation
+                                            .dissertationEndDate,
+                                          "DD/MM/YYYY"
+                                        ).format("YYYY-MM-DD") // Convert to yyyy-mm-dd for the input
                                         : ""
                                     }
                                     onChange={(e) => {
@@ -1627,14 +1861,13 @@ const Experiential_Learning: React.FC = () => {
                                         formattedDate
                                       );
                                     }}
-                                    className={`form-control ${
-                                      validation.touched.dissertation
-                                        ?.dissertationEndDate &&
+                                    className={`form-control ${validation.touched.dissertation
+                                      ?.dissertationEndDate &&
                                       validation.errors.dissertation
                                         ?.dissertationEndDate
-                                        ? "is-invalid"
-                                        : ""
-                                    }`}
+                                      ? "is-invalid"
+                                      : ""
+                                      }`}
                                   />
                                 </div>
                               </Col>
@@ -1662,113 +1895,121 @@ const Experiential_Learning: React.FC = () => {
                         {activeTab === 5 && (
                           <Form>
                             <Row>
+                              {/* Student Excel Sheet */}
                               <Col sm={4}>
                                 <div className="mb-3">
-                                  <Label
-                                    htmlFor="formFile"
-                                    className="form-label"
-                                  >
-                                    Student Excel sheet
+                                  <Label htmlFor="fellowshipStudentExcelSheet" className="form-label">
+                                    Student Excel Sheet
                                   </Label>
-                                  <Input
-                                    type="file"
-                                    innerRef={studentExcelRef}
-                                    className={`form-control ${
-                                      validation.touched.fellowship
-                                        ?.studentExcelSheet &&
-                                      validation.errors.fellowship
-                                        ?.studentExcelSheet
+                                  {validation.values.fellowship.studentExcelSheetFileName ? (
+                                    <div className="d-flex align-items-center gap-2">
+                                      <span>{validation.values.fellowship.studentExcelSheetFileName || "No file selected"}</span>
+                                      <Button
+                                        color="link"
+                                        className="text-primary"
+                                        onClick={() =>
+                                          handleDownloadFile(validation.values.fellowship.studentExcelSheetFileName || "")
+                                        }
+                                        title="Download File"
+                                      >
+                                        <i className="bi bi-download"></i>
+                                      </Button>
+                                      <Button
+                                        color="link"
+                                        className="text-danger"
+                                        onClick={() => {
+                                          handleDeleteFileWithKey(
+                                            "fellowship",
+                                            "studentExcelSheet",
+                                            "studentExcelSheetFileName",
+                                            validation.values.fellowship.studentExcelSheetFileKey
+                                          );
+                                        }}
+                                        title="Delete File"
+                                      >
+                                        <i className="bi bi-trash"></i>
+                                      </Button>
+                                    </div>
+                                  ) : (
+                                    <Input
+                                      className={`form-control ${validation.touched.fellowship?.studentExcelSheetFileName &&
+                                        validation.errors.fellowship?.studentExcelSheetFileName
                                         ? "is-invalid"
                                         : ""
-                                    }`}
-                                    id="studentExcelSheet"
-                                    onChange={(event) => {
-                                      validation.setFieldValue(
-                                        "fellowship.studentExcelSheet",
-                                        event.currentTarget.files
-                                          ? event.currentTarget.files[0]
-                                          : null
-                                      );
-                                    }}
-                                  />
-                                  {validation.touched.fellowship
-                                    ?.studentExcelSheet &&
-                                    validation.errors.fellowship
-                                      ?.studentExcelSheet && (
-                                      <div className="text-danger">
-                                        {
-                                          validation.errors.fellowship
-                                            .studentExcelSheet
-                                        }
-                                      </div>
-                                    )}
+                                        }`}
+                                      type="file"
+                                      id="fellowshipStudentExcelSheet"
+                                      disabled={!!validation.values.fellowship.studentExcelSheet}
+                                      onChange={(event) => {
+                                        const file = event.currentTarget.files?.[0] || null;
+                                        validation.setFieldValue("fellowship.studentExcelSheet", file);
+                                        validation.setFieldValue(
+                                          "fellowship.studentExcelSheetFileName",
+                                          file ? file.name : ""
+                                        );
+                                        validation.setFieldValue("fellowship.studentExcelSheetFileKey", undefined);
+                                      }}
+                                    />
+                                  )}
                                 </div>
                               </Col>
+                              {/* Fellowship File */}
                               <Col sm={4}>
                                 <div className="mb-3">
-                                  <Label
-                                    htmlFor="formFile"
-                                    className="form-label"
-                                  >
-                                    Fellowship
+                                  <Label htmlFor="fellowshipFile" className="form-label">
+                                    Fellowship File
                                   </Label>
-                                  <Input
-                                    type="file"
-                                    className={`form-control ${
-                                      validation.touched.fellowship
-                                        ?.fellowshipFile &&
-                                      validation.errors.fellowship
-                                        ?.fellowshipFile
+                                  {validation.values.fellowship.fellowshipFileName ? (
+                                    <div className="d-flex align-items-center gap-2">
+                                      <span>{validation.values.fellowship.fellowshipFileName || "No file selected"}</span>
+                                      <Button
+                                        color="link"
+                                        className="text-primary"
+                                        onClick={() =>
+                                          handleDownloadFile(validation.values.fellowship.fellowshipFileName || "")
+                                        }
+                                        title="Download File"
+                                      >
+                                        <i className="bi bi-download"></i>
+                                      </Button>
+                                      <Button
+                                        color="link"
+                                        className="text-danger"
+                                        onClick={() => {
+                                          handleDeleteFileWithKey(
+                                            "fellowship",
+                                            "fellowshipFile",
+                                            "fellowshipFileName",
+                                            validation.values.fellowship.fellowshipFileKey
+                                          );
+                                        }}
+                                        title="Delete File"
+                                      >
+                                        <i className="bi bi-trash"></i>
+                                      </Button>
+                                    </div>
+                                  ) : (
+                                    <Input
+                                      className={`form-control ${validation.touched.fellowship?.fellowshipFile &&
+                                        validation.errors.fellowship?.fellowshipFile
                                         ? "is-invalid"
                                         : ""
-                                    }`}
-                                    innerRef={fellowshipFileRef}
-                                    id="fellowshipFile"
-                                    onChange={(event) => {
-                                      validation.setFieldValue(
-                                        "fellowship.fellowshipFile",
-                                        event.currentTarget.files
-                                          ? event.currentTarget.files[0]
-                                          : null
-                                      );
-                                    }}
-                                  />
-                                  {validation.touched.fellowship
-                                    ?.fellowshipFile &&
-                                    validation.errors.fellowship
-                                      ?.fellowshipFile && (
-                                      <div className="text-danger">
-                                        {
-                                          validation.errors.fellowship
-                                            .fellowshipFile
-                                        }
-                                      </div>
-                                    )}
+                                        }`}
+                                      type="file"
+                                      id="fellowshipFile"
+                                      disabled={!!validation.values.fellowship.fellowshipFile}
+                                      onChange={(event) => {
+                                        const file = event.currentTarget.files?.[0] || null;
+                                        validation.setFieldValue("fellowship.fellowshipFile", file);
+                                        validation.setFieldValue(
+                                          "fellowship.fellowshipFileName",
+                                          file ? file.name : ""
+                                        );
+                                        validation.setFieldValue("fellowship.fellowshipFileKey", undefined);
+                                      }}
+                                    />
+                                  )}
                                 </div>
-                              </Col>
-                            </Row>
-                            <Row className="mt-3">
-                              <Col className="d-flex justify-content-center">
-                                <button
-                                  type="button"
-                                  className="btn btn-danger"
-                                  onClick={() => {
-                                    validation.setFieldValue("fellowship", {
-                                      studentExcelSheet: null,
-                                      fellowshipFile: null,
-                                    });
-
-                                    // Clear the actual file inputs
-                                    if (fellowshipFileRef.current) {
-                                      fellowshipFileRef.current.value = "";
-                                    }
-                                    if (studentExcelRef.current) {
-                                      studentExcelRef.current.value = "";
-                                    }
-                                  }}
-                                >
-                                  Clear
-                                </button>
                               </Col>
                             </Row>
                           </Form>
@@ -1776,113 +2017,122 @@ const Experiential_Learning: React.FC = () => {
                         {activeTab === 6 && (
                           <Form>
                             <Row>
+                              {/* Student Excel Sheet */}
                               <Col sm={4}>
                                 <div className="mb-3">
-                                  <Label
-                                    htmlFor="formFile"
-                                    className="form-label"
-                                  >
-                                    Student Excel sheet
+                                  <Label htmlFor="bootcampStudentExcelSheet" className="form-label">
+                                    Student Excel Sheet
                                   </Label>
-                                  <Input
-                                    type="file"
-                                    innerRef={bootcampStudentExcelRef}
-                                    className={`form-control ${
-                                      validation.touched.bootcamp
-                                        ?.studentExcelSheet &&
-                                      validation.errors.bootcamp
-                                        ?.studentExcelSheet
+                                  {validation.values.bootcamp.studentExcelSheetFileName ? (
+                                    <div className="d-flex align-items-center gap-2">
+                                      <span>{validation.values.bootcamp.studentExcelSheetFileName || "No file selected"}</span>
+                                      <Button
+                                        color="link"
+                                        className="text-primary"
+                                        onClick={() =>
+                                          handleDownloadFile(validation.values.bootcamp.studentExcelSheetFileName || "")
+                                        }
+                                        title="Download File"
+                                      >
+                                        <i className="bi bi-download"></i>
+                                      </Button>
+                                      <Button
+                                        color="link"
+                                        className="text-danger"
+                                        onClick={() => {
+                                          handleDeleteFileWithKey(
+                                            "bootcamp",
+                                            "studentExcelSheet",
+                                            "studentExcelSheetFileName",
+                                            validation.values.bootcamp.studentExcelSheetFileKey
+                                          );
+                                        }}
+                                        title="Delete File"
+                                      >
+                                        <i className="bi bi-trash"></i>
+                                      </Button>
+                                    </div>
+                                  ) : (
+                                    <Input
+                                      className={`form-control ${validation.touched.bootcamp?.studentExcelSheet &&
+                                        validation.errors.bootcamp?.studentExcelSheet
                                         ? "is-invalid"
                                         : ""
-                                    }`}
-                                    id="studentExcelSheet"
-                                    onChange={(event) => {
-                                      validation.setFieldValue(
-                                        "bootcamp.studentExcelSheet",
-                                        event.currentTarget.files
-                                          ? event.currentTarget.files[0]
-                                          : null
-                                      );
-                                    }}
-                                  />
-
-                                  {validation.touched.bootcamp
-                                    ?.studentExcelSheet &&
-                                    validation.errors.bootcamp
-                                      ?.studentExcelSheet && (
-                                      <div className="text-danger">
-                                        {
-                                          validation.errors.bootcamp
-                                            .studentExcelSheet
-                                        }
-                                      </div>
-                                    )}
+                                        }`}
+                                      type="file"
+                                      id="bootcampStudentExcelSheet"
+                                      disabled={!!validation.values.bootcamp.studentExcelSheet}
+                                      onChange={(event) => {
+                                        const file = event.currentTarget.files?.[0] || null;
+                                        validation.setFieldValue("bootcamp.studentExcelSheet", file);
+                                        validation.setFieldValue(
+                                          "bootcamp.studentExcelSheetFileName",
+                                          file ? file.name : ""
+                                        );
+                                        validation.setFieldValue("bootcamp.studentExcelSheetFileKey", undefined);
+                                      }}
+                                    />
+                                  )}
                                 </div>
                               </Col>
+                              {/* Bootcamp File */}
                               <Col sm={4}>
                                 <div className="mb-3">
-                                  <Label
-                                    htmlFor="formFile"
-                                    className="form-label"
-                                  >
-                                    Bootcamp
+                                  <Label htmlFor="bootcampFile" className="form-label">
+                                    Bootcamp File
                                   </Label>
-                                  <Input
-                                    type="file"
-                                    innerRef={bootcampFileRef}
-                                    className={`form-control ${
-                                      validation.touched.bootcamp
-                                        ?.bootcampFile &&
-                                      validation.errors.bootcamp?.bootcampFile
+                                  {validation.values.bootcamp.bootcampFileName ? (
+                                    <div className="d-flex align-items-center gap-2">
+                                      <span>{validation.values.bootcamp.bootcampFileName || "No file selected"}</span>
+                                      <Button
+                                        color="link"
+                                        className="text-primary"
+                                        onClick={() =>
+                                          handleDownloadFile(validation.values.bootcamp.bootcampFileName || "")
+                                        }
+                                        title="Download File"
+                                      >
+                                        <i className="bi bi-download"></i>
+                                      </Button>
+                                      <Button
+                                        color="link"
+                                        className="text-danger"
+                                        onClick={() => {
+                                          const fileKey = validation.values.bootcamp.bootcampFile;
+                                          handleDeleteFileWithKey(
+                                            "bootcamp",
+                                            "bootcampFile",
+                                            "bootcampFileName",
+                                            validation.values.bootcamp.bootcampFileKey
+                                          );
+                                        }}
+                                        title="Delete File"
+                                      >
+                                        <i className="bi bi-trash"></i>
+                                      </Button>
+                                    </div>
+                                  ) : (
+                                    <Input
+                                      className={`form-control ${validation.touched.bootcamp?.bootcampFile &&
+                                        validation.errors.bootcamp?.bootcampFile
                                         ? "is-invalid"
                                         : ""
-                                    }`}
-                                    id="bootcampFile"
-                                    onChange={(event) => {
-                                      validation.setFieldValue(
-                                        "bootcamp.bootcampFile",
-                                        event.currentTarget.files
-                                          ? event.currentTarget.files[0]
-                                          : null
-                                      );
-                                    }}
-                                  />
-                                  {validation.touched.bootcamp?.bootcampFile &&
-                                    validation.errors.bootcamp
-                                      ?.bootcampFile && (
-                                      <div className="text-danger">
-                                        {
-                                          validation.errors.bootcamp
-                                            .bootcampFile
-                                        }
-                                      </div>
-                                    )}
+                                        }`}
+                                      type="file"
+                                      id="bootcampFile"
+                                      disabled={!!validation.values.bootcamp.bootcampFile}
+                                      onChange={(event) => {
+                                        const file = event.currentTarget.files?.[0] || null;
+                                        validation.setFieldValue("bootcamp.bootcampFile", file);
+                                        validation.setFieldValue(
+                                          "bootcamp.bootcampFileName",
+                                          file ? file.name : ""
+                                        );
+                                        validation.setFieldValue("bootcamp.bootcampFileKey", undefined);
+                                      }}
+                                    />
+                                  )}
                                 </div>
-                              </Col>
-                            </Row>
-                            <Row className="mt-3">
-                              <Col className="d-flex justify-content-center">
-                                <button
-                                  type="button"
-                                  className="btn btn-danger"
-                                  onClick={() => {
-                                    validation.setFieldValue("bootcamp", {
-                                      studentExcelSheet: null,
-                                      bootcampFile: null,
-                                    });
-
-                                    // Clear actual file input values
-                                    if (bootcampStudentExcelRef.current) {
-                                      bootcampStudentExcelRef.current.value =
-                                        "";
-                                    }
-                                    if (bootcampFileRef.current) {
-                                      bootcampFileRef.current.value = "";
-                                    }
-                                  }}
-                                >
-                                  Clear
-                                </button>
                               </Col>
                             </Row>
                           </Form>
@@ -1954,8 +2204,8 @@ const Experiential_Learning: React.FC = () => {
                     <Input
                       type="text"
                       placeholder="Filter"
-                      value={filters.semesterType}
-                      onChange={(e) => handleFilterChange(e, "semesterType")}
+                      value={filters.semType}
+                      onChange={(e) => handleFilterChange(e, "semType")}
                     />
                   </th>
                   <th>
@@ -1963,8 +2213,8 @@ const Experiential_Learning: React.FC = () => {
                     <Input
                       type="text"
                       placeholder="Filter"
-                      value={filters.semesterNo}
-                      onChange={(e) => handleFilterChange(e, "semesterNo")}
+                      value={filters.semNumber}
+                      onChange={(e) => handleFilterChange(e, "semNumber")}
                     />
                   </th>
                   <th>
@@ -1995,62 +2245,61 @@ const Experiential_Learning: React.FC = () => {
                     />
                   </th>
                   <th>
-                    Program
+                    Degree
                     <Input
                       type="text"
-                      placeholder="Filter"
-                      value={filters.program}
-                      onChange={(e) => handleFilterChange(e, "program")}
+                      placeholder="Degree"
+                      value={filters.degree}
+                      onChange={(e) => handleFilterChange(e, "degree")}
                     />
                   </th>
                   <th>
-                    Year of Introduction
+                    Program Title
                     <Input
                       type="text"
-                      placeholder="Filter"
-                      value={filters.yearOfIntroduction}
-                      onChange={(e) =>
-                        handleFilterChange(e, "yearOfIntroduction")
-                      }
+                      placeholder="Program Title"
+                      value={filters.programTitle}
+                      onChange={(e) => handleFilterChange(e, "programTitle")}
                     />
                   </th>
                   <th>
-                    Percentage
+                    Course Title
                     <Input
                       type="text"
-                      placeholder="Filter"
-                      value={filters.percentage}
-                      onChange={(e) => handleFilterChange(e, "percentage")}
+                      placeholder="CourseTitle"
+                      value={filters.courseTitle}
+                      onChange={(e) => handleFilterChange(e, "courseTitle")}
                     />
                   </th>
+
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {currentRows.length > 0 ? (
-                  currentRows.map((bos, index) => (
-                    <tr key={bos.id}>
+                  currentRows.map((el, index) => (
+                    <tr key={el.id}>
                       <td>{indexOfFirstRow + index + 1}</td>
-                      <td>{bos.academicYear}</td>
-                      <td>{bos.semType}</td>
-                      <td>{bos.semesterNo}</td>
-                      <td>{bos.streamName}</td>
-                      <td>{bos.departmentName}</td>
-                      <td>{bos.programTypeName}</td>
-                      <td>{bos.programName}</td>
-                      <td>{bos.yearOfIntroduction}</td>
-                      <td>{bos.percentage}</td>
+                      <td>{el.academicYear}</td>
+                      <td>{el.semType}</td>
+                      <td>{el.semNumber}</td>
+                      <td>{el.streamName}</td>
+                      <td>{el.departmentName}</td>
+                      <td>{el.programTypeName}</td>
+                      <td>{el.programName}</td>
+                      <td>{el.programTitle}</td>
+                      <td>{el.courseTitle}</td>
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
                             className="btn btn-sm btn-warning"
-                            onClick={() => handleEdit(bos.id)}
+                            onClick={() => handleEdit(el.id)}
                           >
                             Edit
                           </button>
                           <button
                             className="btn btn-sm btn-danger"
-                            onClick={() => handleDelete(bos.id)}
+                            onClick={() => handleDelete(el.id)}
                           >
                             Delete
                           </button>
@@ -2061,7 +2310,7 @@ const Experiential_Learning: React.FC = () => {
                 ) : (
                   <tr>
                     <td colSpan={11} className="text-center">
-                      No BOS data available.
+                      No EL data available.
                     </td>
                   </tr>
                 )}
