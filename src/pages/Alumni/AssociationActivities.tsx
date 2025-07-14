@@ -391,7 +391,7 @@ const AssociationActivites: React.FC = () => {
           });
 
         toast.success(
-          response.message || "Curriculum Alumini updated successfully!"
+          response.message || "Alumini updated successfully!"
         );
 
         fetchAssociationData();
