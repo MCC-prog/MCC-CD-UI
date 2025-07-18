@@ -1,92 +1,59 @@
 import Breadcrumb from "Components/Common/Breadcrumb";
-import AcademicYearDropdown from "Components/DropDowns/AcademicYearDropdown";
-import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
-import StreamDropdown from "Components/DropDowns/StreamDropdown";
-import { ToastContainer } from "react-toastify";
 import { useFormik } from "formik";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
+import Select from "react-select";
+import * as Yup from "yup";
+import { Card, CardBody, Col, Container, Input, Label, Row } from "reactstrap";
+import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
+import AcademicYearDropdown from "Components/DropDowns/AcademicYearDropdown";
+import StreamDropdown from "Components/DropDowns/StreamDropdown";
+import { APIClient } from "../../helpers/api_helper";
 import {
   Button,
-  Card,
-  CardBody,
-  Col,
-  Container,
-  Input,
-  Label,
   Modal,
   ModalBody,
   ModalFooter,
   ModalHeader,
-  Row,
   Table,
 } from "reactstrap";
-import * as Yup from "yup";
-import { APIClient } from "../../helpers/api_helper";
+
 import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import { SEMESTER_NO_OPTIONS } from "../../Components/constants/layout";
+import { ToastContainer } from "react-toastify";
 import axios from "axios";
 import moment from "moment";
-
 const api = new APIClient();
 
-const NationalInternationalDays: React.FC = () => {
-  // State variables for managing modal, edit mode, and delete confirmation
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [editId, setEditId] = useState<string | null>(null);
-  // State variable for managing delete confirmation modal
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [deleteId, setDeleteId] = useState<string | null>(null);
-  // State variable for managing file upload status
-  const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
-  // State variable for managing the modal for listing National International Days
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  // State variable for managing the list of National International Days data
-  const [activityData, setActivityData] = useState<any[]>([]);
-  // State variables for managing selected options in dropdowns
+const Softwares: React.FC = () => {
   const [selectedStream, setSelectedStream] = useState<any>(null);
   const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
-  const [selectedProgramType, setSelectedProgramType] = useState<any>(null);
-  const [selectedDegree, setSelectedDegree] = useState<any>(null);
-  // State variable for managing search term and pagination
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [softwareData, setSoftwareData] = useState<any[]>([]);
+  const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
-  // State variable for managing filters
+  const [filteredData, setFilteredData] = useState(softwareData);
   const [filters, setFilters] = useState({
     academicYear: "",
-    semesterNo: "",
     stream: "",
     department: "",
-    association: "",
-    objective: null as { value: string; label: string } | null,
-
+    nameOfSoftware: "",
+    noOfLicenses: "",
+    file: null as string | null,
   });
-  const [filteredData, setFilteredData] = useState(activityData);
+
   const fileRef = useRef<HTMLInputElement | null>(null);
-  const [associationOptions, setAssociationOptions] = useState<{ value: string; label: string }[]>([]);
-  useEffect(() => {
-    const fetchAssociations = async () => {
-      try {
-        const response = await api.get("/getAllAssociation", "");
-        const options = response.map((a: any) => ({
-          value: String(a.associationId),
-          label: a.name,
-        }));
-        setAssociationOptions(options);
-      } catch (error) {
-        console.error("Error fetching associations:", error);
-      }
-    };
-    fetchAssociations();
-  }, []);
 
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
 
-    const filtered = activityData.filter((row) =>
+    const filtered = softwareData.filter((row) =>
       Object.values(row).some((val) =>
         String(val || "")
           .toLowerCase()
@@ -105,7 +72,7 @@ const NationalInternationalDays: React.FC = () => {
     const updatedFilters = { ...filters, [column]: value };
     setFilters(updatedFilters);
 
-    const filtered = activityData.filter((row) =>
+    const filtered = softwareData.filter((row) =>
       Object.values(row).some((val) =>
         String(val || "")
           .toLowerCase()
@@ -128,26 +95,25 @@ const NationalInternationalDays: React.FC = () => {
   // Calculate total pages
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
-  // Toggle the modal for listing National International Days
+  // Toggle the modal for listing BOS
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };
 
-  // Fetch National International Days data from the backend
-  const fetchActivitiesData = async () => {
+  // Fetch BOS data from the backend
+  const fetchSoftwareData = async () => {
     try {
-      const response = await api.get("/institutionalValues/getAllInstitutionalValues?screenType=nationalInterDays", "");
-      setActivityData(response);
+      const response = await api.get("/infrastructureSoftware/getAllSoftware", "");
+      setSoftwareData(response);
       setFilteredData(response);
     } catch (error) {
-      console.error("Error fetching National International Days data:", error);
+      console.error("Error fetching Software data:", error);
     }
   };
 
-  // Open the modal and fetch data
-  const handleListActivityClick = () => {
+  const handleListSoftwaresClick = () => {
     toggleModal();
-    fetchActivitiesData();
+    fetchSoftwareData();
   };
 
   // Map value to label for dropdowns
@@ -161,10 +127,10 @@ const NationalInternationalDays: React.FC = () => {
   };
 
   // Handle edit action
-  // Fetch the data for the selected National International Days ID and populate the form fields
+  // Fetch the data for the selected new Courses Introduced ID and populate the form fields
   const handleEdit = async (id: string) => {
     try {
-      const response = await api.get(`/institutionalValues?institutionalValuesId=${id}&screenType=nationalInterDays`, "");
+      const response = await api.get(`/infrastructureSoftware/getSoftwareById?softwareId=${id}`, "");
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
       // Filter the response where isCurrent or isCurrentForAdmission is true
       const filteredAcademicYearList = academicYearOptions.filter(
@@ -176,45 +142,48 @@ const NationalInternationalDays: React.FC = () => {
         label: year.display,
       }));
 
-      const semesterNoOptions = SEMESTER_NO_OPTIONS;
-
       // Map API response to Formik values
       const mappedValues = {
         academicYear: mapValueToLabel(response.academicYear, academicYearList),
-        semesterNo: response.semester
-          ? { value: response.semester.toString(), label: response.semester }
-          : null,
         stream: response.streamId
           ? { value: response.streamId.toString(), label: response.streamName }
           : null,
         department: response.departmentId
           ? {
-            value: response.departmentId.toString(),
-            label: response.departmentName,
-          }
+              value: response.departmentId.toString(),
+              label: response.departmentName,
+            }
           : null,
-        otherDepartment: "",
-        association: response.associationId
-          ? { value: response.associationId.toString(), label: response.associationName }
-          : null,
-        objective: response.eventObjective
-          ? { value: response.eventObjective.toString(), label: response.eventObjective }
-          : null,
-        file: response.file?.Institutional || null,
+        file: response.documents?.Mom || null,
+        nameOfSoftware: response.nameOfSoftware
+          ? response.nameOfSoftware
+          : "",
+        noOfLicenses: response.noOfLicenses
+          ? response.noOfLicenses
+          : "",
       };
-
+      const streamOption = mapValueToLabel(response.streamId, []); // Replace [] with stream options array if available
+      const departmentOption = mapValueToLabel(response.departmentId, []); // Replace [] with department options array if available
       // Update Formik values
       validation.setValues({
         ...mappedValues,
+        file: response.documents?.Mom || null,
         academicYear: mappedValues.academicYear
-          ? { ...mappedValues.academicYear, value: String(mappedValues.academicYear.value) }
-          : null
+          ? {
+              ...mappedValues.academicYear,
+              value: String(mappedValues.academicYear.value),
+            }
+          : null,
       });
+      setSelectedStream(streamOption);
+      setSelectedDepartment(departmentOption);
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
+      // Disable the file upload button if a file exists
+      setIsFileUploadDisabled(!!response.documents?.software);
       toggleModal();
     } catch (error) {
-      console.error("Error fetching National International Days data by ID:", error);
+      console.error("Error fetching New Courses Introduced data by ID:", error);
     }
   };
 
@@ -226,18 +195,21 @@ const NationalInternationalDays: React.FC = () => {
   };
 
   // Confirm deletion of the record
-  // Call the delete API and refresh the National International Days data
+  // Call the delete API and refresh the BOS data
   const confirmDelete = async (id: string) => {
     if (deleteId) {
       try {
-        const response = await api.delete(`/institutionalValues/deleteInstitutionalValues?institutionalValuesId=${id}`, "");
-        toast.success(
-          response.message || "National International Days removed successfully!"
+        const response = await api.delete(
+          `/infrastructureSoftware/deleteSoftware?softwareId=${id}`,
+          ""
         );
-        fetchActivitiesData();
+        toast.success(
+          response.message || " Software removed successfully!"
+        );
+        fetchSoftwareData();
       } catch (error) {
-        toast.error("Failed to remove National International Days. Please try again.");
-        console.error("Error deleting National International Days:", error);
+        toast.error("Failed to remove  Software. Please try again.");
+        console.error("Error deleting Software:", error);
       } finally {
         setIsDeleteModalOpen(false);
         setDeleteId(null);
@@ -250,7 +222,7 @@ const NationalInternationalDays: React.FC = () => {
     if (fileName) {
       try {
         // Ensure you set responseType to 'blob' to handle binary data
-        const response = await axios.get(`/institutionalValues/download/${fileName}`, {
+        const response = await axios.get(`/infrastructureSoftware/download/${fileName}`, {
           responseType: "blob",
         });
 
@@ -273,7 +245,7 @@ const NationalInternationalDays: React.FC = () => {
 
         toast.success("File downloaded successfully!");
       } catch (error) {
-        toast.error("Failed to download National International Days file. Please try again.");
+        toast.error("Failed to download MOM file. Please try again.");
         console.error("Error downloading file:", error);
       }
     } else {
@@ -283,65 +255,46 @@ const NationalInternationalDays: React.FC = () => {
 
   // Handle file deletion
   // Clear the file from the form and show success message
-  const handleDeleteFile = async (fileName: string) => {
-    try {
-      // Call the delete API
-      const response = await api.delete(
-        `/institutionalValues/deleteInstitutionalValuesDocument?fileName=${fileName}`,
-        ""
-      );
-      // Show success message
-      toast.success(response.message || "File deleted successfully!");
-      // Remove the file from the form
-      validation.setFieldValue("file", null); // Clear the file from Formik state
-      setIsFileUploadDisabled(false); // Enable the file upload button
-    } catch (error) {
-      // Show error message
-      toast.error("Failed to delete the file. Please try again.");
-      console.error("Error deleting file:", error);
-    }
-  };
+   const handleDeleteFile = async () => {
+      try {
+        // Call the delete API
+        const response = await api.delete(
+          `/infrastructureSoftware/deleteSoftwareDocument?softwareDocumentId=${editId}`,
+          ""
+        );
+        // Show success message
+        toast.success(response.message || "File deleted successfully!");
+        // Remove the file from the form
+        validation.setFieldValue("file", null); // Clear the file from Formik state
+        setIsFileUploadDisabled(false); // Enable the file upload button
+      } catch (error) {
+        // Show error message
+        toast.error("Failed to delete the file. Please try again.");
+        console.error("Error deleting file:", error);
+      }
+    };
+  
 
-  // Formik validation and submission
-  // Initialize Formik with validation schema and initial values
   const validation = useFormik({
     initialValues: {
       academicYear: null as { value: string; label: string } | null,
-      semesterNo: null as { value: string; label: string } | null,
       stream: null as { value: string; label: string } | null,
       department: null as { value: string; label: string } | null,
-      otherDepartment: "",
+      nameOfSoftware: "",
+      noOfLicenses: "",
       file: null as File | string | null,
-      objective: null as { value: string; label: string } | null,
-      association: null as { value: string; label: string } | null,
     },
     validationSchema: Yup.object({
-      academicYear: Yup.object<{ value: string; label: string }>()
+      academicYear: Yup.object()
         .nullable()
         .required("Please select academic year"),
-      semesterNo: Yup.object<{ value: string; label: string }>()
-        .nullable()
-        .required("Please select a semesterNo number"),
-      stream: Yup.object<{ value: string; label: string }>()
-        .nullable()
-        .required("Please select school"),
+      stream: Yup.object().nullable().required("Please select stream"),
       department: Yup.object<{ value: string; label: string }>()
         .nullable()
         .required("Please select department"),
-      otherDepartment: Yup.string().when(
-        "department",
-        (department: any, schema) => {
-          return department?.value === "Others"
-            ? schema.required("Please specify the department")
-            : schema;
-        }
-      ),
-      objective: Yup.object<{ value: string; label: string }>()
-        .nullable()
-        .required("Please select objective of the event"),
-      association: Yup.object<{ value: string; label: string }>()
-        .nullable()
-        .required("Please select an association"),
+      nameOfSoftware: Yup.string().required("Please enter name of software"),
+      noOfLicenses: Yup.number().required("Please enter number of licenses"),
+
       file: Yup.mixed().test(
         "fileValidation",
         "Please upload a valid file",
@@ -365,66 +318,68 @@ const NationalInternationalDays: React.FC = () => {
           }
           return true;
         }
-      )
+      ),
     }),
     onSubmit: async (values, { resetForm }) => {
       // Create FormData object
       const formData = new FormData();
 
       // Append fields to FormData
-      formData.append("id", editId || "");
-      formData.append("screenType", "nationalInterDays");
-      formData.append("academicYear", values.academicYear?.value || "");
-      formData.append("departmentId", values.department?.value || "");
-      formData.append("semester", String(values.semesterNo?.value || ""));
-      formData.append("streamId", values.stream?.value || "");
-      formData.append("otherDepartment", values.otherDepartment || "");
-      formData.append("eventObjective", values.objective?.value || "");
-      formData.append("associationId", values.association?.value || "");
+      formData.append("academicYear", String(values.academicYear?.value || ""));
+      formData.append("departmentId", String(values.department?.value || ""));
+      formData.append("streamId", String(values.stream?.value || ""));
+      formData.append("nameOfSoftware", values.nameOfSoftware);
+      formData.append("noOfLicenses", String(values.noOfLicenses || ""));
+      formData.append("softwareId", String(editId || ""));
 
       if (isEditMode && typeof values.file === "string") {
-        formData.append(
-          "institutional",
-          new Blob([], { type: "application/pdf" }),
-          "empty.pdf"
-        );
+        // Pass an empty Blob instead of null
+        formData.append("file", new Blob([]), "empty.pdf");
       } else if (isEditMode && values.file === null) {
-        formData.append(
-          "institutional",
-          new Blob([], { type: "application/pdf" }),
-          "empty.pdf"
-        );
+        formData.append("file", new Blob([]), "empty.pdf");
       } else if (values.file) {
-        formData.append("institutional", values.file);
+        formData.append("file", values.file);
       }
+
+// If editing, include ID
+      if (isEditMode && editId) {
+        formData.append("softwareId", editId);
+      }
+
       try {
-        const response = isEditMode && editId
-          ? await api.put(`/institutionalValues`, formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data'
-            }
-          })
-          : await api.create(`/institutionalValues`, formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data'
-            }
-          });
-        toast.success(
-          response.message || "National International Days updated successfully!"
-        );
+        if (isEditMode && editId) {
+          // Call the update API
+          const response = await api.put(
+            `/infrastructureSoftware/update`,
+            formData
+          );
+          toast.success(
+            response.message || "Software updated successfully!"
+          );
+        } else {
+          // Call the save API
+          const response = await api.create(
+            "/infrastructureSoftware/save",
+            formData
+          );
+          toast.success(
+            response.message || "New Software added successfully!"
+          );
+        }
         // Reset the form fields
-        resetForm();
-        if (fileRef.current) {
+            resetForm();
+          if (fileRef.current) {
           fileRef.current.value = "";
         }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
-        // display the National International Days List
-        handleListActivityClick();
+        setIsFileUploadDisabled(false);
+        // display the New Software List
+        handleListSoftwaresClick();
       } catch (error) {
         // Display error message
-        toast.error("Failed to save National International Days. Please try again.");
-        console.error("Error creating National International Days:", error);
+        toast.error("Failed to save New Software. Please try again.");
+        console.error("Error creating New Software:", error);
       }
     },
   });
@@ -433,7 +388,10 @@ const NationalInternationalDays: React.FC = () => {
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <Breadcrumb title="Institutional Values" breadcrumbItem="Commomoration of Major National International Days" />
+          <Breadcrumb
+            title="Infrastructure"
+            breadcrumbItem="Software"
+          />
           <Card>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
@@ -463,34 +421,6 @@ const NationalInternationalDays: React.FC = () => {
                         )}
                     </div>
                   </Col>
-                  {/* Semester Dropdowns */}
-                  <Col lg={4}>
-                    <div className="mb-3">
-                      <Label>Semester</Label>
-                      <Input
-                        type="select"
-                        name="semesterNo"
-                        value={validation.values.semesterNo?.value || ""}
-                        onChange={e => {
-                          const val = e.target.value;
-                          const selected = val
-                            ? { value: val, label: `Semester ${val}` }
-                            : null;
-                          validation.setFieldValue("semesterNo", selected);
-                        }}
-                        className={validation.touched.semesterNo && validation.errors.semesterNo ? "is-invalid" : ""}
-                      >
-                        <option value="">Select Semester</option>
-                        {[...Array(8)].map((_, i) => (
-                          <option key={i + 1} value={i + 1}>{i + 1}</option>
-                        ))}
-                      </Input>
-                      {validation.touched.semesterNo && validation.errors.semesterNo && (
-                        <div className="text-danger">{validation.errors.semesterNo}</div>
-                      )}
-                    </div>
-                  </Col>
-                  {/* Stream Dropdown */}
                   <Col lg={4}>
                     <div className="mb-3">
                       <Label>School</Label>
@@ -528,9 +458,6 @@ const NationalInternationalDays: React.FC = () => {
                             "department",
                             selectedOption
                           );
-                          setSelectedDepartment(selectedOption);
-                          validation.setFieldValue("programType", null);
-                          setSelectedProgramType(null);
                         }}
                         isInvalid={
                           validation.touched.department &&
@@ -545,105 +472,22 @@ const NationalInternationalDays: React.FC = () => {
                         )}
                     </div>
                   </Col>
-                  {validation.values.department?.value === "Others" && (
-                    <Col lg={4}>
-                      <div className="mb-3">
-                        <Label>Specify Department</Label>
-                        <Input
-                          type="text"
-                          className={`form-control ${validation.touched.otherDepartment &&
-                            validation.errors.otherDepartment
-                            ? "is-invalid"
-                            : ""
-                            }`}
-                          value={validation.values.otherDepartment}
-                          onChange={(e) =>
-                            validation.setFieldValue(
-                              "otherDepartment",
-                              e.target.value
-                            )
-                          }
-                          placeholder="Enter Department Name"
-                        />
-                        {validation.touched.otherDepartment &&
-                          validation.errors.otherDepartment && (
-                            <div className="text-danger">
-                              {validation.errors.otherDepartment}
-                            </div>
-                          )}
-                      </div>
-                    </Col>
-                  )}
-                  <Col lg={4}>
-                    <div className="mb-3">
-                      <Label>Association</Label>
-                      <Input
-                        type="select"
-                        name="association"
-                        value={validation.values.association?.value || ""}
-                        onChange={e => {
-                          const selected = associationOptions.find(opt => opt.value === e.target.value) || null;
-                          validation.setFieldValue("association", selected);
-                        }}
-                        className={validation.touched.association && validation.errors.association ? "is-invalid" : ""}
-                      >
-                        <option value="">Select Association</option>
-                        {associationOptions.map(opt => (
-                          <option key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </option>
-                        ))}
-                      </Input>
-                      {validation.touched.association && validation.errors.association && (
-                        <div className="text-danger">{validation.errors.association}</div>
-                      )}
-                    </div>
-                  </Col>
-                  <Col sm={4}>
-                    <div className="mb-3">
-                      <Label htmlFor="objective of the event" className="form-label">
-                        Objective of the event
-                      </Label>
-                      <Input
-                        type="select"
-                        name="objective"
-                        id="objective of the event"
-                        value={validation.values.objective?.value || ""}
-                        onChange={e => {
-                          const val = e.target.value;
-                          const selected = val
-                            ? { value: val, label: val }
-                            : null;
-                          validation.setFieldValue("objective", selected);
-                        }}
-                        className={validation.touched.objective && validation.errors?.objective ? "is-invalid" : ""}
-                      >
-                        <option value="">Select objective of the event</option>
-                        <option value="Universal Values of peace">Universal Values of peace</option>
-                        <option value="Truth and harmony">Truth and harmony</option>
-                        <option value="Gender sensitization and equity">Gender sensitization and equity</option>
-                        <option value="Constitutional values">Constitutional values</option>
-                        <option value="Commemoration of National and international days">Commemoration of National and international days </option>
-                        <option value="Wellness and health">Wellness and health</option>
-                      </Input>
-                      {validation.touched.objective && validation.errors?.objective && (
-                        <div className="text-danger">{validation.errors.objective}</div>
-                      )}
-                    </div>
-                  </Col>
+                  
+                 
+
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
-                        Upload file
+                        Upload File
                       </Label>
                       <Input
-                        className={`form-control ${validation.touched.file && validation.errors.file
-                          ? "is-invalid"
-                          : ""
-                          }`}
+                        className={`form-control ${
+                          validation.touched.file && validation.errors.file
+                            ? "is-invalid"
+                            : ""
+                        }`}
                         type="file"
-                        id="formFile"
-                        innerRef={fileRef}
+                        id="software"
                         onChange={(event) => {
                           validation.setFieldValue(
                             "file",
@@ -652,7 +496,6 @@ const NationalInternationalDays: React.FC = () => {
                               : null
                           );
                         }}
-                        disabled={!!(typeof validation.values.file === "string" && validation.values.file)} // Disable if file name exists
                       />
                       {validation.touched.file && validation.errors.file && (
                         <div className="text-danger">
@@ -660,13 +503,13 @@ const NationalInternationalDays: React.FC = () => {
                         </div>
                       )}
                       {/* Show a message if the file upload button is disabled */}
-                      {typeof validation.values.file === "string" && validation.values.file && (
+                      {isFileUploadDisabled && (
                         <div className="text-warning mt-2">
                           Please remove the existing file to upload a new one.
                         </div>
                       )}
                       {/* Only show the file name if it is a string (from the edit API) */}
-                      {typeof validation.values.file === "string" && validation.values.file && (
+                      {typeof validation.values.file === "string" && (
                         <div className="mt-2 d-flex align-items-center">
                           <span
                             className="me-2"
@@ -679,7 +522,9 @@ const NationalInternationalDays: React.FC = () => {
                             className="text-primary"
                             onClick={() =>
                               handleDownloadFile(
-                                validation.values.file as string
+                                validation.values.file
+                                  ? (validation.values.file as string)
+                                  : ""
                               )
                             }
                             title="Download File"
@@ -689,7 +534,7 @@ const NationalInternationalDays: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
-                            onClick={() => handleDeleteFile(validation.values.file as string)}
+                            onClick={() => handleDeleteFile()}
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>
@@ -703,14 +548,16 @@ const NationalInternationalDays: React.FC = () => {
                   <Col lg={12}>
                     <div className="mt-3 d-flex justify-content-between">
                       <button className="btn btn-primary" type="submit">
-                        {isEditMode ? "Update" : "Save"}
+                        {isEditMode
+                          ? "Update "
+                          : "Save "}
                       </button>
                       <button
                         className="btn btn-secondary"
                         type="button"
-                        onClick={handleListActivityClick}
+                        onClick={handleListSoftwaresClick}
                       >
-                        List National International Days
+                        List Softwares
                       </button>
                     </div>
                   </Col>
@@ -719,14 +566,14 @@ const NationalInternationalDays: React.FC = () => {
             </CardBody>
           </Card>
         </Container>
-        {/* Modal for Listing National International Days */}
+        {/* Modal for Listing Softwares */}
         <Modal
           isOpen={isModalOpen}
           toggle={toggleModal}
           size="lg"
           style={{ maxWidth: "100%", width: "auto" }}
         >
-          <ModalHeader toggle={toggleModal}>List National International Days</ModalHeader>
+          <ModalHeader toggle={toggleModal}>List Softwares</ModalHeader>
           <ModalBody>
             {/* Global Search */}
             <div className="mb-3">
@@ -753,16 +600,7 @@ const NationalInternationalDays: React.FC = () => {
                     />
                   </th>
                   <th>
-                    Semester
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.semesterNo}
-                      onChange={(e) => handleFilterChange(e, "semesterNo")}
-                    />
-                  </th>
-                  <th>
-                    School
+                    Stream
                     <Input
                       type="text"
                       placeholder="Filter"
@@ -779,51 +617,50 @@ const NationalInternationalDays: React.FC = () => {
                       onChange={(e) => handleFilterChange(e, "department")}
                     />
                   </th>
+                    <th>
+                        Name of Software
+                        <Input
+                        type="text"
+                        placeholder="Filter"
+                        value={filters.nameOfSoftware}
+                        onChange={(e) =>
+                            handleFilterChange(e, "nameOfSoftware")
+                        }
+                        />
+                  </th>
                   <th>
-                    Association
+                    No of Licenses
                     <Input
                       type="text"
                       placeholder="Filter"
-                      value={filters.association}
-                      onChange={(e) => handleFilterChange(e, "association")}
+                      value={filters.noOfLicenses}
+                      onChange={(e) => handleFilterChange(e, "noOfLicenses")}
                     />
                   </th>
-                  <th>
-                    objective
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.objective?.value || ""}
-                      onChange={(e) => handleFilterChange(e, "objective")}
-                    />
-                  </th>
-
-
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {currentRows.length > 0 ? (
-                  currentRows.map((activity, index) => (
-                    <tr key={activity.id}>
+                  currentRows.map((software, index) => (
+                    <tr key={software.softwareId}>
                       <td>{indexOfFirstRow + index + 1}</td>
-                      <td>{activity.academicYear}</td>
-                      <td>{activity.semester}</td>
-                      <td>{activity.streamName}</td>
-                      <td>{activity.departmentName}</td>
-                      <td>{activity.associationName}</td>
-                      <td>{activity.eventObjective}</td>
+                      <td>{software.academicYear}</td>
+                      <td>{software.streamName}</td>
+                      <td>{software.departmentName}</td>
+                        <td>{software.nameOfSoftware}</td>
+                        <td>{software.noOfLicenses}</td>
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
                             className="btn btn-sm btn-warning"
-                            onClick={() => handleEdit(activity.id)}
+                            onClick={() => handleEdit(software.softwareId)}
                           >
                             Edit
                           </button>
                           <button
                             className="btn btn-sm btn-danger"
-                            onClick={() => handleDelete(activity.id)}
+                            onClick={() => handleDelete(software.softwareId)}
                           >
                             Delete
                           </button>
@@ -834,7 +671,7 @@ const NationalInternationalDays: React.FC = () => {
                 ) : (
                   <tr>
                     <td colSpan={11} className="text-center">
-                      No National International Days data available.
+                      No Software data available.
                     </td>
                   </tr>
                 )}
@@ -892,4 +729,4 @@ const NationalInternationalDays: React.FC = () => {
   );
 };
 
-export default NationalInternationalDays;
+export default Softwares;

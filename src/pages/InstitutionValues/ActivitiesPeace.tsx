@@ -1,14 +1,10 @@
 import Breadcrumb from "Components/Common/Breadcrumb";
 import AcademicYearDropdown from "Components/DropDowns/AcademicYearDropdown";
-import DegreeDropdown from "Components/DropDowns/DegreeDropdown";
 import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
-import ProgramDropdown from "Components/DropDowns/ProgramDropdown";
-import ProgramTypeDropdown from "Components/DropDowns/ProgramTypeDropdown";
-import SemesterDropdowns from "Components/DropDowns/SemesterDropdowns";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { ToastContainer } from "react-toastify";
 import { useFormik } from "formik";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -43,10 +39,10 @@ const ActivitiesPeace: React.FC = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   // State variable for managing file upload status
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
-  // State variable for managing the modal for listing BOS
+  // State variable for managing the modal for listing Activity Peace
   const [isModalOpen, setIsModalOpen] = useState(false);
-  // State variable for managing the list of BOS data
-  const [bosData, setBosData] = useState<any[]>([]);
+  // State variable for managing the list of Activity Peace data
+  const [activityData, setActivityData] = useState<any[]>([]);
   // State variables for managing selected options in dropdowns
   const [selectedStream, setSelectedStream] = useState<any>(null);
   const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
@@ -59,26 +55,38 @@ const ActivitiesPeace: React.FC = () => {
   // State variable for managing filters
   const [filters, setFilters] = useState({
     academicYear: "",
-    semesterType: "",
-    semester: "",
+    semesterNo: "",
     stream: "",
     department: "",
-    programType: "",
-    program: "",
-    yearOfIntroduction: "",
-    percentage: "",
-    
-  });
-  const [filteredData, setFilteredData] = useState(bosData);
+    association: "",
+    objective: null as { value: string; label: string } | null,
 
+  });
+  const [filteredData, setFilteredData] = useState(activityData);
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const [associationOptions, setAssociationOptions] = useState<{ value: string; label: string }[]>([]);
+  useEffect(() => {
+    const fetchAssociations = async () => {
+      try {
+        const response = await api.get("/getAllAssociation", "");
+        const options = response.map((a: any) => ({
+          value: String(a.associationId),
+          label: a.name,
+        }));
+        setAssociationOptions(options);
+      } catch (error) {
+        console.error("Error fetching associations:", error);
+      }
+    };
+    fetchAssociations();
+  }, []);
 
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
 
-    const filtered = bosData.filter((row) =>
+    const filtered = activityData.filter((row) =>
       Object.values(row).some((val) =>
         String(val || "")
           .toLowerCase()
@@ -97,7 +105,7 @@ const ActivitiesPeace: React.FC = () => {
     const updatedFilters = { ...filters, [column]: value };
     setFilters(updatedFilters);
 
-    const filtered = bosData.filter((row) =>
+    const filtered = activityData.filter((row) =>
       Object.values(row).some((val) =>
         String(val || "")
           .toLowerCase()
@@ -120,26 +128,26 @@ const ActivitiesPeace: React.FC = () => {
   // Calculate total pages
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
-  // Toggle the modal for listing BOS
+  // Toggle the modal for listing Activity Peace
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };
 
-  // Fetch BOS data from the backend
-  const fetchBosData = async () => {
+  // Fetch Activity Peace data from the backend
+  const fetchActivitiesData = async () => {
     try {
-      const response = await api.get("/bos/getAllBos", "");
-      setBosData(response);
+      const response = await api.get("/institutionalValues/getAllInstitutionalValues?screenType=institutional", "");
+      setActivityData(response);
       setFilteredData(response);
     } catch (error) {
-      console.error("Error fetching BOS data:", error);
+      console.error("Error fetching Activity Peace data:", error);
     }
   };
 
   // Open the modal and fetch data
-  const handleListBosClick = () => {
+  const handleListActivityClick = () => {
     toggleModal();
-    fetchBosData();
+    fetchActivitiesData();
   };
 
   // Map value to label for dropdowns
@@ -153,10 +161,10 @@ const ActivitiesPeace: React.FC = () => {
   };
 
   // Handle edit action
-  // Fetch the data for the selected BOS ID and populate the form fields
+  // Fetch the data for the selected Activity Peace ID and populate the form fields
   const handleEdit = async (id: string) => {
     try {
-      const response = await api.get(`/bos/edit?bosId=${id}`, "");
+      const response = await api.get(`/institutionalValues?institutionalValuesId=${id}&screenType=institutional`, "");
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
       // Filter the response where isCurrent or isCurrentForAdmission is true
       const filteredAcademicYearList = academicYearOptions.filter(
@@ -173,72 +181,40 @@ const ActivitiesPeace: React.FC = () => {
       // Map API response to Formik values
       const mappedValues = {
         academicYear: mapValueToLabel(response.academicYear, academicYearList),
-        semesterType: response.semType
-          ? { value: response.semType, label: response.semType.toUpperCase() }
+        semesterNo: response.semester
+          ? { value: response.semester.toString(), label: response.semester }
           : null,
-        semesterNo: mapValueToLabel(
-          String(response.semesterNo),
-          semesterNoOptions
-        ) as { value: string; label: string } | null,
         stream: response.streamId
           ? { value: response.streamId.toString(), label: response.streamName }
           : null,
         department: response.departmentId
           ? {
-              value: response.departmentId.toString(),
-              label: response.departmentName,
-            }
+            value: response.departmentId.toString(),
+            label: response.departmentName,
+          }
           : null,
-        programType: response.programTypeId
-          ? {
-              value: response.programTypeId.toString(),
-              label: response.programTypeName,
-            }
+        otherDepartment: "",
+        association: response.associationId
+          ? { value: response.associationId.toString(), label: response.associationName }
           : null,
-        degree: response.programId
-          ? {
-              value: response.programId.toString(),
-              label: response.programName,
-            }
+        objective: response.eventObjective
+          ? { value: response.eventObjective.toString(), label: response.eventObjective }
           : null,
-        program: response.courses
-          ? Object.entries(response.courses).map(([key, value]) => ({
-              value: key,
-              label: String(value),
-            }))
-          : [],
-        revisionPercentage: response.percentage || "",
-        conductedDate: response.yearOfIntroduction
-          ? response.yearOfIntroduction
-          : "",
-        otherDepartment: "", // Add default value for otherDepartment
-        file: response.documents?.mom || null,
+        file: response.file?.Institutional || null,
       };
 
       // Update Formik values
       validation.setValues({
         ...mappedValues,
-        file: response.documents?.mom || null,
         academicYear: mappedValues.academicYear
-          ? {
-              ...mappedValues.academicYear,
-              value: String(mappedValues.academicYear.value),
-            }
-          : null,
-        semesterNo: mappedValues.semesterNo
-          ? {
-              ...mappedValues.semesterNo,
-              value: String(mappedValues.semesterNo.value),
-            }
-          : null,
-        Objective: response.Objective || "",
-        semester: mappedValues.semesterNo && typeof mappedValues.semesterNo === "object" ? mappedValues.semesterNo.value : mappedValues.semesterNo || "", // Ensure 'semesterNo' is included
+          ? { ...mappedValues.academicYear, value: String(mappedValues.academicYear.value) }
+          : null
       });
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();
     } catch (error) {
-      console.error("Error fetching BOS data by ID:", error);
+      console.error("Error fetching Activity Peace data by ID:", error);
     }
   };
 
@@ -250,18 +226,18 @@ const ActivitiesPeace: React.FC = () => {
   };
 
   // Confirm deletion of the record
-  // Call the delete API and refresh the BOS data
+  // Call the delete API and refresh the Activity Peace data
   const confirmDelete = async (id: string) => {
     if (deleteId) {
       try {
-        const response = await api.delete(`/bos/deleteBos?bosId=${id}`, "");
+        const response = await api.delete(`/institutionalValues/deleteInstitutionalValues?institutionalValuesId=${id}`, "");
         toast.success(
-          response.message || "Curriculum BOS removed successfully!"
+          response.message || "Activity Peace removed successfully!"
         );
-        fetchBosData();
+        fetchActivitiesData();
       } catch (error) {
-        toast.error("Failed to remove Curriculum BOS. Please try again.");
-        console.error("Error deleting BOS:", error);
+        toast.error("Failed to remove Activity Peace. Please try again.");
+        console.error("Error deleting Activity Peace:", error);
       } finally {
         setIsDeleteModalOpen(false);
         setDeleteId(null);
@@ -274,7 +250,7 @@ const ActivitiesPeace: React.FC = () => {
     if (fileName) {
       try {
         // Ensure you set responseType to 'blob' to handle binary data
-        const response = await axios.get(`/bos/download/${fileName}`, {
+        const response = await axios.get(`/institutionalValues/download/${fileName}`, {
           responseType: "blob",
         });
 
@@ -297,7 +273,7 @@ const ActivitiesPeace: React.FC = () => {
 
         toast.success("File downloaded successfully!");
       } catch (error) {
-        toast.error("Failed to download MOM file. Please try again.");
+        toast.error("Failed to download Activity Peace file. Please try again.");
         console.error("Error downloading file:", error);
       }
     } else {
@@ -307,11 +283,11 @@ const ActivitiesPeace: React.FC = () => {
 
   // Handle file deletion
   // Clear the file from the form and show success message
-  const handleDeleteFile = async () => {
+  const handleDeleteFile = async (fileName: string) => {
     try {
       // Call the delete API
       const response = await api.delete(
-        `/bos/deleteBosDocument?bosDocumentId=${editId}`,
+        `/institutionalValues/deleteInstitutionalValuesDocument?fileName=${fileName}`,
         ""
       );
       // Show success message
@@ -331,32 +307,21 @@ const ActivitiesPeace: React.FC = () => {
   const validation = useFormik({
     initialValues: {
       academicYear: null as { value: string; label: string } | null,
-      semesterType: null as { value: string; label: string } | null,
       semesterNo: null as { value: string; label: string } | null,
       stream: null as { value: string; label: string } | null,
       department: null as { value: string; label: string } | null,
       otherDepartment: "",
       file: null as File | string | null,
-      programType: null as { value: string; label: string } | null,
-      degree: null as { value: string; label: string } | null,
-      program: [] as { value: string; label: string }[],
-      revisionPercentage: "",
-      conductedDate: "",
-      semester: "",
-      Objective:"",
+      objective: null as { value: string; label: string } | null,
+      association: null as { value: string; label: string } | null,
     },
     validationSchema: Yup.object({
       academicYear: Yup.object<{ value: string; label: string }>()
         .nullable()
         .required("Please select academic year"),
-   
-      semesterType: Yup.object<{ value: string; label: string }>()
-        .nullable()
-        .required("Please select a semester type"), // Single object for single-select
       semesterNo: Yup.object<{ value: string; label: string }>()
         .nullable()
-        .required("Please select a semester number"),
-     semester: Yup.string().required("Please select semester"),
+        .required("Please select a semesterNo number"),
       stream: Yup.object<{ value: string; label: string }>()
         .nullable()
         .required("Please select school"),
@@ -371,10 +336,12 @@ const ActivitiesPeace: React.FC = () => {
             : schema;
         }
       ),
-      Objective: Yup.object<{ value: string; label: string }>()
-      .nullable()
-      .required("Please select objective of the event "),
- 
+      objective: Yup.object<{ value: string; label: string }>()
+        .nullable()
+        .required("Please select objective of the event"),
+      association: Yup.object<{ value: string; label: string }>()
+        .nullable()
+        .required("Please select an association"),
       file: Yup.mixed().test(
         "fileValidation",
         "Please upload a valid file",
@@ -398,74 +365,53 @@ const ActivitiesPeace: React.FC = () => {
           }
           return true;
         }
-      ),
-      programType: Yup.object<{ value: string; label: string }>()
-        .nullable()
-        .required("Please select program type"),
-      degree: Yup.object<{ value: string; label: string }>()
-        .nullable()
-        .required("Please select degree"),
-      program: Yup.array()
-        .min(1, "Please select at least one program")
-        .required("Please select programs"),
-      revisionPercentage: Yup.number()
-        .typeError("Please enter a valid number")
-        .min(0, "Percentage cannot be less than 0")
-        .max(100, "Percentage cannot be more than 100")
-        .required("Please enter revision percentage"),
-      conductedDate: Yup.date().required("Please select conducted date"),
+      )
     }),
     onSubmit: async (values, { resetForm }) => {
       // Create FormData object
       const formData = new FormData();
 
       // Append fields to FormData
+      formData.append("id", editId || "");
+      formData.append("screenType", "institutional");
       formData.append("academicYear", values.academicYear?.value || "");
       formData.append("departmentId", values.department?.value || "");
-      formData.append("yearOfIntroduction", values.conductedDate || "");
-      formData.append("semType", values.semesterType?.value || "");
-      formData.append("semesterNo", String(values.semesterNo?.value || ""));
-      formData.append("programTypeId", values.programType?.value || "");
-      formData.append("percentage", values.revisionPercentage || "");
+      formData.append("semester", String(values.semesterNo?.value || ""));
       formData.append("streamId", values.stream?.value || "");
-      formData.append(
-        "courseIds",
-        values.program.map((option) => option.value).join(",") || ""
-      );
-      formData.append("programId", values.degree?.value || "");
-      formData.append("bosId", editId || "");
       formData.append("otherDepartment", values.otherDepartment || "");
+      formData.append("eventObjective", values.objective?.value || "");
+      formData.append("associationId", values.association?.value || "");
 
       if (isEditMode && typeof values.file === "string") {
         formData.append(
-          "mom",
+          "institutional",
           new Blob([], { type: "application/pdf" }),
           "empty.pdf"
         );
       } else if (isEditMode && values.file === null) {
         formData.append(
-          "mom",
+          "institutional",
           new Blob([], { type: "application/pdf" }),
           "empty.pdf"
         );
       } else if (values.file) {
-        formData.append("mom", values.file);
+        formData.append("institutional", values.file);
       }
-
       try {
-        if (isEditMode && editId) {
-          // Call the update API
-          const response = await api.put(`/bos/updateCurriculumBos`, formData);
-          toast.success(
-            response.message || "Curriculum BOS updated successfully!"
-          );
-        } else {
-          // Call the save API
-          const response = await api.create("/bos/saveCurriculumBos", formData);
-          toast.success(
-            response.message || "Curriculum BOS added successfully!"
-          );
-        }
+        const response = isEditMode && editId
+          ? await api.put(`/institutionalValues`, formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          })
+          : await api.create(`/institutionalValues`, formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          });
+        toast.success(
+          response.message || "Activity Peace updated successfully!"
+        );
         // Reset the form fields
         resetForm();
         if (fileRef.current) {
@@ -473,12 +419,12 @@ const ActivitiesPeace: React.FC = () => {
         }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
-        // display the BOS List
-        handleListBosClick();
+        // display the Activity Peace List
+        handleListActivityClick();
       } catch (error) {
         // Display error message
-        toast.error("Failed to save Curriculum BOS. Please try again.");
-        console.error("Error creating BOS:", error);
+        toast.error("Failed to save Activity Peace. Please try again.");
+        console.error("Error creating Activity Peace:", error);
       }
     },
   });
@@ -487,7 +433,7 @@ const ActivitiesPeace: React.FC = () => {
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <Breadcrumb title="Curricuum" breadcrumbItem="Activities hosted to build universal values of peace, truth & harmony" />
+          <Breadcrumb title="Institutional Values" breadcrumbItem="Activities hosted to build universal values of peace, truth & harmony" />
           <Card>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
@@ -518,28 +464,32 @@ const ActivitiesPeace: React.FC = () => {
                     </div>
                   </Col>
                   {/* Semester Dropdowns */}
-                                  <Col lg={4}>
-                  <div className="mb-3">
-                    <Label>Semester</Label>
-                    <Input
-                      type="select"
-                      name="semester"
-                      value={validation.values.semester || ""}
-                      onChange={e => validation.setFieldValue("semester", e.target.value)}
-                      className={validation.touched.semester && validation.errors.semester ? "is-invalid" : ""}
-                    >
-                      <option value="">Select Semester</option>
-                      {[...Array(8)].map((_, i) => (
-                        <option key={i + 1} value={i + 1}>{i + 1}</option>
-                      ))}
-                    </Input>
-                    {validation.touched.semester && validation.errors.semester && (
-                      <div className="text-danger">{validation.errors.semester}</div>
-                    )}
-                  </div>
-                </Col>
-                
-
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Semester</Label>
+                      <Input
+                        type="select"
+                        name="semesterNo"
+                        value={validation.values.semesterNo?.value || ""}
+                        onChange={e => {
+                          const val = e.target.value;
+                          const selected = val
+                            ? { value: val, label: `Semester ${val}` }
+                            : null;
+                          validation.setFieldValue("semesterNo", selected);
+                        }}
+                        className={validation.touched.semesterNo && validation.errors.semesterNo ? "is-invalid" : ""}
+                      >
+                        <option value="">Select Semester</option>
+                        {[...Array(8)].map((_, i) => (
+                          <option key={i + 1} value={i + 1}>{i + 1}</option>
+                        ))}
+                      </Input>
+                      {validation.touched.semesterNo && validation.errors.semesterNo && (
+                        <div className="text-danger">{validation.errors.semesterNo}</div>
+                      )}
+                    </div>
+                  </Col>
                   {/* Stream Dropdown */}
                   <Col lg={4}>
                     <div className="mb-3">
@@ -601,12 +551,11 @@ const ActivitiesPeace: React.FC = () => {
                         <Label>Specify Department</Label>
                         <Input
                           type="text"
-                          className={`form-control ${
-                            validation.touched.otherDepartment &&
+                          className={`form-control ${validation.touched.otherDepartment &&
                             validation.errors.otherDepartment
-                              ? "is-invalid"
-                              : ""
-                          }`}
+                            ? "is-invalid"
+                            : ""
+                            }`}
                           value={validation.values.otherDepartment}
                           onChange={(e) =>
                             validation.setFieldValue(
@@ -625,44 +574,73 @@ const ActivitiesPeace: React.FC = () => {
                       </div>
                     </Col>
                   )}
-                   <Col sm={4}>
-                                    <div className="mb-3">
-                                        <Label htmlFor="Objective of the event" className="form-label">
-                                        Objective of the event
-                                        </Label>
-                                        <Input
-                                            type="select"
-                                            name="Objective of the event"
-                                            id="Objective of the event"
-                                            value={validation.values.Objective || ""}
-                                            onChange={e => validation.setFieldValue("Objective", e.target.value)}
-                                            className={validation.touched.Objective && validation.errors?.Objective ? "is-invalid" : ""}
-                                        >
-                                            <option value="">Select Objective of the event</option>
-                                            <option value="Universal Values of peace">Universal Values of peace</option>
-                                            <option value="Truth and harmony">Truth and harmony</option>
-                                            <option value="Gender sensitization and equity">Gender sensitization and equity</option>
-                                            <option value="Constitutional values">Constitutional values</option>
-                                            <option value="Commemoration of National and international days">Commemoration of National and international days </option>
-                                            <option value="Wellness and health">Wellness and health</option>
-                                        </Input>
-                                        {validation.touched.Objective && validation.errors?.Objective && (
-                                            <div className="text-danger">{validation.errors.Objective}</div>
-                                        )}
-                                    </div>
-                                </Col> 
-               
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Association</Label>
+                      <Input
+                        type="select"
+                        name="association"
+                        value={validation.values.association?.value || ""}
+                        onChange={e => {
+                          const selected = associationOptions.find(opt => opt.value === e.target.value) || null;
+                          validation.setFieldValue("association", selected);
+                        }}
+                        className={validation.touched.association && validation.errors.association ? "is-invalid" : ""}
+                      >
+                        <option value="">Select Association</option>
+                        {associationOptions.map(opt => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </Input>
+                      {validation.touched.association && validation.errors.association && (
+                        <div className="text-danger">{validation.errors.association}</div>
+                      )}
+                    </div>
+                  </Col>
+                  <Col sm={4}>
+                    <div className="mb-3">
+                      <Label htmlFor="objective of the event" className="form-label">
+                        Objective of the event
+                      </Label>
+                      <Input
+                        type="select"
+                        name="objective"
+                        id="objective of the event"
+                        value={validation.values.objective?.value || ""}
+                        onChange={e => {
+                          const val = e.target.value;
+                          const selected = val
+                            ? { value: val, label: val }
+                            : null;
+                          validation.setFieldValue("objective", selected);
+                        }}
+                        className={validation.touched.objective && validation.errors?.objective ? "is-invalid" : ""}
+                      >
+                        <option value="">Select objective of the event</option>
+                        <option value="Universal Values of peace">Universal Values of peace</option>
+                        <option value="Truth and harmony">Truth and harmony</option>
+                        <option value="Gender sensitization and equity">Gender sensitization and equity</option>
+                        <option value="Constitutional values">Constitutional values</option>
+                        <option value="Commemoration of National and international days">Commemoration of National and international days </option>
+                        <option value="Wellness and health">Wellness and health</option>
+                      </Input>
+                      {validation.touched.objective && validation.errors?.objective && (
+                        <div className="text-danger">{validation.errors.objective}</div>
+                      )}
+                    </div>
+                  </Col>
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
                         Upload file
                       </Label>
                       <Input
-                        className={`form-control ${
-                          validation.touched.file && validation.errors.file
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                        className={`form-control ${validation.touched.file && validation.errors.file
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         type="file"
                         id="formFile"
                         innerRef={fileRef}
@@ -674,7 +652,7 @@ const ActivitiesPeace: React.FC = () => {
                               : null
                           );
                         }}
-                        disabled={isFileUploadDisabled} // Disable the button if a file exists
+                        disabled={!!(typeof validation.values.file === "string" && validation.values.file)} // Disable if file name exists
                       />
                       {validation.touched.file && validation.errors.file && (
                         <div className="text-danger">
@@ -682,13 +660,13 @@ const ActivitiesPeace: React.FC = () => {
                         </div>
                       )}
                       {/* Show a message if the file upload button is disabled */}
-                      {isFileUploadDisabled && (
+                      {typeof validation.values.file === "string" && validation.values.file && (
                         <div className="text-warning mt-2">
                           Please remove the existing file to upload a new one.
                         </div>
                       )}
                       {/* Only show the file name if it is a string (from the edit API) */}
-                      {typeof validation.values.file === "string" && (
+                      {typeof validation.values.file === "string" && validation.values.file && (
                         <div className="mt-2 d-flex align-items-center">
                           <span
                             className="me-2"
@@ -711,7 +689,7 @@ const ActivitiesPeace: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
-                            onClick={() => handleDeleteFile()}
+                            onClick={() => handleDeleteFile(validation.values.file as string)}
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>
@@ -720,7 +698,6 @@ const ActivitiesPeace: React.FC = () => {
                       )}
                     </div>
                   </Col>
-                 
                 </Row>
                 <Row>
                   <Col lg={12}>
@@ -731,7 +708,7 @@ const ActivitiesPeace: React.FC = () => {
                       <button
                         className="btn btn-secondary"
                         type="button"
-                        onClick={handleListBosClick}
+                        onClick={handleListActivityClick}
                       >
                         List Activities
                       </button>
@@ -742,14 +719,14 @@ const ActivitiesPeace: React.FC = () => {
             </CardBody>
           </Card>
         </Container>
-        {/* Modal for Listing BOS */}
+        {/* Modal for Listing Activity Peace */}
         <Modal
           isOpen={isModalOpen}
           toggle={toggleModal}
           size="lg"
           style={{ maxWidth: "100%", width: "auto" }}
         >
-          <ModalHeader toggle={toggleModal}>List BOS</ModalHeader>
+          <ModalHeader toggle={toggleModal}>List Activity Peace</ModalHeader>
           <ModalBody>
             {/* Global Search */}
             <div className="mb-3">
@@ -780,11 +757,19 @@ const ActivitiesPeace: React.FC = () => {
                     <Input
                       type="text"
                       placeholder="Filter"
-                      value={filters.semester}
-                      onChange={(e) => handleFilterChange(e, "semester")}
+                      value={filters.semesterNo}
+                      onChange={(e) => handleFilterChange(e, "semesterNo")}
                     />
                   </th>
-                 
+                  <th>
+                    School
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.stream}
+                      onChange={(e) => handleFilterChange(e, "stream")}
+                    />
+                  </th>
                   <th>
                     Department
                     <Input
@@ -794,30 +779,51 @@ const ActivitiesPeace: React.FC = () => {
                       onChange={(e) => handleFilterChange(e, "department")}
                     />
                   </th>
+                  <th>
+                    Association
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.association}
+                      onChange={(e) => handleFilterChange(e, "association")}
+                    />
+                  </th>
+                  <th>
+                    objective
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.objective?.value || ""}
+                      onChange={(e) => handleFilterChange(e, "objective")}
+                    />
+                  </th>
+
+
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {currentRows.length > 0 ? (
-                  currentRows.map((bos, index) => (
-                    <tr key={bos.bosDataId}>
+                  currentRows.map((activity, index) => (
+                    <tr key={activity.id}>
                       <td>{indexOfFirstRow + index + 1}</td>
-                      <td>{bos.academicYear}</td>
-                      <td>{bos.semester}</td>
-                      <td>{bos.streamName}</td>
-                      <td>{bos.departmentName}</td>
-                     
+                      <td>{activity.academicYear}</td>
+                      <td>{activity.semester}</td>
+                      <td>{activity.streamName}</td>
+                      <td>{activity.departmentName}</td>
+                      <td>{activity.associationName}</td>
+                      <td>{activity.eventObjective}</td>
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
                             className="btn btn-sm btn-warning"
-                            onClick={() => handleEdit(bos.bosDataId)}
+                            onClick={() => handleEdit(activity.id)}
                           >
                             Edit
                           </button>
                           <button
                             className="btn btn-sm btn-danger"
-                            onClick={() => handleDelete(bos.bosDataId)}
+                            onClick={() => handleDelete(activity.id)}
                           >
                             Delete
                           </button>
@@ -828,7 +834,7 @@ const ActivitiesPeace: React.FC = () => {
                 ) : (
                   <tr>
                     <td colSpan={11} className="text-center">
-                      No BOS data available.
+                      No Activity Peace data available.
                     </td>
                   </tr>
                 )}

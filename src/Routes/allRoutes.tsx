@@ -80,10 +80,16 @@ import AssociationActivites from "pages/Alumni/AssociationActivities";
 import Scholarships from "pages/Alumni/Scholarships";
 import FinancialContribution from "pages/Alumni/FinancialContribution";
 import DistinguishedAlumni from "pages/Alumni/DistinguishedAlumni";
-import Databases from "pages/Library/Databases";
-import Research_Journals from "pages/Library/Research_Journals";
-import Books from "pages/Library/Books";
-import Annual_Expenditure from "pages/Library/Annual_Expenditure";
+import Softwares from "pages/Infrastructure/Softwares";
+import Seminar_Halls from "pages/Infrastructure/Seminar_Halls";
+import Amphitheatre from "pages/Infrastructure/Amphitheatre";
+import Board_Rooms from "pages/Infrastructure/Board_Rooms";
+import ComputerLabs_SimulationLab from "pages/Infrastructure/ComputerLabs_SimulationLab";
+import Auditorium from "pages/Infrastructure/Auditorium";
+import PolicyDocument from "pages/Governance/Policy_Document";
+import AAA from "pages/Governance/AAA";
+import GreenAudit from "pages/Governance/Green_Audit";
+import EnergyAudit from "pages/Governance/Energy_Audit";
 
 
 const authProtectedRoutes = [
@@ -253,6 +259,12 @@ const authProtectedRoutes = [
   //_____________Infrastructure_____________//
   { path: "/infrastructure/classroom", component: <ClassRooms/> },
   { path: "/infrastructure/labs", component: <Labs/> },
+  { path: "/infrastructure/softwares", component: <Softwares/> },
+  { path: "/infrastructure/seminarHalls", component: <Seminar_Halls/> },
+  { path: "/infrastructure/amphitheatre", component: <Amphitheatre/> },
+  { path: "/infrastructure/boardRooms", component: <Board_Rooms/> },
+  { path: "/infrastructure/computerLabs", component: <ComputerLabs_SimulationLab/> },
+  { path: "/infrastructure/auditorium", component: <Auditorium/> },
 
     //_______________Institutional Values_________________//
     { path: "/institutionalvalues/activitiesPeace", component: <ActivitiesPeace/> },
@@ -266,13 +278,12 @@ const authProtectedRoutes = [
     { path: "/Alumni/scholarships", component: <Scholarships/> },
     { path: "/Alumni/financialContribution", component: <FinancialContribution/> },
     { path: "/Alumni/distinguishedAlumni", component: <DistinguishedAlumni/> },
-  { path: "/placement/careerFair", component: <CareerFair /> },
 
-  //______________Library_________________//
-  { path: "/Databases", component: <Databases /> },
-  { path: "/Research_Journals", component: <Research_Journals /> },
-  { path: "/Books", component: <Books /> },
-  { path: "/Annual_Expenditure", component: <Annual_Expenditure /> },
+      //_________________GOVERNANCE___________________________//
+    { path: "/governance/policyDocument", component: <PolicyDocument/> },
+    { path: "/governance/aaa", component: <AAA/> },
+    { path: "/governance/greenAudit", component: <GreenAudit/> },
+    { path: "/governance/energyAudit", component: <EnergyAudit/> },
 ];
 
 const publicRoutes = [

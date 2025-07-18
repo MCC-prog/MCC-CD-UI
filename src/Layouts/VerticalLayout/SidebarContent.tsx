@@ -691,21 +691,21 @@ const SidebarContent = (props: any) => {
                   <Link to="/infrastructure/labs">{props.t("2. Labs")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">
+                  <Link to="/infrastructure/computerLabs">
                     {props.t("3. Computer labs / Simulation lab")}
                   </Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("4. Auditorium")}</Link>
+                  <Link to="/infrastructure/auditorium">{props.t("4. Auditorium")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("5. Board rooms")}</Link>
+                  <Link to="/infrastructure/boardRooms">{props.t("5. Board rooms")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("6. Amphitheatre")}</Link>
+                  <Link to="/infrastructure/amphitheatre">{props.t("6. Amphitheatre")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">
+                  <Link to="/infrastructure/seminarHalls">
                     {props.t("7. Seminar halls - infrastructure")}
                   </Link>
                 </li>
@@ -719,16 +719,16 @@ const SidebarContent = (props: any) => {
               </Link>
               <ul className="sub-menu">
                 <li>
-                  <Link to="/#">{props.t("1. Policy document")}</Link>
+                  <Link to="/governance/policyDocument">{props.t("1. Policy document")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("2. AAA")}</Link>
+                  <Link to="/governance/aaa">{props.t("2. AAA")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("3. Green Audit")}</Link>
+                  <Link to="/governance/greenAudit">{props.t("3. Green Audit")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("4. Energy Audit")}</Link>
+                  <Link to="/governance/energyAudit">{props.t("4. Energy Audit")}</Link>
                 </li>
               </ul>
             </li>
