@@ -905,7 +905,6 @@ const Experiential_Learning: React.FC = () => {
         return;
       }
       const formData = new FormData();
-      // Construct dtoPayload object from form values
       const dtoPayload = {
         id: isEditMode && editId ? editId : null,
         academicYear: values.academicYear?.value || "",
@@ -915,18 +914,33 @@ const Experiential_Learning: React.FC = () => {
         departmentId: values.department?.value || "",
         programTypeId: values.programType?.value || "",
         programId: values.degree?.value || "",
-        programTitle: values.programTitle,
+        programName: values.degree?.label || "",
         courseTitle: values.courseTitle,
-        pedagogy: values.pedagogy || null,
+        pedagogy: values.pedagogy?.pedagogyFile
+          ? {
+              addOnFieldId: null, // set default or any value you need here
+              totalInternStudents: null,
+              internOrgName: null,
+              internOrgLocation: null,
+              totalFieldProjectStudents: null,
+              fieldProjectStratDate: null,
+              fieldProjectEndDate: null,
+              fieldProjectOrgName: null,
+              fielsProjectOrgLocation: null,
+              totalDissertationsStudents: null,
+              dissertationsStartDate: null,
+              dissertationsEndDate: null,
+            }
+          : null,
         internship: {
           totalInternStudents:
-            values.internship.totalJoiningStudentsOfIntern || "",
-          internOrgName: values.internship.orgNameOfIntern || "",
-          internOrgLocation: values.internship.locationOfIntern || "",
+            values.internship.totalJoiningStudentsOfIntern || null,
+          internOrgName: values.internship.orgNameOfIntern || null,
+          internOrgLocation: values.internship.locationOfIntern || null,
         },
         fieldProject: {
           totalFieldProjectStudents:
-            values.fieldProject.totalParticipatingStudents || "",
+            values.fieldProject.totalParticipatingStudents || null,
           fieldProjectStratDate: values.fieldProject.fieldProjectStartDate
             ? moment(values.fieldProject.fieldProjectStartDate).format(
               "YYYY-MM-DD"
@@ -938,11 +952,11 @@ const Experiential_Learning: React.FC = () => {
             )
             : null,
           fielsProjectOrgLocation:
-            values.fieldProject.locationOfOrganisation || "",
+            values.fieldProject.locationOfOrganisation || null,
         },
         dissertation: {
           totalDissertationsStudents:
-            values.dissertation.totalParticipatingStudentsdissertation || "",
+            values.dissertation.totalParticipatingStudentsdissertation || null,
           dissertationsStartDate: values.dissertation.dissertationStartDate
             ? moment(values.dissertation.dissertationStartDate).format(
               "YYYY-MM-DD"

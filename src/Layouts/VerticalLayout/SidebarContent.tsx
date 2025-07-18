@@ -548,20 +548,20 @@ const SidebarContent = (props: any) => {
               </Link>
               <ul className="sub-menu">
                 <li>
-                  <Link to="/#">
+                  <Link to="/Databases">
                     {props.t("1. Databases which are subscribed")}
                   </Link>
                 </li>
                 <li>
-                  <Link to="/#">
-                    {props.t("2. National/International Journals (hard copy)")}
+                  <Link to="/Research_Journals">
+                    {props.t("2. Research Journals")}
                   </Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("3. Books (Volumes/Titles)")}</Link>
+                  <Link to="/Books">{props.t("3. Books")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("4. Annual Expenditure")}</Link>
+                  <Link to="/Annual_Expenditure">{props.t("4. Annual Expenditure")}</Link>
                 </li>
               </ul>
             </li>

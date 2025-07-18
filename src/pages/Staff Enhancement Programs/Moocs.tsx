@@ -8,7 +8,7 @@ import SemesterDropdowns from "Components/DropDowns/SemesterDropdowns";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { ToastContainer } from "react-toastify";
 import { useFormik } from "formik";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -70,6 +70,7 @@ const Moocs: React.FC = () => {
     percentage: "",
   });
   const [filteredData, setFilteredData] = useState(bosData);
+  const fileRef = useRef<HTMLInputElement | null>(null);
 
   const dropdownStyles = {
     menu: (provided: any) => ({
@@ -139,7 +140,10 @@ const Moocs: React.FC = () => {
   // Fetch BOS data from the backend
   const fetchBosData = async () => {
     try {
-      const response = await api.get("/bos/getAllBos", "");
+      const response = await api.get(
+        "/fdpsMoocsSkillDevelopmentWorkshop/getAllFdpsMoocsSkillDevelopmentWorkshop?screenType=moocs",
+        ""
+      );
       setBosData(response);
       setFilteredData(response);
     } catch (error) {
@@ -167,7 +171,10 @@ const Moocs: React.FC = () => {
   // Fetch the data for the selected BOS ID and populate the form fields
   const handleEdit = async (id: string) => {
     try {
-      const response = await api.get(`/bos/edit?bosId=${id}`, "");
+      const response = await api.get(
+        `/fdpsMoocsSkillDevelopmentWorkshop?fdpsMoocsSkillDevelopmentWorkshopId=${id}&screenType=moocs`,
+        ""
+      );
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
       // Filter the response where isCurrent or isCurrentForAdmission is true
       const filteredAcademicYearList = academicYearOptions.filter(
@@ -179,11 +186,12 @@ const Moocs: React.FC = () => {
         label: year.display,
       }));
 
-      const semesterNoOptions = SEMESTER_NO_OPTIONS;
+      const fileObject = response.file || null;
+      const fileName = fileObject ? Object.values(fileObject)[0] : null;
 
       // Map API response to Formik values
       const mappedValues = {
-        academicYear: mapValueToLabel(response.academicYear, academicYearList),
+        academicYear: mapValueToLabel(response.year, academicYearList),
         stream: response.streamId
           ? { value: response.streamId.toString(), label: response.streamName }
           : null,
@@ -200,18 +208,23 @@ const Moocs: React.FC = () => {
           ? moment(response.endDate).format("DD/MM/YYYY")
           : "",
         otherDepartment: "", // Add default value for otherDepartment
-        file: response.documents?.mom || null,
-        titleOfFdp: response.titleOfFdp || "",
-        orgInst: response.orgInst || "",
-        type: response.type
-          ? { value: response.type, label: response.type }
+        file: fileName,
+        titleOfFdp: response.title || "",
+        orgInst: response.organizingInstitution || "",
+        type: response.identity
+          ? { value: response.identity, label: response.identity }
           : null,
       };
 
       // Update Formik values
       validation.setValues({
         ...mappedValues,
-        file: response.documents?.mom || null,
+        file:
+          typeof mappedValues.file === "string" ||
+          mappedValues.file instanceof File ||
+          mappedValues.file === null
+            ? mappedValues.file
+            : null,
         academicYear: mappedValues.academicYear
           ? {
               ...mappedValues.academicYear,
@@ -242,7 +255,10 @@ const Moocs: React.FC = () => {
   const confirmDelete = async (id: string) => {
     if (deleteId) {
       try {
-        const response = await api.delete(`/bos/deleteBos?bosId=${id}`, "");
+        const response = await api.delete(
+          `/fdpsMoocsSkillDevelopmentWorkshop/deleteFdpsMoocsSkillDevelopmentWorkshop?fdpsMoocsSkillDevelopmentWorkshopId=${id}`,
+          ""
+        );
         toast.success(
           response.message || "Curriculum BOS removed successfully!"
         );
@@ -262,9 +278,12 @@ const Moocs: React.FC = () => {
     if (fileName) {
       try {
         // Ensure you set responseType to 'blob' to handle binary data
-        const response = await axios.get(`/bos/download/${fileName}`, {
-          responseType: "blob",
-        });
+        const response = await axios.get(
+          `/fdpsMoocsSkillDevelopmentWorkshop/download/${fileName}`,
+          {
+            responseType: "blob",
+          }
+        );
 
         // Create a Blob from the response data
         const blob = new Blob([response], { type: "*/*" });
@@ -299,7 +318,7 @@ const Moocs: React.FC = () => {
     try {
       // Call the delete API
       const response = await api.delete(
-        `/bos/deleteBosDocument?bosDocumentId=${editId}`,
+        `/fdpsMoocsSkillDevelopmentWorkshop/deleteFdpsMoocsSkillDevelopmentWorkshopDocument?fdpsMoocsSkillDevelopmentWorkshopDocumentId=${editId}`,
         ""
       );
       // Show success message
@@ -330,108 +349,121 @@ const Moocs: React.FC = () => {
       orgInst: "",
       type: null as { value: string; label: string } | null,
     },
-    validationSchema: Yup.object({
-      academicYear: Yup.object<{ value: string; label: string }>()
-        .nullable()
-        .required("Please select academic year"),
-      semesterType: Yup.object<{ value: string; label: string }>()
-        .nullable()
-        .required("Please select a semester type"), // Single object for single-select
-      semesterNo: Yup.object<{ value: string; label: string }>()
-        .nullable()
-        .required("Please select a semester number"),
-      stream: Yup.object<{ value: string; label: string }>()
-        .nullable()
-        .required("Please select school"),
-      department: Yup.object<{ value: string; label: string }>()
-        .nullable()
-        .required("Please select department"),
-      otherDepartment: Yup.string().when(
-        "department",
-        (department: any, schema) => {
-          return department?.value === "Others"
-            ? schema.required("Please specify the department")
-            : schema;
-        }
-      ),
-      file: Yup.mixed().test(
-        "fileValidation",
-        "Please upload a valid file",
-        function (value) {
-          // Skip validation if the file upload is disabled (file exists)
-          if (isFileUploadDisabled) {
-            return true;
-          }
-          // Perform validation if the file upload is enabled (file doesn't exist)
-          if (!value) {
-            return this.createError({ message: "Please upload a file" });
-          }
-          // Check file size (2MB limit)
-          if (value instanceof File && value.size > 2 * 1024 * 1024) {
-            return this.createError({ message: "File size is too large" });
-          }
-          // Check file type
-          const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
-          if (value instanceof File && !allowedTypes.includes(value.type)) {
-            return this.createError({ message: "Unsupported file format" });
-          }
-          return true;
-        }
-      ),
-      programType: Yup.object<{ value: string; label: string }>()
-        .nullable()
-        .required("Please select program type"),
-      degree: Yup.object<{ value: string; label: string }>()
-        .nullable()
-        .required("Please select degree"),
-      program: Yup.array()
-        .min(1, "Please select at least one program")
-        .required("Please select programs"),
-      revisionPercentage: Yup.number()
-        .typeError("Please enter a valid number")
-        .min(0, "Percentage cannot be less than 0")
-        .max(100, "Percentage cannot be more than 100")
-        .required("Please enter revision percentage"),
-      conductedDate: Yup.date().required("Please select conducted date"),
-    }),
+     validationSchema: Yup.object({
+         facultyName: Yup.string().required("Please enter faculty name"),
+         titleOfFdp: Yup.string().required(
+           "Please enter Title of Skill Development Workshops"
+         ),
+         orgInst: Yup.string().required("Please enter Organizing Institution"),
+         startDate: Yup.string()
+           .required("Please select date")
+           .matches(
+             /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/,
+             "Date must be in dd/mm/yyyy format"
+           ),
+         endDate: Yup.string()
+           .required("Please select date")
+           .matches(
+             /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/,
+             "Date must be in dd/mm/yyyy format"
+           ),
+         academicYear: Yup.object<{ value: string; label: string }>()
+           .nullable()
+           .required("Please select academic year"),
+         type: Yup.object<{ value: string; label: string }>()
+           .nullable()
+           .required("Please select type"),
+         stream: Yup.object<{ value: string; label: string }>()
+           .nullable()
+           .required("Please select school"),
+         department: Yup.object<{ value: string; label: string }>()
+           .nullable()
+           .required("Please select department"),
+         file: Yup.mixed().test(
+           "fileValidation",
+           "Please upload a valid file",
+           function (value) {
+             // Skip validation if the file upload is disabled (file exists)
+             if (isFileUploadDisabled) {
+               return true;
+             }
+             // Perform validation if the file upload is enabled (file doesn't exist)
+             if (!value) {
+               return this.createError({ message: "Please upload a file" });
+             }
+             // Check file size (2MB limit)
+             if (value instanceof File && value.size > 2 * 1024 * 1024) {
+               return this.createError({ message: "File size is too large" });
+             }
+             // Check file type
+             const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
+             if (value instanceof File && !allowedTypes.includes(value.type)) {
+               return this.createError({ message: "Unsupported file format" });
+             }
+             return true;
+           }
+         ),
+       }),
     onSubmit: async (values, { resetForm }) => {
       // Create FormData object
       const formData = new FormData();
 
       // Append fields to FormData
-      formData.append("academicYear", values.academicYear?.value || "");
+      formData.append("year", values.academicYear?.value || "");
       formData.append("departmentId", values.department?.value || "");
       formData.append("startDate", values.startDate || "");
       formData.append("endDate", values.endDate || "");
       formData.append("streamId", values.stream?.value || "");
-      formData.append("bosId", editId || "");
+      formData.append("identity", values.type?.value || "");
+      formData.append("id", editId || "");
       formData.append("otherDepartment", values.otherDepartment || "");
+      formData.append("organizingInstitution", values.orgInst || "");
+      formData.append("facultyName", values.facultyName || "");
+      formData.append("title", values.titleOfFdp || "");
+      formData.append("screenType", "MOOCS");
 
-      // Append the file
-      if (typeof values.file === "string") {
-        // If the file is just a name, send null
-        formData.append("mom", "null");
-      } else if (values.file instanceof File) {
-        // If the file is a File object, send the file
-        formData.append("mom", values.file);
+      if (isEditMode && typeof values.file === "string") {
+        // Pass an empty PDF instead of null
+        formData.append(
+          "file",
+          new Blob([], { type: "application/pdf" }),
+          "empty.pdf"
+        );
+      } else if (isEditMode && values.file === null) {
+        formData.append(
+          "file",
+          new Blob([], { type: "application/pdf" }),
+          "empty.pdf"
+        );
+      } else if (values.file) {
+        formData.append("file", values.file);
       }
 
       try {
         if (isEditMode && editId) {
           // Call the update API
-          const response = await api.put(`/bos/updateCurriculumBos`, formData);
+          const response = await api.put(
+            `/fdpsMoocsSkillDevelopmentWorkshop`,
+            formData
+          );
           toast.success(
             response.message || "Curriculum BOS updated successfully!"
           );
         } else {
           // Call the save API
-          const response = await api.create("/bos/saveCurriculumBos", formData);
+          const response = await api.create(
+            "/fdpsMoocsSkillDevelopmentWorkshop",
+            formData
+          );
           toast.success(
             response.message || "Curriculum BOS added successfully!"
           );
         }
         // Reset the form fields
         resetForm();
+        if (fileRef.current) {
+          fileRef.current.value = "";
+        }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         // display the BOS List
@@ -448,7 +480,10 @@ const Moocs: React.FC = () => {
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <Breadcrumb title="Staff Enhancement Programs" breadcrumbItem="Moocs" />
+          <Breadcrumb
+            title="Staff Enhancement Programs"
+            breadcrumbItem="Moocs"
+          />
           <Card>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
@@ -757,6 +792,7 @@ const Moocs: React.FC = () => {
                         }`}
                         type="file"
                         id="formFile"
+                        innerRef={fileRef}
                         onChange={(event) => {
                           validation.setFieldValue(
                             "file",
@@ -852,121 +888,53 @@ const Moocs: React.FC = () => {
             </div>
 
             {/* Table with Pagination */}
-            <Table className="table-hover custom-table">
-              <thead>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>
-                    Academic Year
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.academicYear}
-                      onChange={(e) => handleFilterChange(e, "academicYear")}
-                    />
-                  </th>
-                  <th>
-                    Semester Type
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.semesterType}
-                      onChange={(e) => handleFilterChange(e, "semesterType")}
-                    />
-                  </th>
-                  <th>
-                    Semester No
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.semesterNo}
-                      onChange={(e) => handleFilterChange(e, "semesterNo")}
-                    />
-                  </th>
-                  <th>
-                    Stream
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.stream}
-                      onChange={(e) => handleFilterChange(e, "stream")}
-                    />
-                  </th>
-                  <th>
-                    Department
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.department}
-                      onChange={(e) => handleFilterChange(e, "department")}
-                    />
-                  </th>
-                  <th>
-                    Program Type
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.programType}
-                      onChange={(e) => handleFilterChange(e, "programType")}
-                    />
-                  </th>
-                  <th>
-                    Program
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.program}
-                      onChange={(e) => handleFilterChange(e, "program")}
-                    />
-                  </th>
-                  <th>
-                    Year of Introduction
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.yearOfIntroduction}
-                      onChange={(e) =>
-                        handleFilterChange(e, "yearOfIntroduction")
-                      }
-                    />
-                  </th>
-                  <th>
-                    Percentage
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.percentage}
-                      onChange={(e) => handleFilterChange(e, "percentage")}
-                    />
-                  </th>
+                  <th>Faculty Name</th>
+                  <th>Academic Year</th>
+                  <th>School</th>
+                  <th>Department</th>
+                  <th>Title of Moocs</th>
+                  <th>Start date</th>
+                  <th>End date</th>
+                  <th>Organizing Institution</th>
+                  <th>Type</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {currentRows.length > 0 ? (
                   currentRows.map((bos, index) => (
-                    <tr key={bos.bosDataId}>
+                    <tr key={bos.id}>
                       <td>{indexOfFirstRow + index + 1}</td>
-                      <td>{bos.academicYear}</td>
-                      <td>{bos.semType}</td>
-                      <td>{bos.semesterNo}</td>
+                      <td>{bos.facultyName}</td>
+                      <td>{bos.year}</td>
                       <td>{bos.streamName}</td>
                       <td>{bos.departmentName}</td>
-                      <td>{bos.programTypeName}</td>
-                      <td>{bos.programName}</td>
-                      <td>{bos.yearOfIntroduction}</td>
-                      <td>{bos.percentage}</td>
+                      <td>{bos.title}</td>
+                      <td>{bos.startDate}</td>
+                      <td>{bos.endDate}</td>
+                      <td>{bos.organizingInstitution}</td>
+                      <td>{bos.identity}</td>
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
                             className="btn btn-sm btn-warning"
-                            onClick={() => handleEdit(bos.bosDataId)}
+                            onClick={() => handleEdit(bos.id)}
                           >
                             Edit
                           </button>
                           <button
                             className="btn btn-sm btn-danger"
-                            onClick={() => handleDelete(bos.bosDataId)}
+                            onClick={() => handleDelete(bos.id)}
                           >
                             Delete
                           </button>
