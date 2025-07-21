@@ -426,7 +426,7 @@ const SidebarContent = (props: any) => {
                 <li>
                   <Link to="/workshopsandSeminarsConducted">
                     {props.t(
-                      "1. Workshops/Seminars conducted on Research Methodology, IPR, Entrepreneurship & Skills development"
+                      "1. Workshops/Seminars conducted"
                     )}
                   </Link>
                 </li>

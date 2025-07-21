@@ -378,7 +378,6 @@ const Program_By_Dept: React.FC = () => {
                         }
                         placeholder="Enter UG"
                         value={validation.values.ug}
-
                       />
                       {validation.touched.ug && validation.errors.ug && (
                         <div className="text-danger">
@@ -406,7 +405,6 @@ const Program_By_Dept: React.FC = () => {
                         }
                         placeholder="Enter PG"
                         value={validation.values.pg}
-
                       />
                       {validation.touched.pg && validation.errors.pg && (
                         <div className="text-danger">
@@ -434,7 +432,6 @@ const Program_By_Dept: React.FC = () => {
                         }
                         placeholder="Enter Ph.D"
                         value={validation.values.phd}
-
                       />
                       {validation.touched.phd && validation.errors.phd && (
                         <div className="text-danger">
@@ -478,55 +475,21 @@ const Program_By_Dept: React.FC = () => {
                 onChange={handleSearch}
               />
             </div>
-            <Table className="table-hover custom-table">
-              <thead>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>
-                    Academic Year
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.academicYear}
-                      onChange={(e) => handleFilterChange(e, "academicYear")}
-                    />
-                  </th>
-                  <th>
-                    Stream
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.stream}
-                      onChange={(e) => handleFilterChange(e, "stream")}
-                    />
-                  </th>
-                  <th>
-                    UG
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.ug}
-                      onChange={(e) => handleFilterChange(e, "ug")}
-                    />
-                  </th>
-                  <th>
-                    PG
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.pg}
-                      onChange={(e) => handleFilterChange(e, "pg")}
-                    />
-                  </th>
-                  <th>
-                    Phd
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.phd}
-                      onChange={(e) => handleFilterChange(e, "phd")}
-                    />
-                  </th>
+                  <th>Academic Year</th>
+                  <th>Stream</th>
+                  <th>UG</th>
+                  <th>PG</th>
+                  <th>Phd</th>
                   <th>Actions</th>
                 </tr>
               </thead>

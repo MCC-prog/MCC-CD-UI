@@ -643,46 +643,20 @@ const AC_GB_MoM: React.FC = () => {
                 onChange={handleSearch}
               />
             </div>
-            <Table className="table-hover custom-table">
-              <thead>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>
-                    Academic Year
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.academicYear}
-                      onChange={(e) => handleFilterChange(e, "academicYear")}
-                    />
-                  </th>
-                  <th>
-                    Date
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.date || ""}
-                      onChange={(e) => handleFilterChange(e, "date")}
-                    />
-                  </th>
-                  <th>
-                    File
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.acFile || ""}
-                      onChange={(e) => handleFilterChange(e, "acFile")}
-                    />
-                  </th>
-                  <th>
-                    GB File
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.gbFile || ""}
-                      onChange={(e) => handleFilterChange(e, "gbFile")}
-                    />
-                  </th>
+                  <th>Academic Year</th>
+                  <th>Date</th>
+                  <th>File</th>
+                  <th>GB File</th>
                   <th>Actions</th>
                 </tr>
               </thead>

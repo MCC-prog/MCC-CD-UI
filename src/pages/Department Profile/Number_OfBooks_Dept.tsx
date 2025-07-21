@@ -418,38 +418,19 @@ const Number_OfBooks_Dept: React.FC = () => {
                 onChange={handleSearch}
               />
             </div>
-            <Table className="table-hover custom-table">
-              <thead>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>
-                    Academic Year
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.academicYear}
-                      onChange={(e) => handleFilterChange(e, "academicYear")}
-                    />
-                  </th>
-                  <th>
-                    Stream
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.stream}
-                      onChange={(e) => handleFilterChange(e, "stream")}
-                    />
-                  </th>
-                  <th>
-                    Number of books in the department library
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.NoOfLibrary}
-                      onChange={(e) => handleFilterChange(e, "NoOfLibrary")}
-                    />
-                  </th>
-
+                  <th>Academic Year</th>
+                  <th>Stream</th>
+                  <th>Number of books in the department library</th>
                   <th>Actions</th>
                 </tr>
               </thead>
