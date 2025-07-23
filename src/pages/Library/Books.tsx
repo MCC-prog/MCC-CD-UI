@@ -141,7 +141,7 @@ const Books: React.FC = () => {
         stream: response.streamId
           ? { value: response.streamId.toString(), label: response.streamName }
           : null,
-          department: response.departmentId
+        department: response.departmentId
           ? {
               value: response.departmentId.toString(),
               label: response.departmentName,
@@ -150,22 +150,33 @@ const Books: React.FC = () => {
         noOfBooks: response.noOfBooks || "",
         file: response.file?.Book || null,
       };
+      const streamOption = mapValueToLabel(response.streamId, []); // Replace [] with stream options array if available
+      const departmentOption = mapValueToLabel(response.departmentId, []); // Replace [] with department options array if available
 
       // Update Formik values
       validation.setValues({
         ...mappedValues,
         academicYear: mappedValues.academicYear
-          ? { ...mappedValues.academicYear, value: String(mappedValues.academicYear.value) }
+          ? {
+              ...mappedValues.academicYear,
+              value: String(mappedValues.academicYear.value),
+            }
           : null,
         stream: mappedValues.stream
           ? { ...mappedValues.stream, value: String(mappedValues.stream.value) }
           : null,
         department: mappedValues.department
-          ? { ...mappedValues.department, value: String(mappedValues.department.value) }
+          ? {
+              ...mappedValues.department,
+              value: String(mappedValues.department.value),
+            }
           : null,
         noOfBooks: mappedValues.noOfBooks ? String(mappedValues.noOfBooks) : "",
         file: mappedValues.file || null,
       });
+      setSelectedStream(streamOption);
+      setSelectedDepartment(departmentOption);
+
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();

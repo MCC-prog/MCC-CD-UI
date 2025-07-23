@@ -182,6 +182,8 @@ const PatentsOrCopyRights: React.FC = () => {
           : null,
         abstractFile: response.files?.Patent || null,
       };
+      const streamOption = mapValueToLabel(response.streamId, []); // Replace [] with stream options array if available
+      const departmentOption = mapValueToLabel(response.departmentId, []); // Replace [] with department options array if available
 
       validation.setValues({
         academicYear: mappedValues.academicYear
@@ -211,6 +213,8 @@ const PatentsOrCopyRights: React.FC = () => {
         // You can keep otherDepartment as empty if not from API
         otherDepartment: "",
       });
+      setSelectedStream(streamOption);
+      setSelectedDepartment(departmentOption);
 
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
@@ -232,7 +236,10 @@ const PatentsOrCopyRights: React.FC = () => {
   const confirmDelete = async (id: string) => {
     if (deleteId) {
       try {
-        const response = await api.delete(`/patent/deletePatent?patentId=${id}`, "");
+        const response = await api.delete(
+          `/patent/deletePatent?patentId=${id}`,
+          ""
+        );
         toast.success(
           response.message || "Patents Filed removed successfully!"
         );
@@ -851,9 +858,12 @@ const PatentsOrCopyRights: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
-                            onClick={() => handleDeleteFile( validation.values.abstractFile as string,
+                            onClick={() =>
+                              handleDeleteFile(
+                                validation.values.abstractFile as string,
                                 "Patent"
-                              )}
+                              )
+                            }
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>

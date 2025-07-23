@@ -184,6 +184,8 @@ const Career_Counseling_Guidance: React.FC = () => {
         trainerResource: response.resourcePersonDetails || "",
         outcomes: response.outcomes || "",
       };
+      const streamOption = mapValueToLabel(response.streamId, []); // Replace [] with stream options array if available
+      const departmentOption = mapValueToLabel(response.departmentId, []); // Replace [] with department options array if available
 
       // Update Formik values
       validation.setValues({
@@ -212,6 +214,9 @@ const Career_Counseling_Guidance: React.FC = () => {
         outcomes: response.outcomes || "",
         careerCounseling: response.documents.careerCounseling || null, // Handle file upload
       });
+      setSelectedStream(streamOption);
+      setSelectedDepartment(departmentOption);
+
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();

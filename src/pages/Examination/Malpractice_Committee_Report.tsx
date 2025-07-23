@@ -8,7 +8,7 @@ import SemesterDropdowns from "Components/DropDowns/SemesterDropdowns";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { ToastContainer } from "react-toastify";
 import { useFormik } from "formik";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -33,6 +33,9 @@ import axios from "axios";
 import moment from "moment";
 import Select from "react-select";
 import GetAllSubjectDropdown from "Components/DropDowns/GetAllSubjectDropdown";
+import GetAllClasses from "Components/DropDowns/GetAllClasses";
+import { register } from "module";
+import { s } from "@fullcalendar/core/internal-common";
 
 const api = new APIClient();
 
@@ -73,8 +76,12 @@ const Malpractice_committee_Report: React.FC = () => {
     registerNumber: "",
   });
   const [filteredData, setFilteredData] = useState(mcrData);
+  const [options, setOptions] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const fileActRef = useRef<HTMLInputElement | null>(null);
 
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -144,6 +151,35 @@ const Malpractice_committee_Report: React.FC = () => {
     menuPortal: (base: any) => ({ ...base, zIndex: 9999 }), // Ensure the menu is above other elements
   };
 
+  useEffect(() => {
+    if (!selectedDegree || !selectedDegree.value) {
+      setOptions([]);
+      return;
+    }
+
+    const fetchPrograms = async () => {
+      setLoading(true);
+      try {
+        // ✅ Use the `value` from the selectedDegree object
+        const response = await api.get(
+          `getCourseByProgramId?programId=${selectedDegree.value}`,
+          ""
+        );
+        const programsList = response.map((program: any) => ({
+          value: program.id,
+          label: program.courseName,
+        }));
+        setOptions(programsList);
+        setLoading(false);
+      } catch (err) {
+        setError("Failed to fetch programs");
+        setLoading(false);
+      }
+    };
+
+    fetchPrograms();
+  }, [selectedDegree]);
+
   // Map value to label for dropdowns
   const mapValueToLabel = (
     value: string | number | null,
@@ -173,75 +209,86 @@ const Malpractice_committee_Report: React.FC = () => {
         label: year.display,
       }));
 
-      const semesterNoOptions = SEMESTER_NO_OPTIONS;
-
-      // Map API response to Formik values
+      // Map the response to Formik fields
       const mappedValues = {
-        academicYear: mapValueToLabel(response.academicYear, academicYearList),
-        semesterType: response.semType
-          ? { value: response.semType, label: response.semType.toUpperCase() }
+        academicYear: response.academicYear
+          ? {
+              value: String(response.academicYear),
+              label:
+                academicYearList.find(
+                  (opt: any) =>
+                    String(opt.value) === String(response.academicYear)
+                )?.label || String(response.academicYear),
+            }
           : null,
-        semesterNo: mapValueToLabel(
-          String(response.semesterNo),
-          semesterNoOptions
-        ) as { value: string; label: string } | null,
         stream: response.streamId
-          ? { value: response.streamId.toString(), label: response.streamName }
+          ? {
+              value: String(response.streamId),
+              label: response.streamName,
+            }
           : null,
         department: response.departmentId
           ? {
-              value: response.departmentId.toString(),
+              value: String(response.departmentId),
               label: response.departmentName,
             }
           : null,
+        otherDepartment: "",
+        subject: response.subjectId
+          ? {
+              value: String(response.subjectId),
+              label: response.subjectName,
+            }
+          : null,
+        class: response.classId
+          ? {
+              value: String(response.classId),
+              label: response.className,
+            }
+          : null,
+        file: response.file?.Invigilator || null,
+        actionTaken: response.file?.ActionTaken || null,
         programType: response.programTypeId
           ? {
-              value: response.programTypeId.toString(),
+              value: String(response.programTypeId),
               label: response.programTypeName,
             }
           : null,
         degree: response.programId
           ? {
-              value: response.programId.toString(),
+              value: String(response.programId),
               label: response.programName,
             }
           : null,
-        program: response.courses
-          ? Object.entries(response.courses).map(([key, value]) => ({
-              value: key,
-              label: String(value),
-            }))
-          : [],
-        revisionPercentage: response.percentage || "",
-        conductedDate: response.yearOfIntroduction
-          ? response.yearOfIntroduction
-          : "",
-        otherDepartment: "", // Add default value for otherDepartment
-        file: response.documents?.mom || null,
-      };
-
-      // Update Formik values
-      validation.setValues({
-        ...mappedValues,
-        file: response.documents?.mom || null,
-        academicYear: mappedValues.academicYear
+        program: response.courseId
           ? {
-              ...mappedValues.academicYear,
-              value: String(mappedValues.academicYear.value),
+              value: String(response.courseId),
+              label: response.courseName,
             }
           : null,
-        semesterNo: mappedValues.semesterNo
-          ? {
-              ...mappedValues.semesterNo,
-              value: String(mappedValues.semesterNo.value),
-            }
-          : null,
-        candidateName: response.candidateName || "",
+        revisionPercentage: "", // Assuming not in API
+        conductedDate: "", // Assuming not in API
+        candidateName: response.nameOfTheCandidate || "",
+        nameOfTheExam: response.nameOfTheExam || "",
         registerNumber: response.registerNumber || "",
         dateOfExam: response.dateOfExam || "",
-        malpracticeType: response.malpracticeType || "",
-        subject: response.sub
-      });
+        malpracticeType: response.typeOfMalpractise
+          ? {
+              value: String(response.typeOfMalpractise),
+              label: String(response.typeOfMalpractise),
+            }
+          : null,
+      };
+      const streamOption = mapValueToLabel(response.streamId, []); // Replace [] with stream options array if available
+      const departmentOption = mapValueToLabel(response.departmentId, []); // Replace [] with department options array if available
+      const programTypeOption = mapValueToLabel(response.programTypeId, []); // Replace [] with program type options array if available
+      const degreeOption = mapValueToLabel(response.programId, []);
+      // Set Formik values
+      validation.setValues(mappedValues);
+      setSelectedStream(streamOption);
+      setSelectedDepartment(departmentOption);
+      setSelectedProgramType(programTypeOption);
+      setSelectedDegree(degreeOption);
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();
@@ -327,17 +374,22 @@ const Malpractice_committee_Report: React.FC = () => {
 
   // Handle file deletion
   // Clear the file from the form and show success message
-  const handleDeleteFile = async () => {
+  const handleDeleteFile = async (fileName: string, docType: string) => {
     try {
       // Call the delete API
       const response = await api.delete(
-        `/malpracticeCommitteeReport/deleteMalpracticeCommitteeReportDocument?fileName=${editId}`,
+        `/malpracticeCommitteeReport/deleteMalpracticeCommitteeReportDocument?fileName=${fileName}`,
         ""
       );
       // Show success message
       toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
-      validation.setFieldValue("file", null); // Clear the file from Formik state
+      if (docType === "file") {
+        validation.setFieldValue("file", null);
+      }
+      if (docType === "actionTaken") {
+        validation.setFieldValue("actionTaken", null);
+      }
       setIsFileUploadDisabled(false); // Enable the file upload button
     } catch (error) {
       // Show error message
@@ -351,22 +403,23 @@ const Malpractice_committee_Report: React.FC = () => {
   const validation = useFormik({
     initialValues: {
       academicYear: null as { value: string; label: string } | null,
-      semesterType: null as { value: string; label: string } | null,
-      semesterNo: null as { value: string; label: string } | null,
       stream: null as { value: string; label: string } | null,
       department: null as { value: string; label: string } | null,
       otherDepartment: "",
       subject: null as { value: string; label: string } | null,
+      class: null as { value: string; label: string } | null,
       file: null as File | string | null,
+      actionTaken: null as File | string | null,
       programType: null as { value: string; label: string } | null,
       degree: null as { value: string; label: string } | null,
-      program: [] as { value: string; label: string }[],
+      program: null as { value: string; label: string } | null,
       revisionPercentage: "",
       conductedDate: "",
       candidateName: "",
+      nameOfTheExam: "",
       registerNumber: "",
       dateOfExam: "",
-      malpracticeType: null,
+      malpracticeType: null as { value: string; label: string } | null,
     },
     validationSchema: Yup.object({
       academicYear: Yup.object<{ value: string; label: string }>()
@@ -410,11 +463,35 @@ const Malpractice_committee_Report: React.FC = () => {
           return true;
         }
       ),
+      actionTaken: Yup.mixed().test(
+        "fileValidation",
+        "Please upload a valid file",
+        function (value) {
+          // Skip validation if the file upload is disabled (file exists)
+          if (isFileUploadDisabled) {
+            return true;
+          }
+          // Perform validation if the file upload is enabled (file doesn't exist)
+          if (!value) {
+            return this.createError({ message: "Please upload a file" });
+          }
+          // Check file size (2MB limit)
+          if (value instanceof File && value.size > 2 * 1024 * 1024) {
+            return this.createError({ message: "File size is too large" });
+          }
+          // Check file type
+          const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
+          if (value instanceof File && !allowedTypes.includes(value.type)) {
+            return this.createError({ message: "Unsupported file format" });
+          }
+          return true;
+        }
+      ),
       programType: Yup.object<{ value: string; label: string }>()
         .nullable()
         .required("Please select program type"),
-      program: Yup.array()
-        .min(1, "Please select at least one program")
+      program: Yup.object<{ value: string; label: string }>()
+        .nullable()
         .required("Please select programs"),
       candidateName: Yup.string().required("Please enter candidate name"),
       registerNumber: Yup.string().required("Please enter register number"),
@@ -422,6 +499,16 @@ const Malpractice_committee_Report: React.FC = () => {
       malpracticeType: Yup.object()
         .nullable()
         .required("Please select type of malpractice"),
+      nameOfTheExam: Yup.string().required("Please enter name of the exam"),
+      degree: Yup.object<{ value: string; label: string }>()
+        .nullable()
+        .required("Please select degree"),
+      class: Yup.object<{ value: string; label: string }>()
+        .nullable()
+        .required("Please select class"),
+      subject: Yup.object<{ value: string; label: string }>()
+        .nullable()
+        .required("Please select subject"),
     }),
     onSubmit: async (values, { resetForm }) => {
       // Create FormData object
@@ -432,33 +519,48 @@ const Malpractice_committee_Report: React.FC = () => {
       formData.append("departmentId", values.department?.value || "");
       formData.append("programTypeId", values.programType?.value || "");
       formData.append("streamId", values.stream?.value || "");
-      formData.append(
-        "courseIds",
-        values.program.map((option) => option.value).join(",") || ""
-      );
+      formData.append("classeId", values.class?.value || "");
+      formData.append("subjectId", values.subject?.value || "");
+      formData.append("courseId", values.program?.value || "");
       formData.append("programId", values.degree?.value || "");
-      formData.append("bosId", editId || "");
+      formData.append("id", editId || "");
       formData.append("otherDepartment", values.otherDepartment || "");
-      formData.append("nameOfTheCandidate", values.otherDepartment || "");
-      formData.append("registerNumber", values.otherDepartment || "");
-      formData.append("nameOfTheExam", values.otherDepartment || "");
-      formData.append("dateOfExam", values.otherDepartment || "");
-      formData.append("typeOfMalpractise", values.otherDepartment || "");
+      formData.append("nameOfTheCandidate", values.candidateName || "");
+      formData.append("registerNumber", values.registerNumber || "");
+      formData.append("nameOfTheExam", values.nameOfTheExam || "");
+      formData.append("dateOfExam", values.dateOfExam || "");
+      formData.append("typeOfMalpractise", values.malpracticeType?.value || "");
 
       if (isEditMode && typeof values.file === "string") {
         formData.append(
-          "mom",
+          "invigilator",
           new Blob([], { type: "application/pdf" }),
           "empty.pdf"
         );
       } else if (isEditMode && values.file === null) {
         formData.append(
-          "mom",
+          "invigilator",
           new Blob([], { type: "application/pdf" }),
           "empty.pdf"
         );
       } else if (values.file) {
-        formData.append("mom", values.file);
+        formData.append("invigilator", values.file);
+      }
+
+      if (isEditMode && typeof values.actionTaken === "string") {
+        formData.append(
+          "actionTaken",
+          new Blob([], { type: "application/pdf" }),
+          "empty.pdf"
+        );
+      } else if (isEditMode && values.actionTaken === null) {
+        formData.append(
+          "actionTaken",
+          new Blob([], { type: "application/pdf" }),
+          "empty.pdf"
+        );
+      } else if (values.actionTaken) {
+        formData.append("actionTaken", values.actionTaken);
       }
 
       try {
@@ -487,6 +589,9 @@ const Malpractice_committee_Report: React.FC = () => {
         resetForm();
         if (fileRef.current) {
           fileRef.current.value = "";
+        }
+        if (fileActRef.current) {
+          fileActRef.current.value = "";
         }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
@@ -679,15 +784,17 @@ const Malpractice_committee_Report: React.FC = () => {
                   <Col lg={4}>
                     <div className="mb-3">
                       <Label>Program</Label>
-                      <ProgramDropdown
-                        degreeId={selectedDegree?.value}
+                      <Select
+                        options={options}
                         value={validation.values.program}
                         onChange={(selectedOptions) =>
                           validation.setFieldValue("program", selectedOptions)
                         }
-                        isInvalid={
+                        className={
                           validation.touched.program &&
-                          !!validation.errors.program
+                          validation.errors.program
+                            ? "select-error"
+                            : ""
                         }
                       />
                       {validation.touched.program &&
@@ -698,6 +805,25 @@ const Malpractice_committee_Report: React.FC = () => {
                               : validation.errors.program}
                           </div>
                         )}
+                    </div>
+                  </Col>
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Class</Label>
+                      <GetAllClasses
+                        value={validation.values.class}
+                        onChange={(selectedOption) => {
+                          validation.setFieldValue("class", selectedOption);
+                        }}
+                        isInvalid={
+                          validation.touched.class && !!validation.errors.class
+                        }
+                      />
+                      {validation.touched.class && validation.errors.class && (
+                        <div className="text-danger">
+                          {validation.errors.class}
+                        </div>
+                      )}
                     </div>
                   </Col>
                   <Col lg={4}>
@@ -760,6 +886,35 @@ const Malpractice_committee_Report: React.FC = () => {
                   </Col>
                   <Col lg={4}>
                     <div className="mb-3">
+                      <Label>Name of the Exam</Label>
+                      <Input
+                        type="text"
+                        name="nameOfTheExam"
+                        value={validation.values.nameOfTheExam}
+                        onChange={(e) =>
+                          validation.setFieldValue(
+                            "nameOfTheExam",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Enter Name of the Exam"
+                        className={
+                          validation.touched.nameOfTheExam &&
+                          validation.errors.nameOfTheExam
+                            ? "is-invalid"
+                            : ""
+                        }
+                      />
+                      {validation.touched.nameOfTheExam &&
+                        validation.errors.nameOfTheExam && (
+                          <div className="text-danger">
+                            {validation.errors.nameOfTheExam}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+                  <Col lg={4}>
+                    <div className="mb-3">
                       <Label>Subject</Label>
                       <GetAllSubjectDropdown
                         streamId={selectedStream?.value}
@@ -783,6 +938,7 @@ const Malpractice_committee_Report: React.FC = () => {
                         )}
                     </div>
                   </Col>
+
                   <Col lg={4}>
                     <div className="mb-3">
                       <Label>Date of Exam</Label>
@@ -901,7 +1057,12 @@ const Malpractice_committee_Report: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
-                            onClick={() => handleDeleteFile()}
+                            onClick={() =>
+                              handleDeleteFile(
+                                validation.values.file as string,
+                                "file"
+                              )
+                            }
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>
@@ -917,16 +1078,17 @@ const Malpractice_committee_Report: React.FC = () => {
                       </Label>
                       <Input
                         className={`form-control ${
-                          validation.touched.file && validation.errors.file
+                          validation.touched.actionTaken &&
+                          validation.errors.actionTaken
                             ? "is-invalid"
                             : ""
                         }`}
                         type="file"
                         id="formFile"
-                        innerRef={fileRef}
+                        innerRef={fileActRef}
                         onChange={(event) => {
                           validation.setFieldValue(
-                            "file",
+                            "actionTaken",
                             event.currentTarget.files
                               ? event.currentTarget.files[0]
                               : null
@@ -934,11 +1096,12 @@ const Malpractice_committee_Report: React.FC = () => {
                         }}
                         disabled={isFileUploadDisabled} // Disable the button if a file exists
                       />
-                      {validation.touched.file && validation.errors.file && (
-                        <div className="text-danger">
-                          {validation.errors.file}
-                        </div>
-                      )}
+                      {validation.touched.actionTaken &&
+                        validation.errors.actionTaken && (
+                          <div className="text-danger">
+                            {validation.errors.actionTaken}
+                          </div>
+                        )}
                       {/* Show a message if the file upload button is disabled */}
                       {isFileUploadDisabled && (
                         <div className="text-warning mt-2">
@@ -946,20 +1109,22 @@ const Malpractice_committee_Report: React.FC = () => {
                         </div>
                       )}
                       {/* Only show the file name if it is a string (from the edit API) */}
-                      {typeof validation.values.file === "string" && (
+                      {typeof validation.values.actionTaken === "string" && (
                         <div className="mt-2 d-flex align-items-center">
                           <span
                             className="me-2"
                             style={{ fontWeight: "bold", color: "green" }}
                           >
-                            {validation.values.file}
+                            {typeof validation.values.actionTaken === "string"
+                              ? validation.values.actionTaken
+                              : ""}
                           </span>
                           <Button
                             color="link"
                             className="text-primary"
                             onClick={() =>
                               handleDownloadFile(
-                                validation.values.file as string
+                                validation.values.actionTaken as string
                               )
                             }
                             title="Download File"
@@ -969,7 +1134,12 @@ const Malpractice_committee_Report: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
-                            onClick={() => handleDeleteFile()}
+                            onClick={() =>
+                              handleDeleteFile(
+                                validation.values.actionTaken as string,
+                                "actionTaken"
+                              )
+                            }
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>
@@ -1042,26 +1212,26 @@ const Malpractice_committee_Report: React.FC = () => {
               <tbody>
                 {currentRows.length > 0 ? (
                   currentRows.map((mcr, index) => (
-                    <tr key={mcr.mcrDataId}>
+                    <tr key={mcr.id}>
                       <td>{indexOfFirstRow + index + 1}</td>
                       <td>{mcr.academicYear}</td>
                       <td>{mcr.streamName}</td>
                       <td>{mcr.departmentName}</td>
                       <td>{mcr.programTypeName}</td>
                       <td>{mcr.programName}</td>
-                      <td>{mcr.candidateName}</td>
+                      <td>{mcr.nameOfTheCandidate}</td>
                       <td>{mcr.registerNumber}</td>
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
                             className="btn btn-sm btn-warning"
-                            onClick={() => handleEdit(mcr.mcrDataId)}
+                            onClick={() => handleEdit(mcr.id)}
                           >
                             Edit
                           </button>
                           <button
                             className="btn btn-sm btn-danger"
-                            onClick={() => handleDelete(mcr.mcrDataId)}
+                            onClick={() => handleDelete(mcr.id)}
                           >
                             Delete
                           </button>

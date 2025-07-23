@@ -178,12 +178,12 @@ const SidebarContent = (props: any) => {
                 </li>
                 <li>
                   <Link to="/Experiential_Learning">
-                    <span
+                    {/* <span
                       className="badge rounded-pill text-bg-warning float-end"
                       key="t-new"
                     >
                       In Progress
-                    </span>
+                    </span> */}
                     {props.t("6. Experiential Learning ")}
                   </Link>
                 </li>
@@ -211,23 +211,23 @@ const SidebarContent = (props: any) => {
                 </li>
                 <li>
                   <Link to="/Advanced_Learners">
-                    <span
+                    {/* <span
                       className="badge rounded-pill text-bg-warning float-end"
                       key="t-new"
                     >
                       In Progress
-                    </span>
+                    </span> */}
                     {props.t("2. Advanced Learners")}
                   </Link>
                 </li>
                 <li>
                   <Link to="/Student_Centric_Teaching">
-                    <span
+                    {/* <span
                       className="badge rounded-pill text-bg-warning float-end"
                       key="t-new"
                     >
                       In Progress
-                    </span>
+                    </span> */}
                     {props.t("3. Student Centric Teaching Methodology")}
                   </Link>
                 </li>

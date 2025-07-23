@@ -212,7 +212,10 @@ const Exam_Action_Taken: React.FC = () => {
         otherDepartment: "", // Add default value for otherDepartment
         remarks: response.remarks || "", // Ensure remarks is included
       };
-
+      const streamOption = mapValueToLabel(response.streamId, []); // Replace [] with stream options array if available
+      const departmentOption = mapValueToLabel(response.departmentId, []); // Replace [] with department options array if available
+      const programTypeOption = mapValueToLabel(response.programTypeId, []); // Replace [] with program type options array if available
+      const degreeOption = mapValueToLabel(response.programId, []);
       // Update Formik values
       validation.setValues({
         ...mappedValues,
@@ -249,6 +252,10 @@ const Exam_Action_Taken: React.FC = () => {
         remarks: mappedValues.remarks || "",
         otherDepartment: mappedValues.otherDepartment || "",
       });
+      setSelectedStream(streamOption);
+      setSelectedDepartment(departmentOption);
+      setSelectedProgramType(programTypeOption);
+      setSelectedDegree(degreeOption);
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();

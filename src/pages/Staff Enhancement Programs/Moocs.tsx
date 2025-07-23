@@ -215,6 +215,8 @@ const Moocs: React.FC = () => {
           ? { value: response.identity, label: response.identity }
           : null,
       };
+      const streamOption = mapValueToLabel(response.streamId, []); // Replace [] with stream options array if available
+      const departmentOption = mapValueToLabel(response.departmentId, []); // Replace [] with department options array if available
 
       // Update Formik values
       validation.setValues({
@@ -233,6 +235,9 @@ const Moocs: React.FC = () => {
           : null,
         facultyName: response.facultyName || "", // Ensure facultyName is included
       });
+      setSelectedStream(streamOption);
+      setSelectedDepartment(departmentOption);
+
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       // Disable the file upload button if a file exists
@@ -349,61 +354,61 @@ const Moocs: React.FC = () => {
       orgInst: "",
       type: null as { value: string; label: string } | null,
     },
-     validationSchema: Yup.object({
-         facultyName: Yup.string().required("Please enter faculty name"),
-         titleOfFdp: Yup.string().required(
-           "Please enter Title of Skill Development Workshops"
-         ),
-         orgInst: Yup.string().required("Please enter Organizing Institution"),
-         startDate: Yup.string()
-           .required("Please select date")
-           .matches(
-             /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/,
-             "Date must be in dd/mm/yyyy format"
-           ),
-         endDate: Yup.string()
-           .required("Please select date")
-           .matches(
-             /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/,
-             "Date must be in dd/mm/yyyy format"
-           ),
-         academicYear: Yup.object<{ value: string; label: string }>()
-           .nullable()
-           .required("Please select academic year"),
-         type: Yup.object<{ value: string; label: string }>()
-           .nullable()
-           .required("Please select type"),
-         stream: Yup.object<{ value: string; label: string }>()
-           .nullable()
-           .required("Please select school"),
-         department: Yup.object<{ value: string; label: string }>()
-           .nullable()
-           .required("Please select department"),
-         file: Yup.mixed().test(
-           "fileValidation",
-           "Please upload a valid file",
-           function (value) {
-             // Skip validation if the file upload is disabled (file exists)
-             if (isFileUploadDisabled) {
-               return true;
-             }
-             // Perform validation if the file upload is enabled (file doesn't exist)
-             if (!value) {
-               return this.createError({ message: "Please upload a file" });
-             }
-             // Check file size (2MB limit)
-             if (value instanceof File && value.size > 2 * 1024 * 1024) {
-               return this.createError({ message: "File size is too large" });
-             }
-             // Check file type
-             const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
-             if (value instanceof File && !allowedTypes.includes(value.type)) {
-               return this.createError({ message: "Unsupported file format" });
-             }
-             return true;
-           }
-         ),
-       }),
+    validationSchema: Yup.object({
+      facultyName: Yup.string().required("Please enter faculty name"),
+      titleOfFdp: Yup.string().required(
+        "Please enter Title of Skill Development Workshops"
+      ),
+      orgInst: Yup.string().required("Please enter Organizing Institution"),
+      startDate: Yup.string()
+        .required("Please select date")
+        .matches(
+          /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/,
+          "Date must be in dd/mm/yyyy format"
+        ),
+      endDate: Yup.string()
+        .required("Please select date")
+        .matches(
+          /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/,
+          "Date must be in dd/mm/yyyy format"
+        ),
+      academicYear: Yup.object<{ value: string; label: string }>()
+        .nullable()
+        .required("Please select academic year"),
+      type: Yup.object<{ value: string; label: string }>()
+        .nullable()
+        .required("Please select type"),
+      stream: Yup.object<{ value: string; label: string }>()
+        .nullable()
+        .required("Please select school"),
+      department: Yup.object<{ value: string; label: string }>()
+        .nullable()
+        .required("Please select department"),
+      file: Yup.mixed().test(
+        "fileValidation",
+        "Please upload a valid file",
+        function (value) {
+          // Skip validation if the file upload is disabled (file exists)
+          if (isFileUploadDisabled) {
+            return true;
+          }
+          // Perform validation if the file upload is enabled (file doesn't exist)
+          if (!value) {
+            return this.createError({ message: "Please upload a file" });
+          }
+          // Check file size (2MB limit)
+          if (value instanceof File && value.size > 2 * 1024 * 1024) {
+            return this.createError({ message: "File size is too large" });
+          }
+          // Check file type
+          const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
+          if (value instanceof File && !allowedTypes.includes(value.type)) {
+            return this.createError({ message: "Unsupported file format" });
+          }
+          return true;
+        }
+      ),
+    }),
     onSubmit: async (values, { resetForm }) => {
       // Create FormData object
       const formData = new FormData();

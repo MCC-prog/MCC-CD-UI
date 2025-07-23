@@ -166,6 +166,8 @@ const Activities_Conducted_MCCIE: React.FC = () => {
             }
           : null,
       };
+      const streamOption = mapValueToLabel(response.streamId, []); // Replace [] with stream options array if available
+      const departmentOption = mapValueToLabel(response.departmentId, []); // Replace [] with department options array if available
 
       validation.setValues({
         academicYear: mappedValues.academicYear
@@ -189,12 +191,17 @@ const Activities_Conducted_MCCIE: React.FC = () => {
         activityPhoto: response.files?.Photograph || null,
         activityLetter: response.files?.Letter || null,
       });
+      setSelectedStream(streamOption);
+      setSelectedDepartment(departmentOption);
 
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();
     } catch (error) {
-      console.error("Error fetching Activities Conducted MCCIE data by ID:", error);
+      console.error(
+        "Error fetching Activities Conducted MCCIE data by ID:",
+        error
+      );
     }
   };
 

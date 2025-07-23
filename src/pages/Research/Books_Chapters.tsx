@@ -1,8 +1,27 @@
 import React, { useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { Col, Row, Input, Label, Button, CardBody, Card, Container, Nav, NavItem, NavLink, TabContent, TabPane, Modal, ModalHeader, ModalBody, Table, ModalFooter } from "reactstrap";
-import Breadcrumb from 'Components/Common/Breadcrumb';
+import {
+  Col,
+  Row,
+  Input,
+  Label,
+  Button,
+  CardBody,
+  Card,
+  Container,
+  Nav,
+  NavItem,
+  NavLink,
+  TabContent,
+  TabPane,
+  Modal,
+  ModalHeader,
+  ModalBody,
+  Table,
+  ModalFooter,
+} from "reactstrap";
+import Breadcrumb from "Components/Common/Breadcrumb";
 import AcademicYearDropdown from "Components/DropDowns/AcademicYearDropdown";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
@@ -21,7 +40,8 @@ const Books_Chapters = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   // State variable for managing file upload status
-  const [isFrontPageFileUploadDisabled, setIsFrontPageFileUploadDisabled] = useState(false);
+  const [isFrontPageFileUploadDisabled, setIsFrontPageFileUploadDisabled] =
+    useState(false);
   // State variable for managing book chapters data
   const [bookChaptersData, setBookChaptersData] = useState<any[]>([]);
   // State variables for managing selected options in dropdowns
@@ -46,7 +66,7 @@ const Books_Chapters = () => {
     editor: "",
     publisher: "",
     isbxl: "",
-    dateOfPublication: ""
+    dateOfPublication: "",
   });
   const [filteredData, setFilteredData] = useState(bookChaptersData);
 
@@ -57,21 +77,28 @@ const Books_Chapters = () => {
 
     const filtered = bookChaptersData.filter((row) =>
       Object.values(row).some((val) =>
-        String(val || "").toLowerCase().includes(value)
+        String(val || "")
+          .toLowerCase()
+          .includes(value)
       )
     );
     setFilteredData(filtered);
   };
 
   // Handle column-specific filters
-  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>, column: string) => {
+  const handleFilterChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    column: string
+  ) => {
     const value = e.target.value.toLowerCase();
     const updatedFilters = { ...filters, [column]: value };
     setFilters(updatedFilters);
 
     const filtered = bookChaptersData.filter((row) =>
       Object.values(row).some((val) =>
-        String(val || "").toLowerCase().includes(value)
+        String(val || "")
+          .toLowerCase()
+          .includes(value)
       )
     );
     setFilteredData(filtered);
@@ -115,13 +142,21 @@ const Books_Chapters = () => {
       bookChapter: null as File | null,
     },
     validationSchema: Yup.object({
-      academicYear: Yup.object<{ value: string; label: string }>().nullable().required("Please select academic year"),
-      stream: Yup.object<{ value: string; label: string }>().nullable().required("Please select school"),
-      department: Yup.object<{ value: string; label: string }>().nullable().required("Please select department"),
-      otherDepartment: Yup.string().when("department", (department: any, schema) =>
-        department?.value === "Others"
-          ? schema.required("Please specify the department")
-          : schema.nullable()
+      academicYear: Yup.object<{ value: string; label: string }>()
+        .nullable()
+        .required("Please select academic year"),
+      stream: Yup.object<{ value: string; label: string }>()
+        .nullable()
+        .required("Please select school"),
+      department: Yup.object<{ value: string; label: string }>()
+        .nullable()
+        .required("Please select department"),
+      otherDepartment: Yup.string().when(
+        "department",
+        (department: any, schema) =>
+          department?.value === "Others"
+            ? schema.required("Please specify the department")
+            : schema.nullable()
       ),
       facultyName: Yup.string().required("Please enter faculty name"),
       coAuthors: Yup.string().required("Please enter co-authors"),
@@ -152,8 +187,10 @@ const Books_Chapters = () => {
           return true;
         }
       ),
-      dateOfPublication: Yup.string().required("Please select date of publication"),
-      publisher: Yup.string().required("Please enter publisher")
+      dateOfPublication: Yup.string().required(
+        "Please select date of publication"
+      ),
+      publisher: Yup.string().required("Please enter publisher"),
     }),
     onSubmit: async (values, { resetForm }) => {
       // Create FormData object
@@ -186,11 +223,15 @@ const Books_Chapters = () => {
         if (isEditMode && editId) {
           // Call the update API
           const response = await api.put(`/bookChapter/update`, formData);
-          toast.success(response.message || "Book Chapter record updated successfully!");
+          toast.success(
+            response.message || "Book Chapter record updated successfully!"
+          );
         } else {
           // Call the save API
           const response = await api.create("/bookChapter/save", formData);
-          toast.success(response.message || "Book Chapter record added successfully!");
+          toast.success(
+            response.message || "Book Chapter record added successfully!"
+          );
         }
         // Reset the form fields
         resetForm();
@@ -208,13 +249,13 @@ const Books_Chapters = () => {
 
   const fetchBooksChaptersData = async () => {
     try {
-      const response = await api.get("/bookChapter/getAll", '');
+      const response = await api.get("/bookChapter/getAll", "");
       setBookChaptersData(response);
       setFilteredData(response);
     } catch (error) {
       console.error("Error fetching Book Chapter data:", error);
     }
-  }
+  };
 
   // Open the modal and fetch data
   const handleListBooksChaptersClick = () => {
@@ -226,7 +267,10 @@ const Books_Chapters = () => {
   // Fetch the data for the selected BOS ID and populate the form fields
   const handleEdit = async (id: string) => {
     try {
-      const response = await api.get(`/bookChapter/edit?bookChapterId=${id}`, '');
+      const response = await api.get(
+        `/bookChapter/edit?bookChapterId=${id}`,
+        ""
+      );
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
 
       // Filter the response where isCurrent or isCurrentForAdmission is true
@@ -237,7 +281,7 @@ const Books_Chapters = () => {
       // Map the filtered data to the required format
       const academicYearList = filteredAcademicYearList.map((year: any) => ({
         value: year.year,
-        label: year.display
+        label: year.display,
       }));
 
       // Map API response to Formik values
@@ -247,7 +291,10 @@ const Books_Chapters = () => {
           ? { value: response.streamId.toString(), label: response.streamName }
           : null,
         department: response.departmentId
-          ? { value: response.departmentId.toString(), label: response.departmentName }
+          ? {
+              value: response.departmentId.toString(),
+              label: response.departmentName,
+            }
           : null,
         facultyName: response.facultyName || "",
         coAuthors: response.coAuthors || "",
@@ -264,14 +311,20 @@ const Books_Chapters = () => {
       validation.setValues({
         ...mappedValues,
         academicYear: mappedValues.academicYear
-          ? { ...mappedValues.academicYear, value: String(mappedValues.academicYear.value) }
+          ? {
+              ...mappedValues.academicYear,
+              value: String(mappedValues.academicYear.value),
+            }
           : null,
         stream: mappedValues.stream
           ? { ...mappedValues.stream, value: String(mappedValues.stream.value) }
           : null,
         department: mappedValues.department
-          ? { ...mappedValues.department, value: String(mappedValues.department.value) }
-          : null
+          ? {
+              ...mappedValues.department,
+              value: String(mappedValues.department.value),
+            }
+          : null,
       });
 
       // Set edit mode and toggle modal
@@ -284,7 +337,10 @@ const Books_Chapters = () => {
   };
 
   // Map value to label for dropdowns
-  const mapValueToLabel = (value: string | number | null, options: { value: string | number; label: string }[]): { value: string | number; label: string } | null => {
+  const mapValueToLabel = (
+    value: string | number | null,
+    options: { value: string | number; label: string }[]
+  ): { value: string | number; label: string } | null => {
     if (!value) return null;
     const matchedOption = options.find((option) => option.value === value);
     return matchedOption ? matchedOption : { value, label: String(value) };
@@ -300,8 +356,13 @@ const Books_Chapters = () => {
   const confirmDelete = async (id: string) => {
     if (deleteId) {
       try {
-        const response = await api.delete(`/bookChapter/deleteBookChapter?bookChapterId=${id}`, '');
-        toast.success(response.message || "Book Chapter record removed successfully!");
+        const response = await api.delete(
+          `/bookChapter/deleteBookChapter?bookChapterId=${id}`,
+          ""
+        );
+        toast.success(
+          response.message || "Book Chapter record removed successfully!"
+        );
         fetchBooksChaptersData();
       } catch (error) {
         toast.error("Failed to remove Book Chapter Record. Please try again.");
@@ -311,7 +372,7 @@ const Books_Chapters = () => {
         setDeleteId(null);
       }
     }
-  }
+  };
 
   // Handle file download actions
   const handleDownloadFile = async (fileName: string) => {
@@ -319,7 +380,7 @@ const Books_Chapters = () => {
       try {
         // Ensure you set responseType to 'blob' to handle binary data
         const response = await axios.get(`/bookChapter/download/${fileName}`, {
-          responseType: 'blob'
+          responseType: "blob",
         });
 
         // Create a Blob from the response data
@@ -329,7 +390,7 @@ const Books_Chapters = () => {
         const url = window.URL.createObjectURL(blob);
 
         // Create a temporary anchor element to trigger the download
-        const link = document.createElement('a');
+        const link = document.createElement("a");
         link.href = url;
         link.download = fileName; // Set the file name for the download
         document.body.appendChild(link);
@@ -341,7 +402,9 @@ const Books_Chapters = () => {
 
         toast.success("File downloaded successfully!");
       } catch (error) {
-        toast.error("Failed to download frontPage uploaded file. Please try again.");
+        toast.error(
+          "Failed to download frontPage uploaded file. Please try again."
+        );
         console.error("Error downloading file:", error);
       }
     } else {
@@ -354,7 +417,10 @@ const Books_Chapters = () => {
   const handleDeleteFile = async () => {
     try {
       // Call the delete API
-      const response = await api.delete(`/bookChapter/deleteBookChapterDocument?bookChapterId=${editId}&docType=bookChapter`, '');
+      const response = await api.delete(
+        `/bookChapter/deleteBookChapterDocument?bookChapterId=${editId}&docType=bookChapter`,
+        ""
+      );
       // Show success message
       toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
@@ -383,18 +449,23 @@ const Books_Chapters = () => {
                       <AcademicYearDropdown
                         value={validation.values.academicYear}
                         onChange={(selectedOption) =>
-                          validation.setFieldValue("academicYear", selectedOption)
+                          validation.setFieldValue(
+                            "academicYear",
+                            selectedOption
+                          )
                         }
                         isInvalid={
                           validation.touched.academicYear &&
                           !!validation.errors.academicYear
                         }
                       />
-                      {validation.touched.academicYear && validation.errors.academicYear && (
-                        <div className="text-danger">
-                          {typeof validation.errors.academicYear === 'string' && validation.errors.academicYear}
-                        </div>
-                      )}
+                      {validation.touched.academicYear &&
+                        validation.errors.academicYear && (
+                          <div className="text-danger">
+                            {typeof validation.errors.academicYear ===
+                              "string" && validation.errors.academicYear}
+                          </div>
+                        )}
                     </div>
                   </Col>
 
@@ -411,14 +482,17 @@ const Books_Chapters = () => {
                           setSelectedDepartment(null);
                         }}
                         isInvalid={
-                          validation.touched.stream && !!validation.errors.stream
+                          validation.touched.stream &&
+                          !!validation.errors.stream
                         }
                       />
-                      {validation.touched.stream && validation.errors.stream && (
-                        <div className="text-danger">
-                          {typeof validation.errors.stream === "string" && validation.errors.stream}
-                        </div>
-                      )}
+                      {validation.touched.stream &&
+                        validation.errors.stream && (
+                          <div className="text-danger">
+                            {typeof validation.errors.stream === "string" &&
+                              validation.errors.stream}
+                          </div>
+                        )}
                     </div>
                   </Col>
 
@@ -430,7 +504,10 @@ const Books_Chapters = () => {
                         streamId={selectedStream?.value}
                         value={validation.values.department}
                         onChange={(selectedOption) => {
-                          validation.setFieldValue("department", selectedOption);
+                          validation.setFieldValue(
+                            "department",
+                            selectedOption
+                          );
                           setSelectedDepartment(selectedOption);
                           validation.setFieldValue("programType", null);
                           setSelectedProgramType(null);
@@ -443,7 +520,8 @@ const Books_Chapters = () => {
                       {validation.touched.department &&
                         validation.errors.department && (
                           <div className="text-danger">
-                            {typeof validation.errors.department === "string" && validation.errors.department}
+                            {typeof validation.errors.department === "string" &&
+                              validation.errors.department}
                           </div>
                         )}
                     </div>
@@ -454,17 +532,28 @@ const Books_Chapters = () => {
                         <Label>Specify Department</Label>
                         <Input
                           type="text"
-                          className={`form-control ${validation.touched.otherDepartment && validation.errors.otherDepartment ? "is-invalid" : ""
-                            }`}
+                          className={`form-control ${
+                            validation.touched.otherDepartment &&
+                            validation.errors.otherDepartment
+                              ? "is-invalid"
+                              : ""
+                          }`}
                           value={validation.values.otherDepartment}
-                          onChange={(e) => validation.setFieldValue("otherDepartment", e.target.value)}
+                          onChange={(e) =>
+                            validation.setFieldValue(
+                              "otherDepartment",
+                              e.target.value
+                            )
+                          }
                           placeholder="Enter Department Name"
                         />
-                        {validation.touched.otherDepartment && validation.errors.otherDepartment && (
-                          <div className="text-danger">
-                            {typeof validation.errors.otherDepartment === "string" && validation.errors.otherDepartment}
-                          </div>
-                        )}
+                        {validation.touched.otherDepartment &&
+                          validation.errors.otherDepartment && (
+                            <div className="text-danger">
+                              {typeof validation.errors.otherDepartment ===
+                                "string" && validation.errors.otherDepartment}
+                            </div>
+                          )}
                       </div>
                     </Col>
                   )}
@@ -477,14 +566,21 @@ const Books_Chapters = () => {
                         name="facultyName"
                         value={validation.values.facultyName}
                         onChange={validation.handleChange}
-                        className={`form-control ${validation.touched.facultyName && validation.errors.facultyName ? "is-invalid" : ""}`}
+                        className={`form-control ${
+                          validation.touched.facultyName &&
+                          validation.errors.facultyName
+                            ? "is-invalid"
+                            : ""
+                        }`}
                         placeholder="Enter Faculty Name"
                       />
-                      {validation.touched.facultyName && validation.errors.facultyName && (
-                        <div className="text-danger">
-                          {typeof validation.errors.facultyName === 'string' && validation.errors.facultyName}
-                        </div>
-                      )}
+                      {validation.touched.facultyName &&
+                        validation.errors.facultyName && (
+                          <div className="text-danger">
+                            {typeof validation.errors.facultyName ===
+                              "string" && validation.errors.facultyName}
+                          </div>
+                        )}
                     </div>
                   </Col>
 
@@ -496,14 +592,21 @@ const Books_Chapters = () => {
                         name="coAuthors"
                         value={validation.values.coAuthors}
                         onChange={validation.handleChange}
-                        className={`form-control ${validation.touched.coAuthors && validation.errors.coAuthors ? "is-invalid" : ""}`}
+                        className={`form-control ${
+                          validation.touched.coAuthors &&
+                          validation.errors.coAuthors
+                            ? "is-invalid"
+                            : ""
+                        }`}
                         placeholder="Enter Co-authors"
                       />
-                      {validation.touched.coAuthors && validation.errors.coAuthors && (
-                        <div className="text-danger">
-                          {typeof validation.errors.coAuthors === 'string' && validation.errors.coAuthors}
-                        </div>
-                      )}
+                      {validation.touched.coAuthors &&
+                        validation.errors.coAuthors && (
+                          <div className="text-danger">
+                            {typeof validation.errors.coAuthors === "string" &&
+                              validation.errors.coAuthors}
+                          </div>
+                        )}
                     </div>
                   </Col>
 
@@ -515,14 +618,21 @@ const Books_Chapters = () => {
                         name="bookTitle"
                         value={validation.values.bookTitle}
                         onChange={validation.handleChange}
-                        className={`form-control ${validation.touched.bookTitle && validation.errors.bookTitle ? "is-invalid" : ""}`}
+                        className={`form-control ${
+                          validation.touched.bookTitle &&
+                          validation.errors.bookTitle
+                            ? "is-invalid"
+                            : ""
+                        }`}
                         placeholder="Enter Book Title"
                       />
-                      {validation.touched.bookTitle && validation.errors.bookTitle && (
-                        <div className="text-danger">
-                          {typeof validation.errors.bookTitle === 'string' && validation.errors.bookTitle}
-                        </div>
-                      )}
+                      {validation.touched.bookTitle &&
+                        validation.errors.bookTitle && (
+                          <div className="text-danger">
+                            {typeof validation.errors.bookTitle === "string" &&
+                              validation.errors.bookTitle}
+                          </div>
+                        )}
                     </div>
                   </Col>
 
@@ -534,14 +644,20 @@ const Books_Chapters = () => {
                         name="editor"
                         value={validation.values.editor}
                         onChange={validation.handleChange}
-                        className={`form-control ${validation.touched.editor && validation.errors.editor ? "is-invalid" : ""}`}
+                        className={`form-control ${
+                          validation.touched.editor && validation.errors.editor
+                            ? "is-invalid"
+                            : ""
+                        }`}
                         placeholder="Enter Editor Name"
                       />
-                      {validation.touched.editor && validation.errors.editor && (
-                        <div className="text-danger">
-                          {typeof validation.errors.editor === 'string' && validation.errors.editor}
-                        </div>
-                      )}
+                      {validation.touched.editor &&
+                        validation.errors.editor && (
+                          <div className="text-danger">
+                            {typeof validation.errors.editor === "string" &&
+                              validation.errors.editor}
+                          </div>
+                        )}
                     </div>
                   </Col>
 
@@ -553,14 +669,21 @@ const Books_Chapters = () => {
                         name="publisher"
                         value={validation.values.publisher}
                         onChange={validation.handleChange}
-                        className={`form-control ${validation.touched.publisher && validation.errors.publisher ? "is-invalid" : ""}`}
+                        className={`form-control ${
+                          validation.touched.publisher &&
+                          validation.errors.publisher
+                            ? "is-invalid"
+                            : ""
+                        }`}
                         placeholder="Enter Publisher"
                       />
-                      {validation.touched.publisher && validation.errors.publisher && (
-                        <div className="text-danger">
-                          {typeof validation.errors.publisher === 'string' && validation.errors.publisher}
-                        </div>
-                      )}
+                      {validation.touched.publisher &&
+                        validation.errors.publisher && (
+                          <div className="text-danger">
+                            {typeof validation.errors.publisher === "string" &&
+                              validation.errors.publisher}
+                          </div>
+                        )}
                     </div>
                   </Col>
 
@@ -572,12 +695,17 @@ const Books_Chapters = () => {
                         name="isbxl"
                         value={validation.values.isbxl}
                         onChange={validation.handleChange}
-                        className={`form-control ${validation.touched.isbxl && validation.errors.isbxl ? "is-invalid" : ""}`}
+                        className={`form-control ${
+                          validation.touched.isbxl && validation.errors.isbxl
+                            ? "is-invalid"
+                            : ""
+                        }`}
                         placeholder="Enter ISBXL"
                       />
                       {validation.touched.isbxl && validation.errors.isbxl && (
                         <div className="text-danger">
-                          {typeof validation.errors.isbxl === 'string' && validation.errors.isbxl}
+                          {typeof validation.errors.isbxl === "string" &&
+                            validation.errors.isbxl}
                         </div>
                       )}
                     </div>
@@ -588,23 +716,39 @@ const Books_Chapters = () => {
                       <Label>Date of Publication</Label>
                       <Input
                         type="date" // Use native date input
-                        className={`form-control ${validation.touched.dateOfPublication && validation.errors.dateOfPublication ? "is-invalid" : ""}`}
+                        className={`form-control ${
+                          validation.touched.dateOfPublication &&
+                          validation.errors.dateOfPublication
+                            ? "is-invalid"
+                            : ""
+                        }`}
                         value={
                           validation.values.dateOfPublication
-                            ? moment(validation.values.dateOfPublication, "DD/MM/YYYY").format("YYYY-MM-DD") // Convert to yyyy-mm-dd for the input
+                            ? moment(
+                                validation.values.dateOfPublication,
+                                "DD/MM/YYYY"
+                              ).format("YYYY-MM-DD") // Convert to yyyy-mm-dd for the input
                             : ""
                         }
                         onChange={(e) => {
-                          const formattedDate = moment(e.target.value, "YYYY-MM-DD").format("DD/MM/YYYY"); // Convert to dd/mm/yyyy
-                          validation.setFieldValue("dateOfPublication", formattedDate);
+                          const formattedDate = moment(
+                            e.target.value,
+                            "YYYY-MM-DD"
+                          ).format("DD/MM/YYYY"); // Convert to dd/mm/yyyy
+                          validation.setFieldValue(
+                            "dateOfPublication",
+                            formattedDate
+                          );
                         }}
                         placeholder="dd/mm/yyyy"
                       />
-                      {validation.touched.dateOfPublication && validation.errors.dateOfPublication && (
-                        <div className="text-danger">
-                          {typeof validation.errors.dateOfPublication === "string" && validation.errors.dateOfPublication}
-                        </div>
-                      )}
+                      {validation.touched.dateOfPublication &&
+                        validation.errors.dateOfPublication && (
+                          <div className="text-danger">
+                            {typeof validation.errors.dateOfPublication ===
+                              "string" && validation.errors.dateOfPublication}
+                          </div>
+                        )}
                     </div>
                   </Col>
 
@@ -614,13 +758,26 @@ const Books_Chapters = () => {
                       <Label>Front Page Upload</Label>
                       <Input
                         type="file"
-                        onChange={(e) => validation.setFieldValue("bookChapter", e.target.files?.[0] || null)}
-                        className={`form-control ${validation.touched.bookChapter && validation.errors.bookChapter ? "is-invalid" : ""}`}
+                        onChange={(e) =>
+                          validation.setFieldValue(
+                            "bookChapter",
+                            e.target.files?.[0] || null
+                          )
+                        }
+                        className={`form-control ${
+                          validation.touched.bookChapter &&
+                          validation.errors.bookChapter
+                            ? "is-invalid"
+                            : ""
+                        }`}
                         disabled={isFrontPageFileUploadDisabled} // Disable the button if a file exists
                       />
-                      {validation.touched.bookChapter && validation.errors.bookChapter && (
-                        <div className="text-danger">{validation.errors.bookChapter}</div>
-                      )}
+                      {validation.touched.bookChapter &&
+                        validation.errors.bookChapter && (
+                          <div className="text-danger">
+                            {validation.errors.bookChapter}
+                          </div>
+                        )}
                       {/* Show a message if the file upload button is disabled */}
                       {isFrontPageFileUploadDisabled && (
                         <div className="text-warning mt-2">
@@ -630,15 +787,23 @@ const Books_Chapters = () => {
                       {/* Only show the file name if it is a string (from the edit API) */}
                       {typeof validation.values.bookChapter === "string" && (
                         <div className="mt-2 d-flex align-items-center">
-                          <span className="me-2" style={{ fontWeight: "bold", color: "green" }}>
+                          <span
+                            className="me-2"
+                            style={{ fontWeight: "bold", color: "green" }}
+                          >
                             {validation.values.bookChapter}
                           </span>
                           <Button
                             color="link"
                             className="text-primary"
                             onClick={() => {
-                              if (typeof validation.values.bookChapter === "string") {
-                                handleDownloadFile(validation.values.bookChapter);
+                              if (
+                                typeof validation.values.bookChapter ===
+                                "string"
+                              ) {
+                                handleDownloadFile(
+                                  validation.values.bookChapter
+                                );
                               }
                             }}
                             title="Download File"
@@ -679,7 +844,12 @@ const Books_Chapters = () => {
           </Card>
         </Container>
         {/* Modal for Listing BOS */}
-        <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg" style={{ maxWidth: "100%", width: "auto" }}>
+        <Modal
+          isOpen={isModalOpen}
+          toggle={toggleModal}
+          size="lg"
+          style={{ maxWidth: "100%", width: "auto" }}
+        >
           <ModalHeader toggle={toggleModal}>List BOS</ModalHeader>
           <ModalBody>
             {/* Global Search */}
@@ -692,101 +862,26 @@ const Books_Chapters = () => {
               />
             </div>
 
-            {/* Table with Pagination */}
-            <Table className="table-hover custom-table">
-              <thead>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>
-                    Academic Year
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.academicYear}
-                      onChange={(e) => handleFilterChange(e, "academicYear")}
-                    />
-                  </th>
-                  <th>
-                    School
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.stream}
-                      onChange={(e) => handleFilterChange(e, "stream")}
-                    />
-                  </th>
-                  <th>
-                    Department
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.department}
-                      onChange={(e) => handleFilterChange(e, "department")}
-                    />
-                  </th>
-                  <th>
-                    Faculty Name
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.facultyName}
-                      onChange={(e) => handleFilterChange(e, "programType")}
-                    />
-                  </th>
-                  <th>
-                    Co-Authors
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.coAuthors}
-                      onChange={(e) => handleFilterChange(e, "program")}
-                    />
-                  </th>
-                  <th>
-                    Book Title
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.bookTitle}
-                      onChange={(e) => handleFilterChange(e, "yearOfIntroduction")}
-                    />
-                  </th>
-                  <th>
-                    Editor
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.editor}
-                      onChange={(e) => handleFilterChange(e, "percentage")}
-                    />
-                  </th>
-                  <th>
-                    Publisher
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.publisher}
-                      onChange={(e) => handleFilterChange(e, "percentage")}
-                    />
-                  </th>
-                  <th>
-                    ISBXL
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.isbxl}
-                      onChange={(e) => handleFilterChange(e, "percentage")}
-                    />
-                  </th>
-                  <th>
-                    Date of Publication
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.dateOfPublication}
-                      onChange={(e) => handleFilterChange(e, "percentage")}
-                    />
-                  </th>
+                  <th>Academic Year</th>
+                  <th>School</th>
+                  <th>Department</th>
+                  <th>Faculty Name</th>
+                  <th>Co-Authors</th>
+                  <th>Book Title</th>
+                  <th>Editor</th>
+                  <th>Publisher</th>
+                  <th>ISBXL</th>
+                  <th>Date of Publication</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -855,23 +950,32 @@ const Books_Chapters = () => {
           </ModalBody>
         </Modal>
         {/* Confirmation Modal */}
-        <Modal isOpen={isDeleteModalOpen} toggle={() => setIsDeleteModalOpen(false)}>
-          <ModalHeader toggle={() => setIsDeleteModalOpen(false)}>Confirm Deletion</ModalHeader>
+        <Modal
+          isOpen={isDeleteModalOpen}
+          toggle={() => setIsDeleteModalOpen(false)}
+        >
+          <ModalHeader toggle={() => setIsDeleteModalOpen(false)}>
+            Confirm Deletion
+          </ModalHeader>
           <ModalBody>
-            Are you sure you want to delete this record? This action cannot be undone.
+            Are you sure you want to delete this record? This action cannot be
+            undone.
           </ModalBody>
           <ModalFooter>
             <Button color="danger" onClick={() => confirmDelete(deleteId!)}>
               Delete
             </Button>
-            <Button color="secondary" onClick={() => setIsDeleteModalOpen(false)}>
+            <Button
+              color="secondary"
+              onClick={() => setIsDeleteModalOpen(false)}
+            >
               Cancel
             </Button>
           </ModalFooter>
         </Modal>
       </div>
       <ToastContainer />
-    </React.Fragment >
+    </React.Fragment>
   );
 };
 

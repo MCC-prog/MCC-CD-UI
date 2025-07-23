@@ -184,6 +184,8 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
         file: response.documents?.CoCurricularActivities || null,
         imageStudent: response.documents?.studentImage || null,
       };
+      const streamOption = mapValueToLabel(response.streamId, []); // Replace [] with stream options array if available
+      const departmentOption = mapValueToLabel(response.departmentId, []); // Replace [] with department options array if available
 
       // Update Formik values
       validation.setValues({
@@ -198,6 +200,9 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
         fromDate: mappedValues.fromDate || "",
         toDate: mappedValues.toDate || "",
       });
+      setSelectedStream(streamOption);
+      setSelectedDepartment(departmentOption);
+
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();
@@ -944,7 +949,9 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
           size="lg"
           style={{ maxWidth: "90%" }}
         >
-          <ModalHeader toggle={toggleModal}>List Cultural & Co-Curricular activities conducted in the college</ModalHeader>
+          <ModalHeader toggle={toggleModal}>
+            List Cultural & Co-Curricular activities conducted in the college
+          </ModalHeader>
           <ModalBody>
             {/* Global Search */}
             <div className="mb-3">

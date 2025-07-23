@@ -741,7 +741,7 @@ const Student_Centric_Teaching: React.FC = () => {
         studentCentricMethodologyId: editId || null,
         academicYear: Number(values.academicYear?.value || 0),
         semType: values.semesterType?.value || "",
-        semesterNo: Number(values.semesterNo?.value || 0),
+        semester: Number(values.semesterNo?.value || ""),
         streamId: Number(values.stream?.value || 0),
         departmentId: Number(values.department?.value || 0),
         courseIds: Array.isArray(values.courses)

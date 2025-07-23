@@ -195,7 +195,8 @@ const WorkshopsOrSeminars: React.FC = () => {
           ? { value: response.level, label: response.level }
           : null,
       };
-
+      const streamOption = mapValueToLabel(response.streamId, []); // Replace [] with stream options array if available
+      const departmentOption = mapValueToLabel(response.departmentId, []); // Replace [] with department options array if available
       validation.setValues({
         academicYear: mappedValues.academicYear
           ? {
@@ -220,7 +221,8 @@ const WorkshopsOrSeminars: React.FC = () => {
           : "",
         certificate: response.files?.Workshops || null,
       });
-
+      setSelectedStream(streamOption);
+      setSelectedDepartment(departmentOption);
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();

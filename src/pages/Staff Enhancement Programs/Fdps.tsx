@@ -214,6 +214,8 @@ const Fdps: React.FC = () => {
           ? { value: response.identity, label: response.identity }
           : null,
       };
+      const streamOption = mapValueToLabel(response.streamId, []); // Replace [] with stream options array if available
+      const departmentOption = mapValueToLabel(response.departmentId, []); // Replace [] with department options array if available
 
       // Update Formik values
       validation.setValues({
@@ -232,6 +234,9 @@ const Fdps: React.FC = () => {
           : null,
         facultyName: response.facultyName || "", // Ensure facultyName is included
       });
+      setSelectedStream(streamOption);
+      setSelectedDepartment(departmentOption);
+
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       // Disable the file upload button if a file exists
