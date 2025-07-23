@@ -203,7 +203,8 @@ const Advanced_Learners: React.FC = () => {
 
       if (deleteId) {
         await api.delete(
-          `/advanceLearners/deleteAdvanceLearnerTabsAndDoc?advanceLearnerAddTabId=${deleteId}`,""
+          `/advanceLearners/deleteAdvanceLearnerTabsAndDoc?advanceLearnerAddTabId=${deleteId}`,
+          ""
         );
       }
       switch (tab) {
@@ -590,6 +591,10 @@ const Advanced_Learners: React.FC = () => {
         response.researchProjectDto?.researchProjectId || null
       );
       setPeerTeachingId(response.peerTeachingDto?.peerTeachingId || null);
+      setSelectedStream(streamOption);
+      setSelectedDepartment(departmentOption);
+      setSelectedProgramType(programTypeOption);
+      setSelectedDegree(degreeOption);
 
       setIsEditMode(true);
       setEditId(id);
