@@ -334,7 +334,7 @@ const Student_Centric_Teaching: React.FC = () => {
           ? { value: response.semType, label: response.semType.toUpperCase() }
           : null,
         semesterNo: mapValueToLabel(
-          String(response.semesterNo),
+          String(response.semester),
           semesterNoOptions
         ) as { value: string; label: string } | null,
         stream: response.streamId

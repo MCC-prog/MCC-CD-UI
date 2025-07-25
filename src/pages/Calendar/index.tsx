@@ -1,32 +1,44 @@
 import BootstrapTheme from "@fullcalendar/bootstrap";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin, { Draggable } from "@fullcalendar/interaction";
-import listPlugin from '@fullcalendar/list';
+import listPlugin from "@fullcalendar/list";
 import FullCalendar from "@fullcalendar/react";
 import { isEmpty } from "lodash";
 import React, { useEffect, useState } from "react";
 
 import { useFormik } from "formik";
-import { Card, CardBody, Col, Container, Form, FormFeedback, Input, Label, Modal, ModalBody, ModalHeader, Row } from "reactstrap";
+import {
+  Card,
+  CardBody,
+  Col,
+  Container,
+  Form,
+  FormFeedback,
+  Input,
+  Label,
+  Modal,
+  ModalBody,
+  ModalHeader,
+  Row,
+} from "reactstrap";
 import * as Yup from "yup";
 
-//import 
+//import
 import {
   addNewEvent as onAddNewEvent,
   deleteEvent as onDeleteEvent,
   getCategories as onGetCategories,
   getEvents as onGetEvents,
-  updateEvent as onUpdateEvent
+  updateEvent as onUpdateEvent,
 } from "../../slices/calendar/thunk";
 
 import DeleteModal from "./DeleteModal";
 
 //redux
 import { useDispatch, useSelector } from "react-redux";
-import { createSelector } from 'reselect';
+import { createSelector } from "reselect";
 
 const Calender = (props: any) => {
-
   const dispatch = useDispatch<any>();
 
   const selectProperties = createSelector(
@@ -58,8 +70,8 @@ const Calender = (props: any) => {
     enableReinitialize: true,
 
     initialValues: {
-      title: (event && event.title) || '',
-      category: (event && event.category) || '',
+      title: (event && event.title) || "",
+      category: (event && event.category) || "",
     },
     validationSchema: Yup.object({
       title: Yup.string().required("Please Enter Your Event Name"),
@@ -81,20 +93,17 @@ const Calender = (props: any) => {
           id: Math.floor(Math.random() * 100),
           title: values["title"],
           start: selectedDay ? selectedDay.date : new Date(),
-          className: values['category']
-            ? values['category'] + " text-white"
-            : "bg-primary text-white"
-          ,
+          className: values["category"]
+            ? values["category"] + " text-white"
+            : "bg-primary text-white",
         };
         // save new event
         dispatch(onAddNewEvent(newEvent));
-        categoryValidation.resetForm()
+        categoryValidation.resetForm();
       }
       toggle();
     },
   });
-
-
 
   useEffect(() => {
     if (!modalCategory && !isEmpty(event) && !!isEdit) {
@@ -159,9 +168,9 @@ const Calender = (props: any) => {
       category: event.classNames[0],
       event_category: event.classNames[0],
     });
-    setDeleteId(event.id)
+    setDeleteId(event.id);
     setIsEdit(true);
-    setModalCategory(true)
+    setModalCategory(true);
     toggle();
   };
 
@@ -186,7 +195,7 @@ const Calender = (props: any) => {
    * On calendar drop event
    */
   const onDrop = (event: any) => {
-    const date = event['date'];
+    const date = event["date"];
     const day = date.getDate();
     const month = date.getMonth();
     const year = date.getFullYear();
@@ -195,11 +204,21 @@ const Calender = (props: any) => {
     const currentHour = currectDate.getHours();
     const currentMin = currectDate.getMinutes();
     const currentSec = currectDate.getSeconds();
-    const modifiedDate = new Date(year, month, day, currentHour, currentMin, currentSec);
+    const modifiedDate = new Date(
+      year,
+      month,
+      day,
+      currentHour,
+      currentMin,
+      currentSec
+    );
 
     const draggedEl = event.draggedEl;
     const draggedElclass = draggedEl.className;
-    if (draggedEl.classList.contains('external-event') && draggedElclass.indexOf("fc-event-draggable") === -1) {
+    if (
+      draggedEl.classList.contains("external-event") &&
+      draggedElclass.indexOf("fc-event-draggable") === -1
+    ) {
       const modifiedData: any = {
         id: Math.floor(Math.random() * 100),
         title: draggedEl.innerText,
@@ -212,18 +231,18 @@ const Calender = (props: any) => {
 
   //set the local language
   const enLocal: object = {
-    "code": "en-nz",
-    "week": {
-      "dow": 1,
-      "doy": 4
+    code: "en-nz",
+    week: {
+      dow: 1,
+      doy: 4,
     },
-    "buttonHints": {
-      "prev": "Previous $0",
-      "next": "Next $0",
-      "today": "This $0"
+    buttonHints: {
+      prev: "Previous $0",
+      next: "Next $0",
+      today: "This $0",
     },
-    "viewHint": "$0 view",
-    "navLinkHint": "Go to $0"
+    viewHint: "$0 view",
+    navLinkHint: "Go to $0",
   };
   const [isLocal, setIsLocal] = useState<any>(enLocal);
   const handleChangeLocals = (value: any) => {
@@ -274,11 +293,7 @@ const Calender = (props: any) => {
             </Card>
 
             {/* New/Edit event modal */}
-            <Modal
-              isOpen={modalCategory}
-              className={props.className}
-              centered
-            >
+            <Modal isOpen={modalCategory} className={props.className} centered>
               <ModalHeader toggle={toggle}>
                 <h5 className="modal-title" id="modal-title">
                   {!!isEdit ? "Edit Event" : "Add Event"}
@@ -295,46 +310,66 @@ const Calender = (props: any) => {
                   <Row>
                     <Col className="col-12">
                       <div className="mb-3">
-                        <Label>Event Name</Label>
+                        <Label>Title</Label>
                         <Input
                           name="title"
                           type="text"
-                          placeholder="Insert Event Name"
+                          placeholder="Enter Title"
                           onChange={categoryValidation.handleChange}
                           onBlur={categoryValidation.handleBlur}
                           value={categoryValidation.values.title || ""}
                           invalid={
-                            categoryValidation.touched.title && categoryValidation.errors.title ? true : false
+                            categoryValidation.touched.title &&
+                            categoryValidation.errors.title
+                              ? true
+                              : false
                           }
                         />
-                        {categoryValidation.touched.title && categoryValidation.errors.title ? (
-                          <FormFeedback type="invalid">{categoryValidation.errors.title}</FormFeedback>
+                        {categoryValidation.touched.title &&
+                        categoryValidation.errors.title ? (
+                          <FormFeedback type="invalid">
+                            {categoryValidation.errors.title}
+                          </FormFeedback>
                         ) : null}
                       </div>
                     </Col>
+
                     <Col className="col-12">
                       <div className="mb-3">
-                        <Label>Category</Label>
-                        <Input
-                          type="select"
-                          name="category"
-                          placeholder="All Day Event"
-                          onChange={categoryValidation.handleChange}
-                          onBlur={categoryValidation.handleBlur}
-                          value={categoryValidation.values.category || ""}
-                          invalid={
-                            categoryValidation.touched.category && categoryValidation.errors.category ? true : false
-                          }
-                        >
-                          <option value="bg-danger">Danger</option>
-                          <option value="bg-success">Success</option>
-                          <option value="bg-primary">Primary</option>
-                          <option value="bg-info">Info</option>
-                          <option value="bg-dark">Dark</option>
-                          <option value="bg-warning">Warning</option>
-                        </Input>
-                        {categoryValidation.touched.category && categoryValidation.errors.category ? (
-                          <FormFeedback type="invalid">{categoryValidation.errors.category}</FormFeedback>
+                        <Label>Color</Label>
+                        <div className="d-flex gap-2 flex-wrap">
+                          {[
+                            "bg-danger",
+                            "bg-success",
+                            "bg-primary",
+                            "bg-info",
+                            "bg-dark",
+                            "bg-warning",
+                          ].map((color) => (
+                            <div
+                              key={color}
+                              onClick={() =>
+                                categoryValidation.setFieldValue("color", color)
+                              }
+                              className={`rounded-circle ${color}`}
+                              style={{
+                                width: "30px",
+                                height: "30px",
+                                cursor: "pointer",
+                                border:
+                                  categoryValidation.values.color === color
+                                    ? "3px solid #000"
+                                    : "2px solid #fff",
+                              }}
+                              title={color.replace("bg-", "")}
+                            />
+                          ))}
+                        </div>
+                        {categoryValidation.touched.color &&
+                        categoryValidation.errors.color ? (
+                          <div className="text-danger mt-1">
+                            {categoryValidation.errors.color}
+                          </div>
                         ) : null}
                       </div>
                     </Col>
@@ -342,9 +377,19 @@ const Calender = (props: any) => {
 
                   <Row className="mt-2">
                     <Col className="col-6">
-                      {isEdit &&
-                        <button type="button" className="btn btn-danger" id="btn-delete-event" onClick={() => { toggle(); setDeleteModal(true) }}>Delete</button>
-                      }
+                      {isEdit && (
+                        <button
+                          type="button"
+                          className="btn btn-danger"
+                          id="btn-delete-event"
+                          onClick={() => {
+                            toggle();
+                            setDeleteModal(true);
+                          }}
+                        >
+                          Delete
+                        </button>
+                      )}
                     </Col>
 
                     <Col className="col-6 text-end">
@@ -373,6 +418,5 @@ const Calender = (props: any) => {
     </React.Fragment>
   );
 };
-
 
 export default Calender;
