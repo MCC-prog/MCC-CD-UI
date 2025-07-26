@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { Col, Row, Input, Label, Button, CardBody, Card, Container, Nav, NavItem, NavLink, TabContent, TabPane, Modal, ModalBody, Table, ModalHeader, ModalFooter } from "reactstrap";
@@ -15,13 +15,10 @@ const api = new APIClient();
 
 const Management_Funded_Project: React.FC = () => {
     const [departmentOptions, setDepartmentOptions] = useState<{ value: string; label: string }[]>([]);
-    // State variables for managing modal, edit mode, and delete confirmation
     const [isEditMode, setIsEditMode] = useState(false);
     const [editId, setEditId] = useState<string | null>(null);
-    // State variable for managing file upload status
     const [isAbstractFileUploadDisabled, setIsAbstractFileUploadDisabled] = useState(false);
     const [isSanctionFileUploadDisabled, setIsSanctionFileUploadDisabled] = useState(false);
-    // State variable for managing delete confirmation modal
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [deleteId, setDeleteId] = useState<string | null>(null);
     const [selectedStream, setSelectedStream] = useState<any>(null);
@@ -29,15 +26,11 @@ const Management_Funded_Project: React.FC = () => {
     const [isMultidisciplinary, setIsMultidisciplinary] = useState<string>("No");
     const [activeTab, setActiveTab] = useState<string>("1");
     const [documentType, setDocumentType] = useState<string>("");
-    // State variable for managing the modal for listing mfp
     const [isModalOpen, setIsModalOpen] = useState(false);
-    // State variable for managing the list of mfp data
     const [mfpData, setMfpData] = useState<any[]>([]);
-    // State variable for managing search term and pagination
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const rowsPerPage = 10;
-    // State variable for managing filters
     const [filters, setFilters] = useState({
         academicYear: "",
         stream: "",
@@ -94,64 +87,56 @@ const Management_Funded_Project: React.FC = () => {
         setFilteredData(filtered);
     };
 
-    // Calculate the paginated data
+    // Pagination
     const indexOfLastRow = currentPage * rowsPerPage;
     const indexOfFirstRow = indexOfLastRow - rowsPerPage;
     const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
-
-    // Handle page change
-    const handlePageChange = (pageNumber: number) => {
-        setCurrentPage(pageNumber);
-    };
-
-    // Calculate total pages
+    const handlePageChange = (pageNumber: number) => setCurrentPage(pageNumber);
     const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
-    // Toggle the modal for listing mfp
-    const toggleModal = () => {
-        setIsModalOpen(!isModalOpen);
-    };
+    const toggleModal = () => setIsModalOpen(!isModalOpen);
 
-    const validationSchema = Yup.object({
-        academicYear: Yup.object<{ value: string; label: string }>().nullable().required("Please select academic year"),
-        stream: Yup.object<{ value: string; label: string }>().nullable().required("Please select school"),
-        department: Yup.object<{ value: string; label: string }>().nullable().required("Please select department"),
-        otherDepartment: Yup.string().when("department", (department: any, schema) => {
-            return department?.value === "Others"
-                ? schema.required("Please specify the department")
-                : schema;
-        }),
-        facultyName: Yup.string().required("Please enter faculty name"),
-        projectTitle: Yup.string().required("Please enter project title"),
-        amount: Yup.number()
-            .typeError("Please enter a valid number")
-            .min(0, "Amount cannot be less than 0")
-            .required("Please enter the amount"),
-        monthOfGrant: Yup.string().required("Please enter the month of grant"),
-        typeOfFunding: Yup.object<{ value: string; label: string }>().nullable().required("Please select type of funding"),
-        principalInvestigator: isMultidisciplinary === "Yes" && activeTab === "1"
-            ? Yup.object({
-                name: Yup.string().required("Please enter name"),
-                qualification: Yup.string().required("Please enter qualification"),
-                designation: Yup.string().required("Please enter designation"),
-                department: Yup.object<{ value: string; label: string }>().nullable().required("Please select department"),
-                //date: Yup.date().required("Please select a date"),
-                abstractFile: Yup.mixed().required("Please upload the abstract file"),
-                sanctionOrderFile: Yup.mixed().required("Please upload the sanction order file"),
-            })
-            : Yup.object(),
-        coInvestigator: isMultidisciplinary === "Yes" && activeTab === "2"
-            ? Yup.object({
-                name: Yup.string().required("Please enter name"),
-                qualification: Yup.string().required("Please enter qualification"),
-                designation: Yup.string().required("Please enter designation"),
-                department: Yup.object<{ value: string; label: string }>().nullable().required("Please select department"),
-                abstractFile: Yup.mixed().required("Please upload the abstract file"),
-                sanctionOrderFile: Yup.mixed().required("Please upload the sanction order file"),
-                fellowshipFile: Yup.mixed().required("Please upload the fellowship file"),
-            })
-            : Yup.object(),
-    });
+    // Dynamic validation schema for nested tabs
+    const validationSchema = useMemo(() => {
+        return Yup.object({
+            academicYear: Yup.object<{ value: string; label: string }>().nullable().required("Please select academic year"),
+            stream: Yup.object<{ value: string; label: string }>().nullable().required("Please select school"),
+            department: Yup.object<{ value: string; label: string }>().nullable().required("Please select department"),
+            otherDepartment: Yup.string().when("department", (department: any, schema) => {
+                return department?.value === "Others"
+                    ? schema.required("Please specify the department")
+                    : schema;
+            }),
+            facultyName: Yup.string().required("Please enter faculty name"),
+            projectTitle: Yup.string().required("Please enter project title"),
+            amount: Yup.number()
+                .typeError("Please enter a valid number")
+                .min(0, "Amount cannot be less than 0")
+                .required("Please enter the amount"),
+            monthOfGrant: Yup.string().required("Please enter the month of grant"),
+            typeOfFunding: Yup.object<{ value: string; label: string }>().nullable().required("Please select type of funding"),
+            principalInvestigator:
+                isMultidisciplinary === "Yes" && activeTab === "1"
+                    ? Yup.object({
+                        name: Yup.string().required("Please enter name"),
+                        qualification: Yup.string().required("Please enter qualification"),
+                        designation: Yup.string().required("Please enter designation"),
+                        department: Yup.object<{ value: string; label: string }>().nullable().required("Please select department"),
+                        abstractFile: Yup.mixed().required("Please upload the abstract file"),
+                        sanctionOrderFile: Yup.mixed().required("Please upload the sanction order file"),
+                    })
+                    : Yup.object(),
+            coInvestigator:
+                isMultidisciplinary === "Yes" && activeTab === "2"
+                    ? Yup.object({
+                        name: Yup.string().required("Please enter name"),
+                        qualification: Yup.string().required("Please enter qualification"),
+                        designation: Yup.string().required("Please enter designation"),
+                        department: Yup.object<{ value: string; label: string }>().nullable().required("Please select department"),
+                    })
+                    : Yup.object(),
+        });
+    }, [isMultidisciplinary, activeTab]);
 
     const validation = useFormik({
         initialValues: {
@@ -169,7 +154,6 @@ const Management_Funded_Project: React.FC = () => {
                 qualification: "",
                 designation: "",
                 department: null as { value: string; label: string } | null,
-                //date: "",
                 abstractFile: null as File | null,
                 sanctionOrderFile: null as File | null,
             },
@@ -181,52 +165,75 @@ const Management_Funded_Project: React.FC = () => {
             },
         },
         validationSchema,
+        enableReinitialize: true,
         onSubmit: async (values, { resetForm }) => {
-            // Create FormData object
             const formData = new FormData();
-
-            // Prepare the JSON payload for the `dto` key
             const dtoPayload = {
                 managementFundProjectId: editId || null,
-                academicYear: values.academicYear?.value || 0,
-                streamId: values.stream?.value || 0,
-                departmentId: values.department?.value || 0,
-                facultyName: values.facultyName || "",
-                projectTitle: values.projectTitle || "",
-                amount: values.amount || "",
-                monthOfGrant: values.monthOfGrant || "",
-                fundingType: values.typeOfFunding?.value || "",
+                academicYear: values.academicYear?.value || null,
+                streamId: values.stream?.value || null,
+                departmentId: values.department?.value || null,
+                facultyName: values.facultyName || null,
+                projectTitle: values.projectTitle || null,
+                amount: values.amount || null,
+                monthOfGrant: values.monthOfGrant || null,
+                fundingType: values.typeOfFunding?.value || null,
                 multidisciplinary: isMultidisciplinary === "Yes",
                 multidisciplinaryType: activeTab === "1" ? "PrincipleInvestigatorDetails" : "CoInvestigatorDetails",
                 managementFundProjectAddTabDto: {
                     additionalTabId: editId || null,
                     name: activeTab === "1"
-                        ? values.principalInvestigator.name || ""
-                        : values.coInvestigator.name || "",
+                        ? values.principalInvestigator.name || null
+                        : values.coInvestigator.name || null,
                     qualification: activeTab === "1"
-                        ? values.principalInvestigator.qualification || ""
-                        : values.coInvestigator.qualification || "",
+                        ? values.principalInvestigator.qualification || null
+                        : values.coInvestigator.qualification || null,
                     designation: activeTab === "1"
-                        ? values.principalInvestigator.designation || ""
-                        : values.coInvestigator.designation || "",
+                        ? values.principalInvestigator.designation || null
+                        : values.coInvestigator.designation || null,
                     departmentId: activeTab === "1"
                         ? values.principalInvestigator.department?.value || 0
                         : values.coInvestigator.department?.value || 0,
                     departmentName: activeTab === "1"
-                        ? values.principalInvestigator.department?.label || ""
-                        : values.coInvestigator.department?.label || ""
+                        ? values.principalInvestigator.department?.label || null
+                        : values.coInvestigator.department?.label || null
                 }
             };
 
-            // Append the JSON payload as a string with the key `managementFundProjectRequestDto`
             formData.append('managementFundProjectRequestDto', new Blob([JSON.stringify(dtoPayload)], { type: 'application/json' }));
 
-            // Append the file with the key `file`
+            // File handling logic
             if (isMultidisciplinary === "Yes") {
                 if (activeTab === "1") {
-                    formData.append('file.abstractProject', values.principalInvestigator.abstractFile as Blob);
-                    formData.append('file.sanctionOrder', values.principalInvestigator.sanctionOrderFile as Blob);
+                    formData.append(
+                        'abstractProject',
+                        values.principalInvestigator.abstractFile && typeof values.principalInvestigator.abstractFile !== "string"
+                            ? values.principalInvestigator.abstractFile as Blob
+                            : new Blob([], { type: "application/pdf" })
+                    );
+                    formData.append(
+                        'sanctionOrder',
+                        values.principalInvestigator.sanctionOrderFile && typeof values.principalInvestigator.sanctionOrderFile !== "string"
+                            ? values.principalInvestigator.sanctionOrderFile as Blob
+                            : new Blob([], { type: "application/pdf" })
+                    );
+                } else {
+                    formData.append('abstractProject', new Blob([], { type: "application/pdf" }));
+                    formData.append('sanctionOrder', new Blob([], { type: "application/pdf" }));
                 }
+            } else {
+                formData.append(
+                    'abstractProject',
+                    values.principalInvestigator.abstractFile && typeof values.principalInvestigator.abstractFile !== "string"
+                        ? values.principalInvestigator.abstractFile as Blob
+                        : new Blob([], { type: "application/pdf" })
+                );
+                formData.append(
+                    'sanctionOrder',
+                    values.principalInvestigator.sanctionOrderFile && typeof values.principalInvestigator.sanctionOrderFile !== "string"
+                        ? values.principalInvestigator.sanctionOrderFile as Blob
+                        : new Blob([], { type: "application/pdf" })
+                );
             }
 
             try {
@@ -243,17 +250,23 @@ const Management_Funded_Project: React.FC = () => {
                     });
 
                 toast.success(response.message || "MFP record saved successfully!");
-                // Reset the form fields
                 resetForm();
-                setIsEditMode(false); // Reset edit mode
-                setEditId(null); // Clear the edit ID
-                handleListMFPClick(); // Refresh the list
+                setIsEditMode(false);
+                setEditId(null);
+                handleListMFPClick();
             } catch (error) {
                 toast.error("Failed to save MFP. Please try again.");
                 console.error("Error creating/updating MFP:", error);
             }
         }
     });
+
+    // When switching tabs, clear touched/errors for a clean UX
+    const handleTabSwitch = (tab: string) => {
+        setActiveTab(tab);
+        validation.setTouched({});
+        validation.setErrors({});
+    };
 
     const fetchMFAData = async () => {
         try {
@@ -265,14 +278,11 @@ const Management_Funded_Project: React.FC = () => {
         }
     }
 
-    // Open the modal and fetch data
     const handleListMFPClick = () => {
         toggleModal();
         fetchMFAData();
     };
 
-    // Confirm deletion of the record
-    // Call the delete API and refresh the BOS data
     const confirmDelete = async (id: string) => {
         if (deleteId) {
             try {
@@ -289,7 +299,6 @@ const Management_Funded_Project: React.FC = () => {
         }
     };
 
-    // Updated dropdowns to use departmentOptions
     const renderPrincipalInvestigatorDepartmentDropdown = () => (
         <Input
             type="select"
@@ -365,16 +374,16 @@ const Management_Funded_Project: React.FC = () => {
 
     // Handle file deletion
     // Clear the file from the form and show success message
-    const handleDeleteFile = async () => {
+    const handleDeleteFile = async (docType: string) => {
         try {
             // Call the delete API
-            const response = await api.delete(`/managementFundProject/deleteManagementFundedProjectDocument?managementFundProjectId=${editId}&docType=${documentType}`, '');
+            const response = await api.delete(`/managementFundProject/deleteManagementFundedProjectDocument?managementFundProjectId=${editId}&docType=${docType}`, '');
             // Show success message
             toast.success(response.message || "File deleted successfully!");
-            if (documentType === "sanctionOrder") {
+            if (docType === "sanctionOrder") {
                 validation.setFieldValue("principalInvestigator.sanctionOrderFile", null);
                 setIsSanctionFileUploadDisabled(false);
-            } else if (documentType === "abstractProject") {
+            } else if (docType === "abstractProject") {
                 validation.setFieldValue("principalInvestigator.abstractFile", null);
                 setIsAbstractFileUploadDisabled(false);
             }
@@ -509,7 +518,7 @@ const Management_Funded_Project: React.FC = () => {
                                 className="text-danger"
                                 onClick={() => {
                                     setDocumentType("abstractProject");
-                                    handleDeleteFile();
+                                    handleDeleteFile("abstractProject");
                                 }}
                                 title="Delete File"
                             >
@@ -561,7 +570,7 @@ const Management_Funded_Project: React.FC = () => {
                                 className="text-danger"
                                 onClick={() => {
                                     setDocumentType("sanctionOrder");
-                                    handleDeleteFile();
+                                    handleDeleteFile("sanctionOrder");
                                 }}
                                 title="Delete File"
                             >

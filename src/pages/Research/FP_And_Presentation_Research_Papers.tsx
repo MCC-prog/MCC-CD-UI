@@ -140,20 +140,20 @@ const FP_And_Presentation_Research_Papers = () => {
     onSubmit: async (values, { resetForm }) => {
       // Create FormData object
       const formData = new FormData();
-      formData.append("facultyParticipationId", editId || "");
-      formData.append("academicYear", values.academicYear?.value || "");
-      formData.append("departmentId", values.department?.value || "");
-      formData.append("streamId", values.stream?.value || "");
-      formData.append("otherDepartment", values.otherDepartment || "");
-      formData.append("facultyName", values.facultyName || "");
-      formData.append("type", values.type?.value || "");
-      formData.append("mode", values.mode?.value || "");
-      formData.append("level", values.level?.value || "");
-      formData.append("role", values.role?.value || "");
-      formData.append("paperTitle", values.paperTitle || "");
-      formData.append("organisingInstitute", values.organisingInstitute || "");
-      formData.append("fromDate", values.fromDate ? moment(values.fromDate, "YYYY-MM-DD").format("DD/MM/YYYY") : "");
-      formData.append("toDate", values.toDate ? moment(values.toDate, "YYYY-MM-DD").format("DD/MM/YYYY") : "");
+      formData.append("facultyParticipationId", editId || "null");
+      formData.append("academicYear", values.academicYear?.value || "null");
+      formData.append("departmentId", values.department?.value || "null");
+      formData.append("streamId", values.stream?.value || "null");
+      formData.append("otherDepartment", values.otherDepartment || "null");
+      formData.append("facultyName", values.facultyName || "null");
+      formData.append("type", values.type?.value || "null");
+      formData.append("mode", values.mode?.value || "null");
+      formData.append("level", values.level?.value || "null");
+      formData.append("role", values.role?.value || "null");
+      formData.append("paperTitle", values.paperTitle || "null");
+      formData.append("organisingInstitute", values.organisingInstitute || "null");
+      formData.append("fromDate", values.fromDate ? moment(values.fromDate, "YYYY-MM-DD").format("DD/MM/YYYY") : "null");
+      formData.append("toDate", values.toDate ? moment(values.toDate, "YYYY-MM-DD").format("DD/MM/YYYY") : "null");
       // Append the file
       if (typeof values.facultyCertificate === "string") {
         // If the file is just a name, send null

@@ -181,59 +181,79 @@ const GovernmentOrNGOFundedProjects = () => {
     onSubmit: async (values, { resetForm }) => {
       // Create FormData object
       const formData = new FormData();
-      
+
       // Prepare the JSON payload for the `dto` key
       const dtoPayload = {
         governmentFundProjectId: editId || null,
         academicYear: values.academicYear?.value || 0,
         streamId: values.stream?.value || 0,
         departmentId: values.department?.value || 0,
-        facultyName: values.facultyName || "",
-        projectTitle: values.projectTitle || "",
-        amount: values.amount || "",
-        monthOfGrant: values.monthOfGrant || "",
-        fundingType: values.typeOfFunding?.value || "",
+        facultyName: values.facultyName || null,
+        projectTitle: values.projectTitle || null,
+        amount: values.amount || null,
+        monthOfGrant: values.monthOfGrant || null,
+        fundingType: values.typeOfFunding?.value || null,
         multidisciplinary: isMultidisciplinary === "Yes",
         multidisciplinaryType: activeTab === "1" ? "PrincipleInvestigatorDetails" : "CoInvestigatorDetails",
         governmentFundProjectAddTabDto: {
           additionalTabId: editId || null,
           name: activeTab === "1"
-            ? values.principalInvestigator.name || ""
-            : values.coInvestigator.name || "",
+            ? values.principalInvestigator.name || null
+            : values.coInvestigator.name || null,
           qualification: activeTab === "1"
-            ? values.principalInvestigator.qualification || ""
-            : values.coInvestigator.qualification || "",
+            ? values.principalInvestigator.qualification || null
+            : values.coInvestigator.qualification || null,
           designation: activeTab === "1"
-            ? values.principalInvestigator.designation || ""
-            : values.coInvestigator.designation || "",
+            ? values.principalInvestigator.designation || null
+            : values.coInvestigator.designation || null,
           departmentId: activeTab === "1"
             ? values.principalInvestigator.department?.value || 0
             : values.coInvestigator.department?.value || 0,
           departmentName: activeTab === "1"
-            ? values.principalInvestigator.department?.label || ""
-            : values.coInvestigator.department?.label || ""
+            ? values.principalInvestigator.department?.label || null
+            : values.coInvestigator.department?.label || null
         }
       };
+
+      console.log("DTO Payload:", dtoPayload);
 
       // Append the JSON payload as a string with the key `managementFundProjectRequestDto`
       formData.append('governmentFundProjectRequestDto', new Blob([JSON.stringify(dtoPayload)], { type: 'application/json' }));
 
-      // Append the file with the key `file`
+      // File handling logic
       if (isMultidisciplinary === "Yes") {
         if (activeTab === "1") {
-          if (typeof values.principalInvestigator.abstractFile === "string") {
-            formData.append("abstractProject", "null");
-          } else if (values.principalInvestigator.abstractFile instanceof File) {
-            formData.append("abstractProject", values.principalInvestigator.abstractFile);
-          }
-          if (typeof values.principalInvestigator.sanctionOrderFile === "string") {
-            formData.append("sanctionOrder", "null");
-          } else if (values.principalInvestigator.sanctionOrderFile instanceof File) {
-            formData.append("sanctionOrder", values.principalInvestigator.sanctionOrderFile);
-          }
+          formData.append(
+            'abstractProject',
+            values.principalInvestigator.abstractFile && typeof values.principalInvestigator.abstractFile !== "string"
+              ? values.principalInvestigator.abstractFile as Blob
+              : new Blob([], { type: "application/pdf" })
+          );
+          formData.append(
+            'sanctionOrder',
+            values.principalInvestigator.sanctionOrderFile && typeof values.principalInvestigator.sanctionOrderFile !== "string"
+              ? values.principalInvestigator.sanctionOrderFile as Blob
+              : new Blob([], { type: "application/pdf" })
+          );
+        } else {
+          formData.append('abstractProject', new Blob([], { type: "application/pdf" }));
+          formData.append('sanctionOrder', new Blob([], { type: "application/pdf" }));
         }
-      } 
-      
+      } else {
+        formData.append(
+          'abstractProject',
+          values.principalInvestigator.abstractFile && typeof values.principalInvestigator.abstractFile !== "string"
+            ? values.principalInvestigator.abstractFile as Blob
+            : new Blob([], { type: "application/pdf" })
+        );
+        formData.append(
+          'sanctionOrder',
+          values.principalInvestigator.sanctionOrderFile && typeof values.principalInvestigator.sanctionOrderFile !== "string"
+            ? values.principalInvestigator.sanctionOrderFile as Blob
+            : new Blob([], { type: "application/pdf" })
+        );
+      }
+
       try {
         const response = isEditMode && editId
           ? await api.put(`/governmentFundProject/update`, formData, {
@@ -370,14 +390,14 @@ const GovernmentOrNGOFundedProjects = () => {
 
   // Handle file deletion
   // Clear the file from the form and show success message
-  const handleDeleteFile = async () => {
+  const handleDeleteFile = async (docType: string) => {
     try {
-      const response = await api.delete(`/governmentFundProject/deleteGovernmentFundedProjectDocument?GovernmentFundProjectId=${editId}&docType=${documentType}`, '');
+      const response = await api.delete(`/governmentFundProject/deleteGovernmentFundedProjectDocument?GovernmentFundProjectId=${editId}&docType=${docType}`, '');
       toast.success(response.message || "File deleted successfully!");
-      if (documentType === "sanctionOrder") {
+      if (docType === "sanctionOrder") {
         validation.setFieldValue("principalInvestigator.sanctionOrderFile", null);
         setIsSanctionFileUploadDisabled(false);
-      } else if (documentType === "abstractProject") {
+      } else if (docType === "abstractProject") {
         validation.setFieldValue("principalInvestigator.abstractFile", null);
         setIsAbstractFileUploadDisabled(false);
       }
@@ -512,7 +532,7 @@ const GovernmentOrNGOFundedProjects = () => {
                 className="text-danger"
                 onClick={() => {
                   setDocumentType("abstractProject");
-                  handleDeleteFile();
+                  handleDeleteFile("abstractProject");
                 }}
                 title="Delete File"
               >
@@ -564,7 +584,7 @@ const GovernmentOrNGOFundedProjects = () => {
                 className="text-danger"
                 onClick={() => {
                   setDocumentType("sanctionOrder");
-                  handleDeleteFile();
+                  handleDeleteFile("sanctionOrder");
                 }}
                 title="Delete File"
               >

@@ -167,10 +167,8 @@ const Research_Publications = () => {
       )
     }),
     onSubmit: async (values, { resetForm }) => {
-
       // Create FormData object
       const formData = new FormData();
-
       // Create a plain JavaScript object from form values
       formData.append("researchPublicationId", editId || "");
       formData.append("academicYear", values.academicYear?.value || "");
@@ -188,12 +186,15 @@ const Research_Publications = () => {
       formData.append("doi", values.doi);
       formData.append("publicationDate", values.publicationDate ? moment(values.publicationDate, "YYYY-MM-DD").format("DD/MM/YYYY") : "");
       formData.append("publisher", values.publisher);
-      formData.append("otherDepartment", values.otherDepartment || "");
-      // Append files if they exist
-      if (values.researchPublication) {
+      formData.append("otherDepartment", values.otherDepartment || "null");
+      // Append the file
+      if (typeof values.researchPublication === "string") {
+        // If the file is just a name, send null
+        formData.append("researchPublication", "null");
+      } else if (values.researchPublication instanceof File) {
+        // If the file is a File object, send the file
         formData.append("researchPublication", values.researchPublication);
       }
-
       try {
         if (isEditMode && editId) {
           // Call the update API

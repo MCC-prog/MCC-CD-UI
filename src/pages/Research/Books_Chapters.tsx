@@ -171,7 +171,7 @@ const Books_Chapters = () => {
       formData.append("streamId", values.stream?.value || "");
       formData.append("publicationDate", values.dateOfPublication || "");
       formData.append("publisher", values.publisher || "");
-      formData.append("otherDepartment", values.otherDepartment || "");
+      formData.append("otherDepartment", values.otherDepartment || "null");
 
       // Append the file
       if (typeof values.bookChapter === "string") {
