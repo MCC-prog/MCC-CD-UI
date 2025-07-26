@@ -1,8 +1,9 @@
+import axios from "axios";
 import Breadcrumb from "Components/Common/Breadcrumb";
+import AcademicYearDropdown from "Components/DropDowns/AcademicYearDropdown";
 import { useFormik } from "formik";
 import React, { useRef, useState } from "react";
-import Select from "react-select";
-import * as Yup from "yup";
+import { toast, ToastContainer } from "react-toastify";
 import {
   Button,
   Card,
@@ -17,18 +18,16 @@ import {
   ModalHeader,
   Row,
   Table,
+  Tooltip,
 } from "reactstrap";
-import AcademicYearDropdown from "Components/DropDowns/AcademicYearDropdown";
-import moment from "moment";
-import { toast, ToastContainer } from "react-toastify";
+import * as Yup from "yup";
 import { APIClient } from "../../helpers/api_helper";
-import axios from "axios";
 
 const api = new APIClient();
 
-const AC_GB_MoM: React.FC = () => {
+const Seminar_Halls: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [acGbMomData, setAcGbMomData] = useState<any[]>([]);
+  const [seminarHallsData, setSeminarHallsData] = useState<any[]>([]);
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -37,22 +36,24 @@ const AC_GB_MoM: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
-  const [filteredData, setFilteredData] = useState(acGbMomData);
+  const [filteredData, setFilteredData] = useState(seminarHallsData);
   const [filters, setFilters] = useState({
     academicYear: "",
-    date: "",
-    acFile: null as string | null,
-    gbFile: null as string | null,
+    noOfSeminarHalls: "",
+    file: null as string | null,
   });
-  const acFileRef = useRef<HTMLInputElement | null>(null);
-  const gbFileRef = useRef<HTMLInputElement | null>(null);
+
+const fileRef = useRef<HTMLInputElement | null>(null);
+
+  const [tooltipOpen, setTooltipOpen] = useState(false);
+  const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
 
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
 
-    const filtered = acGbMomData.filter((row) =>
+    const filtered = seminarHallsData.filter((row) =>
       Object.values(row).some((val) =>
         String(val || "")
           .toLowerCase()
@@ -71,7 +72,7 @@ const AC_GB_MoM: React.FC = () => {
     const updatedFilters = { ...filters, [column]: value };
     setFilters(updatedFilters);
 
-    const filtered = acGbMomData.filter((row) =>
+    const filtered = seminarHallsData.filter((row) =>
       Object.values(row).some((val) =>
         String(val || "")
           .toLowerCase()
@@ -98,21 +99,21 @@ const AC_GB_MoM: React.FC = () => {
     setIsModalOpen(!isModalOpen);
   };
 
-  // Fetch Ac & Gb Mom data from the backend
-  const fetchAcGbMomData = async () => {
+  // Fetch Seminar Halls data from the backend
+  const fetchSeminarHallsData = async () => {
     try {
-      const response = await axios.get("/acGbMom/getAllAcGbMom"); // Replace with your backend API endpoint
-      setAcGbMomData(response);
+      const response = await axios.get("/infrastructureSeminarHalls/getAllSeminarHalls"); // Replace with your backend API endpoint
+      setSeminarHallsData(response);
       setFilteredData(response);
     } catch (error) {
-      console.error("Error fetching Ac & Gb Mom data:", error);
+      console.error("Error fetching Seminar Halls data:", error);
     }
   };
 
   // Open the modal and fetch data
-  const handleListACGBClick = () => {
+  const handleListSeminarHallsClick = () => {
     toggleModal();
-    fetchAcGbMomData();
+    fetchSeminarHallsData();
   };
 
   const mapValueToLabel = (
@@ -125,10 +126,10 @@ const AC_GB_MoM: React.FC = () => {
   };
 
   // Handle edit action
-  // Fetch the data for the selected Ac & Gb Mom ID and populate the form fields
+  // Fetch the data for the selected policy ID and populate the form fields
   const handleEdit = async (id: string) => {
     try {
-      const response = await api.get(`/acGbMom?acGbMomId=${id}`, "");
+      const response = await api.get(`/infrastructureSeminarHalls/edit?seminarHallId=${id}`, "");
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
       // Filter the response where isCurrent or isCurrentForAdmission is true
       const filteredAcademicYearList = academicYearOptions.filter(
@@ -143,33 +144,27 @@ const AC_GB_MoM: React.FC = () => {
       // Map API response to Formik values
       const mappedValues = {
         academicYear: mapValueToLabel(response.academicYear, academicYearList),
-        dates: response.date
-          ? moment(response.date, "YYYY-MM-DD").format("DD/MM/YYYY")
-          : "",
-
-        acFile: response.documents?.AcademicCouncilMom || null,
-        gbFile: response.documents?.GoverningBodyMom || null,
+        noOfSeminarHalls: response.noOfSeminarHalls || "",
+        file: response.document?.seminarHalls || null,
       };
 
       // Update Formik values
       validation.setValues({
+        ...mappedValues,
         academicYear: mappedValues.academicYear
           ? {
               ...mappedValues.academicYear,
               value: String(mappedValues.academicYear.value),
             }
           : null,
-        dates: mappedValues.dates || "",
-        acFile: mappedValues.acFile || null,
-        gbFile: mappedValues.gbFile || null,
       });
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       // Disable the file upload button if a file exists
-      setIsFileUploadDisabled(!!response.document?.excel);
+      setIsFileUploadDisabled(!!response.document?.aaa);
       toggleModal();
     } catch (error) {
-      console.error("Error fetching Ac & Gb Mom data by ID:", error);
+      console.error("Error fetching Board Room data by ID:", error);
     }
   };
 
@@ -181,19 +176,19 @@ const AC_GB_MoM: React.FC = () => {
   };
 
   // Confirm deletion of the record
-  // Call the delete API and refresh the Ac & Gb Mom data
+  // Call the delete API and refresh the Policy data
   const confirmDelete = async (id: string) => {
     if (deleteId) {
       try {
         const response = await api.delete(
-          `/acGbMom/deleteAcGbMom?acGbMomId=${id}`,
+          `/infrastructureSeminarHalls/deleteSeminarHall?seminarHallId=${id}`,
           ""
         );
-        toast.success(response.message || "Ac & Gb Mom removed successfully!");
-        fetchAcGbMomData();
+        toast.success(response.message || "Seminar Hall removed successfully!");
+        fetchSeminarHallsData();
       } catch (error) {
-        toast.error("Failed to remove Ac & Gb Mom. Please try again.");
-        console.error("Error deleting Ac & Gb Mom:", error);
+        toast.error("Failed to remove Seminar Hall. Please try again.");
+        console.error("Error deleting Seminar Hall:", error);
       } finally {
         setIsDeleteModalOpen(false);
         setDeleteId(null);
@@ -206,9 +201,12 @@ const AC_GB_MoM: React.FC = () => {
     if (fileName) {
       try {
         // Ensure you set responseType to 'blob' to handle binary data
-        const response = await axios.get(`/acGbMom/download/${fileName}`, {
-          responseType: "blob",
-        });
+        const response = await axios.get(
+          `/infrastructureSeminarHalls/download/${fileName}`,
+          {
+            responseType: "blob",
+          }
+        );
 
         // Create a Blob from the response data
         const blob = new Blob([response], { type: "*/*" });
@@ -229,7 +227,7 @@ const AC_GB_MoM: React.FC = () => {
 
         toast.success("File downloaded successfully!");
       } catch (error) {
-        toast.error("Failed to download excel file. Please try again.");
+        toast.error("Failed to download pdf file. Please try again.");
         console.error("Error downloading file:", error);
       }
     } else {
@@ -243,7 +241,7 @@ const AC_GB_MoM: React.FC = () => {
     try {
       // Call the delete API
       const response = await api.delete(
-        `/acGbMom/deleteAcGbMomDocument?acGbMomDocumentId=${editId}`,
+        `/infrastructureSeminarHalls/deleteSeminarHallDocument?seminarHallId=${editId}`,
         ""
       );
       // Show success message
@@ -262,140 +260,77 @@ const AC_GB_MoM: React.FC = () => {
 
   const validation = useFormik({
     initialValues: {
-      academicYear: null as { value: string; label: string } | null,
-      dates: "",
-      acFile: null,
-      gbFile: null,
+      academicYear: null as AcademicYearOption,
+      noOfSeminarHalls: "",
+      file: null as File | string | null,
     },
     validationSchema: Yup.object({
-      academicYear: Yup.object()
+      academicYear: Yup.object({
+        value: Yup.string().required(),
+        label: Yup.string().required(),
+      })
         .nullable()
         .required("Please select academic year"),
-      dates: Yup.string().required("Please select Date"),
-      acFile: Yup.mixed()
-        .test("required", "Please upload a file", (value: any) => {
-          return value !== null && value !== undefined;
-        })
+        noOfSeminarHalls: Yup.string()
+          .required("Please enter the number of seminar halls")
+          .matches(/^[0-9]+$/, "Must be a number"),
+      file: Yup.mixed()
+        .required("Please upload a file")
         .test("fileSize", "File size is too large", (value: any) => {
-          if (typeof value === "string") return true; // Skip check for string (edit mode)
-          if (!value) return true; // Let 'required' test handle null/undefined
-          return value.size <= 2 * 1024 * 1024; // Max 2MB
+          if (typeof value === "string") return true;
+          return value && value.size <= 2 * 1024 * 1024; // 2MB limit
         })
         .test("fileType", "Unsupported file format", (value: any) => {
-          if (typeof value === "string") return true; // Allow URLs or previously uploaded files
-          if (!value) return true; // Let 'required' test handle it
-          return ["application/pdf", "image/jpeg", "image/png"].includes(
-            value.type
-          );
-        }),
-
-      gbFile: Yup.mixed()
-        .test("required", "Please upload a file", (value: any) => {
-          return value !== null && value !== undefined;
-        })
-        .test("fileSize", "File size is too large", (value: any) => {
-          if (typeof value === "string") return true; // allow previously uploaded URLs in edit mode
-          if (!value) return true; // let required() handle null
-          return value.size <= 2 * 1024 * 1024; // 2MB
-        })
-        .test("fileType", "Unsupported file format", (value: any) => {
-          if (typeof value === "string") return true; // allow previously uploaded file references
-          if (!value) return true; // let required() handle null
-          return ["application/pdf", "image/jpeg", "image/png"].includes(
-            value.type
+          if (typeof value === "string") return true;
+          return (
+            value &&
+            ["application/pdf", "image/jpeg", "image/png"].includes(value.type)
           );
         }),
     }),
-    onSubmit: (values, { resetForm }) => {
+    onSubmit: async (values, { resetForm }) => {
       const formData = new FormData();
-      formData.append("acGbMomId", editId || "");
-      formData.append(
-        "academicYear",
-        values.academicYear ? values.academicYear.value : ""
-      );
-      formData.append(
-        "date",
-        moment(values.dates, "DD/MM/YYYY").format("DD/MM/YYYY") // Convert to yyyy-mm-dd for the backend
-      );
+
+      formData.append("academicYear", values.academicYear?.value || "");
+        formData.append("noOfSeminarHalls", values.noOfSeminarHalls || "");
+
       // Handle the file conditionally
-      if (isEditMode && typeof values.acFile === "string") {
+      if (isEditMode && typeof values.file === "string") {
         // Pass an empty Blob instead of null
-        formData.append(
-          "academicCouncilMom",
-          new Blob([], { type: "application/pdf" }),
-          "empty.pdf"
-        );
-      } else if (isEditMode && values.acFile === null) {
-        formData.append(
-          "academicCouncilMom",
-          new Blob([], { type: "application/pdf" }),
-          "empty.pdf"
-        );
-      } else if (values.acFile) {
-        formData.append("academicCouncilMom", values.acFile);
+        formData.append("file", new Blob([]), "empty.pdf");
+      } else if (isEditMode && values.file === null) {
+        formData.append("file", new Blob([]), "empty.pdf");
+      } else if (values.file) {
+        formData.append("file", values.file);
       }
 
-      if (isEditMode && typeof values.gbFile === "string") {
-        // Pass an empty PDF instead of null
-        formData.append(
-          "governingBodyMom",
-          new Blob([], { type: "application/pdf" }),
-          "empty.pdf"
-        );
-      } else if (isEditMode && values.gbFile === null) {
-        formData.append(
-          "governingBodyMom",
-          new Blob([], { type: "application/pdf" }),
-          "empty.pdf"
-        );
-      } else if (values.gbFile) {
-        formData.append("governingBodyMom", values.gbFile);
-      }
-
+      // If editing, include ID
       if (isEditMode && editId) {
-        // Update existing record
-        api
-          .put(`/acGbMom`, formData)
-          .then((response) => {
-            toast.success(
-              response.message || "Ac & Gb Mom updated successfully!"
-            );
-            resetForm();
-            if (acFileRef.current) acFileRef.current.value = "";
-            if (gbFileRef.current) gbFileRef.current.value = "";
-
-            setIsEditMode(false);
-            setEditId(null);
-            setIsFileUploadDisabled(false); // Reset file upload state
-            toggleModal();
-            fetchAcGbMomData();
-          })
-          .catch((error) => {
-            toast.error("Failed to update Ac & Gb Mom. Please try again.");
-            console.error("Error updating Ac & Gb Mom:", error);
-          });
-      } else {
-        // Create new record
-        api
-          .create("/acGbMom", formData)
-          .then((response) => {
-            toast.success(
-              response.message || "Ac & Gb Mom created successfully!"
-            );
-            resetForm();
-            if (acFileRef.current) acFileRef.current.value = "";
-            if (gbFileRef.current) gbFileRef.current.value = "";
-
-            setIsEditMode(false);
-            setEditId(null);
-            setIsFileUploadDisabled(false); // Reset file upload state
-            toggleModal(); // Close the modal after creation
-            fetchAcGbMomData();
-          })
-          .catch((error) => {
-            toast.error("Failed to create Ac & Gb Mom. Please try again.");
-            console.error("Error creating Ac & Gb Mom:", error);
-          });
+        formData.append("seminarHallId", editId);
+      }
+      try {
+        if (isEditMode && editId) {
+          // Call the update API
+          const response = await api.put(`/infrastructureSeminarHalls/update`, formData);
+          toast.success(response.message || "Seminar Hall updated successfully!");
+        } else {
+          // Call the save API
+          const response = await api.create("/infrastructureSeminarHalls/save", formData);
+          toast.success(response.message || "Seminar Hall added successfully!");
+        }
+        // Reset the form fields
+        resetForm();
+          if (fileRef.current) {
+          fileRef.current.value = "";
+        }
+        setIsEditMode(false); // Reset edit mode
+        setEditId(null); // Clear the edit ID
+        setIsFileUploadDisabled(false); // Enable the file upload button
+        handleListSeminarHallsClick();
+      } catch (error) {
+        // Display error message
+        toast.error("Failed to save Seminar Hall. Please try again.");
+        console.error("Error creating Seminar Hall:", error);
       }
     },
   });
@@ -404,11 +339,12 @@ const AC_GB_MoM: React.FC = () => {
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <Breadcrumb title="Curriculum" breadcrumbItem="Ac & GB MoM" />
+          <Breadcrumb title="Infrastructure" breadcrumbItem="Seminar Halls" />
           <Card>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
                 <Row>
+                  {/* Academic Year Dropdown */}
                   <Col lg={4}>
                     <div className="mb-3">
                       <Label>Academic Year</Label>
@@ -433,57 +369,62 @@ const AC_GB_MoM: React.FC = () => {
                         )}
                     </div>
                   </Col>
-                  <Col lg={4}>
+                    {/* Number of Seminar Halls Input */}
+                    <Col lg={4}>
                     <div className="mb-3">
-                      <Label>Date</Label>
+                      <Label htmlFor="noOfSeminarHalls">No. of Seminar Halls</Label>
                       <Input
-                        type="date" // Use native date input
+                        type="number"
+                        id="noOfSeminarHalls"
+                        value={validation.values.noOfSeminarHalls}
+                        onChange={validation.handleChange}
+                        onBlur={validation.handleBlur}
                         className={`form-control ${
-                          validation.touched.dates && validation.errors.dates
+                          validation.touched.noOfSeminarHalls &&
+                          validation.errors.noOfSeminarHalls
                             ? "is-invalid"
                             : ""
                         }`}
-                        value={
-                          validation.values.dates
-                            ? moment(
-                                validation.values.dates,
-                                "DD/MM/YYYY"
-                              ).format("YYYY-MM-DD") // Convert to yyyy-mm-dd for the input
-                            : ""
-                        }
-                        onChange={(e) => {
-                          const formattedDate = moment(
-                            e.target.value,
-                            "YYYY-MM-DD"
-                          ).format("DD/MM/YYYY"); // Convert to dd/mm/yyyy
-                          validation.setFieldValue("dates", formattedDate);
-                        }}
-                        placeholder="dd/mm/yyyy"
                       />
-                      {validation.touched.dates && validation.errors.dates && (
-                        <div className="text-danger">
-                          {validation.errors.dates}
-                        </div>
-                      )}
+                      {validation.touched.noOfSeminarHalls &&
+                        validation.errors.noOfSeminarHalls && (
+                          <div className="text-danger">
+                            {validation.errors.noOfSeminarHalls}
+                          </div>
+                        )}
                     </div>
                   </Col>
+
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
-                        Academic Council MOM
+                        Upload Seminar Hall Documents
+                        <i
+                          id="infoIcon"
+                          className="bi bi-info-circle ms-2"
+                          style={{ cursor: "pointer", color: "#0d6efd" }}
+                        ></i>
                       </Label>
+                      <Tooltip
+                        placement="right"
+                        isOpen={tooltipOpen}
+                        target="infoIcon"
+                        toggle={toggleTooltip}
+                      >
+                        Upload an PDF file. Max size 10MB.
+                      </Tooltip>
                       <Input
                         className={`form-control ${
-                          validation.touched.acFile && validation.errors.acFile
+                          validation.touched.file && validation.errors.file
                             ? "is-invalid"
                             : ""
                         }`}
                         type="file"
-                        innerRef={acFileRef}
                         id="formFile"
+                          innerRef={fileRef}
                         onChange={(event) => {
                           validation.setFieldValue(
-                            "acFile",
+                            "file",
                             event.currentTarget.files
                               ? event.currentTarget.files[0]
                               : null
@@ -491,12 +432,11 @@ const AC_GB_MoM: React.FC = () => {
                         }}
                         disabled={isFileUploadDisabled} // Disable the button if a file exists
                       />
-                      {validation.touched.acFile &&
-                        validation.errors.acFile && (
-                          <div className="text-danger">
-                            {validation.errors.acFile}
-                          </div>
-                        )}
+                      {validation.touched.file && validation.errors.file && (
+                        <div className="text-danger">
+                          {validation.errors.file}
+                        </div>
+                      )}
                       {/* Show a message if the file upload button is disabled */}
                       {isFileUploadDisabled && (
                         <div className="text-warning mt-2">
@@ -504,92 +444,20 @@ const AC_GB_MoM: React.FC = () => {
                         </div>
                       )}
                       {/* Only show the file name if it is a string (from the edit API) */}
-                      {typeof validation.values.acFile === "string" && (
+                      {typeof validation.values.file === "string" && (
                         <div className="mt-2 d-flex align-items-center">
                           <span
                             className="me-2"
                             style={{ fontWeight: "bold", color: "green" }}
                           >
-                            {validation.values.acFile}
+                            {validation.values.file}
                           </span>
                           <Button
                             color="link"
                             className="text-primary"
                             onClick={() =>
                               handleDownloadFile(
-                                typeof validation.values.acFile === "string"
-                                  ? validation.values.acFile
-                                  : ""
-                              )
-                            }
-                            title="Download File"
-                          >
-                            <i className="bi bi-download"></i>
-                          </Button>
-                          <Button
-                            color="link"
-                            className="text-danger"
-                            onClick={() => handleDeleteFile()}
-                            title="Delete File"
-                          >
-                            <i className="bi bi-trash"></i>
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  </Col>
-                  <Col sm={4}>
-                    <div className="mb-3">
-                      <Label htmlFor="formFile" className="form-label">
-                        Governing Body MoM
-                      </Label>
-                      <Input
-                        className={`form-control ${
-                          validation.touched.gbFile && validation.errors.gbFile
-                            ? "is-invalid"
-                            : ""
-                        }`}
-                        type="file"
-                        innerRef={gbFileRef}
-                        onChange={(event) => {
-                          validation.setFieldValue(
-                            "gbFile",
-                            event.currentTarget.files
-                              ? event.currentTarget.files[0]
-                              : null
-                          );
-                        }}
-                        disabled={isFileUploadDisabled} // Disable the button if a file exists
-                      />
-                      {validation.touched.gbFile &&
-                        validation.errors.gbFile && (
-                          <div className="text-danger">
-                            {validation.errors.gbFile}
-                          </div>
-                        )}
-                      {/* Show a message if the file upload button is disabled */}
-                      {isFileUploadDisabled && (
-                        <div className="text-warning mt-2">
-                          Please remove the existing file to upload a new one.
-                        </div>
-                      )}
-                      {/* Only show the file name if it is a string (from the edit API) */}
-                      {typeof validation.values.gbFile === "string" && (
-                        <div className="mt-2 d-flex align-items-center">
-                          <span
-                            className="me-2"
-                            style={{ fontWeight: "bold", color: "green" }}
-                          >
-                            {validation.values.gbFile}
-                          </span>
-                          <Button
-                            color="link"
-                            className="text-primary"
-                            onClick={() =>
-                              handleDownloadFile(
-                                typeof validation.values.gbFile === "string"
-                                  ? validation.values.gbFile
-                                  : ""
+                                validation.values.file as string
                               )
                             }
                             title="Download File"
@@ -619,7 +487,7 @@ const AC_GB_MoM: React.FC = () => {
                       <button
                         className="btn btn-secondary"
                         type="button"
-                        onClick={handleListACGBClick}
+                        onClick={handleListSeminarHallsClick}
                       >
                         List
                       </button>
@@ -630,9 +498,11 @@ const AC_GB_MoM: React.FC = () => {
             </CardBody>
           </Card>
         </Container>
-        {/* Modal for Listing Ac & Gb Mom */}
+        {/* Modal for Listing Policy Documents */}
         <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg">
-          <ModalHeader toggle={toggleModal}>List of Ac & Gb Mom</ModalHeader>
+          <ModalHeader toggle={toggleModal}>
+            List of Seminar Halls
+          </ModalHeader>
           <ModalBody>
             {/* Global Search */}
             <div className="mb-3">
@@ -643,51 +513,57 @@ const AC_GB_MoM: React.FC = () => {
                 onChange={handleSearch}
               />
             </div>
-            <Table
-              striped
-              bordered
-              hover
-              responsive
-              className="align-middle text-center"
-            >
-              <thead className="table-dark">
+            <Table className="table-hover custom-table">
+              <thead>
                 <tr>
                   <th>#</th>
-                  <th>Academic Year</th>
-                  <th>Date</th>
-                  <th>File</th>
-                  <th>GB File</th>
+                  <th>
+                    Academic Year
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.academicYear}
+                      onChange={(e) => handleFilterChange(e, "academicYear")}
+                    />
+                  </th>
+                    <th>
+                        No. of Board Rooms
+                        <Input
+                        type="text"
+                        placeholder="Filter"
+                        value={filters.noOfSeminarHalls || ""}
+                        onChange={(e) => handleFilterChange(e, "noOfSeminarHalls")}
+                        />
+                  </th>
+                  <th>
+                    Documents
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.file || ""}
+                      onChange={(e) => handleFilterChange(e, "file")}
+                    />
+                  </th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {currentRows.length > 0 ? (
-                  currentRows.map((acgb, index) => (
-                    <tr key={acgb.acGbMomId}>
+                  currentRows.map((seminarHall, index) => (
+                    <tr key={seminarHall.seminarHallId}>
                       <td>{index + 1}</td>
-                      <td>{acgb.academicYear}</td>
-                      <td>{acgb.date}</td>
-                      <td>
-                        {acgb.documents?.AcademicCouncilMom ||
-                          "No file uploaded"}
-                      </td>
-                      <td>
-                        {acgb.documents?.GoverningBodyMom ? (
-                          <span>{acgb.documents.GoverningBodyMom}</span>
-                        ) : (
-                          "No file uploaded"
-                        )}
-                      </td>
+                      <td>{seminarHall.academicYear}</td>
+                      <td>{seminarHall.document?.file || "No file uploaded"}</td>
                       <td>
                         <button
                           className="btn btn-sm btn-warning me-2"
-                          onClick={() => handleEdit(acgb.acGbMomId)}
+                          onClick={() => handleEdit(seminarHall.seminarHallId)}
                         >
                           Edit
                         </button>
                         <button
                           className="btn btn-sm btn-danger"
-                          onClick={() => handleDelete(acgb.acGbMomId)}
+                          onClick={() => handleDelete(seminarHall.seminarHallId)}
                         >
                           Delete
                         </button>
@@ -697,7 +573,7 @@ const AC_GB_MoM: React.FC = () => {
                 ) : (
                   <tr>
                     <td colSpan={4} className="text-center">
-                      No Ac & Gb Mom data available.
+                      No Seminar Hall data available.
                     </td>
                   </tr>
                 )}
@@ -755,4 +631,4 @@ const AC_GB_MoM: React.FC = () => {
   );
 };
 
-export default AC_GB_MoM;
+export default Seminar_Halls;

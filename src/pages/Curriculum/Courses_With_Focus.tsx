@@ -65,9 +65,7 @@ const getTabValidationSchema = (tab: number | null) => {
     department: Yup.object<{ value: string; label: string }>()
       .nullable()
       .required("Please select department"),
-    programType: Yup.object()
-      .nullable()
-      .required("Please select programType"),
+    programType: Yup.object().nullable().required("Please select programType"),
     program: Yup.array()
       .min(1, "Please select at least one program")
       .required("Please select programs"),
@@ -105,7 +103,12 @@ const getTabValidationSchema = (tab: number | null) => {
     Yup.mixed().when([], {
       is: function (this: any) {
         // Only skip validation if the value is a non-empty string (existing file)
-        return this && this.parent && typeof this.parent[field] === "string" && this.parent[field];
+        return (
+          this &&
+          this.parent &&
+          typeof this.parent[field] === "string" &&
+          this.parent[field]
+        );
       },
       then: (schema) => schema, // No validation if file exists (string)
       otherwise: (schema) =>
@@ -119,7 +122,9 @@ const getTabValidationSchema = (tab: number | null) => {
           .test("fileType", "Unsupported file format", (value: any) => {
             // Only check type if value is a File
             if (!value || typeof value === "string") return true;
-            return ["application/pdf", "image/jpeg", "image/png"].includes(value.type);
+            return ["application/pdf", "image/jpeg", "image/png"].includes(
+              value.type
+            );
           }),
     });
 
@@ -129,7 +134,9 @@ const getTabValidationSchema = (tab: number | null) => {
         ...mainFormSchema,
         ...allTabFields,
         courseTitileG: Yup.string().required("Please enter Course Title"),
-        courseTypeG: Yup.object().nullable().required("Please select course type"),
+        courseTypeG: Yup.object()
+          .nullable()
+          .required("Please select course type"),
         fileG: fileValidation("fileG"),
       });
     case 2:
@@ -137,7 +144,9 @@ const getTabValidationSchema = (tab: number | null) => {
         ...mainFormSchema,
         ...allTabFields,
         courseTitileES: Yup.string().required("Please enter Course Title"),
-        courseTypeES: Yup.object().nullable().required("Please select course type"),
+        courseTypeES: Yup.object()
+          .nullable()
+          .required("Please select course type"),
         fileES: fileValidation("fileES"),
       });
     case 3:
@@ -145,7 +154,9 @@ const getTabValidationSchema = (tab: number | null) => {
         ...mainFormSchema,
         ...allTabFields,
         courseTitileIK: Yup.string().required("Please enter Course Title"),
-        courseTypeIK: Yup.object().nullable().required("Please select course type"),
+        courseTypeIK: Yup.object()
+          .nullable()
+          .required("Please select course type"),
         fileIK: fileValidation("fileIK"),
       });
     case 4:
@@ -153,7 +164,9 @@ const getTabValidationSchema = (tab: number | null) => {
         ...mainFormSchema,
         ...allTabFields,
         courseTitileEM: Yup.string().required("Please enter Course Title"),
-        courseTypeEM: Yup.object().nullable().required("Please select course type"),
+        courseTypeEM: Yup.object()
+          .nullable()
+          .required("Please select course type"),
         fileEM: fileValidation("fileEM"),
       });
     case 5:
@@ -161,7 +174,9 @@ const getTabValidationSchema = (tab: number | null) => {
         ...mainFormSchema,
         ...allTabFields,
         courseTitileSE: Yup.string().required("Please enter Course Title"),
-        courseTypeSE: Yup.object().nullable().required("Please select course type"),
+        courseTypeSE: Yup.object()
+          .nullable()
+          .required("Please select course type"),
         fileSE: fileValidation("fileSE"),
       });
     case 6:
@@ -169,7 +184,9 @@ const getTabValidationSchema = (tab: number | null) => {
         ...mainFormSchema,
         ...allTabFields,
         courseTitileEN: Yup.string().required("Please enter Course Title"),
-        courseTypeEN: Yup.object().nullable().required("Please select course type"),
+        courseTypeEN: Yup.object()
+          .nullable()
+          .required("Please select course type"),
         fileEN: fileValidation("fileEN"),
       });
     case 7:
@@ -177,7 +194,9 @@ const getTabValidationSchema = (tab: number | null) => {
         ...mainFormSchema,
         ...allTabFields,
         courseTitileET: Yup.string().required("Please enter Course Title"),
-        courseTypeET: Yup.object().nullable().required("Please select course type"),
+        courseTypeET: Yup.object()
+          .nullable()
+          .required("Please select course type"),
         fileET: fileValidation("fileET"),
       });
     default:
@@ -406,7 +425,10 @@ const Courses_With_Focus: React.FC = () => {
   // Edit/Delete
   const handleEdit = async (id: string) => {
     try {
-      const response = await api.get(`/CoursesWithFocus?coursesWithFocusId=${id}`, "");
+      const response = await api.get(
+        `/CoursesWithFocus?coursesWithFocusId=${id}`,
+        ""
+      );
 
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
       // Filter the response where isCurrent or isCurrentForAdmission is true
@@ -416,10 +438,10 @@ const Courses_With_Focus: React.FC = () => {
       // Map the filtered data to the required format
       const academicYearList = filteredAcademicYearList.map((year: any) => ({
         value: year.year,
-        label: year.display
+        label: year.display,
       }));
 
-      const semesterNoOptions = SEMESTER_NO_OPTIONS
+      const semesterNoOptions = SEMESTER_NO_OPTIONS;
 
       // Map API response to Formik values
       const mappedValues = {
@@ -427,25 +449,37 @@ const Courses_With_Focus: React.FC = () => {
         semesterType: response.semType
           ? { value: response.semType, label: response.semType.toUpperCase() }
           : null,
-        semesterNo: mapValueToLabel(String(response.semNumber), semesterNoOptions) as { value: string; label: string } | null,
+        semesterNo: mapValueToLabel(
+          String(response.semNumber),
+          semesterNoOptions
+        ) as { value: string; label: string } | null,
         stream: response.streamId
           ? { value: response.streamId.toString(), label: response.streamName }
           : null,
         department: response.departmentId
-          ? { value: response.departmentId.toString(), label: response.departmentName }
+          ? {
+              value: response.departmentId.toString(),
+              label: response.departmentName,
+            }
           : null,
         programType: response.programTypeId
-          ? { value: response.programTypeId.toString(), label: response.programTypeName }
+          ? {
+              value: response.programTypeId.toString(),
+              label: response.programTypeName,
+            }
           : null,
         degree: response.programId
-          ? { value: response.programId.toString(), label: response.programName }
+          ? {
+              value: response.programId.toString(),
+              label: response.programName,
+            }
           : null,
         program: response.courses
           ? Object.entries(response.courses).map(([key, value]) => ({
-            value: key,
-            label: String(value),
-          }))
-          : []
+              value: key,
+              label: String(value),
+            }))
+          : [],
       };
 
       // Update Formik values
@@ -475,10 +509,16 @@ const Courses_With_Focus: React.FC = () => {
         courseTypeET: null,
         fileET: null,
         academicYear: mappedValues.academicYear
-          ? { ...mappedValues.academicYear, value: String(mappedValues.academicYear.value) }
+          ? {
+              ...mappedValues.academicYear,
+              value: String(mappedValues.academicYear.value),
+            }
           : null,
         semesterNo: mappedValues.semesterNo
-          ? { ...mappedValues.semesterNo, value: String(mappedValues.semesterNo.value) }
+          ? {
+              ...mappedValues.semesterNo,
+              value: String(mappedValues.semesterNo.value),
+            }
           : null,
       });
 
@@ -486,69 +526,179 @@ const Courses_With_Focus: React.FC = () => {
         courseType.find((opt) => opt.value === value) || null;
 
       // Nested tab data
-      if (response.ecoGenderC && (response.ecoGenderC.courseTitle || response.ecoGenderC.courseType)) {
+      if (
+        response.ecoGenderC &&
+        (response.ecoGenderC.courseTitle || response.ecoGenderC.courseType)
+      ) {
         setShowWizard(true);
         setActiveTab(1);
-        validation.setFieldValue("courseTitileG", response.ecoGenderC.courseTitle || "");
-        validation.setFieldValue("courseTypeG", getCourseTypeOption(response.ecoGenderC.courseType));
-        validation.setFieldValue("fileG", response.ecoGenderC?.file && Object.values(response.ecoGenderC.file)[0]
-          ? Object.values(response.ecoGenderC.file)[0]
-          : "");
-        validation.setFieldValue("fileGId", response.ecoGenderC?.coursesWithFocusAddOnFieldID || null);
-      } else if (response.ecoEnvironmentalC && (response.ecoEnvironmentalC.courseTitle || response.ecoEnvironmentalC.courseType)) {
+        validation.setFieldValue(
+          "courseTitileG",
+          response.ecoGenderC.courseTitle || ""
+        );
+        validation.setFieldValue(
+          "courseTypeG",
+          getCourseTypeOption(response.ecoGenderC.courseType)
+        );
+        validation.setFieldValue(
+          "fileG",
+          response.ecoGenderC?.file &&
+            Object.values(response.ecoGenderC.file)[0]
+            ? Object.values(response.ecoGenderC.file)[0]
+            : ""
+        );
+        validation.setFieldValue(
+          "fileGId",
+          response.ecoGenderC?.coursesWithFocusAddOnFieldID || null
+        );
+      } else if (
+        response.ecoEnvironmentalC &&
+        (response.ecoEnvironmentalC.courseTitle ||
+          response.ecoEnvironmentalC.courseType)
+      ) {
         setShowWizard(true);
         setActiveTab(2);
-        validation.setFieldValue("courseTitileES", response.ecoEnvironmentalC.courseTitle || "");
-        validation.setFieldValue("courseTypeES", getCourseTypeOption(response.ecoEnvironmentalC.courseTypeES));
-        validation.setFieldValue("fileES", response.ecoEnvironmentalC?.file && Object.values(response.ecoEnvironmentalC.file)[0]
-          ? Object.values(response.ecoEnvironmentalC.file)[0]
-          : "");
-        validation.setFieldValue("fileESId", response.ecoEnvironmentalC?.coursesWithFocusAddOnFieldID || null);
-      } else if (response.ecoIKSC && (response.ecoIKSC.courseTitle || response.ecoIKSC.courseType)) {
+        validation.setFieldValue(
+          "courseTitileES",
+          response.ecoEnvironmentalC.courseTitle || ""
+        );
+        validation.setFieldValue(
+          "courseTypeES",
+          getCourseTypeOption(response.ecoEnvironmentalC.courseTypeES)
+        );
+        validation.setFieldValue(
+          "fileES",
+          response.ecoEnvironmentalC?.file &&
+            Object.values(response.ecoEnvironmentalC.file)[0]
+            ? Object.values(response.ecoEnvironmentalC.file)[0]
+            : ""
+        );
+        validation.setFieldValue(
+          "fileESId",
+          response.ecoEnvironmentalC?.coursesWithFocusAddOnFieldID || null
+        );
+      } else if (
+        response.ecoIKSC &&
+        (response.ecoIKSC.courseTitle || response.ecoIKSC.courseType)
+      ) {
         setShowWizard(true);
         setActiveTab(3);
-        validation.setFieldValue("courseTitileIK", response.ecoIKSC.courseTitle || "");
-        validation.setFieldValue("courseTypeIK", getCourseTypeOption(response.ecoIKSC.courseType));
-        validation.setFieldValue("fileIK", response.ecoIKSC?.file && Object.values(response.ecoIKSC.file)[0]
-          ? Object.values(response.ecoIKSC.file)[0]
-          : "");
-        validation.setFieldValue("fileIKId", response.ecoIKSC?.coursesWithFocusAddOnFieldID || null);
-      } else if (response.ecoEmployC && (response.ecoEmployC.courseTitle || response.ecoEmployC.courseType)) {
+        validation.setFieldValue(
+          "courseTitileIK",
+          response.ecoIKSC.courseTitle || ""
+        );
+        validation.setFieldValue(
+          "courseTypeIK",
+          getCourseTypeOption(response.ecoIKSC.courseType)
+        );
+        validation.setFieldValue(
+          "fileIK",
+          response.ecoIKSC?.file && Object.values(response.ecoIKSC.file)[0]
+            ? Object.values(response.ecoIKSC.file)[0]
+            : ""
+        );
+        validation.setFieldValue(
+          "fileIKId",
+          response.ecoIKSC?.coursesWithFocusAddOnFieldID || null
+        );
+      } else if (
+        response.ecoEmployC &&
+        (response.ecoEmployC.courseTitle || response.ecoEmployC.courseType)
+      ) {
         setShowWizard(true);
         setActiveTab(4);
-        validation.setFieldValue("courseTitileEM", response.ecoEmployC.courseTitle || "");
-        validation.setFieldValue("courseTypeEM", getCourseTypeOption(response.ecoEmployC.courseType));
-        validation.setFieldValue("fileEM", response.ecoEmployC?.file && Object.values(response.ecoEmployC.file)[0]
-          ? Object.values(response.ecoEmployC.file)[0]
-          : "");
-        validation.setFieldValue("fileEMId", response.ecoEmployC?.coursesWithFocusAddOnFieldID || null);
-      } else if (response.ecoSkillC && (response.ecoSkillC.courseTitle || response.ecoSkillC.courseType)) {
+        validation.setFieldValue(
+          "courseTitileEM",
+          response.ecoEmployC.courseTitle || ""
+        );
+        validation.setFieldValue(
+          "courseTypeEM",
+          getCourseTypeOption(response.ecoEmployC.courseType)
+        );
+        validation.setFieldValue(
+          "fileEM",
+          response.ecoEmployC?.file &&
+            Object.values(response.ecoEmployC.file)[0]
+            ? Object.values(response.ecoEmployC.file)[0]
+            : ""
+        );
+        validation.setFieldValue(
+          "fileEMId",
+          response.ecoEmployC?.coursesWithFocusAddOnFieldID || null
+        );
+      } else if (
+        response.ecoSkillC &&
+        (response.ecoSkillC.courseTitle || response.ecoSkillC.courseType)
+      ) {
         setShowWizard(true);
         setActiveTab(5);
-        validation.setFieldValue("courseTitileSE", response.ecoSkillC.courseTitle || "");
-        validation.setFieldValue("courseTypeSE", getCourseTypeOption(response.ecoSkillC.courseType));
-        validation.setFieldValue("fileSE", response.ecoSkillC?.file && Object.values(response.ecoSkillC.file)[0]
-          ? Object.values(response.ecoSkillC.file)[0]
-          : "");
-        validation.setFieldValue("fileSEId", response.ecoSkillC?.coursesWithFocusAddOnFieldID || null);
-      } else if (response.ecoEntreC && (response.ecoEntreC.courseTitle || response.ecoEntreC.courseType)) {
+        validation.setFieldValue(
+          "courseTitileSE",
+          response.ecoSkillC.courseTitle || ""
+        );
+        validation.setFieldValue(
+          "courseTypeSE",
+          getCourseTypeOption(response.ecoSkillC.courseType)
+        );
+        validation.setFieldValue(
+          "fileSE",
+          response.ecoSkillC?.file && Object.values(response.ecoSkillC.file)[0]
+            ? Object.values(response.ecoSkillC.file)[0]
+            : ""
+        );
+        validation.setFieldValue(
+          "fileSEId",
+          response.ecoSkillC?.coursesWithFocusAddOnFieldID || null
+        );
+      } else if (
+        response.ecoEntreC &&
+        (response.ecoEntreC.courseTitle || response.ecoEntreC.courseType)
+      ) {
         setShowWizard(true);
         setActiveTab(6);
-        validation.setFieldValue("courseTitileEN", response.ecoEntreC.courseTitle || "");
-        validation.setFieldValue("courseTypeEN", getCourseTypeOption(response.ecoEntreC.courseType));
-        validation.setFieldValue("fileEN", response.ecoEntreC?.file && Object.values(response.ecoEntreC.file)[0]
-          ? Object.values(response.ecoEntreC.file)[0]
-          : "");
-        validation.setFieldValue("fileENId", response.ecoEntreC?.coursesWithFocusAddOnFieldID || null);
-      } else if (response.ecoEthicsC && (response.ecoEthicsC.courseTitle || response.ecoEthicsC.courseType)) {
+        validation.setFieldValue(
+          "courseTitileEN",
+          response.ecoEntreC.courseTitle || ""
+        );
+        validation.setFieldValue(
+          "courseTypeEN",
+          getCourseTypeOption(response.ecoEntreC.courseType)
+        );
+        validation.setFieldValue(
+          "fileEN",
+          response.ecoEntreC?.file && Object.values(response.ecoEntreC.file)[0]
+            ? Object.values(response.ecoEntreC.file)[0]
+            : ""
+        );
+        validation.setFieldValue(
+          "fileENId",
+          response.ecoEntreC?.coursesWithFocusAddOnFieldID || null
+        );
+      } else if (
+        response.ecoEthicsC &&
+        (response.ecoEthicsC.courseTitle || response.ecoEthicsC.courseType)
+      ) {
         setShowWizard(true);
         setActiveTab(7);
-        validation.setFieldValue("courseTitileET", response.ecoEthicsC.courseTitle || "");
-        validation.setFieldValue("courseTypeET", getCourseTypeOption(response.ecoEthicsC.courseType));
-        validation.setFieldValue("fileET", response.ecoEthicsC?.file && Object.values(response.ecoEthicsC.file)[0]
-          ? Object.values(response.ecoEthicsC.file)[0]
-          : "");
-        validation.setFieldValue("fileETId", response.ecoEthicsC?.coursesWithFocusAddOnFieldID || null);
+        validation.setFieldValue(
+          "courseTitileET",
+          response.ecoEthicsC.courseTitle || ""
+        );
+        validation.setFieldValue(
+          "courseTypeET",
+          getCourseTypeOption(response.ecoEthicsC.courseType)
+        );
+        validation.setFieldValue(
+          "fileET",
+          response.ecoEthicsC?.file &&
+            Object.values(response.ecoEthicsC.file)[0]
+            ? Object.values(response.ecoEthicsC.file)[0]
+            : ""
+        );
+        validation.setFieldValue(
+          "fileETId",
+          response.ecoEthicsC?.coursesWithFocusAddOnFieldID || null
+        );
       } else {
         setShowWizard(false);
         setActiveTab(null);
@@ -571,9 +721,12 @@ const Courses_With_Focus: React.FC = () => {
     if (fileName) {
       try {
         // Ensure you set responseType to 'blob' to handle binary data
-        const response = await axios.get(`/CoursesWithFocus/download/${fileName}`, {
-          responseType: 'blob'
-        });
+        const response = await axios.get(
+          `/CoursesWithFocus/download/${fileName}`,
+          {
+            responseType: "blob",
+          }
+        );
 
         // Create a Blob from the response data
         const blob = new Blob([response], { type: "*/*" });
@@ -582,7 +735,7 @@ const Courses_With_Focus: React.FC = () => {
         const url = window.URL.createObjectURL(blob);
 
         // Create a temporary anchor element to trigger the download
-        const link = document.createElement('a');
+        const link = document.createElement("a");
         link.href = url;
         link.download = fileName; // Set the file name for the download
         document.body.appendChild(link);
@@ -612,7 +765,10 @@ const Courses_With_Focus: React.FC = () => {
     }
     try {
       // Call the delete API
-      const response = await api.delete(`/CoursesWithFocus/deleteCoursesWithFocusDocument?coursesWithFocusDocumentId=${fileId}`, '');
+      const response = await api.delete(
+        `/CoursesWithFocus/deleteCoursesWithFocusDocument?coursesWithFocusDocumentId=${fileId}`,
+        ""
+      );
       // Show success message
       toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
@@ -695,7 +851,9 @@ const Courses_With_Focus: React.FC = () => {
     onSubmit: async (values, { resetForm, setErrors, setSubmitting }) => {
       // Block submit if no Focus Area tab is active
       if (!activeTab) {
-        validation.setStatus("Please select a Focus Area and fill at least one focus area type.");
+        validation.setStatus(
+          "Please select a Focus Area and fill at least one focus area type."
+        );
         setSubmitting(false);
         return;
       }
@@ -780,7 +938,9 @@ const Courses_With_Focus: React.FC = () => {
 
       formData.append(
         "coursesWithFocusRequestDto",
-        new Blob([JSON.stringify(coursesWithFocusRequestDto)], { type: "application/json" })
+        new Blob([JSON.stringify(coursesWithFocusRequestDto)], {
+          type: "application/json",
+        })
       );
 
       formData.append("ecoGenderC", values.fileG || new Blob());
@@ -791,26 +951,20 @@ const Courses_With_Focus: React.FC = () => {
 
       try {
         if (isEditMode && editId) {
-          const response = await api.put(
-            `/CoursesWithFocus`,
-            formData, {
+          const response = await api.put(`/CoursesWithFocus`, formData, {
             headers: {
-              'Content-Type': 'multipart/form-data'
-            }
-          }
-          );
+              "Content-Type": "multipart/form-data",
+            },
+          });
           toast.success(
             response.message || "Courses With Focus updated successfully!"
           );
         } else {
-          const response = await api.create(
-            "/CoursesWithFocus",
-            formData, {
+          const response = await api.create("/CoursesWithFocus", formData, {
             headers: {
-              'Content-Type': 'multipart/form-data'
-            }
-          }
-          );
+              "Content-Type": "multipart/form-data",
+            },
+          });
           toast.success(
             response.message || "Courses With Focus added successfully!"
           );
@@ -835,10 +989,7 @@ const Courses_With_Focus: React.FC = () => {
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <Breadcrumb
-            title="Curricuum"
-            breadcrumbItem="Courses With Focus"
-          />
+          <Breadcrumb title="Curricuum" breadcrumbItem="Courses With Focus" />
           <Card>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
@@ -880,10 +1031,12 @@ const Courses_With_Focus: React.FC = () => {
                         validation.setFieldValue("semesterNo", selectedOption)
                       }
                       isSemesterTypeInvalid={
-                        validation.touched.semesterType && !!validation.errors.semesterType
+                        validation.touched.semesterType &&
+                        !!validation.errors.semesterType
                       }
                       isSemesterNoInvalid={
-                        validation.touched.semesterNo && !!validation.errors.semesterNo
+                        validation.touched.semesterNo &&
+                        !!validation.errors.semesterNo
                       }
                       semesterTypeError={
                         validation.touched.semesterType
@@ -957,11 +1110,12 @@ const Courses_With_Focus: React.FC = () => {
                         <Label>Specify Department</Label>
                         <Input
                           type="text"
-                          className={`form-control ${validation.touched.otherDepartment &&
+                          className={`form-control ${
+                            validation.touched.otherDepartment &&
                             validation.errors.otherDepartment
-                            ? "is-invalid"
-                            : ""
-                            }`}
+                              ? "is-invalid"
+                              : ""
+                          }`}
                           value={validation.values.otherDepartment}
                           onChange={(e) =>
                             validation.setFieldValue(
@@ -1078,25 +1232,35 @@ const Courses_With_Focus: React.FC = () => {
                         {[1, 2, 3, 4, 5, 6, 7].map((tab) => (
                           <button
                             key={tab}
-                            className={`step-button ${activeTab === tab ? "active" : ""}`}
+                            className={`step-button ${
+                              activeTab === tab ? "active" : ""
+                            }`}
                             type="button"
                             onClick={() => toggleTab(tab)}
-                            disabled={activeTab !== tab && isTabFilled(validation, activeTab)}
-                            style={activeTab !== tab && isTabFilled(validation, activeTab) ? { opacity: 0.5, cursor: "not-allowed" } : {}}
+                            disabled={
+                              activeTab !== tab &&
+                              isTabFilled(validation, activeTab)
+                            }
+                            style={
+                              activeTab !== tab &&
+                              isTabFilled(validation, activeTab)
+                                ? { opacity: 0.5, cursor: "not-allowed" }
+                                : {}
+                            }
                           >
                             {tab === 1
                               ? "Gender"
                               : tab === 2
-                                ? "Environment & Sustainability"
-                                : tab === 3
-                                  ? "Indian Knowledge System"
-                                  : tab === 4
-                                    ? "Employability"
-                                    : tab === 5
-                                      ? "Skill Enhancement"
-                                      : tab === 6
-                                        ? "Entrepreneurship"
-                                        : "Ethics"}
+                              ? "Environment & Sustainability"
+                              : tab === 3
+                              ? "Indian Knowledge System"
+                              : tab === 4
+                              ? "Employability"
+                              : tab === 5
+                              ? "Skill Enhancement"
+                              : tab === 6
+                              ? "Entrepreneurship"
+                              : "Ethics"}
                           </button>
                         ))}
                       </div>
@@ -1105,7 +1269,9 @@ const Courses_With_Focus: React.FC = () => {
                           <button
                             type="button"
                             className="btn btn-outline-warning btn-sm"
-                            onClick={() => clearTabFields(validation, activeTab)}
+                            onClick={() =>
+                              clearTabFields(validation, activeTab)
+                            }
                           >
                             Clear
                           </button>
@@ -1126,12 +1292,16 @@ const Courses_With_Focus: React.FC = () => {
                                   placeholder="Enter Course Title"
                                   className={
                                     validation.touched.courseTitileG &&
-                                      validation.errors.courseTitileG
+                                    validation.errors.courseTitileG
                                       ? "input-error"
                                       : ""
                                   }
                                 />
-                                {showTabError(1, validation.touched.courseTitileG, validation.errors.courseTitileG)}
+                                {showTabError(
+                                  1,
+                                  validation.touched.courseTitileG,
+                                  validation.errors.courseTitileG
+                                )}
                               </div>
                             </Col>
                             <Col lg={4}>
@@ -1151,26 +1321,34 @@ const Courses_With_Focus: React.FC = () => {
                                   menuPortalTarget={document.body}
                                   className={
                                     validation.touched.courseTypeG &&
-                                      validation.errors.courseTypeG
+                                    validation.errors.courseTypeG
                                       ? "select-error"
                                       : ""
                                   }
                                 />
-                                {showTabError(1, validation.touched.courseTypeG, validation.errors.courseTypeG)}
+                                {showTabError(
+                                  1,
+                                  validation.touched.courseTypeG,
+                                  validation.errors.courseTypeG
+                                )}
                               </div>
                             </Col>
                             <Col sm={4}>
                               <div className="mb-3">
-                                <Label htmlFor="formFile" className="form-label">
+                                <Label
+                                  htmlFor="formFile"
+                                  className="form-label"
+                                >
                                   Upload file
                                 </Label>
                                 <Input
-                                  className={`form-control ${activeTab === 1 &&
+                                  className={`form-control ${
+                                    activeTab === 1 &&
                                     validation.touched.fileG &&
                                     validation.errors.fileG
-                                    ? "is-invalid"
-                                    : ""
-                                    }`}
+                                      ? "is-invalid"
+                                      : ""
+                                  }`}
                                   type="file"
                                   id="gender"
                                   onChange={(event) => {
@@ -1181,42 +1359,68 @@ const Courses_With_Focus: React.FC = () => {
                                         : null
                                     );
                                   }}
-                                  disabled={typeof validation.values.fileG === "string" && validation.values.fileG}
+                                  disabled={
+                                    typeof validation.values.fileG ===
+                                      "string" && validation.values.fileG
+                                  }
                                 />
-                                {showTabError(1, validation.touched.fileG, validation.errors.fileG)}
-                                {validation.touched.fileG && validation.errors.fileG && (
-                                  <div className="text-danger">{validation.errors.fileG}</div>
+                                {showTabError(
+                                  1,
+                                  validation.touched.fileG,
+                                  validation.errors.fileG
                                 )}
+                                {validation.touched.fileG &&
+                                  validation.errors.fileG && (
+                                    <div className="text-danger">
+                                      {validation.errors.fileG}
+                                    </div>
+                                  )}
                                 {/* Show a message if the file upload button is disabled */}
-                                {typeof validation.values.fileG === "string" && validation.values.fileG && (
-                                  <div className="text-warning mt-2">
-                                    Please remove the existing file to upload a new one.
-                                  </div>
-                                )}
+                                {typeof validation.values.fileG === "string" &&
+                                  validation.values.fileG && (
+                                    <div className="text-warning mt-2">
+                                      Please remove the existing file to upload
+                                      a new one.
+                                    </div>
+                                  )}
                                 {/* Only show the file name if it is a string (from the edit API) */}
-                                {typeof validation.values.fileG === "string" && validation.values.fileG && (
-                                  <div className="mt-2 d-flex align-items-center">
-                                    <span className="me-2" style={{ fontWeight: "bold", color: "green" }}>
-                                      {validation.values.fileG}
-                                    </span>
-                                    <Button
-                                      color="link"
-                                      className="text-primary"
-                                      onClick={() => validation.values.fileG && handleDownloadFile(validation.values.fileG as string)}
-                                      title="Download File"
-                                    >
-                                      <i className="bi bi-download"></i>
-                                    </Button>
-                                    <Button
-                                      color="link"
-                                      className="text-danger"
-                                      onClick={() => handleDeleteFile("fileG")}
-                                      title="Delete File"
-                                    >
-                                      <i className="bi bi-trash"></i>
-                                    </Button>
-                                  </div>
-                                )}
+                                {typeof validation.values.fileG === "string" &&
+                                  validation.values.fileG && (
+                                    <div className="mt-2 d-flex align-items-center">
+                                      <span
+                                        className="me-2"
+                                        style={{
+                                          fontWeight: "bold",
+                                          color: "green",
+                                        }}
+                                      >
+                                        {validation.values.fileG}
+                                      </span>
+                                      <Button
+                                        color="link"
+                                        className="text-primary"
+                                        onClick={() =>
+                                          validation.values.fileG &&
+                                          handleDownloadFile(
+                                            validation.values.fileG as string
+                                          )
+                                        }
+                                        title="Download File"
+                                      >
+                                        <i className="bi bi-download"></i>
+                                      </Button>
+                                      <Button
+                                        color="link"
+                                        className="text-danger"
+                                        onClick={() =>
+                                          handleDeleteFile("fileG")
+                                        }
+                                        title="Delete File"
+                                      >
+                                        <i className="bi bi-trash"></i>
+                                      </Button>
+                                    </div>
+                                  )}
                               </div>
                             </Col>
                           </Row>
@@ -1235,12 +1439,16 @@ const Courses_With_Focus: React.FC = () => {
                                   placeholder="Enter Course Title"
                                   className={
                                     validation.touched.courseTitileES &&
-                                      validation.errors.courseTitileES
+                                    validation.errors.courseTitileES
                                       ? "input-error"
                                       : ""
                                   }
                                 />
-                                {showTabError(2, validation.touched.courseTitileES, validation.errors.courseTitileES)}
+                                {showTabError(
+                                  2,
+                                  validation.touched.courseTitileES,
+                                  validation.errors.courseTitileES
+                                )}
                               </div>
                             </Col>
                             <Col lg={4}>
@@ -1260,26 +1468,34 @@ const Courses_With_Focus: React.FC = () => {
                                   menuPortalTarget={document.body}
                                   className={
                                     validation.touched.courseTypeES &&
-                                      validation.errors.courseTypeES
+                                    validation.errors.courseTypeES
                                       ? "select-error"
                                       : ""
                                   }
                                 />
-                                {showTabError(2, validation.touched.courseTypeES, validation.errors.courseTypeES)}
+                                {showTabError(
+                                  2,
+                                  validation.touched.courseTypeES,
+                                  validation.errors.courseTypeES
+                                )}
                               </div>
                             </Col>
                             <Col sm={4}>
                               <div className="mb-3">
-                                <Label htmlFor="formFile" className="form-label">
+                                <Label
+                                  htmlFor="formFile"
+                                  className="form-label"
+                                >
                                   Upload file
                                 </Label>
                                 <Input
-                                  className={`form-control ${activeTab === 2 &&
+                                  className={`form-control ${
+                                    activeTab === 2 &&
                                     validation.touched.fileES &&
                                     validation.errors.fileES
-                                    ? "is-invalid"
-                                    : ""
-                                    }`}
+                                      ? "is-invalid"
+                                      : ""
+                                  }`}
                                   type="file"
                                   id="environment&sustainability"
                                   onChange={(event) => {
@@ -1290,42 +1506,68 @@ const Courses_With_Focus: React.FC = () => {
                                         : null
                                     );
                                   }}
-                                  disabled={typeof validation.values.fileES === "string" && validation.values.fileES}
+                                  disabled={
+                                    typeof validation.values.fileES ===
+                                      "string" && validation.values.fileES
+                                  }
                                 />
-                                {showTabError(2, validation.touched.fileES, validation.errors.fileES)}
-                                {validation.touched.fileES && validation.errors.fileES && (
-                                  <div className="text-danger">{validation.errors.fileES}</div>
+                                {showTabError(
+                                  2,
+                                  validation.touched.fileES,
+                                  validation.errors.fileES
                                 )}
+                                {validation.touched.fileES &&
+                                  validation.errors.fileES && (
+                                    <div className="text-danger">
+                                      {validation.errors.fileES}
+                                    </div>
+                                  )}
                                 {/* Show a message if the file upload button is disabled */}
-                                {typeof validation.values.fileES === "string" && validation.values.fileES && (
-                                  <div className="text-warning mt-2">
-                                    Please remove the existing file to upload a new one.
-                                  </div>
-                                )}
+                                {typeof validation.values.fileES === "string" &&
+                                  validation.values.fileES && (
+                                    <div className="text-warning mt-2">
+                                      Please remove the existing file to upload
+                                      a new one.
+                                    </div>
+                                  )}
                                 {/* Only show the file name if it is a string (from the edit API) */}
-                                {typeof validation.values.fileES === "string" && validation.values.fileES && (
-                                  <div className="mt-2 d-flex align-items-center">
-                                    <span className="me-2" style={{ fontWeight: "bold", color: "green" }}>
-                                      {validation.values.fileES}
-                                    </span>
-                                    <Button
-                                      color="link"
-                                      className="text-primary"
-                                      onClick={() => validation.values.fileES && handleDownloadFile(validation.values.fileES as string)}
-                                      title="Download File"
-                                    >
-                                      <i className="bi bi-download"></i>
-                                    </Button>
-                                    <Button
-                                      color="link"
-                                      className="text-danger"
-                                      onClick={() => handleDeleteFile("fileES")}
-                                      title="Delete File"
-                                    >
-                                      <i className="bi bi-trash"></i>
-                                    </Button>
-                                  </div>
-                                )}
+                                {typeof validation.values.fileES === "string" &&
+                                  validation.values.fileES && (
+                                    <div className="mt-2 d-flex align-items-center">
+                                      <span
+                                        className="me-2"
+                                        style={{
+                                          fontWeight: "bold",
+                                          color: "green",
+                                        }}
+                                      >
+                                        {validation.values.fileES}
+                                      </span>
+                                      <Button
+                                        color="link"
+                                        className="text-primary"
+                                        onClick={() =>
+                                          validation.values.fileES &&
+                                          handleDownloadFile(
+                                            validation.values.fileES as string
+                                          )
+                                        }
+                                        title="Download File"
+                                      >
+                                        <i className="bi bi-download"></i>
+                                      </Button>
+                                      <Button
+                                        color="link"
+                                        className="text-danger"
+                                        onClick={() =>
+                                          handleDeleteFile("fileES")
+                                        }
+                                        title="Delete File"
+                                      >
+                                        <i className="bi bi-trash"></i>
+                                      </Button>
+                                    </div>
+                                  )}
                               </div>
                             </Col>
                           </Row>
@@ -1344,12 +1586,16 @@ const Courses_With_Focus: React.FC = () => {
                                   placeholder="Enter Course Title"
                                   className={
                                     validation.touched.courseTitileIK &&
-                                      validation.errors.courseTitileIK
+                                    validation.errors.courseTitileIK
                                       ? "input-error"
                                       : ""
                                   }
                                 />
-                                {showTabError(3, validation.touched.courseTitileIK, validation.errors.courseTitileIK)}
+                                {showTabError(
+                                  3,
+                                  validation.touched.courseTitileIK,
+                                  validation.errors.courseTitileIK
+                                )}
                               </div>
                             </Col>
                             <Col lg={4}>
@@ -1369,26 +1615,34 @@ const Courses_With_Focus: React.FC = () => {
                                   menuPortalTarget={document.body}
                                   className={
                                     validation.touched.courseTypeIK &&
-                                      validation.errors.courseTypeIK
+                                    validation.errors.courseTypeIK
                                       ? "select-error"
                                       : ""
                                   }
                                 />
-                                {showTabError(3, validation.touched.courseTypeIK, validation.errors.courseTypeIK)}
+                                {showTabError(
+                                  3,
+                                  validation.touched.courseTypeIK,
+                                  validation.errors.courseTypeIK
+                                )}
                               </div>
                             </Col>
                             <Col sm={4}>
                               <div className="mb-3">
-                                <Label htmlFor="formFile" className="form-label">
+                                <Label
+                                  htmlFor="formFile"
+                                  className="form-label"
+                                >
                                   Upload file
                                 </Label>
                                 <Input
-                                  className={`form-control ${activeTab === 3 &&
+                                  className={`form-control ${
+                                    activeTab === 3 &&
                                     validation.touched.fileIK &&
                                     validation.errors.fileIK
-                                    ? "is-invalid"
-                                    : ""
-                                    }`}
+                                      ? "is-invalid"
+                                      : ""
+                                  }`}
                                   type="file"
                                   id="indianKnowledgeSystem"
                                   onChange={(event) => {
@@ -1399,42 +1653,68 @@ const Courses_With_Focus: React.FC = () => {
                                         : null
                                     );
                                   }}
-                                  disabled={typeof validation.values.fileIK === "string" && validation.values.fileIK}
+                                  disabled={
+                                    typeof validation.values.fileIK ===
+                                      "string" && validation.values.fileIK
+                                  }
                                 />
-                                {showTabError(3, validation.touched.fileIK, validation.errors.fileIK)}
-                                {validation.touched.fileIK && validation.errors.fileIK && (
-                                  <div className="text-danger">{validation.errors.fileIK}</div>
+                                {showTabError(
+                                  3,
+                                  validation.touched.fileIK,
+                                  validation.errors.fileIK
                                 )}
+                                {validation.touched.fileIK &&
+                                  validation.errors.fileIK && (
+                                    <div className="text-danger">
+                                      {validation.errors.fileIK}
+                                    </div>
+                                  )}
                                 {/* Show a message if the file upload button is disabled */}
-                                {typeof validation.values.fileIK === "string" && validation.values.fileIK && (
-                                  <div className="text-warning mt-2">
-                                    Please remove the existing file to upload a new one.
-                                  </div>
-                                )}
+                                {typeof validation.values.fileIK === "string" &&
+                                  validation.values.fileIK && (
+                                    <div className="text-warning mt-2">
+                                      Please remove the existing file to upload
+                                      a new one.
+                                    </div>
+                                  )}
                                 {/* Only show the file name if it is a string (from the edit API) */}
-                                {typeof validation.values.fileIK === "string" && validation.values.fileIK && (
-                                  <div className="mt-2 d-flex align-items-center">
-                                    <span className="me-2" style={{ fontWeight: "bold", color: "green" }}>
-                                      {validation.values.fileIK}
-                                    </span>
-                                    <Button
-                                      color="link"
-                                      className="text-primary"
-                                      onClick={() => validation.values.fileIK && handleDownloadFile(validation.values.fileIK as string)}
-                                      title="Download File"
-                                    >
-                                      <i className="bi bi-download"></i>
-                                    </Button>
-                                    <Button
-                                      color="link"
-                                      className="text-danger"
-                                      onClick={() => handleDeleteFile("fileIK")}
-                                      title="Delete File"
-                                    >
-                                      <i className="bi bi-trash"></i>
-                                    </Button>
-                                  </div>
-                                )}
+                                {typeof validation.values.fileIK === "string" &&
+                                  validation.values.fileIK && (
+                                    <div className="mt-2 d-flex align-items-center">
+                                      <span
+                                        className="me-2"
+                                        style={{
+                                          fontWeight: "bold",
+                                          color: "green",
+                                        }}
+                                      >
+                                        {validation.values.fileIK}
+                                      </span>
+                                      <Button
+                                        color="link"
+                                        className="text-primary"
+                                        onClick={() =>
+                                          validation.values.fileIK &&
+                                          handleDownloadFile(
+                                            validation.values.fileIK as string
+                                          )
+                                        }
+                                        title="Download File"
+                                      >
+                                        <i className="bi bi-download"></i>
+                                      </Button>
+                                      <Button
+                                        color="link"
+                                        className="text-danger"
+                                        onClick={() =>
+                                          handleDeleteFile("fileIK")
+                                        }
+                                        title="Delete File"
+                                      >
+                                        <i className="bi bi-trash"></i>
+                                      </Button>
+                                    </div>
+                                  )}
                               </div>
                             </Col>
                           </Row>
@@ -1453,12 +1733,16 @@ const Courses_With_Focus: React.FC = () => {
                                   placeholder="Enter Course Title"
                                   className={
                                     validation.touched.courseTitileEM &&
-                                      validation.errors.courseTitileEM
+                                    validation.errors.courseTitileEM
                                       ? "input-error"
                                       : ""
                                   }
                                 />
-                                {showTabError(4, validation.touched.courseTitileEM, validation.errors.courseTitileEM)}
+                                {showTabError(
+                                  4,
+                                  validation.touched.courseTitileEM,
+                                  validation.errors.courseTitileEM
+                                )}
                               </div>
                             </Col>
                             <Col lg={4}>
@@ -1478,26 +1762,34 @@ const Courses_With_Focus: React.FC = () => {
                                   menuPortalTarget={document.body}
                                   className={
                                     validation.touched.courseTypeEM &&
-                                      validation.errors.courseTypeEM
+                                    validation.errors.courseTypeEM
                                       ? "select-error"
                                       : ""
                                   }
                                 />
-                                {showTabError(4, validation.touched.courseTypeEM, validation.errors.courseTypeEM)}
+                                {showTabError(
+                                  4,
+                                  validation.touched.courseTypeEM,
+                                  validation.errors.courseTypeEM
+                                )}
                               </div>
                             </Col>
                             <Col sm={4}>
                               <div className="mb-3">
-                                <Label htmlFor="formFile" className="form-label">
+                                <Label
+                                  htmlFor="formFile"
+                                  className="form-label"
+                                >
                                   Upload file
                                 </Label>
                                 <Input
-                                  className={`form-control ${activeTab === 4 &&
+                                  className={`form-control ${
+                                    activeTab === 4 &&
                                     validation.touched.fileEM &&
                                     validation.errors.fileEM
-                                    ? "is-invalid"
-                                    : ""
-                                    }`}
+                                      ? "is-invalid"
+                                      : ""
+                                  }`}
                                   type="file"
                                   id="employability"
                                   onChange={(event) => {
@@ -1508,42 +1800,68 @@ const Courses_With_Focus: React.FC = () => {
                                         : null
                                     );
                                   }}
-                                  disabled={typeof validation.values.fileEM === "string" && validation.values.fileEM}
+                                  disabled={
+                                    typeof validation.values.fileEM ===
+                                      "string" && validation.values.fileEM
+                                  }
                                 />
-                                {showTabError(4, validation.touched.fileEM, validation.errors.fileEM)}
-                                {validation.touched.fileEM && validation.errors.fileEM && (
-                                  <div className="text-danger">{validation.errors.fileEM}</div>
+                                {showTabError(
+                                  4,
+                                  validation.touched.fileEM,
+                                  validation.errors.fileEM
                                 )}
+                                {validation.touched.fileEM &&
+                                  validation.errors.fileEM && (
+                                    <div className="text-danger">
+                                      {validation.errors.fileEM}
+                                    </div>
+                                  )}
                                 {/* Show a message if the file upload button is disabled */}
-                                {typeof validation.values.fileEM === "string" && validation.values.fileEM && (
-                                  <div className="text-warning mt-2">
-                                    Please remove the existing file to upload a new one.
-                                  </div>
-                                )}
+                                {typeof validation.values.fileEM === "string" &&
+                                  validation.values.fileEM && (
+                                    <div className="text-warning mt-2">
+                                      Please remove the existing file to upload
+                                      a new one.
+                                    </div>
+                                  )}
                                 {/* Only show the file name if it is a string (from the edit API) */}
-                                {typeof validation.values.fileEM === "string" && validation.values.fileEM && (
-                                  <div className="mt-2 d-flex align-items-center">
-                                    <span className="me-2" style={{ fontWeight: "bold", color: "green" }}>
-                                      {validation.values.fileEM}
-                                    </span>
-                                    <Button
-                                      color="link"
-                                      className="text-primary"
-                                      onClick={() => validation.values.fileEM && handleDownloadFile(validation.values.fileEM as string)}
-                                      title="Download File"
-                                    >
-                                      <i className="bi bi-download"></i>
-                                    </Button>
-                                    <Button
-                                      color="link"
-                                      className="text-danger"
-                                      onClick={() => handleDeleteFile("fileEM")}
-                                      title="Delete File"
-                                    >
-                                      <i className="bi bi-trash"></i>
-                                    </Button>
-                                  </div>
-                                )}
+                                {typeof validation.values.fileEM === "string" &&
+                                  validation.values.fileEM && (
+                                    <div className="mt-2 d-flex align-items-center">
+                                      <span
+                                        className="me-2"
+                                        style={{
+                                          fontWeight: "bold",
+                                          color: "green",
+                                        }}
+                                      >
+                                        {validation.values.fileEM}
+                                      </span>
+                                      <Button
+                                        color="link"
+                                        className="text-primary"
+                                        onClick={() =>
+                                          validation.values.fileEM &&
+                                          handleDownloadFile(
+                                            validation.values.fileEM as string
+                                          )
+                                        }
+                                        title="Download File"
+                                      >
+                                        <i className="bi bi-download"></i>
+                                      </Button>
+                                      <Button
+                                        color="link"
+                                        className="text-danger"
+                                        onClick={() =>
+                                          handleDeleteFile("fileEM")
+                                        }
+                                        title="Delete File"
+                                      >
+                                        <i className="bi bi-trash"></i>
+                                      </Button>
+                                    </div>
+                                  )}
                               </div>
                             </Col>
                           </Row>
@@ -1562,12 +1880,16 @@ const Courses_With_Focus: React.FC = () => {
                                   placeholder="Enter Course Title"
                                   className={
                                     validation.touched.courseTitileSE &&
-                                      validation.errors.courseTitileSE
+                                    validation.errors.courseTitileSE
                                       ? "input-error"
                                       : ""
                                   }
                                 />
-                                {showTabError(5, validation.touched.courseTitileSE, validation.errors.courseTitileSE)}
+                                {showTabError(
+                                  5,
+                                  validation.touched.courseTitileSE,
+                                  validation.errors.courseTitileSE
+                                )}
                               </div>
                             </Col>
                             <Col lg={4}>
@@ -1587,26 +1909,34 @@ const Courses_With_Focus: React.FC = () => {
                                   menuPortalTarget={document.body}
                                   className={
                                     validation.touched.courseTypeSE &&
-                                      validation.errors.courseTypeSE
+                                    validation.errors.courseTypeSE
                                       ? "select-error"
                                       : ""
                                   }
                                 />
-                                {showTabError(5, validation.touched.courseTypeSE, validation.errors.courseTypeSE)}
+                                {showTabError(
+                                  5,
+                                  validation.touched.courseTypeSE,
+                                  validation.errors.courseTypeSE
+                                )}
                               </div>
                             </Col>
                             <Col sm={4}>
                               <div className="mb-3">
-                                <Label htmlFor="formFile" className="form-label">
+                                <Label
+                                  htmlFor="formFile"
+                                  className="form-label"
+                                >
                                   Upload file
                                 </Label>
                                 <Input
-                                  className={`form-control ${activeTab === 5 &&
+                                  className={`form-control ${
+                                    activeTab === 5 &&
                                     validation.touched.fileSE &&
                                     validation.errors.fileSE
-                                    ? "is-invalid"
-                                    : ""
-                                    }`}
+                                      ? "is-invalid"
+                                      : ""
+                                  }`}
                                   type="file"
                                   id="skillEnhancement"
                                   onChange={(event) => {
@@ -1617,42 +1947,68 @@ const Courses_With_Focus: React.FC = () => {
                                         : null
                                     );
                                   }}
-                                  disabled={typeof validation.values.fileSE === "string" && validation.values.fileSE}
+                                  disabled={
+                                    typeof validation.values.fileSE ===
+                                      "string" && validation.values.fileSE
+                                  }
                                 />
-                                {showTabError(5, validation.touched.fileSE, validation.errors.fileSE)}
-                                {validation.touched.fileSE && validation.errors.fileSE && (
-                                  <div className="text-danger">{validation.errors.fileSE}</div>
+                                {showTabError(
+                                  5,
+                                  validation.touched.fileSE,
+                                  validation.errors.fileSE
                                 )}
+                                {validation.touched.fileSE &&
+                                  validation.errors.fileSE && (
+                                    <div className="text-danger">
+                                      {validation.errors.fileSE}
+                                    </div>
+                                  )}
                                 {/* Show a message if the file upload button is disabled */}
-                                {typeof validation.values.fileSE === "string" && validation.values.fileSE && (
-                                  <div className="text-warning mt-2">
-                                    Please remove the existing file to upload a new one.
-                                  </div>
-                                )}
+                                {typeof validation.values.fileSE === "string" &&
+                                  validation.values.fileSE && (
+                                    <div className="text-warning mt-2">
+                                      Please remove the existing file to upload
+                                      a new one.
+                                    </div>
+                                  )}
                                 {/* Only show the file name if it is a string (from the edit API) */}
-                                {typeof validation.values.fileSE === "string" && validation.values.fileSE && (
-                                  <div className="mt-2 d-flex align-items-center">
-                                    <span className="me-2" style={{ fontWeight: "bold", color: "green" }}>
-                                      {validation.values.fileSE}
-                                    </span>
-                                    <Button
-                                      color="link"
-                                      className="text-primary"
-                                      onClick={() => validation.values.fileSE && handleDownloadFile(validation.values.fileSE as string)}
-                                      title="Download File"
-                                    >
-                                      <i className="bi bi-download"></i>
-                                    </Button>
-                                    <Button
-                                      color="link"
-                                      className="text-danger"
-                                      onClick={() => handleDeleteFile("fileSE")}
-                                      title="Delete File"
-                                    >
-                                      <i className="bi bi-trash"></i>
-                                    </Button>
-                                  </div>
-                                )}
+                                {typeof validation.values.fileSE === "string" &&
+                                  validation.values.fileSE && (
+                                    <div className="mt-2 d-flex align-items-center">
+                                      <span
+                                        className="me-2"
+                                        style={{
+                                          fontWeight: "bold",
+                                          color: "green",
+                                        }}
+                                      >
+                                        {validation.values.fileSE}
+                                      </span>
+                                      <Button
+                                        color="link"
+                                        className="text-primary"
+                                        onClick={() =>
+                                          validation.values.fileSE &&
+                                          handleDownloadFile(
+                                            validation.values.fileSE as string
+                                          )
+                                        }
+                                        title="Download File"
+                                      >
+                                        <i className="bi bi-download"></i>
+                                      </Button>
+                                      <Button
+                                        color="link"
+                                        className="text-danger"
+                                        onClick={() =>
+                                          handleDeleteFile("fileSE")
+                                        }
+                                        title="Delete File"
+                                      >
+                                        <i className="bi bi-trash"></i>
+                                      </Button>
+                                    </div>
+                                  )}
                               </div>
                             </Col>
                           </Row>
@@ -1671,12 +2027,16 @@ const Courses_With_Focus: React.FC = () => {
                                   placeholder="Enter Course Title"
                                   className={
                                     validation.touched.courseTitileEN &&
-                                      validation.errors.courseTitileEN
+                                    validation.errors.courseTitileEN
                                       ? "input-error"
                                       : ""
                                   }
                                 />
-                                {showTabError(6, validation.touched.courseTitileEN, validation.errors.courseTitileEN)}
+                                {showTabError(
+                                  6,
+                                  validation.touched.courseTitileEN,
+                                  validation.errors.courseTitileEN
+                                )}
                               </div>
                             </Col>
                             <Col lg={4}>
@@ -1696,26 +2056,34 @@ const Courses_With_Focus: React.FC = () => {
                                   menuPortalTarget={document.body}
                                   className={
                                     validation.touched.courseTypeEN &&
-                                      validation.errors.courseTypeEN
+                                    validation.errors.courseTypeEN
                                       ? "select-error"
                                       : ""
                                   }
                                 />
-                                {showTabError(6, validation.touched.courseTypeEN, validation.errors.courseTypeEN)}
+                                {showTabError(
+                                  6,
+                                  validation.touched.courseTypeEN,
+                                  validation.errors.courseTypeEN
+                                )}
                               </div>
                             </Col>
                             <Col sm={4}>
                               <div className="mb-3">
-                                <Label htmlFor="formFile" className="form-label">
+                                <Label
+                                  htmlFor="formFile"
+                                  className="form-label"
+                                >
                                   Upload file
                                 </Label>
                                 <Input
-                                  className={`form-control ${activeTab === 6 &&
+                                  className={`form-control ${
+                                    activeTab === 6 &&
                                     validation.touched.fileEN &&
                                     validation.errors.fileEN
-                                    ? "is-invalid"
-                                    : ""
-                                    }`}
+                                      ? "is-invalid"
+                                      : ""
+                                  }`}
                                   type="file"
                                   id="entrepreneurship"
                                   onChange={(event) => {
@@ -1726,42 +2094,68 @@ const Courses_With_Focus: React.FC = () => {
                                         : null
                                     );
                                   }}
-                                  disabled={typeof validation.values.fileEN === "string" && validation.values.fileEN}
+                                  disabled={
+                                    typeof validation.values.fileEN ===
+                                      "string" && validation.values.fileEN
+                                  }
                                 />
-                                {showTabError(6, validation.touched.fileEN, validation.errors.fileEN)}
-                                {validation.touched.fileEN && validation.errors.fileEN && (
-                                  <div className="text-danger">{validation.errors.fileEN}</div>
+                                {showTabError(
+                                  6,
+                                  validation.touched.fileEN,
+                                  validation.errors.fileEN
                                 )}
+                                {validation.touched.fileEN &&
+                                  validation.errors.fileEN && (
+                                    <div className="text-danger">
+                                      {validation.errors.fileEN}
+                                    </div>
+                                  )}
                                 {/* Show a message if the file upload button is disabled */}
-                                {typeof validation.values.fileEN === "string" && validation.values.fileEN && (
-                                  <div className="text-warning mt-2">
-                                    Please remove the existing file to upload a new one.
-                                  </div>
-                                )}
+                                {typeof validation.values.fileEN === "string" &&
+                                  validation.values.fileEN && (
+                                    <div className="text-warning mt-2">
+                                      Please remove the existing file to upload
+                                      a new one.
+                                    </div>
+                                  )}
                                 {/* Only show the file name if it is a string (from the edit API) */}
-                                {typeof validation.values.fileEN === "string" && validation.values.fileEN && (
-                                  <div className="mt-2 d-flex align-items-center">
-                                    <span className="me-2" style={{ fontWeight: "bold", color: "green" }}>
-                                      {validation.values.fileEN}
-                                    </span>
-                                    <Button
-                                      color="link"
-                                      className="text-primary"
-                                      onClick={() => validation.values.fileEN && handleDownloadFile(validation.values.fileEN as string)}
-                                      title="Download File"
-                                    >
-                                      <i className="bi bi-download"></i>
-                                    </Button>
-                                    <Button
-                                      color="link"
-                                      className="text-danger"
-                                      onClick={() => handleDeleteFile("fileEN")}
-                                      title="Delete File"
-                                    >
-                                      <i className="bi bi-trash"></i>
-                                    </Button>
-                                  </div>
-                                )}
+                                {typeof validation.values.fileEN === "string" &&
+                                  validation.values.fileEN && (
+                                    <div className="mt-2 d-flex align-items-center">
+                                      <span
+                                        className="me-2"
+                                        style={{
+                                          fontWeight: "bold",
+                                          color: "green",
+                                        }}
+                                      >
+                                        {validation.values.fileEN}
+                                      </span>
+                                      <Button
+                                        color="link"
+                                        className="text-primary"
+                                        onClick={() =>
+                                          validation.values.fileEN &&
+                                          handleDownloadFile(
+                                            validation.values.fileEN as string
+                                          )
+                                        }
+                                        title="Download File"
+                                      >
+                                        <i className="bi bi-download"></i>
+                                      </Button>
+                                      <Button
+                                        color="link"
+                                        className="text-danger"
+                                        onClick={() =>
+                                          handleDeleteFile("fileEN")
+                                        }
+                                        title="Delete File"
+                                      >
+                                        <i className="bi bi-trash"></i>
+                                      </Button>
+                                    </div>
+                                  )}
                               </div>
                             </Col>
                           </Row>
@@ -1780,12 +2174,16 @@ const Courses_With_Focus: React.FC = () => {
                                   placeholder="Enter Course Title"
                                   className={
                                     validation.touched.courseTitileET &&
-                                      validation.errors.courseTitileET
+                                    validation.errors.courseTitileET
                                       ? "input-error"
                                       : ""
                                   }
                                 />
-                                {showTabError(7, validation.touched.courseTitileET, validation.errors.courseTitileET)}
+                                {showTabError(
+                                  7,
+                                  validation.touched.courseTitileET,
+                                  validation.errors.courseTitileET
+                                )}
                               </div>
                             </Col>
                             <Col lg={4}>
@@ -1805,26 +2203,34 @@ const Courses_With_Focus: React.FC = () => {
                                   menuPortalTarget={document.body}
                                   className={
                                     validation.touched.courseTypeET &&
-                                      validation.errors.courseTypeET
+                                    validation.errors.courseTypeET
                                       ? "select-error"
                                       : ""
                                   }
                                 />
-                                {showTabError(7, validation.touched.courseTypeET, validation.errors.courseTypeET)}
+                                {showTabError(
+                                  7,
+                                  validation.touched.courseTypeET,
+                                  validation.errors.courseTypeET
+                                )}
                               </div>
                             </Col>
                             <Col sm={4}>
                               <div className="mb-3">
-                                <Label htmlFor="formFile" className="form-label">
+                                <Label
+                                  htmlFor="formFile"
+                                  className="form-label"
+                                >
                                   Upload file
                                 </Label>
                                 <Input
-                                  className={`form-control ${activeTab === 7 &&
+                                  className={`form-control ${
+                                    activeTab === 7 &&
                                     validation.touched.fileET &&
                                     validation.errors.fileET
-                                    ? "is-invalid"
-                                    : ""
-                                    }`}
+                                      ? "is-invalid"
+                                      : ""
+                                  }`}
                                   type="file"
                                   id="ethics"
                                   onChange={(event) => {
@@ -1835,42 +2241,68 @@ const Courses_With_Focus: React.FC = () => {
                                         : null
                                     );
                                   }}
-                                  disabled={typeof validation.values.fileET === "string" && validation.values.fileET}
+                                  disabled={
+                                    typeof validation.values.fileET ===
+                                      "string" && validation.values.fileET
+                                  }
                                 />
-                                {showTabError(7, validation.touched.fileET, validation.errors.fileET)}
-                                {validation.touched.fileET && validation.errors.fileET && (
-                                  <div className="text-danger">{validation.errors.fileET}</div>
+                                {showTabError(
+                                  7,
+                                  validation.touched.fileET,
+                                  validation.errors.fileET
                                 )}
+                                {validation.touched.fileET &&
+                                  validation.errors.fileET && (
+                                    <div className="text-danger">
+                                      {validation.errors.fileET}
+                                    </div>
+                                  )}
                                 {/* Show a message if the file upload button is disabled */}
-                                {typeof validation.values.fileET === "string" && validation.values.fileET && (
-                                  <div className="text-warning mt-2">
-                                    Please remove the existing file to upload a new one.
-                                  </div>
-                                )}
+                                {typeof validation.values.fileET === "string" &&
+                                  validation.values.fileET && (
+                                    <div className="text-warning mt-2">
+                                      Please remove the existing file to upload
+                                      a new one.
+                                    </div>
+                                  )}
                                 {/* Only show the file name if it is a string (from the edit API) */}
-                                {typeof validation.values.fileET === "string" && validation.values.fileET && (
-                                  <div className="mt-2 d-flex align-items-center">
-                                    <span className="me-2" style={{ fontWeight: "bold", color: "green" }}>
-                                      {validation.values.fileET}
-                                    </span>
-                                    <Button
-                                      color="link"
-                                      className="text-primary"
-                                      onClick={() => validation.values.fileET && handleDownloadFile(validation.values.fileET as string)}
-                                      title="Download File"
-                                    >
-                                      <i className="bi bi-download"></i>
-                                    </Button>
-                                    <Button
-                                      color="link"
-                                      className="text-danger"
-                                      onClick={() => handleDeleteFile("fileET")}
-                                      title="Delete File"
-                                    >
-                                      <i className="bi bi-trash"></i>
-                                    </Button>
-                                  </div>
-                                )}
+                                {typeof validation.values.fileET === "string" &&
+                                  validation.values.fileET && (
+                                    <div className="mt-2 d-flex align-items-center">
+                                      <span
+                                        className="me-2"
+                                        style={{
+                                          fontWeight: "bold",
+                                          color: "green",
+                                        }}
+                                      >
+                                        {validation.values.fileET}
+                                      </span>
+                                      <Button
+                                        color="link"
+                                        className="text-primary"
+                                        onClick={() =>
+                                          validation.values.fileET &&
+                                          handleDownloadFile(
+                                            validation.values.fileET as string
+                                          )
+                                        }
+                                        title="Download File"
+                                      >
+                                        <i className="bi bi-download"></i>
+                                      </Button>
+                                      <Button
+                                        color="link"
+                                        className="text-danger"
+                                        onClick={() =>
+                                          handleDeleteFile("fileET")
+                                        }
+                                        title="Delete File"
+                                      >
+                                        <i className="bi bi-trash"></i>
+                                      </Button>
+                                    </div>
+                                  )}
                               </div>
                             </Col>
                           </Row>
@@ -1895,7 +2327,9 @@ const Courses_With_Focus: React.FC = () => {
                     </div>
                     <div className="mt-3">
                       {validation.status && (
-                        <div className="text-danger mb-2">{validation.status}</div>
+                        <div className="text-danger mb-2">
+                          {validation.status}
+                        </div>
                       )}
                     </div>
                   </Col>
@@ -1920,82 +2354,24 @@ const Courses_With_Focus: React.FC = () => {
                 onChange={handleSearch}
               />
             </div>
-            <Table className="table-hover custom-table">
-              <thead>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>
-                    Academic Year
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.academicYear}
-                      onChange={(e) => handleFilterChange(e, "academicYear")}
-                    />
-                  </th>
-                  <th>
-                    Semester Type
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.semesterType}
-                      onChange={(e) => handleFilterChange(e, "semesterType")}
-                    />
-                  </th>
-                  <th>
-                    Semester No
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.semesterNo}
-                      onChange={(e) => handleFilterChange(e, "semesterNo")}
-                    />
-                  </th>
-                  <th>
-                    Stream
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.stream}
-                      onChange={(e) => handleFilterChange(e, "stream")}
-                    />
-                  </th>
-                  <th>
-                    Department
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.department}
-                      onChange={(e) => handleFilterChange(e, "department")}
-                    />
-                  </th>
-                  <th>
-                    Program Type
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.programType}
-                      onChange={(e) => handleFilterChange(e, "programType")}
-                    />
-                  </th>
-                  <th>
-                    Program
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.program}
-                      onChange={(e) => handleFilterChange(e, "program")}
-                    />
-                  </th>
-                  <th>
-                    Focus Area
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.percentage}
-                      onChange={(e) => handleFilterChange(e, "percentage")}
-                    />
-                  </th>
+                  <th>Academic Year</th>
+                  <th>Semester Type</th>
+                  <th>Semester No</th>
+                  <th>Stream</th>
+                  <th>Department</th>
+                  <th>Program Type</th>
+                  <th>Program</th>
+                  <th>Focus Area</th>
                   <th>Actions</th>
                 </tr>
               </thead>

@@ -667,7 +667,12 @@ const Professor_Practice: React.FC = () => {
           </Card>
         </Container>
         {/* Modal for Listing BOS */}
-        <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg" style={{ maxWidth: "90%" }}>
+        <Modal
+          isOpen={isModalOpen}
+          toggle={toggleModal}
+          size="lg"
+          style={{ maxWidth: "90%" }}
+        >
           <ModalHeader toggle={toggleModal}>
             List Professor Practice
           </ModalHeader>
@@ -681,64 +686,22 @@ const Professor_Practice: React.FC = () => {
                 onChange={handleSearch}
               />
             </div>
-            <Table className="table-hover custom-table">
-              <thead>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>
-                    Faculty Type
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.facultyType}
-                      onChange={(e) => handleFilterChange(e, "facultyType")}
-                    />
-                  </th>
-                  <th>
-                    Name
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.name}
-                      onChange={(e) => handleFilterChange(e, "name")}
-                    />
-                  </th>
-                  <th>
-                    School
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.stream}
-                      onChange={(e) => handleFilterChange(e, "stream")}
-                    />
-                  </th>
-                  <th>
-                    Department
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.department}
-                      onChange={(e) => handleFilterChange(e, "department")}
-                    />
-                  </th>
-                  <th>
-                    Designation
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.designation}
-                      onChange={(e) => handleFilterChange(e, "designation")}
-                    />
-                  </th>
-                  <th>
-                    VIDWAAN ID
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.vidwaanId}
-                      onChange={(e) => handleFilterChange(e, "vidwaanId")}
-                    />
-                  </th>
+                  <th>Faculty Type</th>
+                  <th>Name</th>
+                  <th>School</th>
+                  <th>Department</th>
+                  <th>Designation</th>
+                  <th>VIDWAAN ID</th>
                   <th>Actions</th>
                 </tr>
               </thead>

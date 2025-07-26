@@ -394,37 +394,19 @@ const NumberOfStudents: React.FC = () => {
                 onChange={handleSearch}
               />
             </div>
-            <Table className="table-hover custom-table">
-              <thead>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>
-                    Academic Year
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.academicYear}
-                      onChange={(e) => handleFilterChange(e, "academicYear")}
-                    />
-                  </th>
-                  <th>
-                    UG
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.ug}
-                      onChange={(e) => handleFilterChange(e, "ug")}
-                    />
-                  </th>
-                  <th>
-                    PG
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.pg}
-                      onChange={(e) => handleFilterChange(e, "pg")}
-                    />
-                  </th>
+                  <th>Academic Year</th>
+                  <th>UG</th>
+                  <th>PG</th>
                   <th>Actions</th>
                 </tr>
               </thead>

@@ -370,8 +370,14 @@ const Year_Of_Establishment: React.FC = () => {
                 onChange={handleSearch}
               />
             </div>
-            <Table className="table-hover custom-table">
-              <thead>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>

@@ -1,8 +1,27 @@
 import React, { useEffect, useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { Col, Row, Input, Label, Button, CardBody, Card, Container, Nav, NavItem, NavLink, TabContent, TabPane, Modal, ModalBody, Table, ModalHeader, ModalFooter } from "reactstrap";
-import Breadcrumb from 'Components/Common/Breadcrumb';
+import {
+  Col,
+  Row,
+  Input,
+  Label,
+  Button,
+  CardBody,
+  Card,
+  Container,
+  Nav,
+  NavItem,
+  NavLink,
+  TabContent,
+  TabPane,
+  Modal,
+  ModalBody,
+  Table,
+  ModalHeader,
+  ModalFooter,
+} from "reactstrap";
+import Breadcrumb from "Components/Common/Breadcrumb";
 import AcademicYearDropdown from "Components/DropDowns/AcademicYearDropdown";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
@@ -14,13 +33,17 @@ import axios from "axios";
 const api = new APIClient();
 
 const GovernmentOrNGOFundedProjects = () => {
-  const [departmentOptions, setDepartmentOptions] = useState<{ value: string; label: string }[]>([]);
+  const [departmentOptions, setDepartmentOptions] = useState<
+    { value: string; label: string }[]
+  >([]);
   // State variables for managing modal, edit mode, and delete confirmation
   const [isEditMode, setIsEditMode] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   // State variable for managing file upload status
-  const [isAbstractFileUploadDisabled, setIsAbstractFileUploadDisabled] = useState(false);
-  const [isSanctionFileUploadDisabled, setIsSanctionFileUploadDisabled] = useState(false);
+  const [isAbstractFileUploadDisabled, setIsAbstractFileUploadDisabled] =
+    useState(false);
+  const [isSanctionFileUploadDisabled, setIsSanctionFileUploadDisabled] =
+    useState(false);
   // State variable for managing delete confirmation modal
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -46,7 +69,7 @@ const GovernmentOrNGOFundedProjects = () => {
     projectTitle: "",
     amount: "",
     monthOfGrant: "",
-    typeOfFunding: ""
+    typeOfFunding: "",
   });
   const [filteredData, setFilteredData] = useState(gfpData);
 
@@ -57,7 +80,7 @@ const GovernmentOrNGOFundedProjects = () => {
         const response = await api.get("/getAllDepartmentEntry", "");
         const options = response.map((dept: any) => ({
           value: dept.id?.toString() || "",
-          label: dept.name || ""
+          label: dept.name || "",
         }));
         setDepartmentOptions(options);
       } catch (error) {
@@ -74,21 +97,28 @@ const GovernmentOrNGOFundedProjects = () => {
 
     const filtered = gfpData.filter((row) =>
       Object.values(row).some((val) =>
-        String(val || "").toLowerCase().includes(value)
+        String(val || "")
+          .toLowerCase()
+          .includes(value)
       )
     );
     setFilteredData(filtered);
   };
 
   // Handle column-specific filters
-  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>, column: string) => {
+  const handleFilterChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    column: string
+  ) => {
     const value = e.target.value.toLowerCase();
     const updatedFilters = { ...filters, [column]: value };
     setFilters(updatedFilters);
 
     const filtered = gfpData.filter((row) =>
       Object.values(row).some((val) =>
-        String(val || "").toLowerCase().includes(value)
+        String(val || "")
+          .toLowerCase()
+          .includes(value)
       )
     );
     setFilteredData(filtered);
@@ -113,14 +143,23 @@ const GovernmentOrNGOFundedProjects = () => {
   };
 
   const validationSchema = Yup.object({
-    academicYear: Yup.object<{ value: string; label: string }>().nullable().required("Please select academic year"),
-    stream: Yup.object<{ value: string; label: string }>().nullable().required("Please select school"),
-    department: Yup.object<{ value: string; label: string }>().nullable().required("Please select department"),
-    otherDepartment: Yup.string().when("department", (department: any, schema) => {
-      return department?.value === "Others"
-        ? schema.required("Please specify the department")
-        : schema;
-    }),
+    academicYear: Yup.object<{ value: string; label: string }>()
+      .nullable()
+      .required("Please select academic year"),
+    stream: Yup.object<{ value: string; label: string }>()
+      .nullable()
+      .required("Please select school"),
+    department: Yup.object<{ value: string; label: string }>()
+      .nullable()
+      .required("Please select department"),
+    otherDepartment: Yup.string().when(
+      "department",
+      (department: any, schema) => {
+        return department?.value === "Others"
+          ? schema.required("Please specify the department")
+          : schema;
+      }
+    ),
     facultyName: Yup.string().required("Please enter faculty name"),
     projectTitle: Yup.string().required("Please enter project title"),
     amount: Yup.number()
@@ -128,26 +167,38 @@ const GovernmentOrNGOFundedProjects = () => {
       .min(0, "Amount cannot be less than 0")
       .required("Please enter the amount"),
     monthOfGrant: Yup.string().required("Please enter the month of grant"),
-    typeOfFunding: Yup.object<{ value: string; label: string }>().nullable().required("Please select type of funding"),
-    principalInvestigator: isMultidisciplinary === "Yes" && activeTab === "1"
-      ? Yup.object({
-        name: Yup.string().required("Please enter name"),
-        qualification: Yup.string().required("Please enter qualification"),
-        designation: Yup.string().required("Please enter designation"),
-        department: Yup.object<{ value: string; label: string }>().nullable().required("Please select department"),
-        //date: Yup.date().required("Please select a date"),
-        abstractFile: Yup.mixed().required("Please upload the abstract file"),
-        sanctionOrderFile: Yup.mixed().required("Please upload the sanction order file"),
-      })
-      : Yup.object(),
-    coInvestigator: isMultidisciplinary === "Yes" && activeTab === "2"
-      ? Yup.object({
-        name: Yup.string().required("Please enter name"),
-        qualification: Yup.string().required("Please enter qualification"),
-        designation: Yup.string().required("Please enter designation"),
-        department: Yup.object<{ value: string; label: string }>().nullable().required("Please select department"),
-      })
-      : Yup.object(),
+    typeOfFunding: Yup.object<{ value: string; label: string }>()
+      .nullable()
+      .required("Please select type of funding"),
+    principalInvestigator:
+      isMultidisciplinary === "Yes" && activeTab === "1"
+        ? Yup.object({
+            name: Yup.string().required("Please enter name"),
+            qualification: Yup.string().required("Please enter qualification"),
+            designation: Yup.string().required("Please enter designation"),
+            department: Yup.object<{ value: string; label: string }>()
+              .nullable()
+              .required("Please select department"),
+            //date: Yup.date().required("Please select a date"),
+            abstractFile: Yup.mixed().required(
+              "Please upload the abstract file"
+            ),
+            sanctionOrderFile: Yup.mixed().required(
+              "Please upload the sanction order file"
+            ),
+          })
+        : Yup.object(),
+    coInvestigator:
+      isMultidisciplinary === "Yes" && activeTab === "2"
+        ? Yup.object({
+            name: Yup.string().required("Please enter name"),
+            qualification: Yup.string().required("Please enter qualification"),
+            designation: Yup.string().required("Please enter designation"),
+            department: Yup.object<{ value: string; label: string }>()
+              .nullable()
+              .required("Please select department"),
+          })
+        : Yup.object(),
   });
 
   const validation = useFormik({
@@ -174,7 +225,7 @@ const GovernmentOrNGOFundedProjects = () => {
         name: "",
         qualification: "",
         designation: "",
-        department: null as { value: string; label: string } | null
+        department: null as { value: string; label: string } | null,
       },
     },
     validationSchema,
@@ -194,7 +245,10 @@ const GovernmentOrNGOFundedProjects = () => {
         monthOfGrant: values.monthOfGrant || null,
         fundingType: values.typeOfFunding?.value || null,
         multidisciplinary: isMultidisciplinary === "Yes",
-        multidisciplinaryType: activeTab === "1" ? "PrincipleInvestigatorDetails" : "CoInvestigatorDetails",
+        multidisciplinaryType:
+          activeTab === "1"
+            ? "PrincipleInvestigatorDetails"
+            : "CoInvestigatorDetails",
         governmentFundProjectAddTabDto: {
           additionalTabId: editId || null,
           name: activeTab === "1"
@@ -218,7 +272,10 @@ const GovernmentOrNGOFundedProjects = () => {
       console.log("DTO Payload:", dtoPayload);
 
       // Append the JSON payload as a string with the key `managementFundProjectRequestDto`
-      formData.append('governmentFundProjectRequestDto', new Blob([JSON.stringify(dtoPayload)], { type: 'application/json' }));
+      formData.append(
+        "governmentFundProjectRequestDto",
+        new Blob([JSON.stringify(dtoPayload)], { type: "application/json" })
+      );
 
       // File handling logic
       if (isMultidisciplinary === "Yes") {
@@ -255,17 +312,18 @@ const GovernmentOrNGOFundedProjects = () => {
       }
 
       try {
-        const response = isEditMode && editId
-          ? await api.put(`/governmentFundProject/update`, formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data'
-            }
-          })
-          : await api.create(`/governmentFundProject/save`, formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data'
-            }
-          });
+        const response =
+          isEditMode && editId
+            ? await api.put(`/governmentFundProject/update`, formData, {
+                headers: {
+                  "Content-Type": "multipart/form-data",
+                },
+              })
+            : await api.create(`/governmentFundProject/save`, formData, {
+                headers: {
+                  "Content-Type": "multipart/form-data",
+                },
+              });
 
         toast.success(response.message || "GFP record saved successfully!");
         // Reset the form fields
@@ -277,18 +335,18 @@ const GovernmentOrNGOFundedProjects = () => {
         toast.error("Failed to save GFP. Please try again.");
         console.error("Error creating/updating GFP:", error);
       }
-    }
+    },
   });
 
   const fetchGFPData = async () => {
     try {
-      const response = await api.get("/governmentFundProject/getAll", '');
+      const response = await api.get("/governmentFundProject/getAll", "");
       setGfpData(response);
       setFilteredData(response);
     } catch (error) {
       console.error("Error fetching MFA data:", error);
     }
-  }
+  };
 
   // Open the modal and fetch data
   const handleListGFPClick = () => {
@@ -301,7 +359,10 @@ const GovernmentOrNGOFundedProjects = () => {
   const confirmDelete = async (id: string) => {
     if (deleteId) {
       try {
-        const response = await api.delete(`/governmentFundProject/deleteGovernmentFundedProject?governmentFundProjectId=${id}`, '');
+        const response = await api.delete(
+          `/governmentFundProject/deleteGovernmentFundedProject?governmentFundProjectId=${id}`,
+          ""
+        );
         toast.success(response.message || "GFP record removed successfully!");
         fetchGFPData();
       } catch (error) {
@@ -321,14 +382,22 @@ const GovernmentOrNGOFundedProjects = () => {
       name="principalInvestigator.department"
       value={validation.values.principalInvestigator.department?.value || ""}
       onChange={(e) => {
-        const selected = departmentOptions.find(opt => opt.value === e.target.value) || null;
+        const selected =
+          departmentOptions.find((opt) => opt.value === e.target.value) || null;
         validation.setFieldValue("principalInvestigator.department", selected);
       }}
-      className={`form-control ${validation.touched.principalInvestigator?.department && validation.errors.principalInvestigator?.department ? "is-invalid" : ""}`}
+      className={`form-control ${
+        validation.touched.principalInvestigator?.department &&
+        validation.errors.principalInvestigator?.department
+          ? "is-invalid"
+          : ""
+      }`}
     >
       <option value="">Select Department</option>
-      {departmentOptions.map(opt => (
-        <option key={opt.value} value={opt.value}>{opt.label}</option>
+      {departmentOptions.map((opt) => (
+        <option key={opt.value} value={opt.value}>
+          {opt.label}
+        </option>
       ))}
     </Input>
   );
@@ -339,14 +408,22 @@ const GovernmentOrNGOFundedProjects = () => {
       name="coInvestigator.department"
       value={validation.values.coInvestigator.department?.value || ""}
       onChange={(e) => {
-        const selected = departmentOptions.find(opt => opt.value === e.target.value) || null;
+        const selected =
+          departmentOptions.find((opt) => opt.value === e.target.value) || null;
         validation.setFieldValue("coInvestigator.department", selected);
       }}
-      className={`form-control ${validation.touched.coInvestigator?.department && validation.errors.coInvestigator?.department ? "is-invalid" : ""}`}
+      className={`form-control ${
+        validation.touched.coInvestigator?.department &&
+        validation.errors.coInvestigator?.department
+          ? "is-invalid"
+          : ""
+      }`}
     >
       <option value="">Select Department</option>
-      {departmentOptions.map(opt => (
-        <option key={opt.value} value={opt.value}>{opt.label}</option>
+      {departmentOptions.map((opt) => (
+        <option key={opt.value} value={opt.value}>
+          {opt.label}
+        </option>
       ))}
     </Input>
   );
@@ -356,9 +433,12 @@ const GovernmentOrNGOFundedProjects = () => {
     if (fileName) {
       try {
         // Ensure you set responseType to 'blob' to handle binary data
-        const response = await axios.get(`/governmentFundProject/download/${fileName}`, {
-          responseType: 'blob'
-        });
+        const response = await axios.get(
+          `/governmentFundProject/download/${fileName}`,
+          {
+            responseType: "blob",
+          }
+        );
 
         // Create a Blob from the response data
         const blob = new Blob([response], { type: "*/*" });
@@ -367,7 +447,7 @@ const GovernmentOrNGOFundedProjects = () => {
         const url = window.URL.createObjectURL(blob);
 
         // Create a temporary anchor element to trigger the download
-        const link = document.createElement('a');
+        const link = document.createElement("a");
         link.href = url;
         link.download = fileName; // Set the file name for the download
         document.body.appendChild(link);
@@ -386,7 +466,6 @@ const GovernmentOrNGOFundedProjects = () => {
       toast.error("No file available for download.");
     }
   };
-
 
   // Handle file deletion
   // Clear the file from the form and show success message
@@ -417,12 +496,20 @@ const GovernmentOrNGOFundedProjects = () => {
             name="principalInvestigator.name"
             value={validation.values.principalInvestigator.name}
             onChange={validation.handleChange}
-            className={`form-control ${validation.touched.principalInvestigator?.name && validation.errors.principalInvestigator?.name ? "is-invalid" : ""}`}
+            className={`form-control ${
+              validation.touched.principalInvestigator?.name &&
+              validation.errors.principalInvestigator?.name
+                ? "is-invalid"
+                : ""
+            }`}
             placeholder="Enter Name"
           />
-          {validation.touched.principalInvestigator?.name && validation.errors.principalInvestigator?.name && (
-            <div className="text-danger">{validation.errors.principalInvestigator.name}</div>
-          )}
+          {validation.touched.principalInvestigator?.name &&
+            validation.errors.principalInvestigator?.name && (
+              <div className="text-danger">
+                {validation.errors.principalInvestigator.name}
+              </div>
+            )}
         </div>
       </Col>
       <Col lg={4}>
@@ -433,12 +520,20 @@ const GovernmentOrNGOFundedProjects = () => {
             name="principalInvestigator.qualification"
             value={validation.values.principalInvestigator.qualification}
             onChange={validation.handleChange}
-            className={`form-control ${validation.touched.principalInvestigator?.qualification && validation.errors.principalInvestigator?.qualification ? "is-invalid" : ""}`}
+            className={`form-control ${
+              validation.touched.principalInvestigator?.qualification &&
+              validation.errors.principalInvestigator?.qualification
+                ? "is-invalid"
+                : ""
+            }`}
             placeholder="Enter Qualification"
           />
-          {validation.touched.principalInvestigator?.qualification && validation.errors.principalInvestigator?.qualification && (
-            <div className="text-danger">{validation.errors.principalInvestigator.qualification}</div>
-          )}
+          {validation.touched.principalInvestigator?.qualification &&
+            validation.errors.principalInvestigator?.qualification && (
+              <div className="text-danger">
+                {validation.errors.principalInvestigator.qualification}
+              </div>
+            )}
         </div>
       </Col>
       <Col lg={4}>
@@ -449,21 +544,32 @@ const GovernmentOrNGOFundedProjects = () => {
             name="principalInvestigator.designation"
             value={validation.values.principalInvestigator.designation}
             onChange={validation.handleChange}
-            className={`form-control ${validation.touched.principalInvestigator?.designation && validation.errors.principalInvestigator?.designation ? "is-invalid" : ""}`}
+            className={`form-control ${
+              validation.touched.principalInvestigator?.designation &&
+              validation.errors.principalInvestigator?.designation
+                ? "is-invalid"
+                : ""
+            }`}
             placeholder="Enter Designation"
           />
-          {validation.touched.principalInvestigator?.designation && validation.errors.principalInvestigator?.designation && (
-            <div className="text-danger">{validation.errors.principalInvestigator.designation}</div>
-          )}
+          {validation.touched.principalInvestigator?.designation &&
+            validation.errors.principalInvestigator?.designation && (
+              <div className="text-danger">
+                {validation.errors.principalInvestigator.designation}
+              </div>
+            )}
         </div>
       </Col>
       <Col lg={4}>
         <div className="mb-3">
           <Label>Department</Label>
           {renderPrincipalInvestigatorDepartmentDropdown()}
-          {validation.touched.principalInvestigator?.department && validation.errors.principalInvestigator?.department && (
-            <div className="text-danger">{validation.errors.principalInvestigator.department}</div>
-          )}
+          {validation.touched.principalInvestigator?.department &&
+            validation.errors.principalInvestigator?.department && (
+              <div className="text-danger">
+                {validation.errors.principalInvestigator.department}
+              </div>
+            )}
         </div>
       </Col>
       {/* <Col lg={4}>
@@ -496,13 +602,26 @@ const GovernmentOrNGOFundedProjects = () => {
           <Input
             type="file"
             name="principalInvestigator.abstractFile"
-            onChange={(event) => validation.setFieldValue("principalInvestigator.abstractFile", event.currentTarget.files?.[0] || null)}
-            className={`form-control ${validation.touched.principalInvestigator?.abstractFile && validation.errors.principalInvestigator?.abstractFile ? "is-invalid" : ""}`}
+            onChange={(event) =>
+              validation.setFieldValue(
+                "principalInvestigator.abstractFile",
+                event.currentTarget.files?.[0] || null
+              )
+            }
+            className={`form-control ${
+              validation.touched.principalInvestigator?.abstractFile &&
+              validation.errors.principalInvestigator?.abstractFile
+                ? "is-invalid"
+                : ""
+            }`}
             disabled={isAbstractFileUploadDisabled} // Disable the button if a file exists
           />
-          {validation.touched.principalInvestigator?.abstractFile && validation.errors.principalInvestigator?.abstractFile && (
-            <div className="text-danger">{validation.errors.principalInvestigator.abstractFile}</div>
-          )}
+          {validation.touched.principalInvestigator?.abstractFile &&
+            validation.errors.principalInvestigator?.abstractFile && (
+              <div className="text-danger">
+                {validation.errors.principalInvestigator.abstractFile}
+              </div>
+            )}
           {/* Show a message if the file upload button is disabled */}
           {isAbstractFileUploadDisabled && (
             <div className="text-warning mt-2">
@@ -510,17 +629,26 @@ const GovernmentOrNGOFundedProjects = () => {
             </div>
           )}
           {/* Only show the file name if it is a string (from the edit API) */}
-          {typeof validation.values.principalInvestigator.abstractFile === "string" && (
+          {typeof validation.values.principalInvestigator.abstractFile ===
+            "string" && (
             <div className="mt-2 d-flex align-items-center">
-              <span className="me-2" style={{ fontWeight: "bold", color: "green" }}>
+              <span
+                className="me-2"
+                style={{ fontWeight: "bold", color: "green" }}
+              >
                 {validation.values.principalInvestigator.abstractFile}
               </span>
               <Button
                 color="link"
                 className="text-primary"
                 onClick={() => {
-                  if (typeof validation.values.principalInvestigator.abstractFile === "string") {
-                    handleDownloadFile(validation.values.principalInvestigator.abstractFile);
+                  if (
+                    typeof validation.values.principalInvestigator
+                      .abstractFile === "string"
+                  ) {
+                    handleDownloadFile(
+                      validation.values.principalInvestigator.abstractFile
+                    );
                   }
                 }}
                 title="Download File"
@@ -548,13 +676,26 @@ const GovernmentOrNGOFundedProjects = () => {
           <Input
             type="file"
             name="principalInvestigator.sanctionOrderFile"
-            onChange={(event) => validation.setFieldValue("principalInvestigator.sanctionOrderFile", event.currentTarget.files?.[0] || null)}
-            className={`form-control ${validation.touched.principalInvestigator?.sanctionOrderFile && validation.errors.principalInvestigator?.sanctionOrderFile ? "is-invalid" : ""}`}
+            onChange={(event) =>
+              validation.setFieldValue(
+                "principalInvestigator.sanctionOrderFile",
+                event.currentTarget.files?.[0] || null
+              )
+            }
+            className={`form-control ${
+              validation.touched.principalInvestigator?.sanctionOrderFile &&
+              validation.errors.principalInvestigator?.sanctionOrderFile
+                ? "is-invalid"
+                : ""
+            }`}
             disabled={isSanctionFileUploadDisabled} // Disable the button if a file exists
           />
-          {validation.touched.principalInvestigator?.sanctionOrderFile && validation.errors.principalInvestigator?.sanctionOrderFile && (
-            <div className="text-danger">{validation.errors.principalInvestigator.sanctionOrderFile}</div>
-          )}
+          {validation.touched.principalInvestigator?.sanctionOrderFile &&
+            validation.errors.principalInvestigator?.sanctionOrderFile && (
+              <div className="text-danger">
+                {validation.errors.principalInvestigator.sanctionOrderFile}
+              </div>
+            )}
           {/* Show a message if the file upload button is disabled */}
           {isSanctionFileUploadDisabled && (
             <div className="text-warning mt-2">
@@ -562,17 +703,26 @@ const GovernmentOrNGOFundedProjects = () => {
             </div>
           )}
           {/* Only show the file name if it is a string (from the edit API) */}
-          {typeof validation.values.principalInvestigator?.sanctionOrderFile === "string" && (
+          {typeof validation.values.principalInvestigator?.sanctionOrderFile ===
+            "string" && (
             <div className="mt-2 d-flex align-items-center">
-              <span className="me-2" style={{ fontWeight: "bold", color: "green" }}>
+              <span
+                className="me-2"
+                style={{ fontWeight: "bold", color: "green" }}
+              >
                 {validation.values.principalInvestigator?.sanctionOrderFile}
               </span>
               <Button
                 color="link"
                 className="text-primary"
                 onClick={() => {
-                  if (typeof validation.values.principalInvestigator?.sanctionOrderFile === "string") {
-                    handleDownloadFile(validation.values.principalInvestigator?.sanctionOrderFile);
+                  if (
+                    typeof validation.values.principalInvestigator
+                      ?.sanctionOrderFile === "string"
+                  ) {
+                    handleDownloadFile(
+                      validation.values.principalInvestigator?.sanctionOrderFile
+                    );
                   }
                 }}
                 title="Download File"
@@ -607,12 +757,20 @@ const GovernmentOrNGOFundedProjects = () => {
             name="coInvestigator.name"
             value={validation.values.coInvestigator.name}
             onChange={validation.handleChange}
-            className={`form-control ${validation.touched.coInvestigator?.name && validation.errors.coInvestigator?.name ? "is-invalid" : ""}`}
+            className={`form-control ${
+              validation.touched.coInvestigator?.name &&
+              validation.errors.coInvestigator?.name
+                ? "is-invalid"
+                : ""
+            }`}
             placeholder="Enter Name"
           />
-          {validation.touched.coInvestigator?.name && validation.errors.coInvestigator?.name && (
-            <div className="text-danger">{validation.errors.coInvestigator.name}</div>
-          )}
+          {validation.touched.coInvestigator?.name &&
+            validation.errors.coInvestigator?.name && (
+              <div className="text-danger">
+                {validation.errors.coInvestigator.name}
+              </div>
+            )}
         </div>
       </Col>
       <Col lg={4}>
@@ -623,12 +781,20 @@ const GovernmentOrNGOFundedProjects = () => {
             name="coInvestigator.qualification"
             value={validation.values.coInvestigator.qualification}
             onChange={validation.handleChange}
-            className={`form-control ${validation.touched.coInvestigator?.qualification && validation.errors.coInvestigator?.qualification ? "is-invalid" : ""}`}
+            className={`form-control ${
+              validation.touched.coInvestigator?.qualification &&
+              validation.errors.coInvestigator?.qualification
+                ? "is-invalid"
+                : ""
+            }`}
             placeholder="Enter Qualification"
           />
-          {validation.touched.coInvestigator?.qualification && validation.errors.coInvestigator?.qualification && (
-            <div className="text-danger">{validation.errors.coInvestigator.qualification}</div>
-          )}
+          {validation.touched.coInvestigator?.qualification &&
+            validation.errors.coInvestigator?.qualification && (
+              <div className="text-danger">
+                {validation.errors.coInvestigator.qualification}
+              </div>
+            )}
         </div>
       </Col>
       <Col lg={4}>
@@ -639,21 +805,32 @@ const GovernmentOrNGOFundedProjects = () => {
             name="coInvestigator.designation"
             value={validation.values.coInvestigator.designation}
             onChange={validation.handleChange}
-            className={`form-control ${validation.touched.coInvestigator?.designation && validation.errors.coInvestigator?.designation ? "is-invalid" : ""}`}
+            className={`form-control ${
+              validation.touched.coInvestigator?.designation &&
+              validation.errors.coInvestigator?.designation
+                ? "is-invalid"
+                : ""
+            }`}
             placeholder="Enter Designation"
           />
-          {validation.touched.coInvestigator?.designation && validation.errors.coInvestigator?.designation && (
-            <div className="text-danger">{validation.errors.coInvestigator.designation}</div>
-          )}
+          {validation.touched.coInvestigator?.designation &&
+            validation.errors.coInvestigator?.designation && (
+              <div className="text-danger">
+                {validation.errors.coInvestigator.designation}
+              </div>
+            )}
         </div>
       </Col>
       <Col lg={4}>
         <div className="mb-3">
           <Label>Department</Label>
           {renderCoInvestigatorDepartmentDropdown()}
-          {validation.touched.coInvestigator?.department && validation.errors.coInvestigator?.department && (
-            <div className="text-danger">{validation.errors.coInvestigator.department}</div>
-          )}
+          {validation.touched.coInvestigator?.department &&
+            validation.errors.coInvestigator?.department && (
+              <div className="text-danger">
+                {validation.errors.coInvestigator.department}
+              </div>
+            )}
         </div>
       </Col>
     </Row>
@@ -663,7 +840,10 @@ const GovernmentOrNGOFundedProjects = () => {
   // Fetch the data for the selected BOS ID and populate the form fields
   const handleEdit = async (id: string) => {
     try {
-      const response = await api.get(`/governmentFundProject/edit?governmentFundProjectId=${id}`, '');
+      const response = await api.get(
+        `/governmentFundProject/edit?governmentFundProjectId=${id}`,
+        ""
+      );
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
 
       // Filter the response where isCurrent or isCurrentForAdmission is true
@@ -674,7 +854,7 @@ const GovernmentOrNGOFundedProjects = () => {
       // Map the filtered data to the required format
       const academicYearList = filteredAcademicYearList.map((year: any) => ({
         value: year.year,
-        label: year.display
+        label: year.display,
       }));
 
       // Map API response to Formik values
@@ -684,7 +864,10 @@ const GovernmentOrNGOFundedProjects = () => {
           ? { value: response.streamId.toString(), label: response.streamName }
           : null,
         department: response.departmentId
-          ? { value: response.departmentId.toString(), label: response.departmentName }
+          ? {
+              value: response.departmentId.toString(),
+              label: response.departmentName,
+            }
           : null,
         facultyName: response.facultyName || "",
         projectTitle: response.projectTitle || "",
@@ -698,27 +881,36 @@ const GovernmentOrNGOFundedProjects = () => {
           qualification: response.principleInvestigatorDto?.qualification || "",
           designation: response.principleInvestigatorDto?.designation || "",
           department: response.principleInvestigatorDto?.departmentId
-            ? { value: response.principleInvestigatorDto.departmentId.toString(), label: response.principleInvestigatorDto.departmentName }
+            ? {
+                value:
+                  response.principleInvestigatorDto.departmentId.toString(),
+                label: response.principleInvestigatorDto.departmentName,
+              }
             : null,
           //date: response.principleInvestigatorDto?.date || "",
-          abstractFile: response.principleInvestigatorDto?.file?.abstractProject || null,
-          sanctionOrderFile: response.principleInvestigatorDto?.file?.sanctionOrder || null,
+          abstractFile:
+            response.principleInvestigatorDto?.file?.abstractProject || null,
+          sanctionOrderFile:
+            response.principleInvestigatorDto?.file?.sanctionOrder || null,
         },
         coInvestigator: response.coInvestigatorDto
           ? {
-            name: response.coInvestigatorDto.name || "",
-            qualification: response.coInvestigatorDto.qualification || "",
-            designation: response.coInvestigatorDto.designation || "",
-            department: response.coInvestigatorDto.departmentId
-              ? { value: response.coInvestigatorDto.departmentId.toString(), label: response.coInvestigatorDto.departmentName }
-              : null,
-          }
+              name: response.coInvestigatorDto.name || "",
+              qualification: response.coInvestigatorDto.qualification || "",
+              designation: response.coInvestigatorDto.designation || "",
+              department: response.coInvestigatorDto.departmentId
+                ? {
+                    value: response.coInvestigatorDto.departmentId.toString(),
+                    label: response.coInvestigatorDto.departmentName,
+                  }
+                : null,
+            }
           : {
-            name: "",
-            qualification: "",
-            designation: "",
-            department: null,
-          },
+              name: "",
+              qualification: "",
+              designation: "",
+              department: null,
+            },
       };
 
       // Set multidisciplinary state and active tab
@@ -735,8 +927,12 @@ const GovernmentOrNGOFundedProjects = () => {
       // Set edit mode and toggle modal
       setIsEditMode(true);
       setEditId(id); // Store the ID of the record being edited
-      setIsAbstractFileUploadDisabled(!!response.principleInvestigatorDto?.file?.abstractProject);
-      setIsSanctionFileUploadDisabled(!!response.principleInvestigatorDto?.file?.sanctionOrder);
+      setIsAbstractFileUploadDisabled(
+        !!response.principleInvestigatorDto?.file?.abstractProject
+      );
+      setIsSanctionFileUploadDisabled(
+        !!response.principleInvestigatorDto?.file?.sanctionOrder
+      );
       toggleModal();
     } catch (error) {
       console.error("Error fetching GFP data by ID:", error);
@@ -749,7 +945,10 @@ const GovernmentOrNGOFundedProjects = () => {
   }
 
   // Map value to label for dropdowns
-  const mapValueToLabel = (value: string | number | null, options: { value: string | number; label: string }[]): { value: string | number; label: string } | null => {
+  const mapValueToLabel = (
+    value: string | number | null,
+    options: { value: string | number; label: string }[]
+  ): { value: string | number; label: string } | null => {
     if (!value) return null;
     const matchedOption = options.find((option) => option.value === value);
     return matchedOption ? matchedOption : { value, label: String(value) };
@@ -759,7 +958,10 @@ const GovernmentOrNGOFundedProjects = () => {
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <Breadcrumb title="Research" breadcrumbItem="Government/NGO_Funded_Project" />
+          <Breadcrumb
+            title="Research"
+            breadcrumbItem="Government/NGO_Funded_Project"
+          />
           <Card>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
@@ -771,7 +973,10 @@ const GovernmentOrNGOFundedProjects = () => {
                       <AcademicYearDropdown
                         value={validation.values.academicYear}
                         onChange={(selectedOption) =>
-                          validation.setFieldValue("academicYear", selectedOption)
+                          validation.setFieldValue(
+                            "academicYear",
+                            selectedOption
+                          )
                         }
                         isInvalid={
                           validation.touched.academicYear &&
@@ -800,12 +1005,16 @@ const GovernmentOrNGOFundedProjects = () => {
                           setSelectedDepartment(null);
                         }}
                         isInvalid={
-                          validation.touched.stream && !!validation.errors.stream
+                          validation.touched.stream &&
+                          !!validation.errors.stream
                         }
                       />
-                      {validation.touched.stream && validation.errors.stream && (
-                        <div className="text-danger">{validation.errors.stream}</div>
-                      )}
+                      {validation.touched.stream &&
+                        validation.errors.stream && (
+                          <div className="text-danger">
+                            {validation.errors.stream}
+                          </div>
+                        )}
                     </div>
                   </Col>
 
@@ -817,7 +1026,10 @@ const GovernmentOrNGOFundedProjects = () => {
                         streamId={selectedStream?.value}
                         value={validation.values.department}
                         onChange={(selectedOption) => {
-                          validation.setFieldValue("department", selectedOption);
+                          validation.setFieldValue(
+                            "department",
+                            selectedOption
+                          );
                           setSelectedDepartment(selectedOption);
                           validation.setFieldValue("programType", null);
                         }}
@@ -840,15 +1052,27 @@ const GovernmentOrNGOFundedProjects = () => {
                         <Label>Specify Department</Label>
                         <Input
                           type="text"
-                          className={`form-control ${validation.touched.otherDepartment && validation.errors.otherDepartment ? "is-invalid" : ""
-                            }`}
+                          className={`form-control ${
+                            validation.touched.otherDepartment &&
+                            validation.errors.otherDepartment
+                              ? "is-invalid"
+                              : ""
+                          }`}
                           value={validation.values.otherDepartment}
-                          onChange={(e) => validation.setFieldValue("otherDepartment", e.target.value)}
+                          onChange={(e) =>
+                            validation.setFieldValue(
+                              "otherDepartment",
+                              e.target.value
+                            )
+                          }
                           placeholder="Enter Department Name"
                         />
-                        {validation.touched.otherDepartment && validation.errors.otherDepartment && (
-                          <div className="text-danger">{validation.errors.otherDepartment}</div>
-                        )}
+                        {validation.touched.otherDepartment &&
+                          validation.errors.otherDepartment && (
+                            <div className="text-danger">
+                              {validation.errors.otherDepartment}
+                            </div>
+                          )}
                       </div>
                     </Col>
                   )}
@@ -860,14 +1084,26 @@ const GovernmentOrNGOFundedProjects = () => {
                       <Input
                         type="text"
                         value={validation.values.facultyName}
-                        onChange={(e) => validation.setFieldValue("facultyName", e.target.value)}
-                        className={`form-control ${validation.touched.facultyName && validation.errors.facultyName ? "is-invalid" : ""
-                          }`}
+                        onChange={(e) =>
+                          validation.setFieldValue(
+                            "facultyName",
+                            e.target.value
+                          )
+                        }
+                        className={`form-control ${
+                          validation.touched.facultyName &&
+                          validation.errors.facultyName
+                            ? "is-invalid"
+                            : ""
+                        }`}
                         placeholder="Enter Faculty Name"
                       />
-                      {validation.touched.facultyName && validation.errors.facultyName && (
-                        <div className="text-danger">{validation.errors.facultyName}</div>
-                      )}
+                      {validation.touched.facultyName &&
+                        validation.errors.facultyName && (
+                          <div className="text-danger">
+                            {validation.errors.facultyName}
+                          </div>
+                        )}
                     </div>
                   </Col>
 
@@ -878,14 +1114,26 @@ const GovernmentOrNGOFundedProjects = () => {
                       <Input
                         type="text"
                         value={validation.values.projectTitle}
-                        onChange={(e) => validation.setFieldValue("projectTitle", e.target.value)}
-                        className={`form-control ${validation.touched.projectTitle && validation.errors.projectTitle ? "is-invalid" : ""
-                          }`}
+                        onChange={(e) =>
+                          validation.setFieldValue(
+                            "projectTitle",
+                            e.target.value
+                          )
+                        }
+                        className={`form-control ${
+                          validation.touched.projectTitle &&
+                          validation.errors.projectTitle
+                            ? "is-invalid"
+                            : ""
+                        }`}
                         placeholder="Enter Project Title"
                       />
-                      {validation.touched.projectTitle && validation.errors.projectTitle && (
-                        <div className="text-danger">{validation.errors.projectTitle}</div>
-                      )}
+                      {validation.touched.projectTitle &&
+                        validation.errors.projectTitle && (
+                          <div className="text-danger">
+                            {validation.errors.projectTitle}
+                          </div>
+                        )}
                     </div>
                   </Col>
 
@@ -896,14 +1144,22 @@ const GovernmentOrNGOFundedProjects = () => {
                       <Input
                         type="number"
                         value={validation.values.amount}
-                        onChange={(e) => validation.setFieldValue("amount", e.target.value)}
-                        className={`form-control ${validation.touched.amount && validation.errors.amount ? "is-invalid" : ""
-                          }`}
+                        onChange={(e) =>
+                          validation.setFieldValue("amount", e.target.value)
+                        }
+                        className={`form-control ${
+                          validation.touched.amount && validation.errors.amount
+                            ? "is-invalid"
+                            : ""
+                        }`}
                         placeholder="Enter Amount"
                       />
-                      {validation.touched.amount && validation.errors.amount && (
-                        <div className="text-danger">{validation.errors.amount}</div>
-                      )}
+                      {validation.touched.amount &&
+                        validation.errors.amount && (
+                          <div className="text-danger">
+                            {validation.errors.amount}
+                          </div>
+                        )}
                     </div>
                   </Col>
 
@@ -914,14 +1170,26 @@ const GovernmentOrNGOFundedProjects = () => {
                       <Input
                         type="text"
                         value={validation.values.monthOfGrant}
-                        onChange={(e) => validation.setFieldValue("monthOfGrant", e.target.value)}
-                        className={`form-control ${validation.touched.monthOfGrant && validation.errors.monthOfGrant ? "is-invalid" : ""
-                          }`}
+                        onChange={(e) =>
+                          validation.setFieldValue(
+                            "monthOfGrant",
+                            e.target.value
+                          )
+                        }
+                        className={`form-control ${
+                          validation.touched.monthOfGrant &&
+                          validation.errors.monthOfGrant
+                            ? "is-invalid"
+                            : ""
+                        }`}
                         placeholder="Enter Month of Grant"
                       />
-                      {validation.touched.monthOfGrant && validation.errors.monthOfGrant && (
-                        <div className="text-danger">{validation.errors.monthOfGrant}</div>
-                      )}
+                      {validation.touched.monthOfGrant &&
+                        validation.errors.monthOfGrant && (
+                          <div className="text-danger">
+                            {validation.errors.monthOfGrant}
+                          </div>
+                        )}
                     </div>
                   </Col>
 
@@ -933,18 +1201,28 @@ const GovernmentOrNGOFundedProjects = () => {
                         type="select"
                         value={validation.values.typeOfFunding?.value || ""}
                         onChange={(e) =>
-                          validation.setFieldValue("typeOfFunding", { value: e.target.value, label: e.target.value })
+                          validation.setFieldValue("typeOfFunding", {
+                            value: e.target.value,
+                            label: e.target.value,
+                          })
                         }
-                        className={`form-control ${validation.touched.typeOfFunding && validation.errors.typeOfFunding ? "is-invalid" : ""
-                          }`}
+                        className={`form-control ${
+                          validation.touched.typeOfFunding &&
+                          validation.errors.typeOfFunding
+                            ? "is-invalid"
+                            : ""
+                        }`}
                       >
                         <option value="">Select Type of Funding</option>
                         <option value="Internal">Internal</option>
                         <option value="External">External</option>
                       </Input>
-                      {validation.touched.typeOfFunding && validation.errors.typeOfFunding && (
-                        <div className="text-danger">{validation.errors.typeOfFunding}</div>
-                      )}
+                      {validation.touched.typeOfFunding &&
+                        validation.errors.typeOfFunding && (
+                          <div className="text-danger">
+                            {validation.errors.typeOfFunding}
+                          </div>
+                        )}
                     </div>
                   </Col>
                   {/* Multidisciplinary Dropdown */}
@@ -984,7 +1262,9 @@ const GovernmentOrNGOFundedProjects = () => {
                       </NavItem>
                     </Nav>
                     <TabContent activeTab={activeTab}>
-                      <TabPane tabId="1">{renderPrincipalInvestigatorForm()}</TabPane>
+                      <TabPane tabId="1">
+                        {renderPrincipalInvestigatorForm()}
+                      </TabPane>
                       <TabPane tabId="2">{renderCoInvestigatorForm()}</TabPane>
                     </TabContent>
                   </div>
@@ -1010,8 +1290,15 @@ const GovernmentOrNGOFundedProjects = () => {
           </Card>
         </Container>
         {/* Modal for Listing GFP */}
-        <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg" style={{ maxWidth: "100%", width: "auto" }}>
-          <ModalHeader toggle={toggleModal}>List Government/NGO Funded Project</ModalHeader>
+        <Modal
+          isOpen={isModalOpen}
+          toggle={toggleModal}
+          size="lg"
+          style={{ maxWidth: "100%", width: "auto" }}
+        >
+          <ModalHeader toggle={toggleModal}>
+            List Government/NGO Funded Project
+          </ModalHeader>
           <ModalBody>
             {/* Global Search */}
             <div className="mb-3">
@@ -1023,83 +1310,24 @@ const GovernmentOrNGOFundedProjects = () => {
               />
             </div>
 
-            {/* Table with Pagination */}
-            <Table className="table-hover custom-table">
-              <thead>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>
-                    Academic Year
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.academicYear}
-                      onChange={(e) => handleFilterChange(e, "academicYear")}
-                    />
-                  </th>
-                  <th>
-                    School
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.stream}
-                      onChange={(e) => handleFilterChange(e, "stream")}
-                    />
-                  </th>
-                  <th>
-                    Department
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.department}
-                      onChange={(e) => handleFilterChange(e, "department")}
-                    />
-                  </th>
-                  <th>
-                    Faculty Name
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.facultyName}
-                      onChange={(e) => handleFilterChange(e, "facultyName")}
-                    />
-                  </th>
-                  <th>
-                    Project Title
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.projectTitle}
-                      onChange={(e) => handleFilterChange(e, "projectTitle")}
-                    />
-                  </th>
-                  <th>
-                    Amount
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.amount}
-                      onChange={(e) => handleFilterChange(e, "amount")}
-                    />
-                  </th>
-                  <th>
-                    Month of Grant
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.monthOfGrant}
-                      onChange={(e) => handleFilterChange(e, "monthOfGrant")}
-                    />
-                  </th>
-                  <th>
-                    Type of Funding
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.typeOfFunding}
-                      onChange={(e) => handleFilterChange(e, "typeOfFunding")}
-                    />
-                  </th>
+                  <th>Academic Year</th>
+                  <th>School</th>
+                  <th>Department</th>
+                  <th>Faculty Name</th>
+                  <th>Project Title</th>
+                  <th>Amount</th>
+                  <th>Month of Grant</th>
+                  <th>Type of Funding</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -1120,13 +1348,17 @@ const GovernmentOrNGOFundedProjects = () => {
                         <div className="d-flex justify-content-center gap-2">
                           <button
                             className="btn btn-sm btn-warning"
-                            onClick={() => handleEdit(gfp.governmentFundProjectId)}
+                            onClick={() =>
+                              handleEdit(gfp.governmentFundProjectId)
+                            }
                           >
                             Edit
                           </button>
                           <button
                             className="btn btn-sm btn-danger"
-                            onClick={() => handleDelete(gfp.governmentFundProjectId)}
+                            onClick={() =>
+                              handleDelete(gfp.governmentFundProjectId)
+                            }
                           >
                             Delete
                           </button>
@@ -1166,16 +1398,25 @@ const GovernmentOrNGOFundedProjects = () => {
           </ModalBody>
         </Modal>
         {/* Confirmation Modal */}
-        <Modal isOpen={isDeleteModalOpen} toggle={() => setIsDeleteModalOpen(false)}>
-          <ModalHeader toggle={() => setIsDeleteModalOpen(false)}>Confirm Deletion</ModalHeader>
+        <Modal
+          isOpen={isDeleteModalOpen}
+          toggle={() => setIsDeleteModalOpen(false)}
+        >
+          <ModalHeader toggle={() => setIsDeleteModalOpen(false)}>
+            Confirm Deletion
+          </ModalHeader>
           <ModalBody>
-            Are you sure you want to delete this record? This action cannot be undone.
+            Are you sure you want to delete this record? This action cannot be
+            undone.
           </ModalBody>
           <ModalFooter>
             <Button color="danger" onClick={() => confirmDelete(deleteId!)}>
               Delete
             </Button>
-            <Button color="secondary" onClick={() => setIsDeleteModalOpen(false)}>
+            <Button
+              color="secondary"
+              onClick={() => setIsDeleteModalOpen(false)}
+            >
               Cancel
             </Button>
           </ModalFooter>

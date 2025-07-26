@@ -25,7 +25,7 @@ import withRouter from "Components/Common/withRouter";
 //Import Breadcrumb
 import Breadcrumb from "Components/Common/Breadcrumb";
 
-import avatar from "../../assets/images/users/avatar-1.jpg";
+import avatar from "../../assets/images/users/avatar-1.png";
 
 import { createSelector } from 'reselect';
 

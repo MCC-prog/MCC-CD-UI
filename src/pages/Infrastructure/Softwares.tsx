@@ -1,15 +1,12 @@
 import Breadcrumb from "Components/Common/Breadcrumb";
 import { useFormik } from "formik";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import Select from "react-select";
 import * as Yup from "yup";
 import { Card, CardBody, Col, Container, Input, Label, Row } from "reactstrap";
 import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
 import AcademicYearDropdown from "Components/DropDowns/AcademicYearDropdown";
-import SemesterDropdowns from "Components/DropDowns/SemesterDropdowns";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
-import DegreeDropdown from "Components/DropDowns/DegreeDropdown";
-import ProgramTypeDropdown from "Components/DropDowns/ProgramTypeDropdown";
 import { APIClient } from "../../helpers/api_helper";
 import {
   Button,
@@ -19,50 +16,44 @@ import {
   ModalHeader,
   Table,
 } from "reactstrap";
-import { SEMESTER_NO_OPTIONS } from "Components/constants/layout";
+
 import { toast } from "react-toastify";
 import { ToastContainer } from "react-toastify";
 import axios from "axios";
 import moment from "moment";
 const api = new APIClient();
 
-const New_Courses_Introduced: React.FC = () => {
+const Softwares: React.FC = () => {
   const [selectedStream, setSelectedStream] = useState<any>(null);
   const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
-  const [selectedProgramType, setSelectedProgramType] = useState<any>(null);
-  const [selectedDegree, setSelectedDegree] = useState<any>(null);
-  const [editId, setEditId] = useState<string | null>(null);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [deleteId, setDeleteId] = useState<string | null>(null);
-  // State variable for managing the list of BOS data
-  const [courseData, setCourseData] = useState<any[]>([]);
-  const [filteredData, setFilteredData] = useState(courseData);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false);
+  const [softwareData, setSoftwareData] = useState<any[]>([]);
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
-  const [filters, setFilters] = useState({
-    academicYear: "",
-    semesterType: "",
-    semesterNo: "",
-    stream: "",
-    department: "",
-    programType: "",
-    program: "",
-    programName: "",
-    courseTitle: "",
-    file: null as string | null,
-    syllabusFile: null as File | string | null,
-  });
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
+  const [filteredData, setFilteredData] = useState(softwareData);
+  const [filters, setFilters] = useState({
+    academicYear: "",
+    stream: "",
+    department: "",
+    nameOfSoftware: "",
+    noOfLicenses: "",
+    file: null as string | null,
+  });
+
+  const fileRef = useRef<HTMLInputElement | null>(null);
 
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
 
-    const filtered = courseData.filter((row) =>
+    const filtered = softwareData.filter((row) =>
       Object.values(row).some((val) =>
         String(val || "")
           .toLowerCase()
@@ -81,7 +72,7 @@ const New_Courses_Introduced: React.FC = () => {
     const updatedFilters = { ...filters, [column]: value };
     setFilters(updatedFilters);
 
-    const filtered = courseData.filter((row) =>
+    const filtered = softwareData.filter((row) =>
       Object.values(row).some((val) =>
         String(val || "")
           .toLowerCase()
@@ -110,22 +101,19 @@ const New_Courses_Introduced: React.FC = () => {
   };
 
   // Fetch BOS data from the backend
-  const fetchCoursesData = async () => {
+  const fetchSoftwareData = async () => {
     try {
-      const response = await api.get(
-        "/newCoursesIntroduced/getAllNewCoursesIntroduced",
-        ""
-      );
-      setCourseData(response);
+      const response = await api.get("/infrastructureSoftware/getAllSoftware", "");
+      setSoftwareData(response);
       setFilteredData(response);
     } catch (error) {
-      console.error("Error fetching New Courses Introduced data:", error);
+      console.error("Error fetching Software data:", error);
     }
   };
 
-  const handleListNewCoursesIntroducedClick = () => {
+  const handleListSoftwaresClick = () => {
     toggleModal();
-    fetchCoursesData();
+    fetchSoftwareData();
   };
 
   // Map value to label for dropdowns
@@ -142,10 +130,7 @@ const New_Courses_Introduced: React.FC = () => {
   // Fetch the data for the selected new Courses Introduced ID and populate the form fields
   const handleEdit = async (id: string) => {
     try {
-      const response = await api.get(
-        `/newCoursesIntroduced?newCourseIntroducedId=${id}`,
-        ""
-      );
+      const response = await api.get(`/infrastructureSoftware/getSoftwareById?softwareId=${id}`, "");
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
       // Filter the response where isCurrent or isCurrentForAdmission is true
       const filteredAcademicYearList = academicYearOptions.filter(
@@ -157,18 +142,9 @@ const New_Courses_Introduced: React.FC = () => {
         label: year.display,
       }));
 
-      const semesterNoOptions = SEMESTER_NO_OPTIONS;
-
       // Map API response to Formik values
       const mappedValues = {
         academicYear: mapValueToLabel(response.academicYear, academicYearList),
-        semesterType: response.semType
-          ? { value: response.semType, label: response.semType.toUpperCase() }
-          : null,
-        semesterNo: mapValueToLabel(
-          String(response.semNumber),
-          semesterNoOptions
-        ) as { value: string; label: string } | null,
         stream: response.streamId
           ? { value: response.streamId.toString(), label: response.streamName }
           : null,
@@ -178,56 +154,33 @@ const New_Courses_Introduced: React.FC = () => {
               label: response.departmentName,
             }
           : null,
-        programType: response.programTypeId
-          ? {
-              value: response.programTypeId.toString(),
-              label: response.programTypeName,
-            }
-          : null,
-        degree: response.programId
-          ? {
-              value: response.programId.toString(),
-              label: response.programName,
-            }
-          : null,
         file: response.documents?.Mom || null,
-        syllabusFile: response.documents?.Syllabus || null,
-        programName: response.nciProgramName ? response.nciProgramName : "",
-        courseTitle: response.courseTitle ? response.courseTitle : "",
+        nameOfSoftware: response.nameOfSoftware
+          ? response.nameOfSoftware
+          : "",
+        noOfLicenses: response.noOfLicenses
+          ? response.noOfLicenses
+          : "",
       };
       const streamOption = mapValueToLabel(response.streamId, []); // Replace [] with stream options array if available
       const departmentOption = mapValueToLabel(response.departmentId, []); // Replace [] with department options array if available
-      const programTypeOption = mapValueToLabel(response.programTypeId, []); // Replace [] with program type options array if available
-      const degreeOption = mapValueToLabel(response.programId, []);
       // Update Formik values
       validation.setValues({
         ...mappedValues,
         file: response.documents?.Mom || null,
-        syllabusFile: response.documents?.Syllabus || null,
         academicYear: mappedValues.academicYear
           ? {
               ...mappedValues.academicYear,
               value: String(mappedValues.academicYear.value),
             }
           : null,
-        semesterNo: mappedValues.semesterNo
-          ? {
-              ...mappedValues.semesterNo,
-              value: String(mappedValues.semesterNo.value),
-            }
-          : null,
-        programName: response.nciProgramName || "",
-        courseTitle: response.courseTitle || "",
       });
       setSelectedStream(streamOption);
       setSelectedDepartment(departmentOption);
-      setSelectedProgramType(programTypeOption);
-      setSelectedDegree(degreeOption);
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       // Disable the file upload button if a file exists
-      setIsFileUploadDisabled(!!response.documents?.Mom);
-      setIsFileUploadDisabled(!!response.documents?.Syllabus);
+      setIsFileUploadDisabled(!!response.documents?.software);
       toggleModal();
     } catch (error) {
       console.error("Error fetching New Courses Introduced data by ID:", error);
@@ -247,18 +200,16 @@ const New_Courses_Introduced: React.FC = () => {
     if (deleteId) {
       try {
         const response = await api.delete(
-          `/newCoursesIntroduced/deleteNewCoursesIntroduced?newCoursesIntroducedId=${id}`,
+          `/infrastructureSoftware/deleteSoftware?softwareId=${id}`,
           ""
         );
         toast.success(
-          response.message || "New Courses Introduced removed successfully!"
+          response.message || " Software removed successfully!"
         );
-        fetchCoursesData();
+        fetchSoftwareData();
       } catch (error) {
-        toast.error(
-          "Failed to remove Curriculum New Courses Introduced. Please try again."
-        );
-        console.error("Error deleting New Courses Introduced:", error);
+        toast.error("Failed to remove  Software. Please try again.");
+        console.error("Error deleting Software:", error);
       } finally {
         setIsDeleteModalOpen(false);
         setDeleteId(null);
@@ -271,12 +222,9 @@ const New_Courses_Introduced: React.FC = () => {
     if (fileName) {
       try {
         // Ensure you set responseType to 'blob' to handle binary data
-        const response = await axios.get(
-          `/newCoursesIntroduced/download/${fileName}`,
-          {
-            responseType: "blob",
-          }
-        );
+        const response = await axios.get(`/infrastructureSoftware/download/${fileName}`, {
+          responseType: "blob",
+        });
 
         // Create a Blob from the response data
         const blob = new Blob([response], { type: "*/*" });
@@ -307,85 +255,47 @@ const New_Courses_Introduced: React.FC = () => {
 
   // Handle file deletion
   // Clear the file from the form and show success message
-  const handleDeleteFile = async (fieldName: "file" | "syllabusFile") => {
-    try {
-      // Call the delete API
-      const response = await api.delete(
-        `/newCoursesIntroduced/deleteNewCoursesIntroducedDocument?newCoursesIntroducedDocumentId=${editId}`,
-        ""
-      );
-      // Show success message
-      toast.success(response.message || "File deleted successfully!");
-      // Remove the file from the form
-      validation.setFieldValue(fieldName, null); // Clear the file from Formik state
-      setIsFileUploadDisabled(false); // Enable the file upload button
-    } catch (error) {
-      // Show error message
-      toast.error("Failed to delete the file. Please try again.");
-      console.error("Error deleting file:", error);
-    }
-  };
+   const handleDeleteFile = async () => {
+      try {
+        // Call the delete API
+        const response = await api.delete(
+          `/infrastructureSoftware/deleteSoftwareDocument?softwareDocumentId=${editId}`,
+          ""
+        );
+        // Show success message
+        toast.success(response.message || "File deleted successfully!");
+        // Remove the file from the form
+        validation.setFieldValue("file", null); // Clear the file from Formik state
+        setIsFileUploadDisabled(false); // Enable the file upload button
+      } catch (error) {
+        // Show error message
+        toast.error("Failed to delete the file. Please try again.");
+        console.error("Error deleting file:", error);
+      }
+    };
+  
 
   const validation = useFormik({
     initialValues: {
       academicYear: null as { value: string; label: string } | null,
-      semesterType: null as { value: string; label: string } | null,
-      semesterNo: null as { value: string; label: string } | null,
       stream: null as { value: string; label: string } | null,
       department: null as { value: string; label: string } | null,
-      programType: null as { value: string; label: string } | null,
-      degree: null as { value: string; label: string } | null,
-      programName: "",
-      courseTitle: "",
+      nameOfSoftware: "",
+      noOfLicenses: "",
       file: null as File | string | null,
-      syllabusFile: null as File | string | null,
     },
     validationSchema: Yup.object({
       academicYear: Yup.object()
         .nullable()
         .required("Please select academic year"),
-      semesterType: Yup.object<{ value: string; label: string }>()
-        .nullable()
-        .required("Please select a semester type"),
-      semesterNo: Yup.object()
-        .nullable()
-        .required("Please select semester number"),
       stream: Yup.object().nullable().required("Please select stream"),
       department: Yup.object<{ value: string; label: string }>()
         .nullable()
         .required("Please select department"),
-      programName: Yup.string().required("Please select programName"),
-      courseTitle: Yup.string().required("Please select Year of Course Title"),
-      programType: Yup.object<{ value: string; label: string }>()
-        .nullable()
-        .required("Please select program type"),
-      degree: Yup.object().nullable().required("Please select degree"),
+      nameOfSoftware: Yup.string().required("Please enter name of software"),
+      noOfLicenses: Yup.number().required("Please enter number of licenses"),
 
       file: Yup.mixed().test(
-        "fileValidation",
-        "Please upload a valid file",
-        function (value) {
-          // Skip validation if the file upload is disabled (file exists)
-          if (isFileUploadDisabled) {
-            return true;
-          }
-          // Perform validation if the file upload is enabled (file doesn't exist)
-          if (!value) {
-            return this.createError({ message: "Please upload a file" });
-          }
-          // Check file size (2MB limit)
-          if (value instanceof File && value.size > 2 * 1024 * 1024) {
-            return this.createError({ message: "File size is too large" });
-          }
-          // Check file type
-          const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
-          if (value instanceof File && !allowedTypes.includes(value.type)) {
-            return this.createError({ message: "Unsupported file format" });
-          }
-          return true;
-        }
-      ),
-      syllabusFile: Yup.mixed().test(
         "fileValidation",
         "Please upload a valid file",
         function (value) {
@@ -417,14 +327,10 @@ const New_Courses_Introduced: React.FC = () => {
       // Append fields to FormData
       formData.append("academicYear", String(values.academicYear?.value || ""));
       formData.append("departmentId", String(values.department?.value || ""));
-      formData.append("courseTitle", values.courseTitle || "");
-      formData.append("semType", values.semesterType?.value || "");
-      formData.append("semNumber", String(values.semesterNo?.value || ""));
-      formData.append("programTypeId", String(values.programType?.value || ""));
       formData.append("streamId", String(values.stream?.value || ""));
-      formData.append("programId", String(values.degree?.value || ""));
-      formData.append("newCoursesIntroducedId", String(editId || ""));
-      formData.append("nciProgramName", values.programName || "");
+      formData.append("nameOfSoftware", values.nameOfSoftware);
+      formData.append("noOfLicenses", String(values.noOfLicenses || ""));
+      formData.append("softwareId", String(editId || ""));
 
       if (isEditMode && typeof values.file === "string") {
         // Pass an empty Blob instead of null
@@ -434,45 +340,46 @@ const New_Courses_Introduced: React.FC = () => {
       } else if (values.file) {
         formData.append("file", values.file);
       }
-      if (isEditMode && typeof values.syllabusFile === "string") {
-        // Pass an empty Blob instead of null
-        formData.append("syllabusFile", new Blob([]), "empty.pdf");
-      } else if (isEditMode && values.syllabusFile === null) {
-        formData.append("syllabusFile", new Blob([]), "empty.pdf");
-      } else if (values.syllabusFile) {
-        formData.append("syllabusFile", values.syllabusFile);
-      }
 
-      // If editing, include ID
+// If editing, include ID
       if (isEditMode && editId) {
-        formData.append("newCoursesIntroducedId", editId);
+        formData.append("softwareId", editId);
       }
 
       try {
         if (isEditMode && editId) {
           // Call the update API
-          const response = await api.put(`/newCoursesIntroduced`, formData);
+          const response = await api.put(
+            `/infrastructureSoftware/update`,
+            formData
+          );
           toast.success(
-            response.message || "New Courses Introduced updated successfully!"
+            response.message || "Software updated successfully!"
           );
         } else {
           // Call the save API
-          const response = await api.create("/newCoursesIntroduced", formData);
+          const response = await api.create(
+            "/infrastructureSoftware/save",
+            formData
+          );
           toast.success(
-            response.message || "New Courses Introduced added successfully!"
+            response.message || "New Software added successfully!"
           );
         }
         // Reset the form fields
-        resetForm();
+            resetForm();
+          if (fileRef.current) {
+          fileRef.current.value = "";
+        }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         setIsFileUploadDisabled(false);
-        // display the New Courses Introduced List
-        handleListNewCoursesIntroducedClick();
+        // display the New Software List
+        handleListSoftwaresClick();
       } catch (error) {
         // Display error message
-        toast.error("Failed to save New Courses Introduced. Please try again.");
-        console.error("Error creating New Courses Introduced:", error);
+        toast.error("Failed to save New Software. Please try again.");
+        console.error("Error creating New Software:", error);
       }
     },
   });
@@ -482,8 +389,8 @@ const New_Courses_Introduced: React.FC = () => {
       <div className="page-content">
         <Container fluid>
           <Breadcrumb
-            title="Curriculum"
-            breadcrumbItem="New Courses Introduced"
+            title="Infrastructure"
+            breadcrumbItem="Software"
           />
           <Card>
             <CardBody>
@@ -514,40 +421,6 @@ const New_Courses_Introduced: React.FC = () => {
                         )}
                     </div>
                   </Col>
-                  {/* Semester Dropdowns */}
-                  <Col lg={8}>
-                    <SemesterDropdowns
-                      semesterTypeValue={validation.values.semesterType}
-                      semesterNoValue={validation.values.semesterNo}
-                      onSemesterTypeChange={(selectedOption) =>
-                        validation.setFieldValue("semesterType", selectedOption)
-                      }
-                      onSemesterNoChange={(selectedOption) =>
-                        validation.setFieldValue("semesterNo", selectedOption)
-                      }
-                      isSemesterTypeInvalid={
-                        validation.touched.semesterType &&
-                        !!validation.errors.semesterType
-                      }
-                      isSemesterNoInvalid={
-                        validation.touched.semesterNo &&
-                        !!validation.errors.semesterNo
-                      }
-                      semesterTypeError={
-                        validation.touched.semesterType
-                          ? validation.errors.semesterType
-                          : null
-                      }
-                      semesterNoError={
-                        validation.touched.semesterNo
-                          ? validation.errors.semesterNo
-                          : null
-                      }
-                      semesterTypeTouched={!!validation.touched.semesterType}
-                      semesterNoTouched={!!validation.touched.semesterNo}
-                    />
-                  </Col>
-
                   <Col lg={4}>
                     <div className="mb-3">
                       <Label>School</Label>
@@ -585,9 +458,6 @@ const New_Courses_Introduced: React.FC = () => {
                             "department",
                             selectedOption
                           );
-                          setSelectedDepartment(selectedOption);
-                          validation.setFieldValue("programType", null);
-                          setSelectedProgramType(null);
                         }}
                         isInvalid={
                           validation.touched.department &&
@@ -602,113 +472,13 @@ const New_Courses_Introduced: React.FC = () => {
                         )}
                     </div>
                   </Col>
-
-                  {/* Program Type Dropdown */}
-                  <Col lg={4}>
-                    <div className="mb-3">
-                      <Label>Program Type</Label>
-                      <ProgramTypeDropdown
-                        deptId={selectedDepartment?.value}
-                        value={validation.values.programType}
-                        onChange={(selectedOption) => {
-                          validation.setFieldValue(
-                            "programType",
-                            selectedOption
-                          );
-                          setSelectedProgramType(selectedOption);
-                          validation.setFieldValue("degree", null);
-                        }}
-                        isInvalid={
-                          validation.touched.programType &&
-                          !!validation.errors.programType
-                        }
-                      />
-                      {validation.touched.programType &&
-                        validation.errors.programType && (
-                          <div className="text-danger">
-                            {validation.errors.programType}
-                          </div>
-                        )}
-                    </div>
-                  </Col>
-
-                  <Col lg={4}>
-                    <div className="mb-3">
-                      <Label>Degree</Label>
-                      <DegreeDropdown
-                        programTypeId={selectedProgramType?.value}
-                        value={validation.values.degree}
-                        onChange={(selectedOption) => {
-                          validation.setFieldValue("degree", selectedOption);
-                          setSelectedDegree(selectedOption);
-                          validation.setFieldValue("program", null);
-                        }}
-                        isInvalid={
-                          validation.touched.degree &&
-                          !!validation.errors.degree
-                        }
-                      />
-                      {validation.touched.degree &&
-                        validation.errors.degree && (
-                          <div className="text-danger">
-                            {validation.errors.degree}
-                          </div>
-                        )}
-                    </div>
-                  </Col>
-                  <Col lg={4}>
-                    <div className="mb-3">
-                      <Label>Program Name</Label>
-                      <Input
-                        type="text"
-                        name="programName"
-                        value={validation.values.programName}
-                        onChange={validation.handleChange}
-                        placeholder="Enter Program Name"
-                        className={
-                          validation.touched.programName &&
-                          validation.errors.programName
-                            ? "is-invalid"
-                            : ""
-                        }
-                      />
-                      {validation.touched.programName &&
-                        validation.errors.programName && (
-                          <div className="text-danger">
-                            {validation.errors.programName}
-                          </div>
-                        )}
-                    </div>
-                  </Col>
-                  <Col lg={4}>
-                    <div className="mb-3">
-                      <Label>Course Title</Label>
-                      <Input
-                        type="text"
-                        name="courseTitle"
-                        value={validation.values.courseTitle}
-                        onChange={validation.handleChange}
-                        placeholder="Enter Course Title"
-                        className={
-                          validation.touched.courseTitle &&
-                          validation.errors.courseTitle
-                            ? "is-invalid"
-                            : ""
-                        }
-                      />
-                      {validation.touched.courseTitle &&
-                        validation.errors.courseTitle && (
-                          <div className="text-danger">
-                            {validation.errors.courseTitle}
-                          </div>
-                        )}
-                    </div>
-                  </Col>
+                  
+                 
 
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
-                        Upload MOM
+                        Upload File
                       </Label>
                       <Input
                         className={`form-control ${
@@ -717,7 +487,7 @@ const New_Courses_Introduced: React.FC = () => {
                             : ""
                         }`}
                         type="file"
-                        id="Mom"
+                        id="software"
                         onChange={(event) => {
                           validation.setFieldValue(
                             "file",
@@ -764,77 +534,7 @@ const New_Courses_Introduced: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
-                            onClick={() => handleDeleteFile("file")}
-                            title="Delete File"
-                          >
-                            <i className="bi bi-trash"></i>
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  </Col>
-                  <Col sm={4}>
-                    <div className="mb-3">
-                      <Label htmlFor="formFile" className="form-label">
-                        Upload Syllabus
-                      </Label>
-                      <Input
-                        className={`form-control ${
-                          validation.touched.syllabusFile &&
-                          validation.errors.syllabusFile
-                            ? "is-invalid"
-                            : ""
-                        }`}
-                        type="file"
-                        id="syllabusFile"
-                        onChange={(event) => {
-                          validation.setFieldValue(
-                            "syllabusFile",
-                            event.currentTarget.files
-                              ? event.currentTarget.files[0]
-                              : null
-                          );
-                        }}
-                      />
-                      {validation.touched.syllabusFile &&
-                        validation.errors.syllabusFile && (
-                          <div className="text-danger">
-                            {validation.errors.syllabusFile}
-                          </div>
-                        )}
-                      {/* Show a message if the file upload button is disabled */}
-                      {isFileUploadDisabled && (
-                        <div className="text-warning mt-2">
-                          Please remove the existing file to upload a new one.
-                        </div>
-                      )}
-                      {/* Only show the file name if it is a string (from the edit API) */}
-                      {typeof validation.values.syllabusFile === "string" && (
-                        <div className="mt-2 d-flex align-items-center">
-                          <span
-                            className="me-2"
-                            style={{ fontWeight: "bold", color: "green" }}
-                          >
-                            {validation.values.syllabusFile}
-                          </span>
-                          <Button
-                            color="link"
-                            className="text-primary"
-                            onClick={() =>
-                              handleDownloadFile(
-                                validation.values.syllabusFile
-                                  ? (validation.values.syllabusFile as string)
-                                  : ""
-                              )
-                            }
-                            title="Download File"
-                          >
-                            <i className="bi bi-download"></i>
-                          </Button>
-                          <Button
-                            color="link"
-                            className="text-danger"
-                            onClick={() => handleDeleteFile("syllabusFile")}
+                            onClick={() => handleDeleteFile()}
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>
@@ -848,14 +548,16 @@ const New_Courses_Introduced: React.FC = () => {
                   <Col lg={12}>
                     <div className="mt-3 d-flex justify-content-between">
                       <button className="btn btn-primary" type="submit">
-                        {isEditMode ? "Update " : "Save "}
+                        {isEditMode
+                          ? "Update "
+                          : "Save "}
                       </button>
                       <button
                         className="btn btn-secondary"
                         type="button"
-                        onClick={handleListNewCoursesIntroducedClick}
+                        onClick={handleListSoftwaresClick}
                       >
-                        List New Courses Introduced
+                        List Softwares
                       </button>
                     </div>
                   </Col>
@@ -864,16 +566,14 @@ const New_Courses_Introduced: React.FC = () => {
             </CardBody>
           </Card>
         </Container>
-        {/* Modal for Listing BOS */}
+        {/* Modal for Listing Softwares */}
         <Modal
           isOpen={isModalOpen}
           toggle={toggleModal}
           size="lg"
           style={{ maxWidth: "100%", width: "auto" }}
         >
-          <ModalHeader toggle={toggleModal}>
-            List New Courses Introduced
-          </ModalHeader>
+          <ModalHeader toggle={toggleModal}>List Softwares</ModalHeader>
           <ModalBody>
             {/* Global Search */}
             <div className="mb-3">
@@ -886,57 +586,81 @@ const New_Courses_Introduced: React.FC = () => {
             </div>
 
             {/* Table with Pagination */}
-            <Table
-              striped
-              bordered
-              hover
-              responsive
-              className="align-middle text-center"
-            >
-              <thead className="table-dark">
+            <Table className="table-hover custom-table">
+              <thead>
                 <tr>
                   <th>#</th>
-                  <th>Academic Year</th>
-                  <th>Semester Type</th>
-                  <th>Semester No</th>
-                  <th>Stream</th>
-                  <th>Department</th>
-                  <th>Program Type</th>
-                  <th>Degree</th>
-                  <th>Program Name</th>
-                  <th>Course Title</th>
+                  <th>
+                    Academic Year
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.academicYear}
+                      onChange={(e) => handleFilterChange(e, "academicYear")}
+                    />
+                  </th>
+                  <th>
+                    Stream
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.stream}
+                      onChange={(e) => handleFilterChange(e, "stream")}
+                    />
+                  </th>
+                  <th>
+                    Department
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.department}
+                      onChange={(e) => handleFilterChange(e, "department")}
+                    />
+                  </th>
+                    <th>
+                        Name of Software
+                        <Input
+                        type="text"
+                        placeholder="Filter"
+                        value={filters.nameOfSoftware}
+                        onChange={(e) =>
+                            handleFilterChange(e, "nameOfSoftware")
+                        }
+                        />
+                  </th>
+                  <th>
+                    No of Licenses
+                    <Input
+                      type="text"
+                      placeholder="Filter"
+                      value={filters.noOfLicenses}
+                      onChange={(e) => handleFilterChange(e, "noOfLicenses")}
+                    />
+                  </th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {courseData.length > 0 ? (
-                  courseData.map((nci, index) => (
-                    <tr key={nci.newCoursesIntroducedId}>
+                {currentRows.length > 0 ? (
+                  currentRows.map((software, index) => (
+                    <tr key={software.softwareId}>
                       <td>{indexOfFirstRow + index + 1}</td>
-                      <td>{nci.academicYear}</td>
-                      <td>{nci.semType}</td>
-                      <td>{nci.semNumber}</td>
-                      <td>{nci.streamName}</td>
-                      <td>{nci.departmentName}</td>
-                      <td>{nci.programTypeName}</td>
-                      <td>{nci.programName}</td>
-                      <td>{nci.nciProgramName}</td>
-                      <td>{nci.courseTitle}</td>
+                      <td>{software.academicYear}</td>
+                      <td>{software.streamName}</td>
+                      <td>{software.departmentName}</td>
+                        <td>{software.nameOfSoftware}</td>
+                        <td>{software.noOfLicenses}</td>
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
                             className="btn btn-sm btn-warning"
-                            onClick={() =>
-                              handleEdit(nci.newCoursesIntroducedId)
-                            }
+                            onClick={() => handleEdit(software.softwareId)}
                           >
                             Edit
                           </button>
                           <button
                             className="btn btn-sm btn-danger"
-                            onClick={() =>
-                              handleDelete(nci.newCoursesIntroducedId)
-                            }
+                            onClick={() => handleDelete(software.softwareId)}
                           >
                             Delete
                           </button>
@@ -947,7 +671,7 @@ const New_Courses_Introduced: React.FC = () => {
                 ) : (
                   <tr>
                     <td colSpan={11} className="text-center">
-                      No New Courses Introduced data available.
+                      No Software data available.
                     </td>
                   </tr>
                 )}
@@ -1005,4 +729,4 @@ const New_Courses_Introduced: React.FC = () => {
   );
 };
 
-export default New_Courses_Introduced;
+export default Softwares;

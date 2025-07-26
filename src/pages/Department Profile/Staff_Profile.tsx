@@ -256,7 +256,10 @@ const Staff_Profile: React.FC = () => {
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <Breadcrumb title="Department Profile" breadcrumbItem="Staff Profile" />
+          <Breadcrumb
+            title="Department Profile"
+            breadcrumbItem="Staff Profile"
+          />
           <Card>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
@@ -485,8 +488,22 @@ const Staff_Profile: React.FC = () => {
         <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg">
           <ModalHeader toggle={toggleModal}>List Staff Profile</ModalHeader>
           <ModalBody>
-            <Table className="table-hover custom-table">
-              <thead>
+            <div className="mb-3">
+              <Input
+                type="text"
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={handleSearch}
+              />
+            </div>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
@@ -499,8 +516,8 @@ const Staff_Profile: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {bosData.length > 0 ? (
-                  bosData.map((bos, index) => (
+                {currentRows.length > 0 ? (
+                  currentRows.map((bos, index) => (
                     <tr key={bos.id}>
                       <td>{index + 1}</td>
                       <td>{bos.academicYear}</td>

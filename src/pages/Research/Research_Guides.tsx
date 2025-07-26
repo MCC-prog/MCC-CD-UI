@@ -4,8 +4,22 @@ import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import React, { useState } from "react";
-import { Button, Card, CardBody, Col, Container, Input, Label, Modal, ModalBody, ModalFooter, ModalHeader, Row, Table } from "reactstrap";
-import Breadcrumb from 'Components/Common/Breadcrumb';
+import {
+  Button,
+  Card,
+  CardBody,
+  Col,
+  Container,
+  Input,
+  Label,
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+  Row,
+  Table,
+} from "reactstrap";
+import Breadcrumb from "Components/Common/Breadcrumb";
 import { toast, ToastContainer } from "react-toastify";
 import { APIClient } from "helpers/api_helper";
 import axios from "axios";
@@ -41,7 +55,7 @@ const Research_Guides = () => {
     department: "",
     guideName: "",
     guideAffiliation: "",
-    numberOfStudents: ""
+    numberOfStudents: "",
   });
 
   const [filteredData, setFilteredData] = useState(researchGuideData);
@@ -53,21 +67,28 @@ const Research_Guides = () => {
 
     const filtered = researchGuideData.filter((row) =>
       Object.values(row).some((val) =>
-        String(val || "").toLowerCase().includes(value)
+        String(val || "")
+          .toLowerCase()
+          .includes(value)
       )
     );
     setFilteredData(filtered);
   };
 
   // Handle column-specific filters
-  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>, column: string) => {
+  const handleFilterChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    column: string
+  ) => {
     const value = e.target.value.toLowerCase();
     const updatedFilters = { ...filters, [column]: value };
     setFilters(updatedFilters);
 
     const filtered = researchGuideData.filter((row) =>
       Object.values(row).some((val) =>
-        String(val || "").toLowerCase().includes(value)
+        String(val || "")
+          .toLowerCase()
+          .includes(value)
       )
     );
     setFilteredData(filtered);
@@ -115,14 +136,23 @@ const Research_Guides = () => {
       uploadLetter: null as File | null,
     },
     validationSchema: Yup.object({
-      academicYear: Yup.object<{ value: string; label: string }>().nullable().required("Please select academic year"),
-      stream: Yup.object<{ value: string; label: string }>().nullable().required("Please select school"),
-      department: Yup.object<{ value: string; label: string }>().nullable().required("Please select department"),
-      otherDepartment: Yup.string().when("department", (department: any, schema) => {
-        return department?.value === "Others"
-          ? schema.required("Please specify the department")
-          : schema;
-      }),
+      academicYear: Yup.object<{ value: string; label: string }>()
+        .nullable()
+        .required("Please select academic year"),
+      stream: Yup.object<{ value: string; label: string }>()
+        .nullable()
+        .required("Please select school"),
+      department: Yup.object<{ value: string; label: string }>()
+        .nullable()
+        .required("Please select department"),
+      otherDepartment: Yup.string().when(
+        "department",
+        (department: any, schema) => {
+          return department?.value === "Others"
+            ? schema.required("Please specify the department")
+            : schema;
+        }
+      ),
       guideName: Yup.string().required("Please enter guide name"),
       guideAffiliation: Yup.string().required("Please enter guide affiliation"),
       numberOfStudents: Yup.number()
@@ -134,7 +164,9 @@ const Research_Guides = () => {
           name: Yup.string().required("Please enter student name"),
           joiningYear: Yup.string().required("Please enter year of joining"),
           title: Yup.string().required("Please enter title"),
-          fundingRecieved: Yup.string().required("Please specify funding received"),
+          fundingRecieved: Yup.string().required(
+            "Please specify funding received"
+          ),
           scholarship: Yup.string().required("Please specify scholarship"),
         })
       ),
@@ -161,7 +193,7 @@ const Research_Guides = () => {
           }
           return true;
         }
-      )
+      ),
     }),
     onSubmit: async (values, { resetForm }) => {
       // Create FormData object
@@ -187,7 +219,10 @@ const Research_Guides = () => {
       };
 
       // Append the JSON payload as a string with the key `dto`
-      formData.append('dto', new Blob([JSON.stringify(dtoPayload)], { type: 'application/json' }));
+      formData.append(
+        "dto",
+        new Blob([JSON.stringify(dtoPayload)], { type: "application/json" })
+      );
 
       // Append the file with the key `file`
       if (typeof values.uploadLetter === "string") {
@@ -197,19 +232,22 @@ const Research_Guides = () => {
       }
 
       try {
-        const response = isEditMode && editId
-          ? await api.put(`/researchGuide/update`, formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data'
-            }
-          })
-          : await api.create(`/researchGuide/save`, formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data'
-            }
-          });
+        const response =
+          isEditMode && editId
+            ? await api.put(`/researchGuide/update`, formData, {
+                headers: {
+                  "Content-Type": "multipart/form-data",
+                },
+              })
+            : await api.create(`/researchGuide/save`, formData, {
+                headers: {
+                  "Content-Type": "multipart/form-data",
+                },
+              });
 
-        toast.success(response.message || "Research Guide record saved successfully!");
+        toast.success(
+          response.message || "Research Guide record saved successfully!"
+        );
         // Reset the form fields
         resetForm();
         setIsEditMode(false); // Reset edit mode
@@ -219,7 +257,7 @@ const Research_Guides = () => {
         toast.error("Failed to save Research Guide. Please try again.");
         console.error("Error creating/updating Research Guide:", error);
       }
-    }
+    },
   });
 
   // Handle file download actions
@@ -227,9 +265,12 @@ const Research_Guides = () => {
     if (fileName) {
       try {
         // Ensure you set responseType to 'blob' to handle binary data
-        const response = await axios.get(`/researchGuide/download/${fileName}`, {
-          responseType: 'blob'
-        });
+        const response = await axios.get(
+          `/researchGuide/download/${fileName}`,
+          {
+            responseType: "blob",
+          }
+        );
 
         // Create a Blob from the response data
         const blob = new Blob([response], { type: "*/*" });
@@ -238,7 +279,7 @@ const Research_Guides = () => {
         const url = window.URL.createObjectURL(blob);
 
         // Create a temporary anchor element to trigger the download
-        const link = document.createElement('a');
+        const link = document.createElement("a");
         link.href = url;
         link.download = fileName; // Set the file name for the download
         document.body.appendChild(link);
@@ -258,13 +299,15 @@ const Research_Guides = () => {
     }
   };
 
-
   // Handle file deletion
   // Clear the file from the form and show success message
   const handleDeleteFile = async () => {
     try {
       // Call the delete API
-      const response = await api.delete(`/researchGuide/deleteResearchGuideDocument?researchGuideId=${editId}`, '');
+      const response = await api.delete(
+        `/researchGuide/deleteResearchGuideDocument?researchGuideId=${editId}`,
+        ""
+      );
       // Show success message
       toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
@@ -277,19 +320,24 @@ const Research_Guides = () => {
     }
   };
 
-  const handleNumberOfStudentsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleNumberOfStudentsChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const value = parseInt(e.target.value, 10);
 
     if (!isNaN(value) && value > 0) {
       if (value > students.length) {
         // If the number of students is increased, retain existing data and add new empty entries
-        const additionalStudents = Array.from({ length: value - students.length }, () => ({
-          name: "",
-          joiningYear: "",
-          title: "",
-          fundingRecieved: "",
-          scholarship: "",
-        }));
+        const additionalStudents = Array.from(
+          { length: value - students.length },
+          () => ({
+            name: "",
+            joiningYear: "",
+            title: "",
+            fundingRecieved: "",
+            scholarship: "",
+          })
+        );
         const updatedStudents = [...students, ...additionalStudents];
         validation.setFieldValue("studentDetails", updatedStudents);
         setStudents(updatedStudents);
@@ -312,7 +360,9 @@ const Research_Guides = () => {
           setStudents(updatedStudents);
         } else {
           // Prevent decreasing the number of students if extra student details are not empty
-          toast.error("Please clear the extra student details before decreasing the number of students.");
+          toast.error(
+            "Please clear the extra student details before decreasing the number of students."
+          );
           return;
         }
       } else {
@@ -328,7 +378,11 @@ const Research_Guides = () => {
     validation.setFieldValue("numberOfStudents", value);
   };
 
-  const handleStudentDetailsChange = (index: number, field: string, value: string) => {
+  const handleStudentDetailsChange = (
+    index: number,
+    field: string,
+    value: string
+  ) => {
     const updatedStudents = [...students];
     updatedStudents[index][field] = value;
     validation.setFieldValue("studentDetails", updatedStudents);
@@ -339,7 +393,10 @@ const Research_Guides = () => {
   // Fetch the data for the selected BOS ID and populate the form fields
   const handleEdit = async (id: string) => {
     try {
-      const response = await api.get(`/researchGuide/edit?researchGuideId=${id}`, '');
+      const response = await api.get(
+        `/researchGuide/edit?researchGuideId=${id}`,
+        ""
+      );
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
 
       // Filter the response where isCurrent or isCurrentForAdmission is true
@@ -360,7 +417,10 @@ const Research_Guides = () => {
           ? { value: response.streamId.toString(), label: response.streamName }
           : null,
         department: response.departmentId
-          ? { value: response.departmentId.toString(), label: response.departmentName }
+          ? {
+              value: response.departmentId.toString(),
+              label: response.departmentName,
+            }
           : null,
         guideName: response.guideName || "",
         guideAffiliation: response.guidesAffiliation || "",
@@ -374,13 +434,19 @@ const Research_Guides = () => {
       validation.setValues({
         ...mappedValues,
         academicYear: mappedValues.academicYear
-          ? { ...mappedValues.academicYear, value: String(mappedValues.academicYear.value) }
+          ? {
+              ...mappedValues.academicYear,
+              value: String(mappedValues.academicYear.value),
+            }
           : null,
         stream: mappedValues.stream
           ? { ...mappedValues.stream, value: String(mappedValues.stream.value) }
           : null,
         department: mappedValues.department
-          ? { ...mappedValues.department, value: String(mappedValues.department.value) }
+          ? {
+              ...mappedValues.department,
+              value: String(mappedValues.department.value),
+            }
           : null,
       });
 
@@ -404,7 +470,10 @@ const Research_Guides = () => {
   }
 
   // Map value to label for dropdowns
-  const mapValueToLabel = (value: string | number | null, options: { value: string | number; label: string }[]): { value: string | number; label: string } | null => {
+  const mapValueToLabel = (
+    value: string | number | null,
+    options: { value: string | number; label: string }[]
+  ): { value: string | number; label: string } | null => {
     if (!value) return null;
     const matchedOption = options.find((option) => option.value === value);
     return matchedOption ? matchedOption : { value, label: String(value) };
@@ -415,35 +484,41 @@ const Research_Guides = () => {
   const confirmDelete = async (id: string) => {
     if (deleteId) {
       try {
-        const response = await api.delete(`/researchGuide/deleteResearchGuide?researchGuideId=${id}`, '');
-        toast.success(response.message || "Research Guide record removed successfully!");
+        const response = await api.delete(
+          `/researchGuide/deleteResearchGuide?researchGuideId=${id}`,
+          ""
+        );
+        toast.success(
+          response.message || "Research Guide record removed successfully!"
+        );
         fetchResearchGuidesData();
       } catch (error) {
-        toast.error("Failed to remove Research Guide Record. Please try again.");
+        toast.error(
+          "Failed to remove Research Guide Record. Please try again."
+        );
         console.error("Error deleting Research Guide:", error);
       } finally {
         setIsDeleteModalOpen(false);
         setDeleteId(null);
       }
     }
-  }
+  };
 
   const fetchResearchGuidesData = async () => {
     try {
-      const response = await api.get("/researchGuide/getAll", '');
+      const response = await api.get("/researchGuide/getAll", "");
       setResearchGuideData(response);
       setFilteredData(response);
     } catch (error) {
       console.error("Error fetching Research Guide data:", error);
     }
-  }
+  };
 
   // Open the modal and fetch data
   const handleListResearchGuidesClick = () => {
     toggleModal();
     fetchResearchGuidesData();
   };
-
 
   return (
     <React.Fragment>
@@ -461,7 +536,10 @@ const Research_Guides = () => {
                       <AcademicYearDropdown
                         value={validation.values.academicYear}
                         onChange={(selectedOption) =>
-                          validation.setFieldValue("academicYear", selectedOption)
+                          validation.setFieldValue(
+                            "academicYear",
+                            selectedOption
+                          )
                         }
                         isInvalid={
                           validation.touched.academicYear &&
@@ -490,12 +568,16 @@ const Research_Guides = () => {
                           setSelectedDepartment(null);
                         }}
                         isInvalid={
-                          validation.touched.stream && !!validation.errors.stream
+                          validation.touched.stream &&
+                          !!validation.errors.stream
                         }
                       />
-                      {validation.touched.stream && validation.errors.stream && (
-                        <div className="text-danger">{validation.errors.stream}</div>
-                      )}
+                      {validation.touched.stream &&
+                        validation.errors.stream && (
+                          <div className="text-danger">
+                            {validation.errors.stream}
+                          </div>
+                        )}
                     </div>
                   </Col>
 
@@ -507,7 +589,10 @@ const Research_Guides = () => {
                         streamId={selectedStream?.value}
                         value={validation.values.department}
                         onChange={(selectedOption) => {
-                          validation.setFieldValue("department", selectedOption);
+                          validation.setFieldValue(
+                            "department",
+                            selectedOption
+                          );
                           setSelectedDepartment(selectedOption);
                           validation.setFieldValue("programType", null);
                           setSelectedProgramType(null);
@@ -531,15 +616,27 @@ const Research_Guides = () => {
                         <Label>Specify Department</Label>
                         <Input
                           type="text"
-                          className={`form-control ${validation.touched.otherDepartment && validation.errors.otherDepartment ? "is-invalid" : ""
-                            }`}
+                          className={`form-control ${
+                            validation.touched.otherDepartment &&
+                            validation.errors.otherDepartment
+                              ? "is-invalid"
+                              : ""
+                          }`}
                           value={validation.values.otherDepartment}
-                          onChange={(e) => validation.setFieldValue("otherDepartment", e.target.value)}
+                          onChange={(e) =>
+                            validation.setFieldValue(
+                              "otherDepartment",
+                              e.target.value
+                            )
+                          }
                           placeholder="Enter Department Name"
                         />
-                        {validation.touched.otherDepartment && validation.errors.otherDepartment && (
-                          <div className="text-danger">{validation.errors.otherDepartment}</div>
-                        )}
+                        {validation.touched.otherDepartment &&
+                          validation.errors.otherDepartment && (
+                            <div className="text-danger">
+                              {validation.errors.otherDepartment}
+                            </div>
+                          )}
                       </div>
                     </Col>
                   )}
@@ -550,13 +647,23 @@ const Research_Guides = () => {
                       <Input
                         type="text"
                         value={validation.values.guideName}
-                        onChange={(e) => validation.setFieldValue("guideName", e.target.value)}
-                        className={`form-control ${validation.touched.guideName && validation.errors.guideName ? "is-invalid" : ""}`}
+                        onChange={(e) =>
+                          validation.setFieldValue("guideName", e.target.value)
+                        }
+                        className={`form-control ${
+                          validation.touched.guideName &&
+                          validation.errors.guideName
+                            ? "is-invalid"
+                            : ""
+                        }`}
                         placeholder="Enter Guide Name"
                       />
-                      {validation.touched.guideName && validation.errors.guideName && (
-                        <div className="text-danger">{validation.errors.guideName}</div>
-                      )}
+                      {validation.touched.guideName &&
+                        validation.errors.guideName && (
+                          <div className="text-danger">
+                            {validation.errors.guideName}
+                          </div>
+                        )}
                     </div>
                   </Col>
 
@@ -567,13 +674,26 @@ const Research_Guides = () => {
                       <Input
                         type="text"
                         value={validation.values.guideAffiliation}
-                        onChange={(e) => validation.setFieldValue("guideAffiliation", e.target.value)}
-                        className={`form-control ${validation.touched.guideAffiliation && validation.errors.guideAffiliation ? "is-invalid" : ""}`}
+                        onChange={(e) =>
+                          validation.setFieldValue(
+                            "guideAffiliation",
+                            e.target.value
+                          )
+                        }
+                        className={`form-control ${
+                          validation.touched.guideAffiliation &&
+                          validation.errors.guideAffiliation
+                            ? "is-invalid"
+                            : ""
+                        }`}
                         placeholder="Enter Guide Affiliation"
                       />
-                      {validation.touched.guideAffiliation && validation.errors.guideAffiliation && (
-                        <div className="text-danger">{validation.errors.guideAffiliation}</div>
-                      )}
+                      {validation.touched.guideAffiliation &&
+                        validation.errors.guideAffiliation && (
+                          <div className="text-danger">
+                            {validation.errors.guideAffiliation}
+                          </div>
+                        )}
                     </div>
                   </Col>
 
@@ -585,12 +705,20 @@ const Research_Guides = () => {
                         type="number"
                         value={validation.values.numberOfStudents}
                         onChange={handleNumberOfStudentsChange}
-                        className={`form-control ${validation.touched.numberOfStudents && validation.errors.numberOfStudents ? "is-invalid" : ""}`}
+                        className={`form-control ${
+                          validation.touched.numberOfStudents &&
+                          validation.errors.numberOfStudents
+                            ? "is-invalid"
+                            : ""
+                        }`}
                         placeholder="Enter Number of Students"
                       />
-                      {validation.touched.numberOfStudents && validation.errors.numberOfStudents && (
-                        <div className="text-danger">{validation.errors.numberOfStudents}</div>
-                      )}
+                      {validation.touched.numberOfStudents &&
+                        validation.errors.numberOfStudents && (
+                          <div className="text-danger">
+                            {validation.errors.numberOfStudents}
+                          </div>
+                        )}
                     </div>
                   </Col>
                 </Row>
@@ -606,21 +734,35 @@ const Research_Guides = () => {
                           <Input
                             type="text"
                             value={student.name}
-                            onChange={(e) => handleStudentDetailsChange(index, "name", e.target.value)}
-                            className={`form-control ${validation.touched.studentDetails?.[index]?.name &&
-                              typeof validation.errors.studentDetails?.[index] === "object" &&
+                            onChange={(e) =>
+                              handleStudentDetailsChange(
+                                index,
+                                "name",
+                                e.target.value
+                              )
+                            }
+                            className={`form-control ${
+                              validation.touched.studentDetails?.[index]
+                                ?.name &&
+                              typeof validation.errors.studentDetails?.[
+                                index
+                              ] === "object" &&
                               validation.errors.studentDetails?.[index]?.name
-                              ? "is-invalid"
-                              : ""
-                              }`}
+                                ? "is-invalid"
+                                : ""
+                            }`}
                             placeholder="Enter Student Name"
                           />
                           {validation.touched.studentDetails?.[index]?.name &&
-                            typeof validation.errors.studentDetails?.[index] === "object" &&
+                            typeof validation.errors.studentDetails?.[index] ===
+                              "object" &&
                             validation.errors.studentDetails?.[index]?.name && (
                               <div className="text-danger">
-                                {typeof validation.errors.studentDetails?.[index]?.name === "string"
-                                  ? validation.errors.studentDetails?.[index]?.name
+                                {typeof validation.errors.studentDetails?.[
+                                  index
+                                ]?.name === "string"
+                                  ? validation.errors.studentDetails?.[index]
+                                      ?.name
                                   : ""}
                               </div>
                             )}
@@ -632,21 +774,38 @@ const Research_Guides = () => {
                           <Input
                             type="text"
                             value={student.joiningYear}
-                            onChange={(e) => handleStudentDetailsChange(index, "joiningYear", e.target.value)}
-                            className={`form-control ${validation.touched.studentDetails?.[index]?.joiningYear &&
-                              typeof validation.errors.studentDetails?.[index] === "object" &&
-                              validation.errors.studentDetails?.[index]?.joiningYear
-                              ? "is-invalid"
-                              : ""
-                              }`}
+                            onChange={(e) =>
+                              handleStudentDetailsChange(
+                                index,
+                                "joiningYear",
+                                e.target.value
+                              )
+                            }
+                            className={`form-control ${
+                              validation.touched.studentDetails?.[index]
+                                ?.joiningYear &&
+                              typeof validation.errors.studentDetails?.[
+                                index
+                              ] === "object" &&
+                              validation.errors.studentDetails?.[index]
+                                ?.joiningYear
+                                ? "is-invalid"
+                                : ""
+                            }`}
                             placeholder="Enter Year of Joining"
                           />
-                          {validation.touched.studentDetails?.[index]?.joiningYear &&
-                            typeof validation.errors.studentDetails?.[index] === "object" &&
-                            validation.errors.studentDetails?.[index]?.joiningYear && (
+                          {validation.touched.studentDetails?.[index]
+                            ?.joiningYear &&
+                            typeof validation.errors.studentDetails?.[index] ===
+                              "object" &&
+                            validation.errors.studentDetails?.[index]
+                              ?.joiningYear && (
                               <div className="text-danger">
-                                {typeof validation.errors.studentDetails?.[index]?.joiningYear === "string"
-                                  ? validation.errors.studentDetails?.[index]?.joiningYear
+                                {typeof validation.errors.studentDetails?.[
+                                  index
+                                ]?.joiningYear === "string"
+                                  ? validation.errors.studentDetails?.[index]
+                                      ?.joiningYear
                                   : ""}
                               </div>
                             )}
@@ -658,21 +817,36 @@ const Research_Guides = () => {
                           <Input
                             type="text"
                             value={student.title}
-                            onChange={(e) => handleStudentDetailsChange(index, "title", e.target.value)}
-                            className={`form-control ${validation.touched.studentDetails?.[index]?.title &&
-                              typeof validation.errors.studentDetails?.[index] === "object" &&
+                            onChange={(e) =>
+                              handleStudentDetailsChange(
+                                index,
+                                "title",
+                                e.target.value
+                              )
+                            }
+                            className={`form-control ${
+                              validation.touched.studentDetails?.[index]
+                                ?.title &&
+                              typeof validation.errors.studentDetails?.[
+                                index
+                              ] === "object" &&
                               validation.errors.studentDetails?.[index]?.title
-                              ? "is-invalid"
-                              : ""
-                              }`}
+                                ? "is-invalid"
+                                : ""
+                            }`}
                             placeholder="Enter Title"
                           />
                           {validation.touched.studentDetails?.[index]?.title &&
-                            typeof validation.errors.studentDetails?.[index] === "object" &&
-                            validation.errors.studentDetails?.[index]?.title && (
+                            typeof validation.errors.studentDetails?.[index] ===
+                              "object" &&
+                            validation.errors.studentDetails?.[index]
+                              ?.title && (
                               <div className="text-danger">
-                                {typeof validation.errors.studentDetails?.[index]?.title === "string"
-                                  ? validation.errors.studentDetails?.[index]?.title
+                                {typeof validation.errors.studentDetails?.[
+                                  index
+                                ]?.title === "string"
+                                  ? validation.errors.studentDetails?.[index]
+                                      ?.title
                                   : ""}
                               </div>
                             )}
@@ -684,21 +858,38 @@ const Research_Guides = () => {
                           <Input
                             type="text"
                             value={student.fundingRecieved}
-                            onChange={(e) => handleStudentDetailsChange(index, "fundingRecieved", e.target.value)}
-                            className={`form-control ${validation.touched.studentDetails?.[index]?.fundingRecieved &&
-                              typeof validation.errors.studentDetails?.[index] === "object" &&
-                              validation.errors.studentDetails?.[index]?.fundingRecieved
-                              ? "is-invalid"
-                              : ""
-                              }`}
+                            onChange={(e) =>
+                              handleStudentDetailsChange(
+                                index,
+                                "fundingRecieved",
+                                e.target.value
+                              )
+                            }
+                            className={`form-control ${
+                              validation.touched.studentDetails?.[index]
+                                ?.fundingRecieved &&
+                              typeof validation.errors.studentDetails?.[
+                                index
+                              ] === "object" &&
+                              validation.errors.studentDetails?.[index]
+                                ?.fundingRecieved
+                                ? "is-invalid"
+                                : ""
+                            }`}
                             placeholder="Enter Funding Received"
                           />
-                          {validation.touched.studentDetails?.[index]?.fundingRecieved &&
-                            typeof validation.errors.studentDetails?.[index] === "object" &&
-                            validation.errors.studentDetails?.[index]?.fundingRecieved && (
+                          {validation.touched.studentDetails?.[index]
+                            ?.fundingRecieved &&
+                            typeof validation.errors.studentDetails?.[index] ===
+                              "object" &&
+                            validation.errors.studentDetails?.[index]
+                              ?.fundingRecieved && (
                               <div className="text-danger">
-                                {typeof validation.errors.studentDetails?.[index]?.fundingRecieved === "string"
-                                  ? validation.errors.studentDetails?.[index]?.fundingRecieved
+                                {typeof validation.errors.studentDetails?.[
+                                  index
+                                ]?.fundingRecieved === "string"
+                                  ? validation.errors.studentDetails?.[index]
+                                      ?.fundingRecieved
                                   : ""}
                               </div>
                             )}
@@ -710,21 +901,38 @@ const Research_Guides = () => {
                           <Input
                             type="text"
                             value={student.scholarship}
-                            onChange={(e) => handleStudentDetailsChange(index, "scholarship", e.target.value)}
-                            className={`form-control ${validation.touched.studentDetails?.[index]?.scholarship &&
-                              typeof validation.errors.studentDetails?.[index] === "object" &&
-                              validation.errors.studentDetails?.[index]?.scholarship
-                              ? "is-invalid"
-                              : ""
-                              }`}
+                            onChange={(e) =>
+                              handleStudentDetailsChange(
+                                index,
+                                "scholarship",
+                                e.target.value
+                              )
+                            }
+                            className={`form-control ${
+                              validation.touched.studentDetails?.[index]
+                                ?.scholarship &&
+                              typeof validation.errors.studentDetails?.[
+                                index
+                              ] === "object" &&
+                              validation.errors.studentDetails?.[index]
+                                ?.scholarship
+                                ? "is-invalid"
+                                : ""
+                            }`}
                             placeholder="Enter Scholarship"
                           />
-                          {validation.touched.studentDetails?.[index]?.scholarship &&
-                            typeof validation.errors.studentDetails?.[index] === "object" &&
-                            validation.errors.studentDetails?.[index]?.scholarship && (
+                          {validation.touched.studentDetails?.[index]
+                            ?.scholarship &&
+                            typeof validation.errors.studentDetails?.[index] ===
+                              "object" &&
+                            validation.errors.studentDetails?.[index]
+                              ?.scholarship && (
                               <div className="text-danger">
-                                {typeof validation.errors.studentDetails?.[index]?.scholarship === "string"
-                                  ? validation.errors.studentDetails?.[index]?.scholarship
+                                {typeof validation.errors.studentDetails?.[
+                                  index
+                                ]?.scholarship === "string"
+                                  ? validation.errors.studentDetails?.[index]
+                                      ?.scholarship
                                   : ""}
                               </div>
                             )}
@@ -737,19 +945,34 @@ const Research_Guides = () => {
                 <Row>
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label htmlFor="formFile" className="form-label">Upload Letter</Label>
+                      <Label htmlFor="formFile" className="form-label">
+                        Upload Letter
+                      </Label>
                       <Input
-                        className={`form-control ${validation.touched.uploadLetter && validation.errors.uploadLetter ? "is-invalid" : ""}`}
+                        className={`form-control ${
+                          validation.touched.uploadLetter &&
+                          validation.errors.uploadLetter
+                            ? "is-invalid"
+                            : ""
+                        }`}
                         type="file"
                         id="formFile"
                         onChange={(event) => {
-                          validation.setFieldValue("uploadLetter", event.currentTarget.files ? event.currentTarget.files[0] : null);
+                          validation.setFieldValue(
+                            "uploadLetter",
+                            event.currentTarget.files
+                              ? event.currentTarget.files[0]
+                              : null
+                          );
                         }}
                         disabled={isFileUploadDisabled} // Disable the button if a file exists
                       />
-                      {validation.touched.uploadLetter && validation.errors.uploadLetter && (
-                        <div className="text-danger">{validation.errors.uploadLetter}</div>
-                      )}
+                      {validation.touched.uploadLetter &&
+                        validation.errors.uploadLetter && (
+                          <div className="text-danger">
+                            {validation.errors.uploadLetter}
+                          </div>
+                        )}
                       {/* Show a message if the file upload button is disabled */}
                       {isFileUploadDisabled && (
                         <div className="text-warning mt-2">
@@ -759,15 +982,23 @@ const Research_Guides = () => {
                       {/* Only show the file name if it is a string (from the edit API) */}
                       {typeof validation.values.uploadLetter === "string" && (
                         <div className="mt-2 d-flex align-items-center">
-                          <span className="me-2" style={{ fontWeight: "bold", color: "green" }}>
+                          <span
+                            className="me-2"
+                            style={{ fontWeight: "bold", color: "green" }}
+                          >
                             {validation.values.uploadLetter}
                           </span>
                           <Button
                             color="link"
                             className="text-primary"
                             onClick={() => {
-                              if (typeof validation.values.uploadLetter === "string") {
-                                handleDownloadFile(validation.values.uploadLetter);
+                              if (
+                                typeof validation.values.uploadLetter ===
+                                "string"
+                              ) {
+                                handleDownloadFile(
+                                  validation.values.uploadLetter
+                                );
                               }
                             }}
                             title="Download File"
@@ -808,7 +1039,12 @@ const Research_Guides = () => {
           </Card>
         </Container>
         {/* Modal for Listing BOS */}
-        <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg" style={{ maxWidth: "100%", width: "auto" }}>
+        <Modal
+          isOpen={isModalOpen}
+          toggle={toggleModal}
+          size="lg"
+          style={{ maxWidth: "100%", width: "auto" }}
+        >
           <ModalHeader toggle={toggleModal}>List BOS</ModalHeader>
           <ModalBody>
             {/* Global Search */}
@@ -822,64 +1058,22 @@ const Research_Guides = () => {
             </div>
 
             {/* Table with Pagination */}
-            <Table className="table-hover custom-table">
-              <thead>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>
-                    Academic Year
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.academicYear}
-                      onChange={(e) => handleFilterChange(e, "academicYear")}
-                    />
-                  </th>
-                  <th>
-                    School
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.stream}
-                      onChange={(e) => handleFilterChange(e, "stream")}
-                    />
-                  </th>
-                  <th>
-                    Department
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.department}
-                      onChange={(e) => handleFilterChange(e, "department")}
-                    />
-                  </th>
-                  <th>
-                    Guide Name
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.guideName}
-                      onChange={(e) => handleFilterChange(e, "programType")}
-                    />
-                  </th>
-                  <th>
-                    Guide Afffiliation
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.guideAffiliation}
-                      onChange={(e) => handleFilterChange(e, "program")}
-                    />
-                  </th>
-                  <th>
-                    Number of Students
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.numberOfStudents}
-                      onChange={(e) => handleFilterChange(e, "yearOfIntroduction")}
-                    />
-                  </th>
+                  <th>Academic Year</th>
+                  <th>School</th>
+                  <th>Department</th>
+                  <th>Guide Name</th>
+                  <th>Guide Afffiliation</th>
+                  <th>Number of Students</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -944,23 +1138,32 @@ const Research_Guides = () => {
           </ModalBody>
         </Modal>
         {/* Confirmation Modal */}
-        <Modal isOpen={isDeleteModalOpen} toggle={() => setIsDeleteModalOpen(false)}>
-          <ModalHeader toggle={() => setIsDeleteModalOpen(false)}>Confirm Deletion</ModalHeader>
+        <Modal
+          isOpen={isDeleteModalOpen}
+          toggle={() => setIsDeleteModalOpen(false)}
+        >
+          <ModalHeader toggle={() => setIsDeleteModalOpen(false)}>
+            Confirm Deletion
+          </ModalHeader>
           <ModalBody>
-            Are you sure you want to delete this record? This action cannot be undone.
+            Are you sure you want to delete this record? This action cannot be
+            undone.
           </ModalBody>
           <ModalFooter>
             <Button color="danger" onClick={() => confirmDelete(deleteId!)}>
               Delete
             </Button>
-            <Button color="secondary" onClick={() => setIsDeleteModalOpen(false)}>
+            <Button
+              color="secondary"
+              onClick={() => setIsDeleteModalOpen(false)}
+            >
               Cancel
             </Button>
           </ModalFooter>
         </Modal>
       </div>
       <ToastContainer />
-    </React.Fragment >
+    </React.Fragment>
   );
 };
 

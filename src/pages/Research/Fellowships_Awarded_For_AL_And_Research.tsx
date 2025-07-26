@@ -1,8 +1,27 @@
 import React, { useEffect, useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { Col, Row, Input, Label, Button, CardBody, Card, Container, Nav, NavItem, NavLink, TabContent, TabPane, Modal, ModalBody, Table, ModalHeader, ModalFooter } from "reactstrap";
-import Breadcrumb from 'Components/Common/Breadcrumb';
+import {
+  Col,
+  Row,
+  Input,
+  Label,
+  Button,
+  CardBody,
+  Card,
+  Container,
+  Nav,
+  NavItem,
+  NavLink,
+  TabContent,
+  TabPane,
+  Modal,
+  ModalBody,
+  Table,
+  ModalHeader,
+  ModalFooter,
+} from "reactstrap";
+import Breadcrumb from "Components/Common/Breadcrumb";
 import AcademicYearDropdown from "Components/DropDowns/AcademicYearDropdown";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
@@ -14,13 +33,18 @@ import axios from "axios";
 const api = new APIClient();
 
 const Fellowships_Awarded_For_AL_And_Research = () => {
-  const [departmentOptions, setDepartmentOptions] = useState<{ value: string; label: string }[]>([]);
+  const [departmentOptions, setDepartmentOptions] = useState<
+    { value: string; label: string }[]
+  >([]);
   // State variables for managing modal, edit mode, and delete confirmation
   const [isEditMode, setIsEditMode] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
-  const [isFellowshipFileUploadDisabled, setIsFellowshipFileUploadDisabled] = useState(false);
-  const [isAbstractFileUploadDisabled, setIsAbstractFileUploadDisabled] = useState(false);
-  const [isSanctionFileUploadDisabled, setIsSanctionFileUploadDisabled] = useState(false);
+  const [isFellowshipFileUploadDisabled, setIsFellowshipFileUploadDisabled] =
+    useState(false);
+  const [isAbstractFileUploadDisabled, setIsAbstractFileUploadDisabled] =
+    useState(false);
+  const [isSanctionFileUploadDisabled, setIsSanctionFileUploadDisabled] =
+    useState(false);
   // State variable for managing delete confirmation modal
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -46,7 +70,7 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
     projectTitle: "",
     amount: "",
     monthOfGrant: "",
-    typeOfFunding: ""
+    typeOfFunding: "",
   });
   const [filteredData, setFilteredData] = useState(fwlData);
 
@@ -57,7 +81,7 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
         const response = await api.get("/getAllDepartmentEntry", "");
         const options = response.map((dept: any) => ({
           value: dept.id?.toString() || "",
-          label: dept.name || ""
+          label: dept.name || "",
         }));
         setDepartmentOptions(options);
       } catch (error) {
@@ -74,21 +98,28 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
 
     const filtered = fwlData.filter((row) =>
       Object.values(row).some((val) =>
-        String(val || "").toLowerCase().includes(value)
+        String(val || "")
+          .toLowerCase()
+          .includes(value)
       )
     );
     setFilteredData(filtered);
   };
 
   // Handle column-specific filters
-  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>, column: string) => {
+  const handleFilterChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    column: string
+  ) => {
     const value = e.target.value.toLowerCase();
     const updatedFilters = { ...filters, [column]: value };
     setFilters(updatedFilters);
 
     const filtered = fwlData.filter((row) =>
       Object.values(row).some((val) =>
-        String(val || "").toLowerCase().includes(value)
+        String(val || "")
+          .toLowerCase()
+          .includes(value)
       )
     );
     setFilteredData(filtered);
@@ -113,14 +144,23 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
   };
 
   const validationSchema = Yup.object({
-    academicYear: Yup.object<{ value: string; label: string }>().nullable().required("Please select academic year"),
-    stream: Yup.object<{ value: string; label: string }>().nullable().required("Please select school"),
-    department: Yup.object<{ value: string; label: string }>().nullable().required("Please select department"),
-    otherDepartment: Yup.string().when("department", (department: any, schema) => {
-      return department?.value === "Others"
-        ? schema.required("Please specify the department")
-        : schema;
-    }),
+    academicYear: Yup.object<{ value: string; label: string }>()
+      .nullable()
+      .required("Please select academic year"),
+    stream: Yup.object<{ value: string; label: string }>()
+      .nullable()
+      .required("Please select school"),
+    department: Yup.object<{ value: string; label: string }>()
+      .nullable()
+      .required("Please select department"),
+    otherDepartment: Yup.string().when(
+      "department",
+      (department: any, schema) => {
+        return department?.value === "Others"
+          ? schema.required("Please specify the department")
+          : schema;
+      }
+    ),
     facultyName: Yup.string().required("Please enter faculty name"),
     projectTitle: Yup.string().required("Please enter project title"),
     amount: Yup.number()
@@ -128,27 +168,39 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
       .min(0, "Amount cannot be less than 0")
       .required("Please enter the amount"),
     monthOfGrant: Yup.string().required("Please enter the month of grant"),
-    typeOfFunding: Yup.object<{ value: string; label: string }>().nullable().required("Please select type of funding"),
+    typeOfFunding: Yup.object<{ value: string; label: string }>()
+      .nullable()
+      .required("Please select type of funding"),
     fellowship: Yup.mixed().required("Please upload the fellowship file"),
-    principalInvestigator: isMultidisciplinary === "Yes" && activeTab === "1"
-      ? Yup.object({
-        name: Yup.string().required("Please enter name"),
-        qualification: Yup.string().required("Please enter qualification"),
-        designation: Yup.string().required("Please enter designation"),
-        department: Yup.object<{ value: string; label: string }>().nullable().required("Please select department"),
-        //date: Yup.date().required("Please select a date"),
-        abstractFile: Yup.mixed().required("Please upload the abstract file"),
-        sanctionOrderFile: Yup.mixed().required("Please upload the sanction order file"),
-      })
-      : Yup.object(),
-    coInvestigator: isMultidisciplinary === "Yes" && activeTab === "2"
-      ? Yup.object({
-        name: Yup.string().required("Please enter name"),
-        qualification: Yup.string().required("Please enter qualification"),
-        designation: Yup.string().required("Please enter designation"),
-        department: Yup.object<{ value: string; label: string }>().nullable().required("Please select department"),
-      })
-      : Yup.object(),
+    principalInvestigator:
+      isMultidisciplinary === "Yes" && activeTab === "1"
+        ? Yup.object({
+            name: Yup.string().required("Please enter name"),
+            qualification: Yup.string().required("Please enter qualification"),
+            designation: Yup.string().required("Please enter designation"),
+            department: Yup.object<{ value: string; label: string }>()
+              .nullable()
+              .required("Please select department"),
+            //date: Yup.date().required("Please select a date"),
+            abstractFile: Yup.mixed().required(
+              "Please upload the abstract file"
+            ),
+            sanctionOrderFile: Yup.mixed().required(
+              "Please upload the sanction order file"
+            ),
+          })
+        : Yup.object(),
+    coInvestigator:
+      isMultidisciplinary === "Yes" && activeTab === "2"
+        ? Yup.object({
+            name: Yup.string().required("Please enter name"),
+            qualification: Yup.string().required("Please enter qualification"),
+            designation: Yup.string().required("Please enter designation"),
+            department: Yup.object<{ value: string; label: string }>()
+              .nullable()
+              .required("Please select department"),
+          })
+        : Yup.object(),
   });
 
   const validation = useFormik({
@@ -176,7 +228,7 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
         name: "",
         qualification: "",
         designation: "",
-        department: null as { value: string; label: string } | null
+        department: null as { value: string; label: string } | null,
       },
     },
     validationSchema,
@@ -196,54 +248,72 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
         monthOfGrant: values.monthOfGrant || "",
         fundingType: values.typeOfFunding?.value || "",
         multidisciplinary: isMultidisciplinary === "Yes",
-        multidisciplinaryType: activeTab === "1" ? "PrincipleInvestigatorDetails" : "CoInvestigatorDetails",
+        multidisciplinaryType:
+          activeTab === "1"
+            ? "PrincipleInvestigatorDetails"
+            : "CoInvestigatorDetails",
         managementFundProjectAddTabDto: {
           additionalTabId: 0, // Set this as needed, or from edit data if available
-          name: activeTab === "1"
-            ? values.principalInvestigator.name || ""
-            : values.coInvestigator.name || "",
-          qualification: activeTab === "1"
-            ? values.principalInvestigator.qualification || ""
-            : values.coInvestigator.qualification || "",
-          designation: activeTab === "1"
-            ? values.principalInvestigator.designation || ""
-            : values.coInvestigator.designation || "",
-          departmentId: activeTab === "1"
-            ? values.principalInvestigator.department?.value || 0
-            : values.coInvestigator.department?.value || 0,
-          departmentName: activeTab === "1"
-            ? values.principalInvestigator.department?.label || ""
-            : values.coInvestigator.department?.label || ""
-        }
+          name:
+            activeTab === "1"
+              ? values.principalInvestigator.name || ""
+              : values.coInvestigator.name || "",
+          qualification:
+            activeTab === "1"
+              ? values.principalInvestigator.qualification || ""
+              : values.coInvestigator.qualification || "",
+          designation:
+            activeTab === "1"
+              ? values.principalInvestigator.designation || ""
+              : values.coInvestigator.designation || "",
+          departmentId:
+            activeTab === "1"
+              ? values.principalInvestigator.department?.value || 0
+              : values.coInvestigator.department?.value || 0,
+          departmentName:
+            activeTab === "1"
+              ? values.principalInvestigator.department?.label || ""
+              : values.coInvestigator.department?.label || "",
+        },
       };
 
       // Append the JSON payload as a string with the key `fellowshipAwardedRequestDto`
-      formData.append('fellowshipAwardedRequestDto', new Blob([JSON.stringify(dtoPayload)], { type: 'application/json' }));
+      formData.append(
+        "fellowshipAwardedRequestDto",
+        new Blob([JSON.stringify(dtoPayload)], { type: "application/json" })
+      );
 
       // Append the file with the key `file`
       if (isMultidisciplinary === "Yes") {
         if (activeTab === "1") {
-          formData.append('abstractProject', values.principalInvestigator.abstractFile as Blob);
-          formData.append('sanctionOrder', values.principalInvestigator.sanctionOrderFile as Blob);
+          formData.append(
+            "abstractProject",
+            values.principalInvestigator.abstractFile as Blob
+          );
+          formData.append(
+            "sanctionOrder",
+            values.principalInvestigator.sanctionOrderFile as Blob
+          );
         }
       }
       // append global fellowship file
       if (values.fellowship) {
-        formData.append('fellowship', values.fellowship as Blob);
+        formData.append("fellowship", values.fellowship as Blob);
       }
 
       try {
-        const response = isEditMode && editId
-          ? await api.put(`/fellowshipAwarded/update`, formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data'
-            }
-          })
-          : await api.create(`/fellowshipAwarded/save`, formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data'
-            }
-          });
+        const response =
+          isEditMode && editId
+            ? await api.put(`/fellowshipAwarded/update`, formData, {
+                headers: {
+                  "Content-Type": "multipart/form-data",
+                },
+              })
+            : await api.create(`/fellowshipAwarded/save`, formData, {
+                headers: {
+                  "Content-Type": "multipart/form-data",
+                },
+              });
 
         toast.success(response.message || "FWL record saved successfully!");
         // Reset the form fields
@@ -255,18 +325,18 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
         toast.error("Failed to save FWL. Please try again.");
         console.error("Error creating/updating FWL:", error);
       }
-    }
+    },
   });
 
   const fetchMFAData = async () => {
     try {
-      const response = await api.get("/fellowshipAwarded/getAll", '');
+      const response = await api.get("/fellowshipAwarded/getAll", "");
       setFwlData(response);
       setFilteredData(response);
     } catch (error) {
       console.error("Error fetching MFA data:", error);
     }
-  }
+  };
 
   // Open the modal and fetch data
   const handleListFWLClick = () => {
@@ -279,7 +349,10 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
   const confirmDelete = async (id: string) => {
     if (deleteId) {
       try {
-        const response = await api.delete(`/fellowshipAwarded/deleteFellowshipAwarded?fellowshipAwardedId=${id}`, '');
+        const response = await api.delete(
+          `/fellowshipAwarded/deleteFellowshipAwarded?fellowshipAwardedId=${id}`,
+          ""
+        );
         toast.success(response.message || "FWL record removed successfully!");
         fetchMFAData();
       } catch (error) {
@@ -299,14 +372,22 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
       name="principalInvestigator.department"
       value={validation.values.principalInvestigator.department?.value || ""}
       onChange={(e) => {
-        const selected = departmentOptions.find(opt => opt.value === e.target.value) || null;
+        const selected =
+          departmentOptions.find((opt) => opt.value === e.target.value) || null;
         validation.setFieldValue("principalInvestigator.department", selected);
       }}
-      className={`form-control ${validation.touched.principalInvestigator?.department && validation.errors.principalInvestigator?.department ? "is-invalid" : ""}`}
+      className={`form-control ${
+        validation.touched.principalInvestigator?.department &&
+        validation.errors.principalInvestigator?.department
+          ? "is-invalid"
+          : ""
+      }`}
     >
       <option value="">Select Department</option>
-      {departmentOptions.map(opt => (
-        <option key={opt.value} value={opt.value}>{opt.label}</option>
+      {departmentOptions.map((opt) => (
+        <option key={opt.value} value={opt.value}>
+          {opt.label}
+        </option>
       ))}
     </Input>
   );
@@ -317,14 +398,22 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
       name="coInvestigator.department"
       value={validation.values.coInvestigator.department?.value || ""}
       onChange={(e) => {
-        const selected = departmentOptions.find(opt => opt.value === e.target.value) || null;
+        const selected =
+          departmentOptions.find((opt) => opt.value === e.target.value) || null;
         validation.setFieldValue("coInvestigator.department", selected);
       }}
-      className={`form-control ${validation.touched.coInvestigator?.department && validation.errors.coInvestigator?.department ? "is-invalid" : ""}`}
+      className={`form-control ${
+        validation.touched.coInvestigator?.department &&
+        validation.errors.coInvestigator?.department
+          ? "is-invalid"
+          : ""
+      }`}
     >
       <option value="">Select Department</option>
-      {departmentOptions.map(opt => (
-        <option key={opt.value} value={opt.value}>{opt.label}</option>
+      {departmentOptions.map((opt) => (
+        <option key={opt.value} value={opt.value}>
+          {opt.label}
+        </option>
       ))}
     </Input>
   );
@@ -334,9 +423,12 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
     if (fileName) {
       try {
         // Ensure you set responseType to 'blob' to handle binary data
-        const response = await axios.get(`/fellowshipAwarded/download/${fileName}`, {
-          responseType: 'blob'
-        });
+        const response = await axios.get(
+          `/fellowshipAwarded/download/${fileName}`,
+          {
+            responseType: "blob",
+          }
+        );
 
         // Create a Blob from the response data
         const blob = new Blob([response], { type: "*/*" });
@@ -345,7 +437,7 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
         const url = window.URL.createObjectURL(blob);
 
         // Create a temporary anchor element to trigger the download
-        const link = document.createElement('a');
+        const link = document.createElement("a");
         link.href = url;
         link.download = fileName; // Set the file name for the download
         document.body.appendChild(link);
@@ -365,12 +457,16 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
     }
   };
 
-
   // Handle file deletion
   // Clear the file from the form and show success message
-  const handleDeleteFile = async (fileType: "fellowship" | "abstractProject" | "sanctionOrder") => {
+  const handleDeleteFile = async (
+    fileType: "fellowship" | "abstractProject" | "sanctionOrder"
+  ) => {
     try {
-      const response = await api.delete(`/fellowshipAwarded/deleteFellowshipAwardedDocument?fellowshipAwardedId=${editId}&docType=${fileType}`, '');
+      const response = await api.delete(
+        `/fellowshipAwarded/deleteFellowshipAwardedDocument?fellowshipAwardedId=${editId}&docType=${fileType}`,
+        ""
+      );
       toast.success(response.message || "File deleted successfully!");
 
       if (fileType === "fellowship") {
@@ -380,7 +476,10 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
         validation.setFieldValue("principalInvestigator.abstractFile", null);
         setIsAbstractFileUploadDisabled(false);
       } else if (fileType === "sanctionOrder") {
-        validation.setFieldValue("principalInvestigator.sanctionOrderFile", null);
+        validation.setFieldValue(
+          "principalInvestigator.sanctionOrderFile",
+          null
+        );
         setIsSanctionFileUploadDisabled(false);
       }
     } catch (error) {
@@ -399,12 +498,20 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
             name="principalInvestigator.name"
             value={validation.values.principalInvestigator.name}
             onChange={validation.handleChange}
-            className={`form-control ${validation.touched.principalInvestigator?.name && validation.errors.principalInvestigator?.name ? "is-invalid" : ""}`}
+            className={`form-control ${
+              validation.touched.principalInvestigator?.name &&
+              validation.errors.principalInvestigator?.name
+                ? "is-invalid"
+                : ""
+            }`}
             placeholder="Enter Name"
           />
-          {validation.touched.principalInvestigator?.name && validation.errors.principalInvestigator?.name && (
-            <div className="text-danger">{validation.errors.principalInvestigator.name}</div>
-          )}
+          {validation.touched.principalInvestigator?.name &&
+            validation.errors.principalInvestigator?.name && (
+              <div className="text-danger">
+                {validation.errors.principalInvestigator.name}
+              </div>
+            )}
         </div>
       </Col>
       <Col lg={4}>
@@ -415,12 +522,20 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
             name="principalInvestigator.qualification"
             value={validation.values.principalInvestigator.qualification}
             onChange={validation.handleChange}
-            className={`form-control ${validation.touched.principalInvestigator?.qualification && validation.errors.principalInvestigator?.qualification ? "is-invalid" : ""}`}
+            className={`form-control ${
+              validation.touched.principalInvestigator?.qualification &&
+              validation.errors.principalInvestigator?.qualification
+                ? "is-invalid"
+                : ""
+            }`}
             placeholder="Enter Qualification"
           />
-          {validation.touched.principalInvestigator?.qualification && validation.errors.principalInvestigator?.qualification && (
-            <div className="text-danger">{validation.errors.principalInvestigator.qualification}</div>
-          )}
+          {validation.touched.principalInvestigator?.qualification &&
+            validation.errors.principalInvestigator?.qualification && (
+              <div className="text-danger">
+                {validation.errors.principalInvestigator.qualification}
+              </div>
+            )}
         </div>
       </Col>
       <Col lg={4}>
@@ -431,21 +546,32 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
             name="principalInvestigator.designation"
             value={validation.values.principalInvestigator.designation}
             onChange={validation.handleChange}
-            className={`form-control ${validation.touched.principalInvestigator?.designation && validation.errors.principalInvestigator?.designation ? "is-invalid" : ""}`}
+            className={`form-control ${
+              validation.touched.principalInvestigator?.designation &&
+              validation.errors.principalInvestigator?.designation
+                ? "is-invalid"
+                : ""
+            }`}
             placeholder="Enter Designation"
           />
-          {validation.touched.principalInvestigator?.designation && validation.errors.principalInvestigator?.designation && (
-            <div className="text-danger">{validation.errors.principalInvestigator.designation}</div>
-          )}
+          {validation.touched.principalInvestigator?.designation &&
+            validation.errors.principalInvestigator?.designation && (
+              <div className="text-danger">
+                {validation.errors.principalInvestigator.designation}
+              </div>
+            )}
         </div>
       </Col>
       <Col lg={4}>
         <div className="mb-3">
           <Label>Department</Label>
           {renderPrincipalInvestigatorDepartmentDropdown()}
-          {validation.touched.principalInvestigator?.department && validation.errors.principalInvestigator?.department && (
-            <div className="text-danger">{validation.errors.principalInvestigator.department}</div>
-          )}
+          {validation.touched.principalInvestigator?.department &&
+            validation.errors.principalInvestigator?.department && (
+              <div className="text-danger">
+                {validation.errors.principalInvestigator.department}
+              </div>
+            )}
         </div>
       </Col>
       {/* <Col lg={4}>
@@ -478,13 +604,26 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
           <Input
             type="file"
             name="principalInvestigator.abstractFile"
-            onChange={(event) => validation.setFieldValue("principalInvestigator.abstractFile", event.currentTarget.files?.[0] || null)}
-            className={`form-control ${validation.touched.principalInvestigator?.abstractFile && validation.errors.principalInvestigator?.abstractFile ? "is-invalid" : ""}`}
+            onChange={(event) =>
+              validation.setFieldValue(
+                "principalInvestigator.abstractFile",
+                event.currentTarget.files?.[0] || null
+              )
+            }
+            className={`form-control ${
+              validation.touched.principalInvestigator?.abstractFile &&
+              validation.errors.principalInvestigator?.abstractFile
+                ? "is-invalid"
+                : ""
+            }`}
             disabled={isAbstractFileUploadDisabled} // Disable the button if a file exists
           />
-          {validation.touched.principalInvestigator?.abstractFile && validation.errors.principalInvestigator?.abstractFile && (
-            <div className="text-danger">{validation.errors.principalInvestigator.abstractFile}</div>
-          )}
+          {validation.touched.principalInvestigator?.abstractFile &&
+            validation.errors.principalInvestigator?.abstractFile && (
+              <div className="text-danger">
+                {validation.errors.principalInvestigator.abstractFile}
+              </div>
+            )}
           {/* Show a message if the file upload button is disabled */}
           {isAbstractFileUploadDisabled && (
             <div className="text-warning mt-2">
@@ -492,17 +631,26 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
             </div>
           )}
           {/* Only show the file name if it is a string (from the edit API) */}
-          {typeof validation.values.principalInvestigator.abstractFile === "string" && (
+          {typeof validation.values.principalInvestigator.abstractFile ===
+            "string" && (
             <div className="mt-2 d-flex align-items-center">
-              <span className="me-2" style={{ fontWeight: "bold", color: "green" }}>
+              <span
+                className="me-2"
+                style={{ fontWeight: "bold", color: "green" }}
+              >
                 {validation.values.principalInvestigator.abstractFile}
               </span>
               <Button
                 color="link"
                 className="text-primary"
                 onClick={() => {
-                  if (typeof validation.values.principalInvestigator.abstractFile === "string") {
-                    handleDownloadFile(validation.values.principalInvestigator.abstractFile);
+                  if (
+                    typeof validation.values.principalInvestigator
+                      .abstractFile === "string"
+                  ) {
+                    handleDownloadFile(
+                      validation.values.principalInvestigator.abstractFile
+                    );
                   }
                 }}
                 title="Download File"
@@ -527,13 +675,26 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
           <Input
             type="file"
             name="principalInvestigator.sanctionOrderFile"
-            onChange={(event) => validation.setFieldValue("principalInvestigator.sanctionOrderFile", event.currentTarget.files?.[0] || null)}
-            className={`form-control ${validation.touched.principalInvestigator?.sanctionOrderFile && validation.errors.principalInvestigator?.sanctionOrderFile ? "is-invalid" : ""}`}
+            onChange={(event) =>
+              validation.setFieldValue(
+                "principalInvestigator.sanctionOrderFile",
+                event.currentTarget.files?.[0] || null
+              )
+            }
+            className={`form-control ${
+              validation.touched.principalInvestigator?.sanctionOrderFile &&
+              validation.errors.principalInvestigator?.sanctionOrderFile
+                ? "is-invalid"
+                : ""
+            }`}
             disabled={isSanctionFileUploadDisabled} // Disable the button if a file exists
           />
-          {validation.touched.principalInvestigator?.sanctionOrderFile && validation.errors.principalInvestigator?.sanctionOrderFile && (
-            <div className="text-danger">{validation.errors.principalInvestigator.sanctionOrderFile}</div>
-          )}
+          {validation.touched.principalInvestigator?.sanctionOrderFile &&
+            validation.errors.principalInvestigator?.sanctionOrderFile && (
+              <div className="text-danger">
+                {validation.errors.principalInvestigator.sanctionOrderFile}
+              </div>
+            )}
           {/* Show a message if the file upload button is disabled */}
           {isSanctionFileUploadDisabled && (
             <div className="text-warning mt-2">
@@ -541,17 +702,26 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
             </div>
           )}
           {/* Only show the file name if it is a string (from the edit API) */}
-          {typeof validation.values.principalInvestigator?.sanctionOrderFile === "string" && (
+          {typeof validation.values.principalInvestigator?.sanctionOrderFile ===
+            "string" && (
             <div className="mt-2 d-flex align-items-center">
-              <span className="me-2" style={{ fontWeight: "bold", color: "green" }}>
+              <span
+                className="me-2"
+                style={{ fontWeight: "bold", color: "green" }}
+              >
                 {validation.values.principalInvestigator?.sanctionOrderFile}
               </span>
               <Button
                 color="link"
                 className="text-primary"
                 onClick={() => {
-                  if (typeof validation.values.principalInvestigator?.sanctionOrderFile === "string") {
-                    handleDownloadFile(validation.values.principalInvestigator?.sanctionOrderFile);
+                  if (
+                    typeof validation.values.principalInvestigator
+                      ?.sanctionOrderFile === "string"
+                  ) {
+                    handleDownloadFile(
+                      validation.values.principalInvestigator?.sanctionOrderFile
+                    );
                   }
                 }}
                 title="Download File"
@@ -583,12 +753,20 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
             name="coInvestigator.name"
             value={validation.values.coInvestigator.name}
             onChange={validation.handleChange}
-            className={`form-control ${validation.touched.coInvestigator?.name && validation.errors.coInvestigator?.name ? "is-invalid" : ""}`}
+            className={`form-control ${
+              validation.touched.coInvestigator?.name &&
+              validation.errors.coInvestigator?.name
+                ? "is-invalid"
+                : ""
+            }`}
             placeholder="Enter Name"
           />
-          {validation.touched.coInvestigator?.name && validation.errors.coInvestigator?.name && (
-            <div className="text-danger">{validation.errors.coInvestigator.name}</div>
-          )}
+          {validation.touched.coInvestigator?.name &&
+            validation.errors.coInvestigator?.name && (
+              <div className="text-danger">
+                {validation.errors.coInvestigator.name}
+              </div>
+            )}
         </div>
       </Col>
       <Col lg={4}>
@@ -599,12 +777,20 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
             name="coInvestigator.qualification"
             value={validation.values.coInvestigator.qualification}
             onChange={validation.handleChange}
-            className={`form-control ${validation.touched.coInvestigator?.qualification && validation.errors.coInvestigator?.qualification ? "is-invalid" : ""}`}
+            className={`form-control ${
+              validation.touched.coInvestigator?.qualification &&
+              validation.errors.coInvestigator?.qualification
+                ? "is-invalid"
+                : ""
+            }`}
             placeholder="Enter Qualification"
           />
-          {validation.touched.coInvestigator?.qualification && validation.errors.coInvestigator?.qualification && (
-            <div className="text-danger">{validation.errors.coInvestigator.qualification}</div>
-          )}
+          {validation.touched.coInvestigator?.qualification &&
+            validation.errors.coInvestigator?.qualification && (
+              <div className="text-danger">
+                {validation.errors.coInvestigator.qualification}
+              </div>
+            )}
         </div>
       </Col>
       <Col lg={4}>
@@ -615,21 +801,32 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
             name="coInvestigator.designation"
             value={validation.values.coInvestigator.designation}
             onChange={validation.handleChange}
-            className={`form-control ${validation.touched.coInvestigator?.designation && validation.errors.coInvestigator?.designation ? "is-invalid" : ""}`}
+            className={`form-control ${
+              validation.touched.coInvestigator?.designation &&
+              validation.errors.coInvestigator?.designation
+                ? "is-invalid"
+                : ""
+            }`}
             placeholder="Enter Designation"
           />
-          {validation.touched.coInvestigator?.designation && validation.errors.coInvestigator?.designation && (
-            <div className="text-danger">{validation.errors.coInvestigator.designation}</div>
-          )}
+          {validation.touched.coInvestigator?.designation &&
+            validation.errors.coInvestigator?.designation && (
+              <div className="text-danger">
+                {validation.errors.coInvestigator.designation}
+              </div>
+            )}
         </div>
       </Col>
       <Col lg={4}>
         <div className="mb-3">
           <Label>Department</Label>
           {renderCoInvestigatorDepartmentDropdown()}
-          {validation.touched.coInvestigator?.department && validation.errors.coInvestigator?.department && (
-            <div className="text-danger">{validation.errors.coInvestigator.department}</div>
-          )}
+          {validation.touched.coInvestigator?.department &&
+            validation.errors.coInvestigator?.department && (
+              <div className="text-danger">
+                {validation.errors.coInvestigator.department}
+              </div>
+            )}
         </div>
       </Col>
     </Row>
@@ -639,7 +836,10 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
   // Fetch the data for the selected BOS ID and populate the form fields
   const handleEdit = async (id: string) => {
     try {
-      const response = await api.get(`/fellowshipAwarded/edit?fellowshipAwardedId=${id}`, '');
+      const response = await api.get(
+        `/fellowshipAwarded/edit?fellowshipAwardedId=${id}`,
+        ""
+      );
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
 
       // Filter the response where isCurrent or isCurrentForAdmission is true
@@ -650,7 +850,7 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
       // Map the filtered data to the required format
       const academicYearList = filteredAcademicYearList.map((year: any) => ({
         value: year.year,
-        label: year.display
+        label: year.display,
       }));
 
       // Map API response to Formik values
@@ -660,7 +860,10 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
           ? { value: response.streamId.toString(), label: response.streamName }
           : null,
         department: response.departmentId
-          ? { value: response.departmentId.toString(), label: response.departmentName }
+          ? {
+              value: response.departmentId.toString(),
+              label: response.departmentName,
+            }
           : null,
         facultyName: response.facultyName || "",
         projectTitle: response.projectTitle || "",
@@ -675,27 +878,36 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
           qualification: response.principleInvestigatorDto?.qualification || "",
           designation: response.principleInvestigatorDto?.designation || "",
           department: response.principleInvestigatorDto?.departmentId
-            ? { value: response.principleInvestigatorDto.departmentId.toString(), label: response.principleInvestigatorDto.departmentName }
+            ? {
+                value:
+                  response.principleInvestigatorDto.departmentId.toString(),
+                label: response.principleInvestigatorDto.departmentName,
+              }
             : null,
           date: response.principleInvestigatorDto?.date || "",
-          abstractFile: response.principleInvestigatorDto?.file?.abstractProject || null,
-          sanctionOrderFile: response.principleInvestigatorDto?.file?.sanctionOrder || null,
+          abstractFile:
+            response.principleInvestigatorDto?.file?.abstractProject || null,
+          sanctionOrderFile:
+            response.principleInvestigatorDto?.file?.sanctionOrder || null,
         },
         coInvestigator: response.coInvestigatorDto
           ? {
-            name: response.coInvestigatorDto.name || "",
-            qualification: response.coInvestigatorDto.qualification || "",
-            designation: response.coInvestigatorDto.designation || "",
-            department: response.coInvestigatorDto.departmentId
-              ? { value: response.coInvestigatorDto.departmentId.toString(), label: response.coInvestigatorDto.departmentName }
-              : null,
-          }
+              name: response.coInvestigatorDto.name || "",
+              qualification: response.coInvestigatorDto.qualification || "",
+              designation: response.coInvestigatorDto.designation || "",
+              department: response.coInvestigatorDto.departmentId
+                ? {
+                    value: response.coInvestigatorDto.departmentId.toString(),
+                    label: response.coInvestigatorDto.departmentName,
+                  }
+                : null,
+            }
           : {
-            name: "",
-            qualification: "",
-            designation: "",
-            department: null,
-          },
+              name: "",
+              qualification: "",
+              designation: "",
+              department: null,
+            },
       };
 
       // Set multidisciplinary state and active tab
@@ -713,9 +925,12 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
 
       // Set file upload disabled states based on file presence
       setIsFellowshipFileUploadDisabled(!!response.globalDocument?.fellowship);
-      setIsAbstractFileUploadDisabled(!!response.principleInvestigatorDto?.file?.abstractProject);
-      setIsSanctionFileUploadDisabled(!!response.principleInvestigatorDto?.file?.sanctionOrder);
-
+      setIsAbstractFileUploadDisabled(
+        !!response.principleInvestigatorDto?.file?.abstractProject
+      );
+      setIsSanctionFileUploadDisabled(
+        !!response.principleInvestigatorDto?.file?.sanctionOrder
+      );
 
       // Set edit mode and toggle modal
       setIsEditMode(true);
@@ -732,7 +947,10 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
   }
 
   // Map value to label for dropdowns
-  const mapValueToLabel = (value: string | number | null, options: { value: string | number; label: string }[]): { value: string | number; label: string } | null => {
+  const mapValueToLabel = (
+    value: string | number | null,
+    options: { value: string | number; label: string }[]
+  ): { value: string | number; label: string } | null => {
     if (!value) return null;
     const matchedOption = options.find((option) => option.value === value);
     return matchedOption ? matchedOption : { value, label: String(value) };
@@ -754,7 +972,10 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
                       <AcademicYearDropdown
                         value={validation.values.academicYear}
                         onChange={(selectedOption) =>
-                          validation.setFieldValue("academicYear", selectedOption)
+                          validation.setFieldValue(
+                            "academicYear",
+                            selectedOption
+                          )
                         }
                         isInvalid={
                           validation.touched.academicYear &&
@@ -783,12 +1004,16 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
                           setSelectedDepartment(null);
                         }}
                         isInvalid={
-                          validation.touched.stream && !!validation.errors.stream
+                          validation.touched.stream &&
+                          !!validation.errors.stream
                         }
                       />
-                      {validation.touched.stream && validation.errors.stream && (
-                        <div className="text-danger">{validation.errors.stream}</div>
-                      )}
+                      {validation.touched.stream &&
+                        validation.errors.stream && (
+                          <div className="text-danger">
+                            {validation.errors.stream}
+                          </div>
+                        )}
                     </div>
                   </Col>
 
@@ -800,7 +1025,10 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
                         streamId={selectedStream?.value}
                         value={validation.values.department}
                         onChange={(selectedOption) => {
-                          validation.setFieldValue("department", selectedOption);
+                          validation.setFieldValue(
+                            "department",
+                            selectedOption
+                          );
                           setSelectedDepartment(selectedOption);
                           validation.setFieldValue("programType", null);
                         }}
@@ -823,15 +1051,27 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
                         <Label>Specify Department</Label>
                         <Input
                           type="text"
-                          className={`form-control ${validation.touched.otherDepartment && validation.errors.otherDepartment ? "is-invalid" : ""
-                            }`}
+                          className={`form-control ${
+                            validation.touched.otherDepartment &&
+                            validation.errors.otherDepartment
+                              ? "is-invalid"
+                              : ""
+                          }`}
                           value={validation.values.otherDepartment}
-                          onChange={(e) => validation.setFieldValue("otherDepartment", e.target.value)}
+                          onChange={(e) =>
+                            validation.setFieldValue(
+                              "otherDepartment",
+                              e.target.value
+                            )
+                          }
                           placeholder="Enter Department Name"
                         />
-                        {validation.touched.otherDepartment && validation.errors.otherDepartment && (
-                          <div className="text-danger">{validation.errors.otherDepartment}</div>
-                        )}
+                        {validation.touched.otherDepartment &&
+                          validation.errors.otherDepartment && (
+                            <div className="text-danger">
+                              {validation.errors.otherDepartment}
+                            </div>
+                          )}
                       </div>
                     </Col>
                   )}
@@ -843,14 +1083,26 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
                       <Input
                         type="text"
                         value={validation.values.facultyName}
-                        onChange={(e) => validation.setFieldValue("facultyName", e.target.value)}
-                        className={`form-control ${validation.touched.facultyName && validation.errors.facultyName ? "is-invalid" : ""
-                          }`}
+                        onChange={(e) =>
+                          validation.setFieldValue(
+                            "facultyName",
+                            e.target.value
+                          )
+                        }
+                        className={`form-control ${
+                          validation.touched.facultyName &&
+                          validation.errors.facultyName
+                            ? "is-invalid"
+                            : ""
+                        }`}
                         placeholder="Enter Faculty Name"
                       />
-                      {validation.touched.facultyName && validation.errors.facultyName && (
-                        <div className="text-danger">{validation.errors.facultyName}</div>
-                      )}
+                      {validation.touched.facultyName &&
+                        validation.errors.facultyName && (
+                          <div className="text-danger">
+                            {validation.errors.facultyName}
+                          </div>
+                        )}
                     </div>
                   </Col>
 
@@ -861,14 +1113,26 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
                       <Input
                         type="text"
                         value={validation.values.projectTitle}
-                        onChange={(e) => validation.setFieldValue("projectTitle", e.target.value)}
-                        className={`form-control ${validation.touched.projectTitle && validation.errors.projectTitle ? "is-invalid" : ""
-                          }`}
+                        onChange={(e) =>
+                          validation.setFieldValue(
+                            "projectTitle",
+                            e.target.value
+                          )
+                        }
+                        className={`form-control ${
+                          validation.touched.projectTitle &&
+                          validation.errors.projectTitle
+                            ? "is-invalid"
+                            : ""
+                        }`}
                         placeholder="Enter Project Title"
                       />
-                      {validation.touched.projectTitle && validation.errors.projectTitle && (
-                        <div className="text-danger">{validation.errors.projectTitle}</div>
-                      )}
+                      {validation.touched.projectTitle &&
+                        validation.errors.projectTitle && (
+                          <div className="text-danger">
+                            {validation.errors.projectTitle}
+                          </div>
+                        )}
                     </div>
                   </Col>
 
@@ -879,14 +1143,22 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
                       <Input
                         type="number"
                         value={validation.values.amount}
-                        onChange={(e) => validation.setFieldValue("amount", e.target.value)}
-                        className={`form-control ${validation.touched.amount && validation.errors.amount ? "is-invalid" : ""
-                          }`}
+                        onChange={(e) =>
+                          validation.setFieldValue("amount", e.target.value)
+                        }
+                        className={`form-control ${
+                          validation.touched.amount && validation.errors.amount
+                            ? "is-invalid"
+                            : ""
+                        }`}
                         placeholder="Enter Amount"
                       />
-                      {validation.touched.amount && validation.errors.amount && (
-                        <div className="text-danger">{validation.errors.amount}</div>
-                      )}
+                      {validation.touched.amount &&
+                        validation.errors.amount && (
+                          <div className="text-danger">
+                            {validation.errors.amount}
+                          </div>
+                        )}
                     </div>
                   </Col>
 
@@ -897,14 +1169,26 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
                       <Input
                         type="text"
                         value={validation.values.monthOfGrant}
-                        onChange={(e) => validation.setFieldValue("monthOfGrant", e.target.value)}
-                        className={`form-control ${validation.touched.monthOfGrant && validation.errors.monthOfGrant ? "is-invalid" : ""
-                          }`}
+                        onChange={(e) =>
+                          validation.setFieldValue(
+                            "monthOfGrant",
+                            e.target.value
+                          )
+                        }
+                        className={`form-control ${
+                          validation.touched.monthOfGrant &&
+                          validation.errors.monthOfGrant
+                            ? "is-invalid"
+                            : ""
+                        }`}
                         placeholder="Enter Month of Grant"
                       />
-                      {validation.touched.monthOfGrant && validation.errors.monthOfGrant && (
-                        <div className="text-danger">{validation.errors.monthOfGrant}</div>
-                      )}
+                      {validation.touched.monthOfGrant &&
+                        validation.errors.monthOfGrant && (
+                          <div className="text-danger">
+                            {validation.errors.monthOfGrant}
+                          </div>
+                        )}
                     </div>
                   </Col>
 
@@ -916,18 +1200,28 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
                         type="select"
                         value={validation.values.typeOfFunding?.value || ""}
                         onChange={(e) =>
-                          validation.setFieldValue("typeOfFunding", { value: e.target.value, label: e.target.value })
+                          validation.setFieldValue("typeOfFunding", {
+                            value: e.target.value,
+                            label: e.target.value,
+                          })
                         }
-                        className={`form-control ${validation.touched.typeOfFunding && validation.errors.typeOfFunding ? "is-invalid" : ""
-                          }`}
+                        className={`form-control ${
+                          validation.touched.typeOfFunding &&
+                          validation.errors.typeOfFunding
+                            ? "is-invalid"
+                            : ""
+                        }`}
                       >
                         <option value="">Select Type of Funding</option>
                         <option value="Internal">Internal</option>
                         <option value="External">External</option>
                       </Input>
-                      {validation.touched.typeOfFunding && validation.errors.typeOfFunding && (
-                        <div className="text-danger">{validation.errors.typeOfFunding}</div>
-                      )}
+                      {validation.touched.typeOfFunding &&
+                        validation.errors.typeOfFunding && (
+                          <div className="text-danger">
+                            {validation.errors.typeOfFunding}
+                          </div>
+                        )}
                     </div>
                   </Col>
                   {/* Multidisciplinary Dropdown */}
@@ -967,26 +1261,43 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
                       </NavItem>
                     </Nav>
                     <TabContent activeTab={activeTab}>
-                      <TabPane tabId="1">{renderPrincipalInvestigatorForm()}</TabPane>
+                      <TabPane tabId="1">
+                        {renderPrincipalInvestigatorForm()}
+                      </TabPane>
                       <TabPane tabId="2">{renderCoInvestigatorForm()}</TabPane>
                     </TabContent>
                   </div>
                 )}
                 <Col lg={4}>
                   <div className="mb-3">
-                    <Label htmlFor="formFile" className="form-label">Fellowship</Label>
+                    <Label htmlFor="formFile" className="form-label">
+                      Fellowship
+                    </Label>
                     <Input
-                      className={`form-control ${validation.touched.fellowship && validation.errors.fellowship ? "is-invalid" : ""}`}
+                      className={`form-control ${
+                        validation.touched.fellowship &&
+                        validation.errors.fellowship
+                          ? "is-invalid"
+                          : ""
+                      }`}
                       type="file"
                       id="formFile"
                       onChange={(event) => {
-                        validation.setFieldValue("fellowship", event.currentTarget.files ? event.currentTarget.files[0] : null);
+                        validation.setFieldValue(
+                          "fellowship",
+                          event.currentTarget.files
+                            ? event.currentTarget.files[0]
+                            : null
+                        );
                       }}
                       disabled={isFellowshipFileUploadDisabled} // Disable the button if a file exists
                     />
-                    {validation.touched.fellowship && validation.errors.fellowship && (
-                      <div className="text-danger">{validation.errors.fellowship}</div>
-                    )}
+                    {validation.touched.fellowship &&
+                      validation.errors.fellowship && (
+                        <div className="text-danger">
+                          {validation.errors.fellowship}
+                        </div>
+                      )}
                     {/* Show a message if the file upload button is disabled */}
                     {isFellowshipFileUploadDisabled && (
                       <div className="text-warning mt-2">
@@ -996,14 +1307,19 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
                     {/* Only show the file name if it is a string (from the edit API) */}
                     {typeof validation.values.fellowship === "string" && (
                       <div className="mt-2 d-flex align-items-center">
-                        <span className="me-2" style={{ fontWeight: "bold", color: "green" }}>
+                        <span
+                          className="me-2"
+                          style={{ fontWeight: "bold", color: "green" }}
+                        >
                           {validation.values.fellowship}
                         </span>
                         <Button
                           color="link"
                           className="text-primary"
                           onClick={() => {
-                            if (typeof validation.values.fellowship === "string") {
+                            if (
+                              typeof validation.values.fellowship === "string"
+                            ) {
                               handleDownloadFile(validation.values.fellowship);
                             }
                           }}
@@ -1045,8 +1361,15 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
           </Card>
         </Container>
         {/* Modal for Listing FWL */}
-        <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg" style={{ maxWidth: "100%", width: "auto" }}>
-          <ModalHeader toggle={toggleModal}>List Fellowship Awarded Learning</ModalHeader>
+        <Modal
+          isOpen={isModalOpen}
+          toggle={toggleModal}
+          size="lg"
+          style={{ maxWidth: "100%", width: "auto" }}
+        >
+          <ModalHeader toggle={toggleModal}>
+            List Fellowship Awarded Learning
+          </ModalHeader>
           <ModalBody>
             {/* Global Search */}
             <div className="mb-3">
@@ -1058,83 +1381,24 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
               />
             </div>
 
-            {/* Table with Pagination */}
-            <Table className="table-hover custom-table">
-              <thead>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>
-                    Academic Year
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.academicYear}
-                      onChange={(e) => handleFilterChange(e, "academicYear")}
-                    />
-                  </th>
-                  <th>
-                    School
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.stream}
-                      onChange={(e) => handleFilterChange(e, "stream")}
-                    />
-                  </th>
-                  <th>
-                    Department
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.department}
-                      onChange={(e) => handleFilterChange(e, "department")}
-                    />
-                  </th>
-                  <th>
-                    Faculty Name
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.facultyName}
-                      onChange={(e) => handleFilterChange(e, "facultyName")}
-                    />
-                  </th>
-                  <th>
-                    Project Title
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.projectTitle}
-                      onChange={(e) => handleFilterChange(e, "projectTitle")}
-                    />
-                  </th>
-                  <th>
-                    Amount
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.amount}
-                      onChange={(e) => handleFilterChange(e, "amount")}
-                    />
-                  </th>
-                  <th>
-                    Month of Grant
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.monthOfGrant}
-                      onChange={(e) => handleFilterChange(e, "monthOfGrant")}
-                    />
-                  </th>
-                  <th>
-                    Type of Funding
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.typeOfFunding}
-                      onChange={(e) => handleFilterChange(e, "typeOfFunding")}
-                    />
-                  </th>
+                  <th>Academic Year</th>
+                  <th>School</th>
+                  <th>Department</th>
+                  <th>Faculty Name</th>
+                  <th>Project Title</th>
+                  <th>Amount</th>
+                  <th>Month of Grant</th>
+                  <th>Type of Funding</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -1201,16 +1465,25 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
           </ModalBody>
         </Modal>
         {/* Confirmation Modal */}
-        <Modal isOpen={isDeleteModalOpen} toggle={() => setIsDeleteModalOpen(false)}>
-          <ModalHeader toggle={() => setIsDeleteModalOpen(false)}>Confirm Deletion</ModalHeader>
+        <Modal
+          isOpen={isDeleteModalOpen}
+          toggle={() => setIsDeleteModalOpen(false)}
+        >
+          <ModalHeader toggle={() => setIsDeleteModalOpen(false)}>
+            Confirm Deletion
+          </ModalHeader>
           <ModalBody>
-            Are you sure you want to delete this record? This action cannot be undone.
+            Are you sure you want to delete this record? This action cannot be
+            undone.
           </ModalBody>
           <ModalFooter>
             <Button color="danger" onClick={() => confirmDelete(deleteId!)}>
               Delete
             </Button>
-            <Button color="secondary" onClick={() => setIsDeleteModalOpen(false)}>
+            <Button
+              color="secondary"
+              onClick={() => setIsDeleteModalOpen(false)}
+            >
               Cancel
             </Button>
           </ModalFooter>

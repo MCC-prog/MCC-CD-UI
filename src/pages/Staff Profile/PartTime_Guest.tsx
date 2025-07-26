@@ -699,7 +699,12 @@ const PartTime_Guest: React.FC = () => {
           </Card>
         </Container>
         {/* Modal for Listing BOS */}
-        <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg" style={{ maxWidth: "90%" }}  >
+        <Modal
+          isOpen={isModalOpen}
+          toggle={toggleModal}
+          size="lg"
+          style={{ maxWidth: "90%" }}
+        >
           <ModalHeader toggle={toggleModal}>List Teacher Details</ModalHeader>
           <ModalBody>
             {/* Global Search */}
@@ -711,73 +716,23 @@ const PartTime_Guest: React.FC = () => {
                 onChange={handleSearch}
               />
             </div>
-            <Table className="table-hover custom-table">
-              <thead>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>
-                    Faculty Type
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.facultyType}
-                      onChange={(e) => handleFilterChange(e, "facultyType")}
-                    />
-                  </th>
-                  <th>
-                    Name
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.name}
-                      onChange={(e) => handleFilterChange(e, "name")}
-                    />
-                  </th>
-                  <th>
-                    School
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.stream}
-                      onChange={(e) => handleFilterChange(e, "stream")}
-                    />
-                  </th>
-                  <th>
-                    Department
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.department}
-                      onChange={(e) => handleFilterChange(e, "department")}
-                    />
-                  </th>
-                  <th>
-                    Designation
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.designation}
-                      onChange={(e) => handleFilterChange(e, "designation")}
-                    />
-                  </th>
-                  <th>
-                    Qualification
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.qualification}
-                      onChange={(e) => handleFilterChange(e, "qualification")}
-                    />
-                  </th>
-                  <th>
-                    VIDWAAN ID
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.vidwaanId}
-                      onChange={(e) => handleFilterChange(e, "vidwaanId")}
-                    />
-                  </th>
+                  <th>Faculty Type</th>
+                  <th>Name</th>
+                  <th>School</th>
+                  <th>Department</th>
+                  <th>Designation</th>
+                  <th>Qualification</th>
+                  <th>VIDWAAN ID</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -795,18 +750,18 @@ const PartTime_Guest: React.FC = () => {
                       <td>{bos.vidwanId}</td>
                       <td>
                         <div className="d-flex justify-content-center gap-2">
-                        <button
-                          className="btn btn-sm btn-warning me-2"
-                          onClick={() => handleEdit(bos.teacherDetailsId)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="btn btn-sm btn-danger"
-                          onClick={() => handleDelete(bos.teacherDetailsId)}
-                        >
-                          Delete
-                        </button>
+                          <button
+                            className="btn btn-sm btn-warning me-2"
+                            onClick={() => handleEdit(bos.teacherDetailsId)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="btn btn-sm btn-danger"
+                            onClick={() => handleDelete(bos.teacherDetailsId)}
+                          >
+                            Delete
+                          </button>
                         </div>
                       </td>
                     </tr>

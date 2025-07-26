@@ -1,4 +1,4 @@
-import { Navigate } from "react-router-dom"
+import { Navigate } from "react-router-dom";
 import Dashboard from "../pages/Dashboard/index";
 
 // Auth
@@ -57,7 +57,7 @@ import DetailsOfStudents_MOOC from "pages/Student Activities & Support/DetailsOf
 import Intercollegiate_Events_Awards_Won from "pages/Student Activities & Support/Intercollegiate_Events_Awards_Won";
 import Cultural_CoCurricularActivities_Conducted from "pages/Student Activities & Support/Cultural_CoCurricularActivities_Conducted";
 import SportsEvents_Conducted_College from "pages/Student Activities & Support/SportsEvents_Conducted_College";
-import Program_Wise_Exam_Results from "pages/Examination/Program_Wise_Exam_Result"
+import Program_Wise_Exam_Results from "pages/Examination/Program_Wise_Exam_Result";
 import Exam_Action_Taken from "pages/Examination/Exam_Action_Taken";
 import Malpractice_committee_Report from "pages/Examination/Malpractice_Committee_Report";
 import WorkshopsOrSeminars from "pages/Innovation And Entreprenuership/WorkshopsOrSeminar";
@@ -80,25 +80,44 @@ import AssociationActivites from "pages/Alumni/AssociationActivities";
 import Scholarships from "pages/Alumni/Scholarships";
 import FinancialContribution from "pages/Alumni/FinancialContribution";
 import DistinguishedAlumni from "pages/Alumni/DistinguishedAlumni";
-
+import Softwares from "pages/Infrastructure/Softwares";
+import Seminar_Halls from "pages/Infrastructure/Seminar_Halls";
+import Amphitheatre from "pages/Infrastructure/Amphitheatre";
+import Board_Rooms from "pages/Infrastructure/Board_Rooms";
+import ComputerLabs_SimulationLab from "pages/Infrastructure/ComputerLabs_SimulationLab";
+import Auditorium from "pages/Infrastructure/Auditorium";
+import PolicyDocument from "pages/Governance/Policy_Document";
+import AAA from "pages/Governance/AAA";
+import GreenAudit from "pages/Governance/Green_Audit";
+import EnergyAudit from "pages/Governance/Energy_Audit";
+import Annual_Expenditure from "pages/Library/Annual_Expenditure";
+import Books from "pages/Library/Books";
+import Research_Journals from "pages/Library/Research_Journals";
+import Databases from "pages/Library/Databases";
 
 const authProtectedRoutes = [
   { path: "/dashboard", component: <Dashboard /> },
   { path: "/profile", component: <UserProfile /> },
-  { path: "/Bos_Data", component: <Bos /> }, 
+  { path: "/Bos_Data", component: <Bos /> },
   { path: "/New_Programs_Introduced", component: <New_Programs_Introduced /> },
   { path: "/New_Courses_Introduced", component: <New_Courses_Introduced /> },
   { path: "/Experiential_Learning", component: <Experimental_Learning /> },
   { path: "/Courses_With_Focus", component: <Courses_With_Focus /> },
-  { path: "/Innovative_Teaching_Methodologies", component: <Innovative_Teaching_Methodologies /> },
+  {
+    path: "/Innovative_Teaching_Methodologies",
+    component: <Innovative_Teaching_Methodologies />,
+  },
   { path: "/AC_GB_MoM", component: <AC_GB_MoM /> },
   { path: "/Value_Added_Program", component: <Value_Added_Program /> },
 
   //________Teacher & Learning_________//
   { path: "/Remedial_Classes", component: <Remedial_Classes /> },
   { path: "/Advanced_Learners", component: <Advanced_Learners /> },
-  { path: "/Student_Centric_Teaching", component: <Student_Centric_Teaching /> },
-  {path: "/UsageOf_ICT_Tools", component: <UsageOf_Ict_Tools /> },
+  {
+    path: "/Student_Centric_Teaching",
+    component: <Student_Centric_Teaching />,
+  },
+  { path: "/UsageOf_ICT_Tools", component: <UsageOf_Ict_Tools /> },
 
   //__________Student Details_________//
   { path: "/NumberOfStudents_Enrolled", component: <NumberOfStudents /> },
@@ -117,11 +136,14 @@ const authProtectedRoutes = [
   { path: "/Number_OfBooks_Dept", component: <Number_OfBooks_Dept /> },
 
   //__________Staff Enhancement__________//
-  { path: "/Fdps", component: <Fdps/> },
-  { path: "/Moocs", component: <Moocs/> },
-  { path: "/Skill_Development_Workshops", component: <Skill_Development_Work/> },
+  { path: "/Fdps", component: <Fdps /> },
+  { path: "/Moocs", component: <Moocs /> },
+  {
+    path: "/Skill_Development_Workshops",
+    component: <Skill_Development_Work />,
+  },
 
-   //__________Extension Activites__________//
+  //__________Extension Activites__________//
   { path: "/Cdp_Activites", component: <Cdp_Activites /> },
   { path: "/Nss_Yrc", component: <Nss_Yrc /> },
   { path: "/Ncc", component: <Ncc /> },
@@ -129,73 +151,173 @@ const authProtectedRoutes = [
   { path: "/Iks", component: <Iks /> },
   { path: "/Teacher_Student_Award", component: <Teacher_Student_Award /> },
 
-    //__________Industry Collaboration__________//
-  { path: "/Mous_AgreementCopy_Activities", component: <Mous_AgreementCopy_Activities /> },
-  { path: "/Consultancy_Undertaken_by_Staff", component: <Consultancy_Undertaken_by_Staff /> },
-  { path: "/Details_of_Programs_offered", component: <Details_of_Programs_offered /> },
-  { path: "/Skill_Development_Workshop", component: <Skill_Development_Workshop /> },
+  //__________Industry Collaboration__________//
+  {
+    path: "/Mous_AgreementCopy_Activities",
+    component: <Mous_AgreementCopy_Activities />,
+  },
+  {
+    path: "/Consultancy_Undertaken_by_Staff",
+    component: <Consultancy_Undertaken_by_Staff />,
+  },
+  {
+    path: "/Details_of_Programs_offered",
+    component: <Details_of_Programs_offered />,
+  },
+  {
+    path: "/Skill_Development_Workshop",
+    component: <Skill_Development_Workshop />,
+  },
 
-    //__________Research__________//
-  { path: "/Management_Funded_Project", component: <Management_Funded_Project /> },
+  //__________Research__________//
+  {
+    path: "/Management_Funded_Project",
+    component: <Management_Funded_Project />,
+  },
   { path: "/Books_Chapters", component: <Books_Chapters /> },
-  { path: "/Felloships_Awarded", component: <Fellowships_Awarded_For_AL_And_Research /> },
-  { path: "/FP_And_Presentation_Research_Papers", component: <FP_And_Presentation_Research_Papers /> },
-  { path: "/Government_Or_NGO_Funded_Projects", component: <Government_Or_NGO_Funded_Projects /> },
+  {
+    path: "/Felloships_Awarded",
+    component: <Fellowships_Awarded_For_AL_And_Research />,
+  },
+  {
+    path: "/FP_And_Presentation_Research_Papers",
+    component: <FP_And_Presentation_Research_Papers />,
+  },
+  {
+    path: "/Government_Or_NGO_Funded_Projects",
+    component: <Government_Or_NGO_Funded_Projects />,
+  },
   { path: "/Research_Guides", component: <Research_Guides /> },
   { path: "/Research_Publications", component: <Research_Publications /> },
 
   //_______Student Activities/Support_________//
-  { path: "/CapacityDevelopment_Skills", component: <CapacityDevelopment_Skills /> },
-  { path: "/Conference_Seminars_Workshops", component: <Conference_Seminars_Workshops /> },
-  { path: "/Career_Counseling_Guidance", component: <Career_Counseling_Guidance /> },
+  {
+    path: "/CapacityDevelopment_Skills",
+    component: <CapacityDevelopment_Skills />,
+  },
+  {
+    path: "/Conference_Seminars_Workshops",
+    component: <Conference_Seminars_Workshops />,
+  },
+  {
+    path: "/Career_Counseling_Guidance",
+    component: <Career_Counseling_Guidance />,
+  },
   { path: "/Guest_Lectures", component: <Guest_Lectures /> },
-  { path: "/StudentProgression_Higher_Education", component: <StudentProgression_Higher_Education /> },
-  { path: "/StudentProgression_Competitive_Exams", component: <StudentProgression_Competitive_Exams /> },
+  {
+    path: "/StudentProgression_Higher_Education",
+    component: <StudentProgression_Higher_Education />,
+  },
+  {
+    path: "/StudentProgression_Competitive_Exams",
+    component: <StudentProgression_Competitive_Exams />,
+  },
   { path: "/DetailsOfStudents_MOOC", component: <DetailsOfStudents_MOOC /> },
-  { path: "/Intercollegiate_Events_Awards_Won", component: <Intercollegiate_Events_Awards_Won /> },
-  { path: "/Cultural_CoCurricularActivities_Conducted", component: <Cultural_CoCurricularActivities_Conducted /> },
-  { path: "/SportsEvents_Conducted_College", component: <SportsEvents_Conducted_College /> },
+  {
+    path: "/Intercollegiate_Events_Awards_Won",
+    component: <Intercollegiate_Events_Awards_Won />,
+  },
+  {
+    path: "/Cultural_CoCurricularActivities_Conducted",
+    component: <Cultural_CoCurricularActivities_Conducted />,
+  },
+  {
+    path: "/SportsEvents_Conducted_College",
+    component: <SportsEvents_Conducted_College />,
+  },
 
+  //__________Library_________//
+  { path: "/Databases", component: <Databases /> },
+  { path: "/Research_Journals", component: <Research_Journals /> },
+  { path: "/Books", component: <Books /> },
+  { path: "/Annual_Expenditure", component: <Annual_Expenditure /> },
   //_______Examination_________//
-  { path: "/examination/programWiseExamResult", component: <Program_Wise_Exam_Results />} ,
-  {path: "/examination/examAndActionTaken", component: <Exam_Action_Taken />},
-  {path: "/malpracticeCommitteeReport", component: <Malpractice_committee_Report />},
+  {
+    path: "/examination/programWiseExamResult",
+    component: <Program_Wise_Exam_Results />,
+  },
+  { path: "/examination/examAndActionTaken", component: <Exam_Action_Taken /> },
+  {
+    path: "/malpracticeCommitteeReport",
+    component: <Malpractice_committee_Report />,
+  },
 
   //___________Innovation and Enterprenuership____________//
-  {path: "/workshopsandSeminarsConducted", component: <WorkshopsOrSeminars />},
-  {path: "/innovation", component: <Innovation />},
-  {path: "/patentsFiled", component: <PatentsOrCopyRights />},
-  {path: "/enterpreneurship/activitiesConducted", component: <Activities_Conducted_MCCIE />},
-
+  {
+    path: "/workshopsandSeminarsConducted",
+    component: <WorkshopsOrSeminars />,
+  },
+  { path: "/innovation", component: <Innovation /> },
+  { path: "/patentsFiled", component: <PatentsOrCopyRights /> },
+  {
+    path: "/enterpreneurship/activitiesConducted",
+    component: <Activities_Conducted_MCCIE />,
+  },
 
   //___________Placement____________//
-  { path: "/placement/onCampus", component: <OnCampus/> },
+  { path: "/placement/onCampus", component: <OnCampus /> },
   { path: "/placement/offCampus", component: <OffCampus /> },
-  { path: "/placement/trainingsAndWorkshops", component: <TrainingsAndWorkshops /> },
+  {
+    path: "/placement/trainingsAndWorkshops",
+    component: <TrainingsAndWorkshops />,
+  },
   { path: "/placement/Internships", component: <Internships /> },
-  { path: "/placement/careerFair", component: <CareerFair/> },
+  { path: "/placement/careerFair", component: <CareerFair /> },
 
   //_____________Infrastructure_____________//
-  { path: "/infrastructure/classroom", component: <ClassRooms/> },
-  { path: "/infrastructure/labs", component: <Labs/> },
+  { path: "/infrastructure/classroom", component: <ClassRooms /> },
+  { path: "/infrastructure/labs", component: <Labs /> },
+  { path: "/infrastructure/softwares", component: <Softwares /> },
+  { path: "/infrastructure/seminarHalls", component: <Seminar_Halls /> },
+  { path: "/infrastructure/amphitheatre", component: <Amphitheatre /> },
+  { path: "/infrastructure/boardRooms", component: <Board_Rooms /> },
+  {
+    path: "/infrastructure/computerLabs",
+    component: <ComputerLabs_SimulationLab />,
+  },
+  { path: "/infrastructure/auditorium", component: <Auditorium /> },
 
-    //_______________Institutional Values_________________//
-    { path: "/institutionalvalues/activitiesPeace", component: <ActivitiesPeace/> },
-    { path: "/institutionalvalues/equityPrograms", component: <EquityPrograms/> },
-    { path: "/institutionalvalues/constitutionValues", component: <ConstitutionalValues/> },
-    { path: "/institutionalvalues/nationalInternationalDays", component: <NationalInternationalDays/> },
-    { path: "/institutionalvalues/bestPractices", component: <BestPractices/> },
+  //_______________Institutional Values_________________//
+  {
+    path: "/institutionalvalues/activitiesPeace",
+    component: <ActivitiesPeace />,
+  },
+  {
+    path: "/institutionalvalues/equityPrograms",
+    component: <EquityPrograms />,
+  },
+  {
+    path: "/institutionalvalues/constitutionValues",
+    component: <ConstitutionalValues />,
+  },
+  {
+    path: "/institutionalvalues/nationalInternationalDays",
+    component: <NationalInternationalDays />,
+  },
+  { path: "/institutionalvalues/bestPractices", component: <BestPractices /> },
 
-    //_________________Alumni___________________________//
-    { path: "/Alumni/associationActivities", component: <AssociationActivites/> },
-    { path: "/Alumni/scholarships", component: <Scholarships/> },
-    { path: "/Alumni/financialContribution", component: <FinancialContribution/> },
-    { path: "/Alumni/distinguishedAlumni", component: <DistinguishedAlumni/> },
+  //_________________Alumni___________________________//
+  {
+    path: "/Alumni/associationActivities",
+    component: <AssociationActivites />,
+  },
+  { path: "/Alumni/scholarships", component: <Scholarships /> },
+  {
+    path: "/Alumni/financialContribution",
+    component: <FinancialContribution />,
+  },
+  { path: "/Alumni/distinguishedAlumni", component: <DistinguishedAlumni /> },
+
+  //_________________GOVERNANCE___________________________//
+  { path: "/governance/policyDocument", component: <PolicyDocument /> },
+  { path: "/governance/aaa", component: <AAA /> },
+  { path: "/governance/greenAudit", component: <GreenAudit /> },
+  { path: "/governance/energyAudit", component: <EnergyAudit /> },
 ];
 
 const publicRoutes = [
   { path: "", exact: true, component: <Navigate to="/login" /> },
   { path: "/login", component: <Login /> },
   { path: "/logout", component: <Logout /> },
-]
+];
 export { authProtectedRoutes, publicRoutes };

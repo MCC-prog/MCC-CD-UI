@@ -496,10 +496,7 @@ const Value_Added_Program: React.FC = () => {
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <Breadcrumb
-            title="Curriculum"
-            breadcrumbItem="Value Added Program"
-          />
+          <Breadcrumb title="Curriculum" breadcrumbItem="Value Added Program" />
           <Card>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
@@ -1015,73 +1012,23 @@ const Value_Added_Program: React.FC = () => {
         >
           <ModalHeader toggle={toggleModal}>List</ModalHeader>
           <ModalBody>
-            <Table bordered>
-              <thead>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>
-                    Academic Year
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.academicYear}
-                      onChange={(e) => handleFilterChange(e, "academicYear")}
-                    />
-                  </th>
-                  <th>
-                    Department Name
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.stream}
-                      onChange={(e) => handleFilterChange(e, "semesterType")}
-                    />
-                  </th>
-                  <th>
-                    Student Name
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.studentName}
-                      onChange={(e) => handleFilterChange(e, "semesterNo")}
-                    />
-                  </th>
-                  <th>
-                    Register Name
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.registerNumber}
-                      onChange={(e) => handleFilterChange(e, "semesterNo")}
-                    />
-                  </th>
-                  <th>
-                    Course Title
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.courseTitle}
-                      onChange={(e) => handleFilterChange(e, "semesterNo")}
-                    />
-                  </th>
-                  <th>
-                    No of students enrolled
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.NumberOfStudentsEnrl}
-                      onChange={(e) => handleFilterChange(e, "semesterNo")}
-                    />
-                  </th>
-                  <th>
-                    No of students completed
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.NumberOfStudentsCompleted}
-                      onChange={(e) => handleFilterChange(e, "semesterNo")}
-                    />
-                  </th>
+                  <th>Academic Year</th>
+                  <th>Department Name</th>
+                  <th>Student Name</th>
+                  <th>Register Name</th>
+                  <th>Course Title</th>
+                  <th>No of students enrolled</th>
+                  <th>No of students completed</th>
                   <th>Actions</th>
                 </tr>
               </thead>
