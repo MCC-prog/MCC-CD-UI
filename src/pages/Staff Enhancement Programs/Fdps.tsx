@@ -1,10 +1,6 @@
 import Breadcrumb from "Components/Common/Breadcrumb";
 import AcademicYearDropdown from "Components/DropDowns/AcademicYearDropdown";
-import DegreeDropdown from "Components/DropDowns/DegreeDropdown";
 import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
-import ProgramDropdown from "Components/DropDowns/ProgramDropdown";
-import ProgramTypeDropdown from "Components/DropDowns/ProgramTypeDropdown";
-import SemesterDropdowns from "Components/DropDowns/SemesterDropdowns";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { ToastContainer } from "react-toastify";
 import { useFormik } from "formik";

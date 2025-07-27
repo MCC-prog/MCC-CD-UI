@@ -42,7 +42,7 @@ const AAA: React.FC = () => {
     file: null as string | null,
   });
 
-const fileRef = useRef<HTMLInputElement | null>(null);
+  const fileRef = useRef<HTMLInputElement | null>(null);
 
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
@@ -313,7 +313,7 @@ const fileRef = useRef<HTMLInputElement | null>(null);
         }
         // Reset the form fields
         resetForm();
-          if (fileRef.current) {
+        if (fileRef.current) {
           fileRef.current.value = "";
         }
         setIsEditMode(false); // Reset edit mode
@@ -389,7 +389,7 @@ const fileRef = useRef<HTMLInputElement | null>(null);
                         }`}
                         type="file"
                         id="formFile"
-                          innerRef={fileRef}
+                        innerRef={fileRef}
                         onChange={(event) => {
                           validation.setFieldValue(
                             "file",
@@ -481,28 +481,18 @@ const fileRef = useRef<HTMLInputElement | null>(null);
                 onChange={handleSearch}
               />
             </div>
-            <Table className="table-hover custom-table">
-              <thead>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+                         <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>
-                    Academic Year
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.academicYear}
-                      onChange={(e) => handleFilterChange(e, "academicYear")}
-                    />
-                  </th>
-                  <th>
-                    Documents
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.file || ""}
-                      onChange={(e) => handleFilterChange(e, "file")}
-                    />
-                  </th>
+                  <th>Academic Year</th>
+                  <th>Documents</th>
                   <th>Actions</th>
                 </tr>
               </thead>

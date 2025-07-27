@@ -103,7 +103,10 @@ const Softwares: React.FC = () => {
   // Fetch BOS data from the backend
   const fetchSoftwareData = async () => {
     try {
-      const response = await api.get("/infrastructureSoftware/getAllSoftware", "");
+      const response = await api.get(
+        "/infrastructureSoftware/getAllSoftware",
+        ""
+      );
       setSoftwareData(response);
       setFilteredData(response);
     } catch (error) {
@@ -130,7 +133,10 @@ const Softwares: React.FC = () => {
   // Fetch the data for the selected new Courses Introduced ID and populate the form fields
   const handleEdit = async (id: string) => {
     try {
-      const response = await api.get(`/infrastructureSoftware/getSoftwareById?softwareId=${id}`, "");
+      const response = await api.get(
+        `/infrastructureSoftware/getSoftwareById?softwareId=${id}`,
+        ""
+      );
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
       // Filter the response where isCurrent or isCurrentForAdmission is true
       const filteredAcademicYearList = academicYearOptions.filter(
@@ -155,12 +161,8 @@ const Softwares: React.FC = () => {
             }
           : null,
         file: response.documents?.Mom || null,
-        nameOfSoftware: response.nameOfSoftware
-          ? response.nameOfSoftware
-          : "",
-        noOfLicenses: response.noOfLicenses
-          ? response.noOfLicenses
-          : "",
+        nameOfSoftware: response.nameOfSoftware ? response.nameOfSoftware : "",
+        noOfLicenses: response.noOfLicenses ? response.noOfLicenses : "",
       };
       const streamOption = mapValueToLabel(response.streamId, []); // Replace [] with stream options array if available
       const departmentOption = mapValueToLabel(response.departmentId, []); // Replace [] with department options array if available
@@ -203,9 +205,7 @@ const Softwares: React.FC = () => {
           `/infrastructureSoftware/deleteSoftware?softwareId=${id}`,
           ""
         );
-        toast.success(
-          response.message || " Software removed successfully!"
-        );
+        toast.success(response.message || " Software removed successfully!");
         fetchSoftwareData();
       } catch (error) {
         toast.error("Failed to remove  Software. Please try again.");
@@ -222,9 +222,12 @@ const Softwares: React.FC = () => {
     if (fileName) {
       try {
         // Ensure you set responseType to 'blob' to handle binary data
-        const response = await axios.get(`/infrastructureSoftware/download/${fileName}`, {
-          responseType: "blob",
-        });
+        const response = await axios.get(
+          `/infrastructureSoftware/download/${fileName}`,
+          {
+            responseType: "blob",
+          }
+        );
 
         // Create a Blob from the response data
         const blob = new Blob([response], { type: "*/*" });
@@ -255,25 +258,24 @@ const Softwares: React.FC = () => {
 
   // Handle file deletion
   // Clear the file from the form and show success message
-   const handleDeleteFile = async () => {
-      try {
-        // Call the delete API
-        const response = await api.delete(
-          `/infrastructureSoftware/deleteSoftwareDocument?softwareDocumentId=${editId}`,
-          ""
-        );
-        // Show success message
-        toast.success(response.message || "File deleted successfully!");
-        // Remove the file from the form
-        validation.setFieldValue("file", null); // Clear the file from Formik state
-        setIsFileUploadDisabled(false); // Enable the file upload button
-      } catch (error) {
-        // Show error message
-        toast.error("Failed to delete the file. Please try again.");
-        console.error("Error deleting file:", error);
-      }
-    };
-  
+  const handleDeleteFile = async () => {
+    try {
+      // Call the delete API
+      const response = await api.delete(
+        `/infrastructureSoftware/deleteSoftwareDocument?softwareDocumentId=${editId}`,
+        ""
+      );
+      // Show success message
+      toast.success(response.message || "File deleted successfully!");
+      // Remove the file from the form
+      validation.setFieldValue("file", null); // Clear the file from Formik state
+      setIsFileUploadDisabled(false); // Enable the file upload button
+    } catch (error) {
+      // Show error message
+      toast.error("Failed to delete the file. Please try again.");
+      console.error("Error deleting file:", error);
+    }
+  };
 
   const validation = useFormik({
     initialValues: {
@@ -341,7 +343,7 @@ const Softwares: React.FC = () => {
         formData.append("file", values.file);
       }
 
-// If editing, include ID
+      // If editing, include ID
       if (isEditMode && editId) {
         formData.append("softwareId", editId);
       }
@@ -353,22 +355,18 @@ const Softwares: React.FC = () => {
             `/infrastructureSoftware/update`,
             formData
           );
-          toast.success(
-            response.message || "Software updated successfully!"
-          );
+          toast.success(response.message || "Software updated successfully!");
         } else {
           // Call the save API
           const response = await api.create(
             "/infrastructureSoftware/save",
             formData
           );
-          toast.success(
-            response.message || "New Software added successfully!"
-          );
+          toast.success(response.message || "New Software added successfully!");
         }
         // Reset the form fields
-            resetForm();
-          if (fileRef.current) {
+        resetForm();
+        if (fileRef.current) {
           fileRef.current.value = "";
         }
         setIsEditMode(false); // Reset edit mode
@@ -388,10 +386,7 @@ const Softwares: React.FC = () => {
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <Breadcrumb
-            title="Infrastructure"
-            breadcrumbItem="Software"
-          />
+          <Breadcrumb title="Infrastructure" breadcrumbItem="Software" />
           <Card>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
@@ -472,8 +467,6 @@ const Softwares: React.FC = () => {
                         )}
                     </div>
                   </Col>
-                  
-                 
 
                   <Col sm={4}>
                     <div className="mb-3">
@@ -548,9 +541,7 @@ const Softwares: React.FC = () => {
                   <Col lg={12}>
                     <div className="mt-3 d-flex justify-content-between">
                       <button className="btn btn-primary" type="submit">
-                        {isEditMode
-                          ? "Update "
-                          : "Save "}
+                        {isEditMode ? "Update " : "Save "}
                       </button>
                       <button
                         className="btn btn-secondary"
@@ -586,57 +577,21 @@ const Softwares: React.FC = () => {
             </div>
 
             {/* Table with Pagination */}
-            <Table className="table-hover custom-table">
-              <thead>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>
-                    Academic Year
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.academicYear}
-                      onChange={(e) => handleFilterChange(e, "academicYear")}
-                    />
-                  </th>
-                  <th>
-                    Stream
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.stream}
-                      onChange={(e) => handleFilterChange(e, "stream")}
-                    />
-                  </th>
-                  <th>
-                    Department
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.department}
-                      onChange={(e) => handleFilterChange(e, "department")}
-                    />
-                  </th>
-                    <th>
-                        Name of Software
-                        <Input
-                        type="text"
-                        placeholder="Filter"
-                        value={filters.nameOfSoftware}
-                        onChange={(e) =>
-                            handleFilterChange(e, "nameOfSoftware")
-                        }
-                        />
-                  </th>
-                  <th>
-                    No of Licenses
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.noOfLicenses}
-                      onChange={(e) => handleFilterChange(e, "noOfLicenses")}
-                    />
-                  </th>
+                  <th>Academic Year</th>
+                  <th>Stream</th>
+                  <th>Department</th>
+                  <th>Name of Software</th>
+                  <th>No of Licenses</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -648,8 +603,8 @@ const Softwares: React.FC = () => {
                       <td>{software.academicYear}</td>
                       <td>{software.streamName}</td>
                       <td>{software.departmentName}</td>
-                        <td>{software.nameOfSoftware}</td>
-                        <td>{software.noOfLicenses}</td>
+                      <td>{software.nameOfSoftware}</td>
+                      <td>{software.noOfLicenses}</td>
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button

@@ -513,36 +513,24 @@ const fileRef = useRef<HTMLInputElement | null>(null);
                 onChange={handleSearch}
               />
             </div>
-            <Table className="table-hover custom-table">
-              <thead>
+            <Table
+                          striped
+                          bordered
+                          hover
+                          responsive
+                          className="align-middle text-center"
+                        >
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
                   <th>
                     Academic Year
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.academicYear}
-                      onChange={(e) => handleFilterChange(e, "academicYear")}
-                    />
                   </th>
                     <th>
                         No. of Amphitheatres
-                        <Input
-                        type="text"
-                        placeholder="Filter"
-                        value={filters.noOfAmphitheatres || ""}
-                        onChange={(e) => handleFilterChange(e, "noOfAmphitheatres")}
-                        />
                   </th>
                   <th>
                     Documents
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.file || ""}
-                      onChange={(e) => handleFilterChange(e, "file")}
-                    />
                   </th>
                   <th>Actions</th>
                 </tr>

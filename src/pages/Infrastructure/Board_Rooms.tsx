@@ -43,7 +43,7 @@ const Board_Rooms: React.FC = () => {
     file: null as string | null,
   });
 
-const fileRef = useRef<HTMLInputElement | null>(null);
+  const fileRef = useRef<HTMLInputElement | null>(null);
 
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
@@ -102,7 +102,9 @@ const fileRef = useRef<HTMLInputElement | null>(null);
   // Fetch AAA data from the backend
   const fetchBoardRoomsData = async () => {
     try {
-      const response = await axios.get("/infrastructureBoardRooms/getAllBoardRooms"); // Replace with your backend API endpoint
+      const response = await axios.get(
+        "/infrastructureBoardRooms/getAllBoardRooms"
+      ); // Replace with your backend API endpoint
       setBoardRoomsData(response);
       setFilteredData(response);
     } catch (error) {
@@ -129,7 +131,10 @@ const fileRef = useRef<HTMLInputElement | null>(null);
   // Fetch the data for the selected policy ID and populate the form fields
   const handleEdit = async (id: string) => {
     try {
-      const response = await api.get(`/infrastructureBoardRooms/edit?boardRoomId=${id}`, "");
+      const response = await api.get(
+        `/infrastructureBoardRooms/edit?boardRoomId=${id}`,
+        ""
+      );
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
       // Filter the response where isCurrent or isCurrentForAdmission is true
       const filteredAcademicYearList = academicYearOptions.filter(
@@ -271,9 +276,9 @@ const fileRef = useRef<HTMLInputElement | null>(null);
       })
         .nullable()
         .required("Please select academic year"),
-        noOfBoardRooms: Yup.string()
-          .required("Please enter the number of board rooms")
-          .matches(/^[0-9]+$/, "Must be a number"),
+      noOfBoardRooms: Yup.string()
+        .required("Please enter the number of board rooms")
+        .matches(/^[0-9]+$/, "Must be a number"),
       file: Yup.mixed()
         .required("Please upload a file")
         .test("fileSize", "File size is too large", (value: any) => {
@@ -292,7 +297,7 @@ const fileRef = useRef<HTMLInputElement | null>(null);
       const formData = new FormData();
 
       formData.append("academicYear", values.academicYear?.value || "");
-        formData.append("noOfBoardRooms", values.noOfBoardRooms || "");
+      formData.append("noOfBoardRooms", values.noOfBoardRooms || "");
 
       // Handle the file conditionally
       if (isEditMode && typeof values.file === "string") {
@@ -311,16 +316,22 @@ const fileRef = useRef<HTMLInputElement | null>(null);
       try {
         if (isEditMode && editId) {
           // Call the update API
-          const response = await api.put(`/infrastructureBoardRooms/update`, formData);
+          const response = await api.put(
+            `/infrastructureBoardRooms/update`,
+            formData
+          );
           toast.success(response.message || "Board Room updated successfully!");
         } else {
           // Call the save API
-          const response = await api.create("/infrastructureBoardRooms/save", formData);
+          const response = await api.create(
+            "/infrastructureBoardRooms/save",
+            formData
+          );
           toast.success(response.message || "Board Room added successfully!");
         }
         // Reset the form fields
         resetForm();
-          if (fileRef.current) {
+        if (fileRef.current) {
           fileRef.current.value = "";
         }
         setIsEditMode(false); // Reset edit mode
@@ -369,8 +380,8 @@ const fileRef = useRef<HTMLInputElement | null>(null);
                         )}
                     </div>
                   </Col>
-                    {/* Number of Board Rooms Input */}
-                    <Col lg={4}>
+                  {/* Number of Board Rooms Input */}
+                  <Col lg={4}>
                     <div className="mb-3">
                       <Label htmlFor="noOfBoardRooms">No. of Board Rooms</Label>
                       <Input
@@ -421,7 +432,7 @@ const fileRef = useRef<HTMLInputElement | null>(null);
                         }`}
                         type="file"
                         id="formFile"
-                          innerRef={fileRef}
+                        innerRef={fileRef}
                         onChange={(event) => {
                           validation.setFieldValue(
                             "file",
@@ -500,9 +511,7 @@ const fileRef = useRef<HTMLInputElement | null>(null);
         </Container>
         {/* Modal for Listing Policy Documents */}
         <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg">
-          <ModalHeader toggle={toggleModal}>
-            List of Board Rooms
-          </ModalHeader>
+          <ModalHeader toggle={toggleModal}>List of Board Rooms</ModalHeader>
           <ModalBody>
             {/* Global Search */}
             <div className="mb-3">
@@ -513,37 +522,19 @@ const fileRef = useRef<HTMLInputElement | null>(null);
                 onChange={handleSearch}
               />
             </div>
-            <Table className="table-hover custom-table">
-              <thead>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>
-                    Academic Year
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.academicYear}
-                      onChange={(e) => handleFilterChange(e, "academicYear")}
-                    />
-                  </th>
-                    <th>
-                        No. of Board Rooms
-                        <Input
-                        type="text"
-                        placeholder="Filter"
-                        value={filters.noOfBoardRooms || ""}
-                        onChange={(e) => handleFilterChange(e, "noOfBoardRooms")}
-                        />
-                  </th>
-                  <th>
-                    Documents
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.file || ""}
-                      onChange={(e) => handleFilterChange(e, "file")}
-                    />
-                  </th>
+                  <th>Academic Year</th>
+                  <th>No. of Board Rooms</th>
+                  <th>Documents</th>
                   <th>Actions</th>
                 </tr>
               </thead>

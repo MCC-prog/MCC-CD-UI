@@ -723,84 +723,24 @@ const Nss_Yrc: React.FC = () => {
                 onChange={handleSearch}
               />
             </div>
-            <Table className="table-hover custom-table">
-              <thead>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
                 <tr>
                   <th>Sl.No</th>
-                  <th>
-                    Academic Year
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.academicYear}
-                      onChange={(e) => handleFilterChange(e, "academicYear")}
-                    />
-                  </th>
-                  <th>
-                    School
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.stream}
-                      onChange={(e) => handleFilterChange(e, "stream")}
-                    />
-                  </th>
-                  <th>
-                    Program
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.program}
-                      onChange={(e) => handleFilterChange(e, "program")}
-                    />
-                  </th>
-                  <th>
-                    Semester Type
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.semester}
-                      onChange={(e) => handleFilterChange(e, "semester")}
-                    />
-                  </th>
-                  <th>
-                    No Of Participants
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.noOfParticipants}
-                      onChange={(e) =>
-                        handleFilterChange(e, "noOfParticipants")
-                      }
-                    />
-                  </th>
-                  <th>
-                    Organization
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.organisation}
-                      onChange={(e) => handleFilterChange(e, "organisation")}
-                    />
-                  </th>
-                  <th>
-                    Location
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.location}
-                      onChange={(e) => handleFilterChange(e, "location")}
-                    />
-                  </th>
-                  <th>
-                    Date
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.date}
-                      onChange={(e) => handleFilterChange(e, "date")}
-                    />
-                  </th>
+                  <th>Academic Year</th>
+                  <th>School</th>
+                  <th>Program</th>
+                  <th>Semester Type</th>
+                  <th>No Of Participants</th>
+                  <th>Organization</th>
+                  <th>Location</th>
+                  <th>Date</th>
                   <th>Actions</th>
                 </tr>
               </thead>
