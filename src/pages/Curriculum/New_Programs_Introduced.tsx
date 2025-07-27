@@ -338,7 +338,7 @@ const New_Programs_Introduced: React.FC = () => {
 
   // Handle file deletion
   // Clear the file from the form and show success message
-  const handleDeleteFile = async ( p0: string, docType: string) => {
+  const handleDeleteFile = async (p0: string, docType: string) => {
     try {
       // Call the delete API
       const response = await api.delete(
@@ -347,7 +347,7 @@ const New_Programs_Introduced: React.FC = () => {
       );
       // Show success message
       toast.success(response.message || "File deleted successfully!");
-       if (docType === "mom") {
+      if (docType === "mom") {
         validation.setFieldValue("file", null);
       } else if (docType === "syllabus") {
         validation.setFieldValue("syllabusFile", null);
@@ -498,10 +498,7 @@ const New_Programs_Introduced: React.FC = () => {
       try {
         if (isEditMode && editId) {
           // Call the update API
-          const response = await api.put(
-            `/newProgram/updateProgram`,
-            formData
-          );
+          const response = await api.put(`/newProgram/updateProgram`, formData);
           toast.success(
             response.message || "New Program Introduced updated successfully!"
           );
@@ -861,7 +858,7 @@ const New_Programs_Introduced: React.FC = () => {
                             color="link"
                             className="text-primary"
                             onClick={() =>
-                             handleDownloadFile(
+                              handleDownloadFile(
                                 validation.values.file as string
                               )
                             }
@@ -872,8 +869,12 @@ const New_Programs_Introduced: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
-                            onClick={() => handleDeleteFile(validation.values.file as string,
-                                "mom")}
+                            onClick={() =>
+                              handleDeleteFile(
+                                validation.values.file as string,
+                                "mom"
+                              )
+                            }
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>
@@ -932,7 +933,7 @@ const New_Programs_Introduced: React.FC = () => {
                             color="link"
                             className="text-primary"
                             onClick={() =>
-                               handleDownloadFile(
+                              handleDownloadFile(
                                 validation.values.syllabusFile as string
                               )
                             }
@@ -943,9 +944,12 @@ const New_Programs_Introduced: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
-                            onClick={() => handleDeleteFile(validation.values.syllabusFile as string, 
+                            onClick={() =>
+                              handleDeleteFile(
+                                validation.values.syllabusFile as string,
                                 "syllabus"
-                            )}
+                              )
+                            }
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>
@@ -997,93 +1001,25 @@ const New_Programs_Introduced: React.FC = () => {
             </div>
 
             {/* Table with Pagination */}
-            <Table className="table-hover custom-table">
-              <thead>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>
-                    Academic Year
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.academicYear}
-                      onChange={(e) => handleFilterChange(e, "academicYear")}
-                    />
-                  </th>
-                  <th>
-                    Semester Type
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.semesterType}
-                      onChange={(e) => handleFilterChange(e, "semesterType")}
-                    />
-                  </th>
-                  <th>
-                    Semester No
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.semesterNo}
-                      onChange={(e) => handleFilterChange(e, "semesterNo")}
-                    />
-                  </th>
-                  <th>
-                    Stream
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.stream}
-                      onChange={(e) => handleFilterChange(e, "stream")}
-                    />
-                  </th>
-                  <th>
-                    Department
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.department}
-                      onChange={(e) => handleFilterChange(e, "department")}
-                    />
-                  </th>
-                  <th>
-                    Program Type
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.programType}
-                      onChange={(e) => handleFilterChange(e, "programType")}
-                    />
-                  </th>
-                  <th>
-                    Degree
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.programType}
-                      onChange={(e) => handleFilterChange(e, "programType")}
-                    />
-                  </th>
-                  <th>
-                    Program Name
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.program}
-                      onChange={(e) => handleFilterChange(e, "program")}
-                    />
-                  </th>
-                  <th>
-                    Introduction Year
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.yearOfIntroduction}
-                      onChange={(e) =>
-                        handleFilterChange(e, "yearOfIntroduction")
-                      }
-                    />
-                  </th>
+                  <th>Academic Year</th>
+                  <th>Semester Type</th>
+                  <th>Semester No</th>
+                  <th>Stream</th>
+                  <th>Department</th>
+                  <th>Program Type</th>
+                  <th>Degree</th>
+                  <th>Program Name</th>
+                  <th>Introduction Year</th>
                   <th>Actions</th>
                 </tr>
               </thead>

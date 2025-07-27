@@ -142,6 +142,23 @@ const megaMenuContents = [
     ],
   },
   {
+    title: "EXAMINATION",
+    items: [
+      {
+        label: "1. Program –wise Exam Results",
+        path: "/examination/programWiseExamResult",
+      },
+      {
+        label: "2. Student Grievances w.r.t Exam & Action taken",
+        path: "/examination/examAndActionTaken",
+      },
+      {
+        label: "3. Malpractice Committee report",
+        path: "/malpracticeCommitteeReport",
+      },
+    ],
+  },
+  {
     title: "RESEARCH",
     items: [
       {
@@ -191,10 +208,16 @@ const megaMenuContents = [
   {
     title: "INNOVATION & ENTREPRENEURSHIP",
     items: [
-      "Workshops/Seminars conducted on Research Methodology, Intellectual Property Rights (IPR), Entrepreneurship and Skills development",
-      "Innovation",
-      "Patents filed",
-      "Activities conducted by MCCIIE",
+      {
+        label: "1. Workshops/Seminars conducted",
+        path: "/workshopsandSeminarsConducted",
+      },
+      { label: "2. Innovation", path: "/innovation" },
+      { label: "3. Patents filed", path: "/patentsFiled" },
+      {
+        label: "4. Activities conducted by MCCIE",
+        path: "/enterpreneurship/activitiesConducted",
+      },
     ],
   },
   {
@@ -257,10 +280,10 @@ const megaMenuContents = [
   {
     title: "LIBRARY",
     items: [
-      "Databases which are subscribed",
-      "National/International Journals (hard copy)",
-      "Books (Volumes/Titles)",
-      "Annual Expenditure",
+      { label: "1. Databases which are subscribed", path: "/Databases" },
+      { label: "2. Research Journals", path: "/Research_Journals" },
+      { label: "3. Books", path: "/Books" },
+      { label: "4. Annual Expenditure", path: "/Annual_Expenditure" },
     ],
   },
   {

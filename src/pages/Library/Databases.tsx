@@ -6,7 +6,7 @@ import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
 import Select from "react-select";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { useFormik } from "formik";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -27,24 +27,23 @@ import { APIClient } from "../../helpers/api_helper";
 import { toast, ToastContainer } from "react-toastify";
 import moment from "moment";
 import { Tooltip } from "@mui/material";
-import AssociationDropdown from "Components/DropDowns/AssociationDropdown";
 
 const api = new APIClient();
 
-const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
+const Databases: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [ccacData, setCCACData] = useState<any[]>([]);
+  const [cswData, setCSWData] = useState<any[]>([]);
   const [editId, setEditId] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
-  const [filteredData, setFilteredData] = useState(ccacData);
+  const [filteredData, setFilteredData] = useState(cswData);
   const [filters, setFilters] = useState({
     academicYear: "",
     level: "",
     type: "",
-    noOfParticipants: "",
+    noOfTeachers: "",
     hostingClgNme: "",
     studentName: "",
   });
@@ -58,33 +57,14 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
 
   const fileRef = useRef<HTMLInputElement | null>(null);
-  const imgRef = useRef<HTMLInputElement | null>(null);
+  const excelRef = useRef<HTMLInputElement | null>(null);
 
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
 
-    const filtered = ccacData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-
-  // Handle column-specific filters
-  const handleFilterChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    column: string
-  ) => {
-    const value = e.target.value.toLowerCase();
-    const updatedFilters = { ...filters, [column]: value };
-    setFilters(updatedFilters);
-
-    const filtered = ccacData.filter((row) =>
+    const filtered = cswData.filter((row) =>
       Object.values(row).some((val) =>
         String(val || "")
           .toLowerCase()
@@ -111,24 +91,26 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
     setIsModalOpen(!isModalOpen);
   };
 
-  // Fetch Cultural & Co-Curricular activities conducted in the college data from the backend
-  const fetchCCACData = async () => {
+  // Fetch Databases which are Subscribed data from the backend
+  const fetchCSWData = async () => {
     try {
-      const response = await axios.get("/cocurricularActivities/getAll"); // Replace with your backend API endpoint
-      setCCACData(response);
+      const response = await axios.get(
+        "/dataBasesSubscribed/getAllDataBasesSubscribed"
+      ); // Replace with your backend API endpoint
+      setCSWData(response);
       setFilteredData(response);
     } catch (error) {
       console.error(
-        "Error fetching Cultural & Co-Curricular activities conducted in the college data:",
+        "Error fetching Databases which are Subscribed data:",
         error
       );
     }
   };
 
   // Open the modal and fetch data
-  const handleListCCACClick = () => {
+  const handleListCSWClick = () => {
     toggleModal();
-    fetchCCACData();
+    fetchCSWData();
   };
 
   const mapValueToLabel = (
@@ -141,74 +123,63 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
   };
 
   // Handle edit action
-  // Fetch the data for the selected Cultural & Co-Curricular activities conducted in the college ID and populate the form fields
+  // Fetch the data for the selected Databases which are Subscribed ID and populate the form fields
   const handleEdit = async (id: string) => {
     try {
       const response = await api.get(
-        `/cocurricularActivities/edit?intercollegiateEventsId=${id}`,
+        `/dataBasesSubscribed?dataBasesSubscribedId=${id}`,
         ""
       );
+      if (!response) {
+        toast.error("No data found for the selected ID.");
+        return;
+      }
+      const files = response.file || {};
 
-      const academicYearOptions = await api.get("/getAllAcademicYear", "");
-      // Filter the response where isCurrent or isCurrentForAdmission is true
-      const filteredAcademicYearList = academicYearOptions.filter(
-        (year: any) => year.isCurrent || year.isCurrentForAdmission
+      const subscriptionFileKeys = Object.keys(response.file || {}).filter(
+        (key) =>
+          [
+            "Weekly",
+            "Fortnightly",
+            "Bimonthly",
+            "Monthly",
+            "Quarterly",
+            "Halfyearly",
+            "Annual",
+          ].includes(key)
       );
-      // Map the filtered data to the required format
-      const academicYearList = filteredAcademicYearList.map((year: any) => ({
-        value: year.year,
-        label: year.display,
-      }));
+
       // Map API response to Formik values
       const mappedValues = {
-        noOfParticipants: response.noOfParticipants || "",
-        academicYear: mapValueToLabel(response.academicYear, academicYearList),
-        stream: response.streamId
-          ? { value: response.streamId.toString(), label: response.streamName }
-          : null,
-        department: response.departmentId
+        academicYear: response.academicYear
           ? {
-              value: response.departmentId.toString(),
-              label: response.departmentName,
+              value: String(response.academicYear),
+              label: String(response.academicYear),
             }
           : null,
-        association: response.associationId
-          ? {
-              value: response.associationId.toString(),
-              label: response.associationName,
-            }
-          : null,
-        fromDate: response.fromDate,
-        toDate: response.toDate,
-        eventTitle: response.eventTitle || "",
-        file: response.documents?.CoCurricularActivities || null,
-        imageStudent: response.documents?.studentImage || null,
+        noOfTeachers: response.noOfTeachersUsingLibPerDay || "",
+        noOfStudents: response.noOfStudentsUsingLibPerDay || "",
+        file: files.DayRegister || null,
+        excel: files.Subscription || null,
+        subscriptionDetails: subscriptionFileKeys,
+        subscriptionFileNames: files, // ✅ Add this (NEW KEY!)
+        subscriptionFiles: {}, // This is for newly uploaded filesre
       };
-      const streamOption = mapValueToLabel(response.streamId, []); // Replace [] with stream options array if available
-      const departmentOption = mapValueToLabel(response.departmentId, []); // Replace [] with department options array if available
 
       // Update Formik values
       validation.setValues({
+        ...validation.initialValues,
         ...mappedValues,
-        academicYear: mappedValues.academicYear
-          ? {
-              ...mappedValues.academicYear,
-              value: String(mappedValues.academicYear.value),
-            }
-          : null,
-        noOfParticipants: response.noOfParticipants || "",
-        fromDate: mappedValues.fromDate || "",
-        toDate: mappedValues.toDate || "",
+        subscriptionDetails: subscriptionFileKeys,
+        subscriptionFiles: {}, // optional; will be populated later
       });
-      setSelectedStream(streamOption);
-      setSelectedDepartment(departmentOption);
-
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();
+      console.log("Mapped subscription details:", subscriptionFileKeys);
     } catch (error) {
       console.error(
-        "Error fetching Cultural & Co-Curricular activities conducted in the college data by ID:",
+        "Error fetching Databases which are Subscribed data by ID:",
         error
       );
     }
@@ -222,32 +193,36 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
   };
 
   // Confirm deletion of the record
-  // Call the delete API and refresh the Cultural & Co-Curricular activities conducted in the college data
+  // Call the delete API and refresh the Databases which are Subscribed data
   const confirmDelete = async (id: string) => {
     if (deleteId) {
       try {
         const response = await api.delete(
-          `/cocurricularActivities/deleteCocurricularActivities?cocurricularActivitiesId=${id}`,
+          `/dataBasesSubscribed/deleteDataBasesSubscribed?dataBasesSubscribedId=${id}`,
           ""
         );
         toast.success(
           response.message ||
-            "Cultural & Co-Curricular activities conducted in the college removed successfully!"
+            "Databases which are Subscribed removed successfully!"
         );
-        fetchCCACData();
+        fetchCSWData();
       } catch (error) {
         toast.error(
-          "Failed to remove Cultural & Co-Curricular activities conducted in the college. Please try again."
+          "Failed to remove Databases which are Subscribed. Please try again."
         );
-        console.error(
-          "Error deleting Cultural & Co-Curricular activities conducted in the college:",
-          error
-        );
+        console.error("Error deleting Databases which are Subscribed:", error);
       } finally {
         setIsDeleteModalOpen(false);
         setDeleteId(null);
       }
     }
+  };
+  const dropdownStyles = {
+    menu: (provided: any) => ({
+      ...provided,
+      overflowY: "auto", // Enable scrolling for additional options
+    }),
+    menuPortal: (base: any) => ({ ...base, zIndex: 9999 }), // Ensure the menu is above other elements
   };
 
   // Handle file download actions
@@ -256,7 +231,7 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
       try {
         // Ensure you set responseType to 'blob' to handle binary data
         const response = await axios.get(
-          `/cocurricularActivities/download/${fileName}`,
+          `/dataBasesSubscribed/download/${fileName}`,
           {
             responseType: "blob",
           }
@@ -289,18 +264,35 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
     }
   };
 
+  // Handle file deletion
+  // Clear the file from the form and show success message
   const handleDeleteFile = async (fileName: string, docType: string) => {
     try {
       const response = await api.delete(
-        `/cocurricularActivities/deleteCocurricularActivitiesDocument?cocurricularActivitiesId=${editId}&docType=${docType}`,
+        `/dataBasesSubscribed/deleteDataBasesSubscribedDocument?fileName=${fileName}`,
         ""
       );
       toast.success(response.message || "File deleted successfully!");
-      if (docType === "CoCurricularActivities") {
+      if (docType === "DayRegister") {
         validation.setFieldValue("file", null);
       }
-      if (docType === "studentImage") {
-        validation.setFieldValue("imageStudent", null);
+      if (docType === "Subscription") {
+        validation.setFieldValue("excel", null);
+      }
+      if (
+        [
+          "Weekly",
+          "Fortnightly",
+          "Bimonthly",
+          "Monthly",
+          "Quarterly",
+          "Halfyearly",
+          "Annual",
+        ].includes(docType)
+      ) {
+        const updated = { ...validation.values.subscriptionFileNames };
+        delete updated[docType];
+        validation.setFieldValue("subscriptionFileNames", updated);
       }
       setIsFileUploadDisabled(false); // Enable the file upload button
     } catch (error) {
@@ -312,40 +304,60 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
   const validation = useFormik({
     initialValues: {
       academicYear: null as { value: string; label: string } | null,
-      stream: null as { value: string; label: string } | null,
-      department: null as { value: string; label: string } | null,
-      association: null as { value: string; label: string } | null,
-      noOfParticipants: "",
-      fromDate: "",
-      toDate: "",
-      eventTitle: "",
+      noOfTeachers: "",
+      noOfStudents: "",
       file: null as File | string | null,
-      imageStudent: null as File | string | null,
+      excel: null as File | string | null,
+      subscriptionDetails: [] as string[], // Checkbox values
+      subscriptionFiles: {} as Record<string, File | null>, // For uploading new files
+      subscriptionFileNames: {} as Record<string, string>,
     },
     validationSchema: Yup.object({
-      academicYear: Yup.object()
-        .nullable()
-        .required("Please select an academic year"),
-      stream: Yup.object<{ value: string; label: string }>()
-        .nullable()
-        .required("Please select school"),
-      department: Yup.object<{ value: string; label: string }>()
-        .nullable()
-        .required("Please select department"),
-      eventTitle: Yup.string().required("Please enter eventTitle"),
-      noOfParticipants: Yup.string().required(
-        "Please enter no. of participants"
+      subscriptionDetails: Yup.array()
+        .of(Yup.string())
+        .min(1, "Select at least one subscription detail"),
+
+      subscriptionFiles: Yup.object().test(
+        "subscriptionFilesValidation",
+        "Invalid subscription file(s)",
+        function (value) {
+          const { subscriptionDetails, subscriptionFileNames } = this.parent;
+
+          for (const key of subscriptionDetails) {
+            const file = value?.[key];
+
+            // If file already exists from API (edit mode), allow skipping
+            const existingFileName = subscriptionFileNames?.[key];
+            if (!file && existingFileName) continue;
+
+            if (!file) {
+              return this.createError({
+                message: `Please upload a file for ${key}`,
+              });
+            }
+
+            // Check size limit (2MB)
+            if (file instanceof File && file.size > 2 * 1024 * 1024) {
+              return this.createError({
+                message: `File size too large for ${key} (max 2MB)`,
+              });
+            }
+
+            // Allowed types
+            const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
+            if (file instanceof File && !allowedTypes.includes(file.type)) {
+              return this.createError({
+                message: `Unsupported file format for ${key}`,
+              });
+            }
+          }
+
+          return true;
+        }
       ),
-      fromDate: Yup.string()
-        .required("From date is required")
-        .test("is-valid-date", "Invalid start date", (value) =>
-          moment(value, "DD/MM/YYYY", true).isValid()
-        ),
-      toDate: Yup.string()
-        .required("To date is required")
-        .test("is-valid-date", "Invalid start date", (value) =>
-          moment(value, "DD/MM/YYYY", true).isValid()
-        ),
+
+      noOfStudents: Yup.string().required("Please enter noOfStudents"),
+      noOfTeachers: Yup.string().required("Please enter no. of participants"),
       file: Yup.mixed().test(
         "fileValidation",
         "Please upload a valid file",
@@ -363,114 +375,100 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
             return this.createError({ message: "File size is too large" });
           }
           // Check file type
-          const allowedTypes = ["application/pdf"];
+          const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
           if (value instanceof File && !allowedTypes.includes(value.type)) {
             return this.createError({ message: "Unsupported file format" });
           }
           return true;
         }
       ),
-      imageStudent: Yup.mixed().test(
-        "fileValidation",
-        "Please upload a valid JPEG file",
-        function (value) {
-          if (isFileUploadDisabled) {
-            return true;
-          }
-          if (!value) {
-            return this.createError({ message: "Please upload a file" });
-          }
-          // Limit to 10MB for JPEG
-          if (value instanceof File && value.size > 10 * 1024 * 1024) {
-            return this.createError({ message: "File size is too large" });
-          }
-          const allowedTypes = ["image/jpeg"]; // Only JPEG allowed
-          if (value instanceof File && !allowedTypes.includes(value.type)) {
-            return this.createError({ message: "Only JPEG format is allowed" });
-          }
-          return true;
-        }
-      ),
     }),
+    enableReinitialize: true,
     onSubmit: async (values, { resetForm }) => {
+      console.log("Submitting values:", values);
+      const allSubscriptionTypes = [
+        "Weekly",
+        "Fortnightly",
+        "Bimonthly",
+        "Monthly",
+        "Quarterly",
+        "Halfyearly",
+        "Annual",
+      ];
+
       try {
         const formData = new FormData();
         formData.append("academicYear", values.academicYear?.value || "");
-        formData.append("streamId", values.stream?.value || "");
-        formData.append("departmentId", values.department?.value || "");
-        formData.append("associationId", values.association?.value || "");
-        formData.append("noOfParticipants", values.noOfParticipants);
-        formData.append("eventTitle", values.eventTitle || "");
-        formData.append("noOfParticipants", values.noOfParticipants || "");
-        // If the date is provided, format it to YYYY-MM-DD
-        if (values.fromDate) {
-          const formattedDate = moment(values.fromDate, "DD/MM/YYYY").format(
-            "DD/MM/YYYY"
-          );
-          formData.append("fromDate", formattedDate);
-        }
-        if (values.toDate) {
-          const formattedDate = moment(values.toDate, "DD/MM/YYYY").format(
-            "DD/MM/YYYY"
-          );
-          formData.append("toDate", formattedDate);
-        }
+        formData.append("noOfStudentsUsingLibPerDay", values.noOfStudents);
+        formData.append(
+          "noOfTeachersUsingLibPerDay",
+          values.noOfTeachers || ""
+        );
+        allSubscriptionTypes.forEach((type) => {
+          const file = values.subscriptionFiles?.[type] || null;
+          const fieldKey = type.toLowerCase(); // API expects lowercase keys like 'weekly'
+
+          if (file instanceof File) {
+            formData.append(fieldKey, file);
+          } else {
+            // Empty PDF if no file uploaded
+            formData.append(
+              fieldKey,
+              new Blob([], { type: "application/pdf" }),
+              "empty.pdf"
+            );
+          }
+        });
         if (isEditMode && typeof values.file === "string") {
           // Pass an empty PDF instead of null
           formData.append(
-            "coCurricularActivities",
+            "dayRegister",
             new Blob([], { type: "application/pdf" }),
             "empty.pdf"
           );
         } else if (isEditMode && values.file === null) {
           formData.append(
-            "coCurricularActivities",
+            "dayRegister",
             new Blob([], { type: "application/pdf" }),
             "empty.pdf"
           );
         } else if (values.file) {
-          formData.append("coCurricularActivities", values.file);
+          formData.append("dayRegister", values.file);
         }
-        if (isEditMode && typeof values.imageStudent === "string") {
-          // Pass an empty JPEG instead of null
+        if (isEditMode && typeof values.excel === "string") {
+          // Pass an empty PDF instead of null
           formData.append(
-            "studentImage",
-            new Blob([], { type: "image/jpeg" }),
-            "empty.jpg"
+            "subscription",
+            new Blob([], { type: "application/pdf" }),
+            "empty.pdf"
           );
-        } else if (isEditMode && values.imageStudent === null) {
+        } else if (isEditMode && values.excel === null) {
           formData.append(
-            "studentImage",
-            new Blob([], { type: "image/jpeg" }),
-            "empty.jpg"
+            "subscription",
+            new Blob([], { type: "application/pdf" }),
+            "empty.pdf"
           );
-        } else if (values.imageStudent) {
-          formData.append("studentImage", values.imageStudent);
+        } else if (values.excel) {
+          formData.append("subscription", values.excel);
         }
         // If in edit mode, append the edit ID
         if (isEditMode && editId) {
-          formData.append("coCurricularActivityId", editId);
+          formData.append("id", editId);
         }
 
         if (isEditMode && editId) {
           // Call the update API
-          const response = await api.put(
-            `/cocurricularActivities/update`,
-            formData
-          );
+          const response = await api.put(`/dataBasesSubscribed`, formData);
           toast.success(
             response.message ||
-              "Cultural & Co-Curricular activities conducted in the college updated successfully!"
+              "Databases which are Subscribed updated successfully!"
           );
         } else {
           // Call the save API
-          const response = await api.create(
-            "/cocurricularActivities/save",
-            formData
-          );
+          const response = await api.create("/dataBasesSubscribed", formData);
           toast.success(
             response.message ||
-              "Cultural & Co-Curricular activities conducted in the college added successfully!"
+              "Databases which are Subscribed added successfully!"
           );
         }
         // Reset the form fields
@@ -478,40 +476,46 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
         if (fileRef.current) {
           fileRef.current.value = "";
         }
-        if (imgRef.current) {
-          imgRef.current.value = "";
+        if (excelRef.current) {
+          excelRef.current.value = "";
         }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
-        handleListCCACClick();
+        handleListCSWClick();
       } catch (error) {
         // Display error message
         toast.error(
-          "Failed to save Cultural & Co-Curricular activities conducted in the college. Please try again."
+          "Failed to save Databases which are Subscribed. Please try again."
         );
-        console.error(
-          "Error creating Cultural & Co-Curricular activities conducted in the college:",
-          error
-        );
+        console.error("Error creating Databases which are Subscribed:", error);
       }
     },
   });
+
+  useEffect(() => {
+    console.log("Validation Errors:", validation.errors);
+  }, [validation.errors]);
 
   return (
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
           <Breadcrumb
-            title="Student Activities & Support"
-            breadcrumbItem="Cultural & Co-Curricular activities conducted in the college"
+            title="Library"
+            breadcrumbItem="Databases which are Subscribed"
           />
           <Card>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
                 <Row>
-                  <Col lg={4}>
-                    <div className="mb-3">
+                  {/* Academic Year Dropdown */}
+                  <Col
+                    lg={4}
+                    className="d-flex flex-column justify-content-end"
+                  >
+                    <div className="mb-3" style={{ marginTop: "24px" }}>
                       <Label>Academic Year</Label>
+                      <br />
                       <AcademicYearDropdown
                         value={validation.values.academicYear}
                         onChange={(selectedOption) =>
@@ -534,210 +538,71 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
                     </div>
                   </Col>
 
-                  {/* Stream Dropdown */}
-                  <Col lg={4}>
+                  <Col
+                    lg={4}
+                    className="d-flex flex-column justify-content-end"
+                  >
                     <div className="mb-3">
-                      <Label>School</Label>
-                      <StreamDropdown
-                        value={validation.values.stream}
-                        onChange={(selectedOption) => {
-                          validation.setFieldValue("stream", selectedOption);
-                          setSelectedStream(selectedOption);
-                          validation.setFieldValue("department", null);
-                          setSelectedDepartment(null);
-                        }}
-                        isInvalid={
-                          validation.touched.stream &&
-                          !!validation.errors.stream
-                        }
-                      />
-                      {validation.touched.stream &&
-                        validation.errors.stream && (
-                          <div className="text-danger">
-                            {validation.errors.stream}
-                          </div>
-                        )}
-                    </div>
-                  </Col>
-
-                  {/* Department Dropdown */}
-                  <Col lg={4}>
-                    <div className="mb-3">
-                      <Label>Department</Label>
-                      <DepartmentDropdown
-                        streamId={selectedStream?.value}
-                        value={validation.values.department}
-                        onChange={(selectedOption) => {
-                          validation.setFieldValue(
-                            "department",
-                            selectedOption
-                          );
-                          setSelectedDepartment(selectedOption);
-                          validation.setFieldValue("programType", null);
-                        }}
-                        isInvalid={
-                          validation.touched.department &&
-                          !!validation.errors.department
-                        }
-                      />
-                      {validation.touched.department &&
-                        validation.errors.department && (
-                          <div className="text-danger">
-                            {validation.errors.department}
-                          </div>
-                        )}
-                    </div>
-                  </Col>
-
-                  {/* Department Dropdown */}
-                  <Col lg={4}>
-                    <div className="mb-3">
-                      <Label>Association</Label>
-                      <AssociationDropdown
-                        value={validation.values.association}
-                        onChange={(selectedOption) => {
-                          validation.setFieldValue(
-                            "association",
-                            selectedOption
-                          );
-                        }}
-                        isInvalid={
-                          validation.touched.association &&
-                          !!validation.errors.association
-                        }
-                      />
-                      {validation.touched.association &&
-                        validation.errors.association && (
-                          <div className="text-danger">
-                            {validation.errors.association}
-                          </div>
-                        )}
-                    </div>
-                  </Col>
-
-                  <Col lg={4}>
-                    <div className="mb-3">
-                      <Label>From Date</Label>
-                      <Input
-                        type="date" // Use native date input
-                        className={`form-control ${
-                          validation.touched.fromDate &&
-                          validation.errors.fromDate
-                            ? "is-invalid"
-                            : ""
-                        }`}
-                        value={
-                          validation.values.fromDate
-                            ? moment(
-                                validation.values.fromDate,
-                                "DD/MM/YYYY"
-                              ).format("YYYY-MM-DD") // Convert to yyyy-mm-dd for the input
-                            : ""
-                        }
-                        onChange={(e) => {
-                          const formattedDate = moment(
-                            e.target.value,
-                            "YYYY-MM-DD"
-                          ).format("DD/MM/YYYY"); // Convert to dd/mm/yyyy
-                          validation.setFieldValue("fromDate", formattedDate);
-                        }}
-                        placeholder="dd/mm/yyyy"
-                      />
-                      {validation.touched.fromDate &&
-                        validation.errors.fromDate && (
-                          <div className="text-danger">
-                            {validation.errors.fromDate}
-                          </div>
-                        )}
-                    </div>
-                  </Col>
-
-                  <Col lg={4}>
-                    <div className="mb-3">
-                      <Label>To Date</Label>
-                      <Input
-                        type="date" // Use native date input
-                        className={`form-control ${
-                          validation.touched.toDate && validation.errors.toDate
-                            ? "is-invalid"
-                            : ""
-                        }`}
-                        value={
-                          validation.values.toDate
-                            ? moment(
-                                validation.values.toDate,
-                                "DD/MM/YYYY"
-                              ).format("YYYY-MM-DD") // Convert to yyyy-mm-dd for the input
-                            : ""
-                        }
-                        onChange={(e) => {
-                          const formattedDate = moment(
-                            e.target.value,
-                            "YYYY-MM-DD"
-                          ).format("DD/MM/YYYY"); // Convert to dd/mm/yyyy
-                          validation.setFieldValue("toDate", formattedDate);
-                        }}
-                        placeholder="dd/mm/yyyy"
-                      />
-                      {validation.touched.toDate &&
-                        validation.errors.toDate && (
-                          <div className="text-danger">
-                            {validation.errors.toDate}
-                          </div>
-                        )}
-                    </div>
-                  </Col>
-
-                  <Col lg={4}>
-                    <div className="mb-3">
-                      <Label>Event Title</Label>
-                      <Input
-                        type="text"
-                        className={`form-control ${
-                          validation.touched.eventTitle &&
-                          validation.errors.eventTitle
-                            ? "is-invalid"
-                            : ""
-                        }`}
-                        value={validation.values.eventTitle}
-                        onChange={(e) =>
-                          validation.setFieldValue("eventTitle", e.target.value)
-                        }
-                        placeholder="Enter event name"
-                      />
-                      {validation.touched.eventTitle &&
-                        validation.errors.eventTitle && (
-                          <div className="text-danger">
-                            {validation.errors.eventTitle}
-                          </div>
-                        )}
-                    </div>
-                  </Col>
-
-                  <Col lg={4}>
-                    <div className="mb-3">
-                      <Label>No. of Participants</Label>
+                      <Label>
+                        Number of teachers using the library per day during the
+                        year
+                      </Label>
                       <Input
                         type="number"
                         className={`form-control ${
-                          validation.touched.noOfParticipants &&
-                          validation.errors.noOfParticipants
+                          validation.touched.noOfTeachers &&
+                          validation.errors.noOfTeachers
                             ? "is-invalid"
                             : ""
                         }`}
-                        value={validation.values.noOfParticipants}
+                        value={validation.values.noOfTeachers}
                         onChange={(e) =>
                           validation.setFieldValue(
-                            "noOfParticipants",
+                            "noOfTeachers",
                             e.target.value
                           )
                         }
-                        placeholder="Enter No. of Participants"
+                        placeholder="Enter No. of Teachers"
                       />
-                      {validation.touched.noOfParticipants &&
-                        validation.errors.noOfParticipants && (
+                      {validation.touched.noOfTeachers &&
+                        validation.errors.noOfTeachers && (
                           <div className="text-danger">
-                            {validation.errors.noOfParticipants}
+                            {validation.errors.noOfTeachers}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+
+                  <Col
+                    lg={4}
+                    className="d-flex flex-column justify-content-end"
+                  >
+                    <div className="mb-3">
+                      <Label>
+                        Number of students using the library per day during the
+                        year
+                      </Label>
+                      <Input
+                        type="text"
+                        className={`form-control ${
+                          validation.touched.noOfStudents &&
+                          validation.errors.noOfStudents
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        value={validation.values.noOfStudents}
+                        onChange={(e) =>
+                          validation.setFieldValue(
+                            "noOfStudents",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Enter No. of Students"
+                      />
+                      {validation.touched.noOfStudents &&
+                        validation.errors.noOfStudents && (
+                          <div className="text-danger">
+                            {validation.errors.noOfStudents}
                           </div>
                         )}
                     </div>
@@ -746,7 +611,7 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
-                        Upload Participation/Winning
+                        Upload Scanned copy of the day register
                       </Label>
                       <Tooltip
                         placement="right"
@@ -769,7 +634,7 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
                             : ""
                         }`}
                         type="file"
-                        innerRef={fileRef} // Use ref to reset the file input
+                        innerRef={fileRef}
                         id="formFile"
                         onChange={(event) => {
                           validation.setFieldValue(
@@ -819,7 +684,7 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
                             onClick={() =>
                               handleDeleteFile(
                                 validation.values.file as string,
-                                "CoCurricularActivities"
+                                "SportsEventsReport"
                               )
                             }
                             title="Delete File"
@@ -833,15 +698,81 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
 
                   <Col sm={4}>
                     <div className="mb-3">
+                      <Label className="form-label">
+                        Details of Subscription
+                      </Label>
+                      <div className="d-flex flex-wrap gap-2">
+                        {[
+                          "Weekly",
+                          "Fortnightly",
+                          "Bimonthly",
+                          "Monthly",
+                          "Quarterly",
+                          "Halfyearly",
+                          "Annual",
+                        ].map((type) => (
+                          <div key={type} className="form-check">
+                            <input
+                              type="checkbox"
+                              className="form-check-input"
+                              id={`subscription-${type}`}
+                              value={type}
+                              checked={validation.values.subscriptionDetails.includes(
+                                type
+                              )}
+                              onChange={(e) => {
+                                const { checked, value } = e.target;
+                                const current = [
+                                  ...validation.values.subscriptionDetails,
+                                ];
+                                if (checked) {
+                                  validation.setFieldValue(
+                                    "subscriptionDetails",
+                                    [...current, value]
+                                  );
+                                } else {
+                                  validation.setFieldValue(
+                                    "subscriptionDetails",
+                                    current.filter((item) => item !== value)
+                                  );
+                                  validation.setFieldValue(
+                                    `subscriptionFiles.${value}`,
+                                    null
+                                  ); // Remove file
+                                }
+                              }}
+                            />
+                            <Label
+                              className="form-check-label"
+                              htmlFor={`subscription-${type}`}
+                            >
+                              {type}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Show validation error if no checkboxes selected */}
+                      {validation.touched.subscriptionDetails &&
+                        validation.errors.subscriptionDetails && (
+                          <div className="text-danger">
+                            {validation.errors.subscriptionDetails}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+
+                  <Col sm={4}>
+                    <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
-                        Upload Image of Students
+                        Upload Excel sheets of Details of Subscription
                       </Label>
                       <Tooltip
                         placement="right"
                         open={tooltipOpen}
                         onClose={() => setTooltipOpen(false)}
                         onOpen={() => setTooltipOpen(true)}
-                        title={<span>Upload Jpeg. Max size 10MB.</span>}
+                        title={<span>Upload Excel. Max size 10MB.</span>}
                         arrow
                       >
                         <i
@@ -852,31 +783,28 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
                       </Tooltip>
                       <Input
                         className={`form-control ${
-                          validation.touched.imageStudent &&
-                          validation.errors.imageStudent
+                          validation.touched.excel && validation.errors.excel
                             ? "is-invalid"
                             : ""
                         }`}
                         type="file"
+                        innerRef={excelRef}
                         id="formFile"
-                        innerRef={imgRef} // Use ref to reset the file input
                         onChange={(event) => {
                           validation.setFieldValue(
-                            "imageStudent",
+                            "excel",
                             event.currentTarget.files
                               ? event.currentTarget.files[0]
                               : null
                           );
                         }}
-                        accept="image/jpeg" // Accept only image files
                         disabled={isFileUploadDisabled} // Disable the button if a file exists
                       />
-                      {validation.touched.imageStudent &&
-                        validation.errors.imageStudent && (
-                          <div className="text-danger">
-                            {validation.errors.imageStudent}
-                          </div>
-                        )}
+                      {validation.touched.excel && validation.errors.excel && (
+                        <div className="text-danger">
+                          {validation.errors.excel}
+                        </div>
+                      )}
                       {/* Show a message if the file upload button is disabled */}
                       {isFileUploadDisabled && (
                         <div className="text-warning mt-2">
@@ -884,20 +812,20 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
                         </div>
                       )}
                       {/* Only show the file name if it is a string (from the edit API) */}
-                      {typeof validation.values.imageStudent === "string" && (
+                      {typeof validation.values.excel === "string" && (
                         <div className="mt-2 d-flex align-items-center">
                           <span
                             className="me-2"
                             style={{ fontWeight: "bold", color: "green" }}
                           >
-                            {validation.values.imageStudent}
+                            {validation.values.excel}
                           </span>
                           <Button
                             color="link"
                             className="text-primary"
                             onClick={() =>
                               handleDownloadFile(
-                                validation.values.imageStudent as string
+                                validation.values.excel as string
                               )
                             }
                             title="Download File"
@@ -909,8 +837,8 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
                             className="text-danger"
                             onClick={() =>
                               handleDeleteFile(
-                                validation.values.imageStudent as string,
-                                "studentImage"
+                                validation.values.excel as string,
+                                "SportsEventsReport"
                               )
                             }
                             title="Delete File"
@@ -919,6 +847,103 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
                           </Button>
                         </div>
                       )}
+                    </div>
+                  </Col>
+                  {/* Upload fields for selected types - one per column */}
+                  <Row>
+                    {validation.values.subscriptionDetails.map((type) => (
+                      <Col sm={4} key={type}>
+                        <div className="mb-3">
+                          <Label
+                            htmlFor={`upload-${type}`}
+                            className="form-label"
+                          >
+                            Upload file for {type}
+                          </Label>
+                          <Input
+                            type="file"
+                            id={`upload-${type}`}
+                            className={`form-control ${
+                              validation.errors.subscriptionFiles?.[type]
+                                ? "is-invalid"
+                                : ""
+                            }`}
+                            onChange={(e) =>
+                              validation.setFieldValue(
+                                `subscriptionFiles.${type}`,
+                                e.currentTarget.files?.[0] || null
+                              )
+                            }
+                          />
+                          {validation.errors.subscriptionFiles?.[type] && (
+                            <div className="text-danger">
+                              {validation.errors.subscriptionFiles[type]}
+                            </div>
+                          )}
+
+                          {/* ✅ Show existing file from API if it's a string */}
+                          {typeof validation.values.subscriptionFileNames ===
+                            "object" &&
+                            validation.values.subscriptionFileNames[type] && (
+                              <div className="mt-2 d-flex align-items-center">
+                                <span
+                                  className="me-2"
+                                  style={{ fontWeight: "bold", color: "green" }}
+                                >
+                                  {
+                                    validation.values.subscriptionFileNames[
+                                      type
+                                    ]
+                                  }
+                                </span>
+                                <Button
+                                  color="link"
+                                  className="text-primary"
+                                  onClick={() =>
+                                    handleDownloadFile(
+                                      validation.values.subscriptionFileNames[
+                                        type
+                                      ]
+                                    )
+                                  }
+                                  title="Download File"
+                                >
+                                  <i className="bi bi-download"></i>
+                                </Button>
+                                <Button
+                                  color="link"
+                                  className="text-danger"
+                                  onClick={() =>
+                                    handleDeleteFile(
+                                      validation.values.subscriptionFileNames[
+                                        type
+                                      ],
+                                      type
+                                    )
+                                  }
+                                  title="Delete File"
+                                >
+                                  <i className="bi bi-trash"></i>
+                                </Button>
+                              </div>
+                            )}
+                        </div>
+                      </Col>
+                    ))}
+                  </Row>
+
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Download Template</Label>
+                      <div>
+                        <a
+                          href="/templateFiles/bos.pdf"
+                          download
+                          className="btn btn-primary btn-sm"
+                        >
+                          Details
+                        </a>
+                      </div>
                     </div>
                   </Col>
                 </Row>
@@ -931,7 +956,7 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
                       <button
                         className="btn btn-secondary"
                         type="button"
-                        onClick={handleListCCACClick}
+                        onClick={handleListCSWClick}
                       >
                         List
                       </button>
@@ -942,7 +967,7 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
             </CardBody>
           </Card>
         </Container>
-        {/* Modal for Listing Cultural & Co-Curricular activities conducted in the college */}
+        {/* Modal for Listing Databases which are Subscribed */}
         <Modal
           isOpen={isModalOpen}
           toggle={toggleModal}
@@ -950,7 +975,7 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
           style={{ maxWidth: "90%" }}
         >
           <ModalHeader toggle={toggleModal}>
-            List Cultural & Co-Curricular activities conducted in the college
+            List Databases which are Subscribed
           </ModalHeader>
           <ModalBody>
             {/* Global Search */}
@@ -972,57 +997,40 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
               <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>Academic Year</th>
-                  <th>School</th>
-                  <th>Department</th>
-                  <th>Association</th>
-                  <th>From Date</th>
-                  <th>To Date</th>
-                  <th>Event Title</th>
-                  <th>No. of Participants</th>
+                  <th>Academic Year </th>
+                  <th>Number of teachers</th>
+                  <th>Number of students</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {currentRows.length > 0 ? (
                   currentRows.map((cds, index) => (
-                    <tr key={cds.coCurricularActivityId}>
+                    <tr key={cds.id}>
                       <td>{index + 1}</td>
                       <td>{cds.academicYear}</td>
-                      <td>{cds.streamName}</td>
-                      <td>{cds.departmentName}</td>
-                      <td>{cds.associationName}</td>
-                      <td>{cds.fromDate}</td>
-                      <td>{cds.toDate}</td>
-                      <td>{cds.eventTitle}</td>
-                      <td>{cds.noOfParticipants}</td>
+                      <td>{cds.noOfTeachersUsingLibPerDay}</td>
+                      <td>{cds.noOfStudentsUsingLibPerDay}</td>
                       <td>
-                        <div className="d-flex justify-content-center gap-2">
-                          <button
-                            className="btn btn-sm btn-warning me-2"
-                            onClick={() =>
-                              handleEdit(cds.coCurricularActivityId)
-                            }
-                          >
-                            Edit
-                          </button>
-                          <button
-                            className="btn btn-sm btn-danger"
-                            onClick={() =>
-                              handleDelete(cds.coCurricularActivityId)
-                            }
-                          >
-                            Delete
-                          </button>
-                        </div>
+                        <button
+                          className="btn btn-sm btn-warning me-2"
+                          onClick={() => handleEdit(cds.id)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="btn btn-sm btn-danger"
+                          onClick={() => handleDelete(cds.id)}
+                        >
+                          Delete
+                        </button>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
                     <td colSpan={4} className="text-center">
-                      No Cultural & Co-Curricular activities conducted in the
-                      college data available.
+                      No Databases which are Subscribed data available.
                     </td>
                   </tr>
                 )}
@@ -1079,4 +1087,4 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
   );
 };
 
-export default Cultural_CoCurricularActivities_Conducted;
+export default Databases;

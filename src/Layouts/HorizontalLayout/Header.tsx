@@ -191,7 +191,7 @@ const Header = (props: any) => {
               </button>
             </div>
 
-            {/* <NotificationDropDown /> */}
+            <NotificationDropDown />
 
             <ProfileMenu />
 

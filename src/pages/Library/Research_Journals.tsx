@@ -3,13 +3,10 @@ import Breadcrumb from "Components/Common/Breadcrumb";
 import AcademicYearDropdown from "Components/DropDowns/AcademicYearDropdown";
 import DegreeDropdown from "Components/DropDowns/DegreeDropdown";
 import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
-import ProgramDropdown from "Components/DropDowns/ProgramDropdown";
-import ProgramTypeDropdown from "Components/DropDowns/ProgramTypeDropdown";
-import SemesterDropdowns from "Components/DropDowns/SemesterDropdowns";
+import Select from "react-select";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { useFormik } from "formik";
-import React, { useState } from "react";
-import { toast, ToastContainer } from "react-toastify";
+import React, { useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -24,57 +21,49 @@ import {
   ModalHeader,
   Row,
   Table,
-  Tooltip,
 } from "reactstrap";
 import * as Yup from "yup";
 import { APIClient } from "../../helpers/api_helper";
+import { toast, ToastContainer } from "react-toastify";
+import moment from "moment";
+import { Tooltip } from "@mui/material";
 
 const api = new APIClient();
 
-const TotalStudentsStrength: React.FC = () => {
+const Research_Journals: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [bosData, setBosData] = useState<any[]>([]);
-  const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
-  const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [cswData, setCSWData] = useState<any[]>([]);
   const [editId, setEditId] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
-  const [filteredData, setFilteredData] = useState(bosData);
+  const [filteredData, setFilteredData] = useState(cswData);
   const [filters, setFilters] = useState({
     academicYear: "",
-    file: null as string | null,
+    level: "",
+    type: "",
+    noOfParticipants: "",
+    hostingClgNme: "",
+    studentName: "",
   });
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
+  // State variables for managing selected options in dropdowns
+  const [selectedStream, setSelectedStream] = useState<any>(null);
+  const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
+
+  const fileRef = useRef<HTMLInputElement | null>(null);
 
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
 
-    const filtered = bosData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-
-  // Handle column-specific filters
-  const handleFilterChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    column: string
-  ) => {
-    const value = e.target.value.toLowerCase();
-    const updatedFilters = { ...filters, [column]: value };
-    setFilters(updatedFilters);
-
-    const filtered = bosData.filter((row) =>
+    const filtered = cswData.filter((row) =>
       Object.values(row).some((val) =>
         String(val || "")
           .toLowerCase()
@@ -101,76 +90,63 @@ const TotalStudentsStrength: React.FC = () => {
     setIsModalOpen(!isModalOpen);
   };
 
-  // Fetch BOS data from the backend
-  const fetchBosData = async () => {
+  // Fetch Research Journals data from the backend
+  const fetchCSWData = async () => {
     try {
       const response = await axios.get(
-        "/totalStudentStrength/getAllTotalStudentStrength"
+        "/researchJournals/getAllResearchJournals"
       ); // Replace with your backend API endpoint
-      setBosData(response);
+      setCSWData(response);
       setFilteredData(response);
     } catch (error) {
-      console.error("Error fetching BOS data:", error);
+      console.error("Error fetching Research Journals data:", error);
     }
   };
 
   // Open the modal and fetch data
-  const handleListBosClick = () => {
+  const handleListCSWClick = () => {
     toggleModal();
-    fetchBosData();
+    fetchCSWData();
   };
 
-  const mapValueToLabel = (
-    value: string | number | null,
-    options: { value: string | number; label: string }[]
-  ): { value: string | number; label: string } | null => {
-    if (!value) return null;
-    const matchedOption = options.find((option) => option.value === value);
-    return matchedOption ? matchedOption : { value, label: String(value) };
-  };
+  const mentorShipOpt = [
+    { value: "National", label: "National" },
+    { value: "International", label: "International" },
+  ];
 
   // Handle edit action
-  // Fetch the data for the selected BOS ID and populate the form fields
+  // Fetch the data for the selected Research Journals ID and populate the form fields
   const handleEdit = async (id: string) => {
     try {
       const response = await api.get(
-        `/totalStudentStrength/edit?totalStudentStrengthId=${id}`,
+        `/researchJournals?researchJournalsId=${id}`,
         ""
       );
-      const academicYearOptions = await api.get("/getAllAcademicYear", "");
-      // Filter the response where isCurrent or isCurrentForAdmission is true
-      const filteredAcademicYearList = academicYearOptions.filter(
-        (year: any) => year.isCurrent || year.isCurrentForAdmission
-      );
-      // Map the filtered data to the required format
-      const academicYearList = filteredAcademicYearList.map((year: any) => ({
-        value: year.year,
-        label: year.display,
-      }));
+      if (!response) {
+        toast.error("No data found for the selected ID.");
+        return;
+      }
 
       // Map API response to Formik values
       const mappedValues = {
-        academicYear: mapValueToLabel(response.academicYear, academicYearList),
-        file: response.document?.excel || null,
+        file: response.file?.ResearchJournal || null,
+        level: response.journalType
+          ? {
+              value: response.journalType,
+              label: response.journalType,
+            }
+          : null,
       };
 
       // Update Formik values
       validation.setValues({
         ...mappedValues,
-        academicYear: mappedValues.academicYear
-          ? {
-              ...mappedValues.academicYear,
-              value: String(mappedValues.academicYear.value),
-            }
-          : null,
       });
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
-      // Disable the file upload button if a file exists
-      setIsFileUploadDisabled(!!response.document?.excel);
       toggleModal();
     } catch (error) {
-      console.error("Error fetching BOS data by ID:", error);
+      console.error("Error fetching Research Journals data by ID:", error);
     }
   };
 
@@ -182,29 +158,33 @@ const TotalStudentsStrength: React.FC = () => {
   };
 
   // Confirm deletion of the record
-  // Call the delete API and refresh the BOS data
+  // Call the delete API and refresh the Research Journals data
   const confirmDelete = async (id: string) => {
     if (deleteId) {
       try {
         const response = await api.delete(
-          `/totalStudentStrength/deleteTotalStudentStrength?totalStudentStrengthId=${id}`,
+          `/researchJournals/deleteResearchJournals?researchJournalsId=${id}`,
           ""
         );
         toast.success(
-          response.message ||
-            "Student Strength Program-wise removed successfully!"
+          response.message || "Research Journals removed successfully!"
         );
-        fetchBosData();
+        fetchCSWData();
       } catch (error) {
-        toast.error(
-          "Failed to remove Student Strength Program-wise. Please try again."
-        );
-        console.error("Error deleting BOS:", error);
+        toast.error("Failed to remove Research Journals. Please try again.");
+        console.error("Error deleting Research Journals:", error);
       } finally {
         setIsDeleteModalOpen(false);
         setDeleteId(null);
       }
     }
+  };
+  const dropdownStyles = {
+    menu: (provided: any) => ({
+      ...provided,
+      overflowY: "auto", // Enable scrolling for additional options
+    }),
+    menuPortal: (base: any) => ({ ...base, zIndex: 9999 }), // Ensure the menu is above other elements
   };
 
   // Handle file download actions
@@ -213,7 +193,7 @@ const TotalStudentsStrength: React.FC = () => {
       try {
         // Ensure you set responseType to 'blob' to handle binary data
         const response = await axios.get(
-          `/totalStudentStrength/download/${fileName}`,
+          `/researchJournals/download/${fileName}`,
           {
             responseType: "blob",
           }
@@ -248,111 +228,112 @@ const TotalStudentsStrength: React.FC = () => {
 
   // Handle file deletion
   // Clear the file from the form and show success message
-  const handleDeleteFile = async () => {
+  const handleDeleteFile = async (fileName: string, docType: string) => {
     try {
-      // Call the delete API
       const response = await api.delete(
-        `/totalStudentStrength/deleteTotalStudStrengthDocument?totalStudentStrengthId=${editId}`,
+        `/researchJournals/deleteResearchJournalsDocument?fileName=${fileName}`,
         ""
       );
-      // Show success message
       toast.success(response.message || "File deleted successfully!");
-      // Remove the file from the form
-      validation.setFieldValue("file", null); // Clear the file from Formik state
+      if (docType === "ResearchJournal") {
+        validation.setFieldValue("file", null);
+      }
       setIsFileUploadDisabled(false); // Enable the file upload button
     } catch (error) {
-      // Show error message
       toast.error("Failed to delete the file. Please try again.");
       console.error("Error deleting file:", error);
     }
   };
 
-  type AcademicYearOption = { value: string; label: string } | null;
+  // Define a type for the select option
+  type SelectOption = { value: string; label: string };
 
-  const validation = useFormik({
+  const validation = useFormik<{
+    level: SelectOption | null;
+    file: File | string | null;
+  }>({
     initialValues: {
-      academicYear: null as AcademicYearOption,
-      file: null as File | string | null,
+      level: null,
+      file: null,
     },
     validationSchema: Yup.object({
-      academicYear: Yup.object({
-        value: Yup.string().required(),
-        label: Yup.string().required(),
-      })
-        .nullable()
-        .required("Please select academic year"),
-      file: Yup.mixed()
-        .required("Please upload a file")
-        .test("fileSize", "File size is too large", (value: any) => {
-          // Skip size validation if file is a string (from existing data)
-          if (typeof value === "string") return true;
-          return value && value.size <= 10 * 1024 * 1024; // 10MB
-        })
-        .test("fileType", "Unsupported file format", (value: any) => {
-          // Skip type validation if file is a string
-          if (typeof value === "string") return true;
-          return (
-            value &&
-            [
-              "application/vnd.ms-excel",
-              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            ].includes(value.type)
-          );
-        }),
+      file: Yup.mixed().test(
+        "fileValidation",
+        "Please upload a valid file",
+        function (value) {
+          // Skip validation if the file upload is disabled (file exists)
+          if (isFileUploadDisabled) {
+            return true;
+          }
+          // Perform validation if the file upload is enabled (file doesn't exist)
+          if (!value) {
+            return this.createError({ message: "Please upload a file" });
+          }
+          // Check file size (2MB limit)
+          if (value instanceof File && value.size > 2 * 1024 * 1024) {
+            return this.createError({ message: "File size is too large" });
+          }
+          // Check file type
+          const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
+          if (value instanceof File && !allowedTypes.includes(value.type)) {
+            return this.createError({ message: "Unsupported file format" });
+          }
+          return true;
+        }
+      ),
+      level: Yup.object().nullable().required("Please select mentorship"),
     }),
     onSubmit: async (values, { resetForm }) => {
-      const formData = new FormData();
-
-      formData.append("academicYear", values.academicYear?.value || "");
-
-      // Handle the file conditionally
-      if (isEditMode && typeof values.file === "string") {
-        // Pass an empty Blob instead of null
-        formData.append("excelFile", new Blob([]), "empty.xlsx");
-      } else if (isEditMode && values.file === null) {
-        formData.append("excelFile", new Blob([]), "empty.xlsx");
-      } else if (values.file) {
-        formData.append("excelFile", values.file);
-      }
-
-      // If editing, include ID
-      if (isEditMode && editId) {
-        formData.append("totalStudentStrengthId", editId);
-      }
       try {
+        const formData = new FormData();
+        formData.append("journalType", values.level?.value || "");
+        if (isEditMode && typeof values.file === "string") {
+          // Pass an empty PDF instead of null
+          formData.append(
+            "researchJournal",
+            new Blob([], { type: "application/pdf" }),
+            "empty.pdf"
+          );
+        } else if (isEditMode && values.file === null) {
+          formData.append(
+            "researchJournal",
+            new Blob([], { type: "application/pdf" }),
+            "empty.pdf"
+          );
+        } else if (values.file) {
+          formData.append("researchJournal", values.file);
+        }
+
+        // If in edit mode, append the edit ID
+        if (isEditMode && editId) {
+          formData.append("id", editId);
+        }
+
         if (isEditMode && editId) {
           // Call the update API
-          const response = await api.put(
-            `/totalStudentStrength/update`,
-            formData
-          );
+          const response = await api.put(`/researchJournals`, formData);
           toast.success(
-            response.message ||
-              "Student Strength Program-wise updated successfully!"
+            response.message || "Research Journals updated successfully!"
           );
         } else {
           // Call the save API
-          const response = await api.create(
-            "/totalStudentStrength/save",
-            formData
-          );
+          const response = await api.create("/researchJournals", formData);
           toast.success(
-            response.message ||
-              "Student Strength Program-wise added successfully!"
+            response.message || "Research Journals added successfully!"
           );
         }
         // Reset the form fields
         resetForm();
+        if (fileRef.current) {
+          fileRef.current.value = "";
+        }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
-        setIsFileUploadDisabled(false); // Enable the file upload button
-        handleListBosClick();
+        handleListCSWClick();
       } catch (error) {
         // Display error message
-        toast.error(
-          "Failed to save Student Strength Program-wise. Please try again."
-        );
-        console.error("Error creating BOS:", error);
+        toast.error("Failed to save Research Journals. Please try again.");
+        console.error("Error creating Research Journals:", error);
       }
     },
   });
@@ -361,57 +342,57 @@ const TotalStudentsStrength: React.FC = () => {
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <Breadcrumb
-            title="Student Details"
-            breadcrumbItem="Total Students Strength"
-          />
+          <Breadcrumb title="Library" breadcrumbItem="Research Journals" />
           <Card>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
                 <Row>
-                  {/* Academic Year Dropdown */}
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>Academic Year</Label>
-                      <AcademicYearDropdown
-                        value={validation.values.academicYear}
+                      <Label>Journal Type</Label>
+                      <Select
+                        options={mentorShipOpt}
+                        value={validation.values.level}
                         onChange={(selectedOption) =>
-                          validation.setFieldValue(
-                            "academicYear",
-                            selectedOption
-                          )
+                          validation.setFieldValue("level", selectedOption)
                         }
-                        isInvalid={
-                          validation.touched.academicYear &&
-                          !!validation.errors.academicYear
+                        placeholder="Select Journal Type"
+                        styles={dropdownStyles}
+                        menuPortalTarget={document.body}
+                        className={
+                          validation.touched.level && validation.errors.level
+                            ? "select-error"
+                            : ""
                         }
                       />
-                      {validation.touched.academicYear &&
-                        validation.errors.academicYear && (
-                          <div className="text-danger">
-                            {validation.errors.academicYear}
-                          </div>
-                        )}
+                      {validation.touched.level && validation.errors.level && (
+                        <div className="text-danger">
+                          {typeof validation.errors.level === "string"
+                            ? validation.errors.level
+                            : ""}
+                        </div>
+                      )}
                     </div>
                   </Col>
 
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
-                        Upload Total Student Strength
+                        Upload a report with summary
+                      </Label>
+                      <Tooltip
+                        placement="right"
+                        open={tooltipOpen}
+                        onClose={() => setTooltipOpen(false)}
+                        onOpen={() => setTooltipOpen(true)}
+                        title={<span>Upload file. Max size 10MB.</span>}
+                        arrow
+                      >
                         <i
                           id="infoIcon"
                           className="bi bi-info-circle ms-2"
                           style={{ cursor: "pointer", color: "#0d6efd" }}
                         ></i>
-                      </Label>
-                      <Tooltip
-                        placement="right"
-                        isOpen={tooltipOpen}
-                        target="infoIcon"
-                        toggle={toggleTooltip}
-                      >
-                        Upload an Excel or PDF file. Max size 10MB.
                       </Tooltip>
                       <Input
                         className={`form-control ${
@@ -420,6 +401,7 @@ const TotalStudentsStrength: React.FC = () => {
                             : ""
                         }`}
                         type="file"
+                        innerRef={fileRef}
                         id="formFile"
                         onChange={(event) => {
                           validation.setFieldValue(
@@ -466,7 +448,12 @@ const TotalStudentsStrength: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
-                            onClick={() => handleDeleteFile()}
+                            onClick={() =>
+                              handleDeleteFile(
+                                validation.values.file as string,
+                                "ResearchJournal"
+                              )
+                            }
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>
@@ -482,11 +469,10 @@ const TotalStudentsStrength: React.FC = () => {
                       <button className="btn btn-primary" type="submit">
                         {isEditMode ? "Update" : "Save"}
                       </button>
-
                       <button
                         className="btn btn-secondary"
                         type="button"
-                        onClick={handleListBosClick}
+                        onClick={handleListCSWClick}
                       >
                         List
                       </button>
@@ -497,11 +483,14 @@ const TotalStudentsStrength: React.FC = () => {
             </CardBody>
           </Card>
         </Container>
-        {/* Modal for Listing BOS */}
-        <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg">
-          <ModalHeader toggle={toggleModal}>
-            List of Student Strength Program-wise
-          </ModalHeader>
+        {/* Modal for Listing Research Journals */}
+        <Modal
+          isOpen={isModalOpen}
+          toggle={toggleModal}
+          size="lg"
+          style={{ maxWidth: "90%" }}
+        >
+          <ModalHeader toggle={toggleModal}>List Research Journals</ModalHeader>
           <ModalBody>
             {/* Global Search */}
             <div className="mb-3">
@@ -522,30 +511,28 @@ const TotalStudentsStrength: React.FC = () => {
               <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>Academic Year</th>
-                  <th>Documents</th>
+                  <th>Journal Type </th>
+                  {/* <th>File </th> */}
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {currentRows.length > 0 ? (
-                  currentRows.map((bos, index) => (
-                    <tr key={bos.totalStudentStrengthId}>
+                  currentRows.map((cds, index) => (
+                    <tr key={cds.id}>
                       <td>{index + 1}</td>
-                      <td>{bos.academicYear}</td>
-                      <td>{bos.document?.excel || "No file uploaded"}</td>
+                      <td>{cds.journalType}</td>
+                      {/* <td>{cds.file}</td> */}
                       <td>
                         <button
                           className="btn btn-sm btn-warning me-2"
-                          onClick={() => handleEdit(bos.totalStudentStrengthId)}
+                          onClick={() => handleEdit(cds.id)}
                         >
                           Edit
                         </button>
                         <button
                           className="btn btn-sm btn-danger"
-                          onClick={() =>
-                            handleDelete(bos.totalStudentStrengthId)
-                          }
+                          onClick={() => handleDelete(cds.id)}
                         >
                           Delete
                         </button>
@@ -555,7 +542,7 @@ const TotalStudentsStrength: React.FC = () => {
                 ) : (
                   <tr>
                     <td colSpan={4} className="text-center">
-                      No BOS data available.
+                      No Research Journals data available.
                     </td>
                   </tr>
                 )}
@@ -583,7 +570,6 @@ const TotalStudentsStrength: React.FC = () => {
             </div>
           </ModalBody>
         </Modal>
-        {/* Confirmation Modal */}
         <Modal
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
@@ -613,4 +599,4 @@ const TotalStudentsStrength: React.FC = () => {
   );
 };
 
-export default TotalStudentsStrength;
+export default Research_Journals;

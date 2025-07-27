@@ -1,18 +1,44 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Dropdown, DropdownToggle, DropdownMenu, Row, Col } from "reactstrap";
 import SimpleBar from "simplebar-react";
 
 //Import images
-import avatar3 from "../../assets/images/users/avatar-3.jpg"
+import avatar3 from "../../assets/images/users/avatar-3.jpg";
 import avatar4 from "../../assets/images/users/avatar-4.jpg";
 
 //i18n
 import { withTranslation } from "react-i18next";
+import { APIClient } from "../../helpers/api_helper"; // assuming this is your API handler
+
+const api = new APIClient();
 
 const NotificationDropdown = (props: any) => {
-  // Declare a new state variable, which we'll call "menu"
   const [menu, setMenu] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const response = await api.get(
+          "centralized/commonApi/employee/notification-info",
+          ""
+        );
+        if (response && response.notifications) {
+          setNotifications(response.notifications);
+        }
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+      }
+    };
+
+    fetchNotifications();
+
+    const intervalId = setInterval(fetchNotifications, 60000); // Poll every 1 minute
+
+    return () => clearInterval(intervalId); // Cleanup on unmount
+  }, []);
 
   return (
     <React.Fragment>
@@ -28,7 +54,11 @@ const NotificationDropdown = (props: any) => {
           id="page-header-notifications-dropdown"
         >
           <i className="bx bx-bell bx-tada" />
-          <span className="badge bg-danger rounded-pill">3</span>
+          {notifications.length > 0 && (
+            <span className="badge bg-danger rounded-pill">
+              {notifications.length}
+            </span>
+          )}
         </DropdownToggle>
 
         <DropdownMenu className="dropdown-menu dropdown-menu-lg dropdown-menu-end p-0">
@@ -37,122 +67,35 @@ const NotificationDropdown = (props: any) => {
               <Col>
                 <h6 className="m-0"> {props.t("Notifications")} </h6>
               </Col>
-              <div className="col-auto">
-                <Link to="#" className="small">
-                  {" "}
-                  View All
-                </Link>
-              </div>
             </Row>
           </div>
 
-          <SimpleBar style={{ height: "230px" }}>
-            <Link to="" className="text-reset notification-item">
-              <div className="d-flex">
-                <div className="avatar-xs me-3">
-                  <span className="avatar-title bg-primary rounded-circle font-size-16">
-                    <i className="bx bx-cart" />
-                  </span>
-                </div>
-                <div className="flex-grow-1">
-                  <h6 className="mt-0 mb-1">
-                    {props.t("Your order is placed")}
-                  </h6>
-                  <div className="font-size-12 text-muted">
-                    <p className="mb-1">
-                      {props.t("If several languages coalesce the grammar")}
-                    </p>
-                    <p className="mb-0">
-                      <i className="mdi mdi-clock-outline" />{" "}
-                      {props.t("3 min ago")}{" "}
-                    </p>
+          <SimpleBar style={{ height: isExpanded ? "400px" : "230px" }}>
+            {notifications.map((notif: any, index: number) => (
+              <Link to="#" className="text-reset notification-item" key={index}>
+                <div className="d-flex align-items-start">
+                  <div className="me-2 text-info fw-bold">→</div>
+                  <div className="flex-grow-1">
+                    <h6 className="mt-0 mb-1">{notif.message}</h6>
                   </div>
                 </div>
-              </div>
-            </Link>
-            <Link to="" className="text-reset notification-item">
-              <div className="d-flex">
-                <img
-                  src={avatar3}
-                  className="me-3 rounded-circle avatar-xs"
-                  alt="user-pic"
-                />
-                <div className="flex-grow-1">
-                  <h6 className="mt-0 mb-1">James Lemire</h6>
-                  <div className="font-size-12 text-muted">
-                    <p className="mb-1">
-                      {props.t("It will seem like simplified English") + "."}
-                    </p>
-                    <p className="mb-0">
-                      <i className="mdi mdi-clock-outline" />
-                      {props.t("1 hours ago")}{" "}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </Link>
-            <Link to="" className="text-reset notification-item">
-              <div className="d-flex">
-                <div className="avatar-xs me-3">
-                  <span className="avatar-title bg-success rounded-circle font-size-16">
-                    <i className="bx bx-badge-check" />
-                  </span>
-                </div>
-                <div className="flex-grow-1">
-                  <h6 className="mt-0 mb-1">
-                    {props.t("Your item is shipped")}
-                  </h6>
-                  <div className="font-size-12 text-muted">
-                    <p className="mb-1">
-                      {props.t("If several languages coalesce the grammar")}
-                    </p>
-                    <p className="mb-0">
-                      <i className="mdi mdi-clock-outline" />{" "}
-                      {props.t("3 min ago")}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </Link>
-
-            <Link to="" className="text-reset notification-item">
-              <div className="d-flex">
-                <img
-                  src={avatar4}
-                  className="me-3 rounded-circle avatar-xs"
-                  alt="user-pic"
-                />
-                <div className="flex-grow-1">
-                  <h6 className="mt-0 mb-1">Salena Layfield</h6>
-                  <div className="font-size-12 text-muted">
-                    <p className="mb-1">
-                      {props.t(
-                        "As a skeptical Cambridge friend of mine occidental"
-                      ) + "."}
-                    </p>
-                    <p className="mb-0">
-                      <i className="mdi mdi-clock-outline" />
-                      {props.t("1 hours ago")}{" "}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </Link>
+              </Link>
+            ))}
           </SimpleBar>
+
           <div className="p-2 border-top d-grid">
-            <Link
+            <button
               className="btn btn-sm btn-link font-size-14 text-center"
-              to="#"
+              onClick={() => setIsExpanded(!isExpanded)}
             >
               <i className="mdi mdi-arrow-right-circle me-1"></i>{" "}
-              <span key="t-view-more">{props.t("View More..")}</span>
-            </Link>
+              {isExpanded ? props.t("Show Less") : props.t("View More..")}
+            </button>
           </div>
         </DropdownMenu>
       </Dropdown>
     </React.Fragment>
   );
 };
-
 
 export default withTranslation()(NotificationDropdown);

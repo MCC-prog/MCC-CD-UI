@@ -209,7 +209,9 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
           : null,
         excel: response.documents?.competitiveExam || null,
       };
-
+ const streamOption = mapValueToLabel(response.streamId, []); // Replace [] with stream options array if available
+      const departmentOption = mapValueToLabel(response.departmentId, []); // Replace [] with department options array if available
+     
       // Update Formik values
       validation.setValues({
         academicYear: mappedValues.academicYear
@@ -243,6 +245,9 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
           : null,
         excel: response.documents?.competitiveExam || null, // Use the file from the response
       });
+        setSelectedStream(streamOption);
+      setSelectedDepartment(departmentOption);
+      
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();

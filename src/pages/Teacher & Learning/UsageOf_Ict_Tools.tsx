@@ -392,37 +392,19 @@ const UsageOf_Ict_Tools: React.FC = () => {
             </div>
 
             {/* Table with Pagination */}
-            <Table className="table-hover custom-table">
-              <thead>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>
-                    Stream
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.academicYear}
-                      onChange={(e) => handleFilterChange(e, "academicYear")}
-                    />
-                  </th>
-                  <th>
-                    Department
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.semesterType}
-                      onChange={(e) => handleFilterChange(e, "semesterType")}
-                    />
-                  </th>
-                  <th>
-                    Name of the tool
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.semesterNo}
-                      onChange={(e) => handleFilterChange(e, "semesterNo")}
-                    />
-                  </th>
+                  <th>Stream</th>
+                  <th>Department</th>
+                  <th>Name of the tool</th>
                   <th>Actions</th>
                 </tr>
               </thead>

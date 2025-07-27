@@ -178,12 +178,12 @@ const SidebarContent = (props: any) => {
                 </li>
                 <li>
                   <Link to="/Experiential_Learning">
-                    <span
+                    {/* <span
                       className="badge rounded-pill text-bg-warning float-end"
                       key="t-new"
                     >
                       In Progress
-                    </span>
+                    </span> */}
                     {props.t("6. Experiential Learning ")}
                   </Link>
                 </li>
@@ -211,23 +211,23 @@ const SidebarContent = (props: any) => {
                 </li>
                 <li>
                   <Link to="/Advanced_Learners">
-                    <span
+                    {/* <span
                       className="badge rounded-pill text-bg-warning float-end"
                       key="t-new"
                     >
                       In Progress
-                    </span>
+                    </span> */}
                     {props.t("2. Advanced Learners")}
                   </Link>
                 </li>
                 <li>
                   <Link to="/Student_Centric_Teaching">
-                    <span
+                    {/* <span
                       className="badge rounded-pill text-bg-warning float-end"
                       key="t-new"
                     >
                       In Progress
-                    </span>
+                    </span> */}
                     {props.t("3. Student Centric Teaching Methodology")}
                   </Link>
                 </li>
@@ -426,7 +426,7 @@ const SidebarContent = (props: any) => {
                 <li>
                   <Link to="/workshopsandSeminarsConducted">
                     {props.t(
-                      "1. Workshops/Seminars conducted on Research Methodology, IPR, Entrepreneurship & Skills development"
+                      "1. Workshops/Seminars conducted"
                     )}
                   </Link>
                 </li>
@@ -548,20 +548,20 @@ const SidebarContent = (props: any) => {
               </Link>
               <ul className="sub-menu">
                 <li>
-                  <Link to="/#">
+                  <Link to="/Databases">
                     {props.t("1. Databases which are subscribed")}
                   </Link>
                 </li>
                 <li>
-                  <Link to="/#">
-                    {props.t("2. National/International Journals (hard copy)")}
+                  <Link to="/Research_Journals">
+                    {props.t("2. Research Journals")}
                   </Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("3. Books (Volumes/Titles)")}</Link>
+                  <Link to="/Books">{props.t("3. Books")}</Link>
                 </li>
                 <li>
-                  <Link to="/#">{props.t("4. Annual Expenditure")}</Link>
+                  <Link to="/Annual_Expenditure">{props.t("4. Annual Expenditure")}</Link>
                 </li>
               </ul>
             </li>

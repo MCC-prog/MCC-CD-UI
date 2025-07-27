@@ -362,7 +362,6 @@ const Innovative_Teaching_Methodologies: React.FC = () => {
       formData.append("courseTitle", values.courseName || "");
       formData.append("innovativeTeachingMethodologyId", editId || "");
 
-     
       if (isEditMode) {
         if (
           typeof values.file === "string" || // still the original file path
@@ -644,55 +643,21 @@ const Innovative_Teaching_Methodologies: React.FC = () => {
             </div>
 
             {/* Table with Pagination */}
-            <Table className="table-hover custom-table">
-              <thead>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>
-                    Academic Year
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.academicYear}
-                      onChange={(e) => handleFilterChange(e, "academicYear")}
-                    />
-                  </th>
-                  <th>
-                    Semester Type
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.semesterType}
-                      onChange={(e) => handleFilterChange(e, "semesterType")}
-                    />
-                  </th>
-                  <th>
-                    Semester No
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.semesterNo}
-                      onChange={(e) => handleFilterChange(e, "semesterNo")}
-                    />
-                  </th>
-                  <th>
-                    Stream
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.courses}
-                      onChange={(e) => handleFilterChange(e, "stream")}
-                    />
-                  </th>
-                  <th>
-                    Program
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.courses}
-                      onChange={(e) => handleFilterChange(e, "program")}
-                    />
-                  </th>
+                  <th>Academic Year</th>
+                  <th>Semester Type</th>
+                  <th>Semester No</th>
+                  <th>Stream</th>
+                  <th>Program</th>
                   <th>Actions</th>
                 </tr>
               </thead>

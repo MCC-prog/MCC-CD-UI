@@ -181,6 +181,8 @@ const Intercollegiate_Events_Awards_Won: React.FC = () => {
         imageStudent: response.documents?.studentImage || null,
         studentRegNum: response.studentRegisterNo || "",
       };
+      const streamOption = mapValueToLabel(response.streamId, []); // Replace [] with stream options array if available
+      const departmentOption = mapValueToLabel(response.departmentId, []); // Replace [] with department options array if available
 
       // Update Formik values
       validation.setValues({
@@ -207,6 +209,9 @@ const Intercollegiate_Events_Awards_Won: React.FC = () => {
         imageStudent: mappedValues.imageStudent || null,
         studentRegNum: response.studentRegisterNo || "",
       });
+      setSelectedStream(streamOption);
+      setSelectedDepartment(departmentOption);
+
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();
@@ -1192,7 +1197,9 @@ const Intercollegiate_Events_Awards_Won: React.FC = () => {
           size="lg"
           style={{ maxWidth: "90%" }}
         >
-          <ModalHeader toggle={toggleModal}>List Intercollegiate events and awards won</ModalHeader>
+          <ModalHeader toggle={toggleModal}>
+            List Intercollegiate events and awards won
+          </ModalHeader>
           <ModalBody>
             {/* Global Search */}
             <div className="mb-3">

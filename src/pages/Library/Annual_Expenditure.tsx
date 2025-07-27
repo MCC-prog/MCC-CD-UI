@@ -3,13 +3,10 @@ import Breadcrumb from "Components/Common/Breadcrumb";
 import AcademicYearDropdown from "Components/DropDowns/AcademicYearDropdown";
 import DegreeDropdown from "Components/DropDowns/DegreeDropdown";
 import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
-import ProgramDropdown from "Components/DropDowns/ProgramDropdown";
-import ProgramTypeDropdown from "Components/DropDowns/ProgramTypeDropdown";
-import SemesterDropdowns from "Components/DropDowns/SemesterDropdowns";
+import Select from "react-select";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { useFormik } from "formik";
-import React, { useState } from "react";
-import { toast, ToastContainer } from "react-toastify";
+import React, { useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -24,57 +21,49 @@ import {
   ModalHeader,
   Row,
   Table,
-  Tooltip,
 } from "reactstrap";
 import * as Yup from "yup";
 import { APIClient } from "../../helpers/api_helper";
+import { toast, ToastContainer } from "react-toastify";
+import moment from "moment";
+import { Tooltip } from "@mui/material";
 
 const api = new APIClient();
 
-const TotalStudentsStrength: React.FC = () => {
+const Annual_Expenditure: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [bosData, setBosData] = useState<any[]>([]);
-  const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
-  const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [annualExpData, SetAnnualExpData] = useState<any[]>([]);
   const [editId, setEditId] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
-  const [filteredData, setFilteredData] = useState(bosData);
+  const [filteredData, setFilteredData] = useState(annualExpData);
   const [filters, setFilters] = useState({
     academicYear: "",
-    file: null as string | null,
+    level: "",
+    type: "",
+    amount: "",
+    hostingClgNme: "",
+    studentName: "",
   });
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
+  // State variables for managing selected options in dropdowns
+  const [selectedStream, setSelectedStream] = useState<any>(null);
+  const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
+
+  const fileRef = useRef<HTMLInputElement | null>(null);
 
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
 
-    const filtered = bosData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-
-  // Handle column-specific filters
-  const handleFilterChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    column: string
-  ) => {
-    const value = e.target.value.toLowerCase();
-    const updatedFilters = { ...filters, [column]: value };
-    setFilters(updatedFilters);
-
-    const filtered = bosData.filter((row) =>
+    const filtered = annualExpData.filter((row) =>
       Object.values(row).some((val) =>
         String(val || "")
           .toLowerCase()
@@ -101,23 +90,23 @@ const TotalStudentsStrength: React.FC = () => {
     setIsModalOpen(!isModalOpen);
   };
 
-  // Fetch BOS data from the backend
-  const fetchBosData = async () => {
+  // Fetch Annual Expenditure data from the backend
+  const fetchAEData = async () => {
     try {
       const response = await axios.get(
-        "/totalStudentStrength/getAllTotalStudentStrength"
+        "/annualExpenditure/getAllAnnualExpenditure"
       ); // Replace with your backend API endpoint
-      setBosData(response);
+      SetAnnualExpData(response);
       setFilteredData(response);
     } catch (error) {
-      console.error("Error fetching BOS data:", error);
+      console.error("Error fetching Annual Expenditure data:", error);
     }
   };
 
   // Open the modal and fetch data
-  const handleListBosClick = () => {
+  const handleListCSWClick = () => {
     toggleModal();
-    fetchBosData();
+    fetchAEData();
   };
 
   const mapValueToLabel = (
@@ -130,13 +119,17 @@ const TotalStudentsStrength: React.FC = () => {
   };
 
   // Handle edit action
-  // Fetch the data for the selected BOS ID and populate the form fields
+  // Fetch the data for the selected Annual Expenditure ID and populate the form fields
   const handleEdit = async (id: string) => {
     try {
       const response = await api.get(
-        `/totalStudentStrength/edit?totalStudentStrengthId=${id}`,
+        `/annualExpenditure?annualExpenditureId=${id}`,
         ""
       );
+      if (!response) {
+        toast.error("No data found for the selected ID.");
+        return;
+      }
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
       // Filter the response where isCurrent or isCurrentForAdmission is true
       const filteredAcademicYearList = academicYearOptions.filter(
@@ -147,11 +140,14 @@ const TotalStudentsStrength: React.FC = () => {
         value: year.year,
         label: year.display,
       }));
-
       // Map API response to Formik values
       const mappedValues = {
         academicYear: mapValueToLabel(response.academicYear, academicYearList),
-        file: response.document?.excel || null,
+        stream: response.streamId
+          ? { value: response.streamId.toString(), label: response.streamName }
+          : null,
+        amount: response.amount || "",
+        file: response.file?.AnnualExpenditure || null,
       };
 
       // Update Formik values
@@ -163,14 +159,13 @@ const TotalStudentsStrength: React.FC = () => {
               value: String(mappedValues.academicYear.value),
             }
           : null,
+        amount: response.amount || "",
       });
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
-      // Disable the file upload button if a file exists
-      setIsFileUploadDisabled(!!response.document?.excel);
       toggleModal();
     } catch (error) {
-      console.error("Error fetching BOS data by ID:", error);
+      console.error("Error fetching Annual Expenditure data by ID:", error);
     }
   };
 
@@ -182,24 +177,21 @@ const TotalStudentsStrength: React.FC = () => {
   };
 
   // Confirm deletion of the record
-  // Call the delete API and refresh the BOS data
+  // Call the delete API and refresh the Annual Expenditure data
   const confirmDelete = async (id: string) => {
     if (deleteId) {
       try {
         const response = await api.delete(
-          `/totalStudentStrength/deleteTotalStudentStrength?totalStudentStrengthId=${id}`,
+          `/annualExpenditure/deleteAnnualExpenditure?annualExpenditureId=${id}`,
           ""
         );
         toast.success(
-          response.message ||
-            "Student Strength Program-wise removed successfully!"
+          response.message || "Annual Expenditure removed successfully!"
         );
-        fetchBosData();
+        fetchAEData();
       } catch (error) {
-        toast.error(
-          "Failed to remove Student Strength Program-wise. Please try again."
-        );
-        console.error("Error deleting BOS:", error);
+        toast.error("Failed to remove Annual Expenditure. Please try again.");
+        console.error("Error deleting Annual Expenditure:", error);
       } finally {
         setIsDeleteModalOpen(false);
         setDeleteId(null);
@@ -213,7 +205,7 @@ const TotalStudentsStrength: React.FC = () => {
       try {
         // Ensure you set responseType to 'blob' to handle binary data
         const response = await axios.get(
-          `/totalStudentStrength/download/${fileName}`,
+          `/annualExpenditure/download/${fileName}`,
           {
             responseType: "blob",
           }
@@ -248,111 +240,113 @@ const TotalStudentsStrength: React.FC = () => {
 
   // Handle file deletion
   // Clear the file from the form and show success message
-  const handleDeleteFile = async () => {
+  const handleDeleteFile = async (fileName: string, docType: string) => {
     try {
-      // Call the delete API
       const response = await api.delete(
-        `/totalStudentStrength/deleteTotalStudStrengthDocument?totalStudentStrengthId=${editId}`,
+        `/annualExpenditure/deleteAnnualExpenditureDocument?fileName=${fileName}`,
         ""
       );
-      // Show success message
       toast.success(response.message || "File deleted successfully!");
-      // Remove the file from the form
-      validation.setFieldValue("file", null); // Clear the file from Formik state
+      if (docType === "AnnualExpenditure") {
+        validation.setFieldValue("file", null);
+      }
       setIsFileUploadDisabled(false); // Enable the file upload button
     } catch (error) {
-      // Show error message
       toast.error("Failed to delete the file. Please try again.");
       console.error("Error deleting file:", error);
     }
   };
 
-  type AcademicYearOption = { value: string; label: string } | null;
-
   const validation = useFormik({
     initialValues: {
-      academicYear: null as AcademicYearOption,
+      academicYear: null as { value: string; label: string } | null,
+      amount: "",
+      stream: null as { value: string; label: string } | null,
       file: null as File | string | null,
     },
     validationSchema: Yup.object({
-      academicYear: Yup.object({
-        value: Yup.string().required(),
-        label: Yup.string().required(),
-      })
+      amount: Yup.string().required("Please enter amount"),
+      file: Yup.mixed().test(
+        "fileValidation",
+        "Please upload a valid file",
+        function (value) {
+          // Skip validation if the file upload is disabled (file exists)
+          if (isFileUploadDisabled) {
+            return true;
+          }
+          // Perform validation if the file upload is enabled (file doesn't exist)
+          if (!value) {
+            return this.createError({ message: "Please upload a file" });
+          }
+          // Check file size (2MB limit)
+          if (value instanceof File && value.size > 2 * 1024 * 1024) {
+            return this.createError({ message: "File size is too large" });
+          }
+          // Check file type
+          const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
+          if (value instanceof File && !allowedTypes.includes(value.type)) {
+            return this.createError({ message: "Unsupported file format" });
+          }
+          return true;
+        }
+      ),
+      academicYear: Yup.object()
         .nullable()
         .required("Please select academic year"),
-      file: Yup.mixed()
-        .required("Please upload a file")
-        .test("fileSize", "File size is too large", (value: any) => {
-          // Skip size validation if file is a string (from existing data)
-          if (typeof value === "string") return true;
-          return value && value.size <= 10 * 1024 * 1024; // 10MB
-        })
-        .test("fileType", "Unsupported file format", (value: any) => {
-          // Skip type validation if file is a string
-          if (typeof value === "string") return true;
-          return (
-            value &&
-            [
-              "application/vnd.ms-excel",
-              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            ].includes(value.type)
-          );
-        }),
+      stream: Yup.object().nullable().required("Please select stream"),
     }),
     onSubmit: async (values, { resetForm }) => {
-      const formData = new FormData();
-
-      formData.append("academicYear", values.academicYear?.value || "");
-
-      // Handle the file conditionally
-      if (isEditMode && typeof values.file === "string") {
-        // Pass an empty Blob instead of null
-        formData.append("excelFile", new Blob([]), "empty.xlsx");
-      } else if (isEditMode && values.file === null) {
-        formData.append("excelFile", new Blob([]), "empty.xlsx");
-      } else if (values.file) {
-        formData.append("excelFile", values.file);
-      }
-
-      // If editing, include ID
-      if (isEditMode && editId) {
-        formData.append("totalStudentStrengthId", editId);
-      }
       try {
+        const formData = new FormData();
+        formData.append("academicYear", values.academicYear?.value || "");
+        formData.append("streamId", values.stream?.value || "");
+        formData.append("amount", values.amount || "");
+        if (isEditMode && typeof values.file === "string") {
+          // Pass an empty PDF instead of null
+          formData.append(
+            "annualExpenditure",
+            new Blob([], { type: "application/pdf" }),
+            "empty.pdf"
+          );
+        } else if (isEditMode && values.file === null) {
+          formData.append(
+            "annualExpenditure",
+            new Blob([], { type: "application/pdf" }),
+            "empty.pdf"
+          );
+        } else if (values.file) {
+          formData.append("annualExpenditure", values.file);
+        }
+        // If in edit mode, append the edit ID
+        if (isEditMode && editId) {
+          formData.append("id", editId);
+        }
+
         if (isEditMode && editId) {
           // Call the update API
-          const response = await api.put(
-            `/totalStudentStrength/update`,
-            formData
-          );
+          const response = await api.put(`/annualExpenditure`, formData);
           toast.success(
-            response.message ||
-              "Student Strength Program-wise updated successfully!"
+            response.message || "Annual Expenditure updated successfully!"
           );
         } else {
           // Call the save API
-          const response = await api.create(
-            "/totalStudentStrength/save",
-            formData
-          );
+          const response = await api.create("/annualExpenditure", formData);
           toast.success(
-            response.message ||
-              "Student Strength Program-wise added successfully!"
+            response.message || "Annual Expenditure added successfully!"
           );
         }
         // Reset the form fields
         resetForm();
+        if (fileRef.current) {
+          fileRef.current.value = "";
+        }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
-        setIsFileUploadDisabled(false); // Enable the file upload button
-        handleListBosClick();
+        handleListCSWClick();
       } catch (error) {
         // Display error message
-        toast.error(
-          "Failed to save Student Strength Program-wise. Please try again."
-        );
-        console.error("Error creating BOS:", error);
+        toast.error("Failed to save Annual Expenditure. Please try again.");
+        console.error("Error creating Annual Expenditure:", error);
       }
     },
   });
@@ -361,15 +355,11 @@ const TotalStudentsStrength: React.FC = () => {
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <Breadcrumb
-            title="Student Details"
-            breadcrumbItem="Total Students Strength"
-          />
+          <Breadcrumb title="Library" breadcrumbItem="Annual Expenditure" />
           <Card>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
                 <Row>
-                  {/* Academic Year Dropdown */}
                   <Col lg={4}>
                     <div className="mb-3">
                       <Label>Academic Year</Label>
@@ -395,23 +385,75 @@ const TotalStudentsStrength: React.FC = () => {
                     </div>
                   </Col>
 
+                  {/* Stream Dropdown */}
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>School</Label>
+                      <StreamDropdown
+                        value={validation.values.stream}
+                        onChange={(selectedOption) => {
+                          validation.setFieldValue("stream", selectedOption);
+                          setSelectedStream(selectedOption);
+                          validation.setFieldValue("department", null);
+                          setSelectedDepartment(null);
+                        }}
+                        isInvalid={
+                          validation.touched.stream &&
+                          !!validation.errors.stream
+                        }
+                      />
+                      {validation.touched.stream &&
+                        validation.errors.stream && (
+                          <div className="text-danger">
+                            {validation.errors.stream}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Amount</Label>
+                      <Input
+                        type="number"
+                        className={`form-control ${
+                          validation.touched.amount && validation.errors.amount
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        value={validation.values.amount}
+                        onChange={(e) =>
+                          validation.setFieldValue("amount", e.target.value)
+                        }
+                        placeholder="Enter Amount"
+                      />
+                      {validation.touched.amount &&
+                        validation.errors.amount && (
+                          <div className="text-danger">
+                            {validation.errors.amount}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
-                        Upload Total Student Strength
+                        Upload list of Annual Expenditure
+                      </Label>
+                      <Tooltip
+                        placement="right"
+                        open={tooltipOpen}
+                        onClose={() => setTooltipOpen(false)}
+                        onOpen={() => setTooltipOpen(true)}
+                        title={<span>Upload file. Max size 10MB.</span>}
+                        arrow
+                      >
                         <i
                           id="infoIcon"
                           className="bi bi-info-circle ms-2"
                           style={{ cursor: "pointer", color: "#0d6efd" }}
                         ></i>
-                      </Label>
-                      <Tooltip
-                        placement="right"
-                        isOpen={tooltipOpen}
-                        target="infoIcon"
-                        toggle={toggleTooltip}
-                      >
-                        Upload an Excel or PDF file. Max size 10MB.
                       </Tooltip>
                       <Input
                         className={`form-control ${
@@ -420,6 +462,7 @@ const TotalStudentsStrength: React.FC = () => {
                             : ""
                         }`}
                         type="file"
+                        innerRef={fileRef}
                         id="formFile"
                         onChange={(event) => {
                           validation.setFieldValue(
@@ -466,7 +509,12 @@ const TotalStudentsStrength: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
-                            onClick={() => handleDeleteFile()}
+                            onClick={() =>
+                              handleDeleteFile(
+                                validation.values.file as string,
+                                "AnnualExpenditure"
+                              )
+                            }
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>
@@ -482,11 +530,10 @@ const TotalStudentsStrength: React.FC = () => {
                       <button className="btn btn-primary" type="submit">
                         {isEditMode ? "Update" : "Save"}
                       </button>
-
                       <button
                         className="btn btn-secondary"
                         type="button"
-                        onClick={handleListBosClick}
+                        onClick={handleListCSWClick}
                       >
                         List
                       </button>
@@ -497,10 +544,15 @@ const TotalStudentsStrength: React.FC = () => {
             </CardBody>
           </Card>
         </Container>
-        {/* Modal for Listing BOS */}
-        <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg">
+        {/* Modal for Listing Annual Expenditure */}
+        <Modal
+          isOpen={isModalOpen}
+          toggle={toggleModal}
+          size="lg"
+          style={{ maxWidth: "90%" }}
+        >
           <ModalHeader toggle={toggleModal}>
-            List of Student Strength Program-wise
+            List Annual Expenditure
           </ModalHeader>
           <ModalBody>
             {/* Global Search */}
@@ -522,30 +574,30 @@ const TotalStudentsStrength: React.FC = () => {
               <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>Academic Year</th>
-                  <th>Documents</th>
+                  <th>Academic Year </th>
+                  <th>School </th>
+                  <th>Amount</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {currentRows.length > 0 ? (
-                  currentRows.map((bos, index) => (
-                    <tr key={bos.totalStudentStrengthId}>
+                  currentRows.map((cds, index) => (
+                    <tr key={cds.id}>
                       <td>{index + 1}</td>
-                      <td>{bos.academicYear}</td>
-                      <td>{bos.document?.excel || "No file uploaded"}</td>
+                      <td>{cds.academicYear}</td>
+                      <td>{cds.streamName}</td>
+                      <td>{cds.amount}</td>
                       <td>
                         <button
                           className="btn btn-sm btn-warning me-2"
-                          onClick={() => handleEdit(bos.totalStudentStrengthId)}
+                          onClick={() => handleEdit(cds.id)}
                         >
                           Edit
                         </button>
                         <button
                           className="btn btn-sm btn-danger"
-                          onClick={() =>
-                            handleDelete(bos.totalStudentStrengthId)
-                          }
+                          onClick={() => handleDelete(cds.id)}
                         >
                           Delete
                         </button>
@@ -555,7 +607,7 @@ const TotalStudentsStrength: React.FC = () => {
                 ) : (
                   <tr>
                     <td colSpan={4} className="text-center">
-                      No BOS data available.
+                      No Annual Expenditure data available.
                     </td>
                   </tr>
                 )}
@@ -583,7 +635,6 @@ const TotalStudentsStrength: React.FC = () => {
             </div>
           </ModalBody>
         </Modal>
-        {/* Confirmation Modal */}
         <Modal
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
@@ -613,4 +664,4 @@ const TotalStudentsStrength: React.FC = () => {
   );
 };
 
-export default TotalStudentsStrength;
+export default Annual_Expenditure;

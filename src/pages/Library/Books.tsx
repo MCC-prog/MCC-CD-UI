@@ -3,9 +3,7 @@ import Breadcrumb from "Components/Common/Breadcrumb";
 import AcademicYearDropdown from "Components/DropDowns/AcademicYearDropdown";
 import DegreeDropdown from "Components/DropDowns/DegreeDropdown";
 import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
-import ProgramDropdown from "Components/DropDowns/ProgramDropdown";
-import ProgramTypeDropdown from "Components/DropDowns/ProgramTypeDropdown";
-import SemesterDropdowns from "Components/DropDowns/SemesterDropdowns";
+import Select from "react-select";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { useFormik } from "formik";
 import React, { useRef, useState } from "react";
@@ -23,43 +21,41 @@ import {
   ModalHeader,
   Row,
   Table,
-  Tooltip,
 } from "reactstrap";
 import * as Yup from "yup";
 import { APIClient } from "../../helpers/api_helper";
 import { toast, ToastContainer } from "react-toastify";
-import GetAllProgramDropdown from "Components/DropDowns/GetAllProgramDropdown";
 import moment from "moment";
+import { Tooltip } from "@mui/material";
 
 const api = new APIClient();
 
-const Career_Counseling_Guidance: React.FC = () => {
+const Books: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [ccgData, setCCGData] = useState<any[]>([]);
-  const [selectedStream, setSelectedStream] = useState<any>(null);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false);
+  const [cswData, setCSWData] = useState<any[]>([]);
   const [editId, setEditId] = useState<string | null>(null);
-  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
-  const [filteredData, setFilteredData] = useState(ccgData);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
-  const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
-  const [tooltipOpen, setTooltipOpen] = useState(false);
-  const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
+  const [filteredData, setFilteredData] = useState(cswData);
   const [filters, setFilters] = useState({
     academicYear: "",
-    stream: "",
-    department: "",
-    courses: "",
-    areaOfGuidance: "",
-    date: "",
-    noOfParticipants: "",
-    trainerResource: "",
-    outcomes: "",
+    level: "",
+    type: "",
+    noOfBooks: "",
+    hostingClgNme: "",
+    studentName: "",
   });
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
+  // State variables for managing selected options in dropdowns
+  const [selectedStream, setSelectedStream] = useState<any>(null);
+  const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
+  const [tooltipOpen, setTooltipOpen] = useState(false);
+  const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
+
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   // Handle global search
@@ -67,26 +63,7 @@ const Career_Counseling_Guidance: React.FC = () => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
 
-    const filtered = ccgData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-
-  // Handle column-specific filters
-  const handleFilterChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    column: string
-  ) => {
-    const value = e.target.value.toLowerCase();
-    const updatedFilters = { ...filters, [column]: value };
-    setFilters(updatedFilters);
-
-    const filtered = ccgData.filter((row) =>
+    const filtered = cswData.filter((row) =>
       Object.values(row).some((val) =>
         String(val || "")
           .toLowerCase()
@@ -106,30 +83,30 @@ const Career_Counseling_Guidance: React.FC = () => {
     setCurrentPage(pageNumber);
   };
 
+  // Calculate total pages
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };
 
-  // Fetch BOS data from the backend
-  const fetchCCGData = async () => {
+  // Fetch Books data from the backend
+  const fetchCSWData = async () => {
     try {
-      const response = await axios.get("/careerCounseling/getAll"); // Replace with your backend API endpoint
-      setCCGData(response);
+      const response = await axios.get("/books/getAllBooks"); // Replace with your backend API endpoint
+      setCSWData(response);
       setFilteredData(response);
     } catch (error) {
-      console.error("Error fetching BOS data:", error);
+      console.error("Error fetching Books data:", error);
     }
   };
 
   // Open the modal and fetch data
-  const handleListCCGClick = () => {
+  const handleListCSWClick = () => {
     toggleModal();
-    fetchCCGData();
+    fetchCSWData();
   };
 
-  // Map value to label for dropdowns
   const mapValueToLabel = (
     value: string | number | null,
     options: { value: string | number; label: string }[]
@@ -140,13 +117,14 @@ const Career_Counseling_Guidance: React.FC = () => {
   };
 
   // Handle edit action
-  // Fetch the data for the selected BOS ID and populate the form fields
+  // Fetch the data for the selected Books ID and populate the form fields
   const handleEdit = async (id: string) => {
     try {
-      const response = await api.get(
-        `/careerCounseling/edit?careerCounselingId=${id}`,
-        ""
-      );
+      const response = await api.get(`/books?booksId=${id}`, "");
+      if (!response) {
+        toast.error("No data found for the selected ID.");
+        return;
+      }
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
       // Filter the response where isCurrent or isCurrentForAdmission is true
       const filteredAcademicYearList = academicYearOptions.filter(
@@ -157,7 +135,6 @@ const Career_Counseling_Guidance: React.FC = () => {
         value: year.year,
         label: year.display,
       }));
-
       // Map API response to Formik values
       const mappedValues = {
         academicYear: mapValueToLabel(response.academicYear, academicYearList),
@@ -170,25 +147,15 @@ const Career_Counseling_Guidance: React.FC = () => {
               label: response.departmentName,
             }
           : null,
-        courses: response.courses
-          ? Object.entries(response.courses).map(([key, value]) => ({
-              value: key,
-              label: String(value),
-            }))
-          : [],
-        areaOfGuidance: response.areaOfGuidance || "",
-        date: response.date
-          ? moment(response.date, "DD/MM/YYYY").format("YYYY-MM-DD") // Convert to yyyy-mm-dd for the input
-          : "",
-        noOfParticipants: response.noOfParticipants || "",
-        trainerResource: response.resourcePersonDetails || "",
-        outcomes: response.outcomes || "",
+        noOfBooks: response.noOfBooks || "",
+        file: response.file?.Book || null,
       };
       const streamOption = mapValueToLabel(response.streamId, []); // Replace [] with stream options array if available
       const departmentOption = mapValueToLabel(response.departmentId, []); // Replace [] with department options array if available
 
       // Update Formik values
       validation.setValues({
+        ...mappedValues,
         academicYear: mappedValues.academicYear
           ? {
               ...mappedValues.academicYear,
@@ -204,15 +171,8 @@ const Career_Counseling_Guidance: React.FC = () => {
               value: String(mappedValues.department.value),
             }
           : null,
-        courses: mappedValues.courses || [],
-        areaOfGuidance: response.areaOfGuidance || "",
-        date: mappedValues.date
-          ? moment(mappedValues.date, "YYYY-MM-DD").format("DD/MM/YYYY") // Convert to dd/mm/yyyy for the input
-          : "",
-        noOfParticipants: response.noOfParticipants || "",
-        trainerResource: response.resourcePersonDetails || "",
-        outcomes: response.outcomes || "",
-        careerCounseling: response.documents.careerCounseling || null, // Handle file upload
+        noOfBooks: mappedValues.noOfBooks ? String(mappedValues.noOfBooks) : "",
+        file: mappedValues.file || null,
       });
       setSelectedStream(streamOption);
       setSelectedDepartment(departmentOption);
@@ -221,33 +181,31 @@ const Career_Counseling_Guidance: React.FC = () => {
       setEditId(id); // Store the ID of the record being edited
       toggleModal();
     } catch (error) {
-      console.error("Error fetching BOS data by ID:", error);
+      console.error("Error fetching Books data by ID:", error);
     }
   };
 
+  // Handle delete action
+  // Set the ID of the record to be deleted and open the confirmation modal
   const handleDelete = (id: string) => {
     setDeleteId(id);
     setIsDeleteModalOpen(true);
   };
 
-  // Call the delete API and refresh the BOS data
+  // Confirm deletion of the record
+  // Call the delete API and refresh the Books data
   const confirmDelete = async (id: string) => {
     if (deleteId) {
       try {
         const response = await api.delete(
-          `/careerCounseling/deleteCareerCounseling?careerCounselingId=${id}`,
+          `/books/deleteBooks?booksId=${id}`,
           ""
         );
-        toast.success(
-          response.message ||
-            "Career Counseling & Guidance removed successfully!"
-        );
-        fetchCCGData();
+        toast.success(response.message || "Books removed successfully!");
+        fetchCSWData();
       } catch (error) {
-        toast.error(
-          "Failed to remove Career Counseling & Guidance. Please try again."
-        );
-        console.error("Error deleting BOS:", error);
+        toast.error("Failed to remove Books. Please try again.");
+        console.error("Error deleting Books:", error);
       } finally {
         setIsDeleteModalOpen(false);
         setDeleteId(null);
@@ -260,12 +218,9 @@ const Career_Counseling_Guidance: React.FC = () => {
     if (fileName) {
       try {
         // Ensure you set responseType to 'blob' to handle binary data
-        const response = await axios.get(
-          `/careerCounseling/download/${fileName}`,
-          {
-            responseType: "blob",
-          }
-        );
+        const response = await axios.get(`/books/download/${fileName}`, {
+          responseType: "blob",
+        });
 
         // Create a Blob from the response data
         const blob = new Blob([response], { type: "*/*" });
@@ -295,15 +250,16 @@ const Career_Counseling_Guidance: React.FC = () => {
   };
 
   // Handle file deletion
+  // Clear the file from the form and show success message
   const handleDeleteFile = async (fileName: string, docType: string) => {
     try {
       const response = await api.delete(
-        `/careerCounseling/deleteCareerCounselingDocument?careerCounselingId=${editId}&docType=${docType}`,
+        `/books/deleteBooksDocument?fileName=${fileName}`,
         ""
       );
       toast.success(response.message || "File deleted successfully!");
-      if (docType === "careerCounseling") {
-        validation.setFieldValue("careerCounseling", null);
+      if (docType === "Book") {
+        validation.setFieldValue("file", null);
       }
       setIsFileUploadDisabled(false); // Enable the file upload button
     } catch (error) {
@@ -315,41 +271,14 @@ const Career_Counseling_Guidance: React.FC = () => {
   const validation = useFormik({
     initialValues: {
       academicYear: null as { value: string; label: string } | null,
-      areaOfGuidance: "",
-      date: "",
-      noOfParticipants: "",
-      trainerResource: "",
-      outcomes: "",
+      noOfBooks: "",
       stream: null as { value: string; label: string } | null,
       department: null as { value: string; label: string } | null,
-      courses: [] as { value: string; label: string }[],
-      careerCounseling: null as File | string | null,
+      file: null as File | string | null,
     },
     validationSchema: Yup.object({
-      academicYear: Yup.object()
-        .nullable()
-        .required("Please select academic year"),
-      stream: Yup.object().nullable().required("Please select stream"),
-      areaOfGuidance: Yup.string().required("Please enter area of guidance"),
-      noOfParticipants: Yup.number().required(
-        "Please enter No. of Participants/Attendees"
-      ),
-      date: Yup.string().required("Please select date"),
-      trainerResource: Yup.string().required(
-        "Please enter trainer/resource person details"
-      ),
-      outcomes: Yup.string().required("Please enter outcomes"),
-      department: Yup.object().nullable().required("Please select department"),
-      courses: Yup.array()
-        .of(
-          Yup.object().shape({
-            value: Yup.string().required(),
-            label: Yup.string().required(),
-          })
-        )
-        .min(1, "Please select at least one program")
-        .required("Please select program"),
-      careerCounseling: Yup.mixed().test(
+      noOfBooks: Yup.string().required("Please enter no. of participants"),
+      file: Yup.mixed().test(
         "fileValidation",
         "Please upload a valid file",
         function (value) {
@@ -373,62 +302,48 @@ const Career_Counseling_Guidance: React.FC = () => {
           return true;
         }
       ),
+      academicYear: Yup.object()
+        .nullable()
+        .required("Please select academic year"),
+      stream: Yup.object().nullable().required("Please select stream"),
+      department: Yup.object().nullable().required("Please select department"),
     }),
     onSubmit: async (values, { resetForm }) => {
       try {
         const formData = new FormData();
-
         formData.append("academicYear", values.academicYear?.value || "");
         formData.append("streamId", values.stream?.value || "");
         formData.append("departmentId", values.department?.value || "");
-        formData.append("areaOfGuidance", values.areaOfGuidance || "");
-        formData.append("resourcePersonDetails", values.trainerResource || "");
-        formData.append("outcomes", values.outcomes || "");
-        const formattedDate = moment(values.date, "YYYY-MM-DD").format(
-          "DD/MM/YYYY"
-        );
-        formData.append("date", formattedDate || "");
-        formData.append("noOfParticipants", values.noOfParticipants || "");
-        values.courses.forEach((course, index) => {
-          formData.append(`courseIds[${index}]`, course.value);
-        });
-
-        if (isEditMode && typeof values.careerCounseling === "string") {
+        formData.append("noOfBooks", values.noOfBooks || "");
+        if (isEditMode && typeof values.file === "string") {
+          // Pass an empty PDF instead of null
           formData.append(
-            "file",
+            "book",
             new Blob([], { type: "application/pdf" }),
             "empty.pdf"
           );
-        } else if (isEditMode && values.careerCounseling === null) {
+        } else if (isEditMode && values.file === null) {
           formData.append(
-            "file",
+            "book",
             new Blob([], { type: "application/pdf" }),
             "empty.pdf"
           );
-        } else if (values.careerCounseling) {
-          formData.append("file", values.careerCounseling);
+        } else if (values.file) {
+          formData.append("book", values.file);
         }
-        // If editing, include the ID
+        // If in edit mode, append the edit ID
         if (isEditMode && editId) {
-          formData.append("careerCounselingId", editId);
+          formData.append("id", editId);
         }
-
-        let response;
 
         if (isEditMode && editId) {
           // Call the update API
-          const response = await api.put(`/careerCounseling/update`, formData);
-          toast.success(
-            response.message ||
-              "Career Counseling & Guidance updated successfully!"
-          );
+          const response = await api.put(`/books`, formData);
+          toast.success(response.message || "Books updated successfully!");
         } else {
           // Call the save API
-          const response = await api.create("/careerCounseling/save", formData);
-          toast.success(
-            response.message ||
-              "Career Counseling & Guidance added successfully!"
-          );
+          const response = await api.create("/books", formData);
+          toast.success(response.message || "Books added successfully!");
         }
         // Reset the form fields
         resetForm();
@@ -437,14 +352,11 @@ const Career_Counseling_Guidance: React.FC = () => {
         }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
-        // display the BOS List
-        handleListCCGClick();
+        handleListCSWClick();
       } catch (error) {
         // Display error message
-        toast.error(
-          "Failed to save Career Counseling & Guidance. Please try again."
-        );
-        console.error("Error creating BOS:", error);
+        toast.error("Failed to save Books. Please try again.");
+        console.error("Error creating Books:", error);
       }
     },
   });
@@ -453,15 +365,11 @@ const Career_Counseling_Guidance: React.FC = () => {
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <Breadcrumb
-            title="Student Activities & Support"
-            breadcrumbItem="Career Counseling & Guidance"
-          />
+          <Breadcrumb title="Library" breadcrumbItem="Books" />
           <Card>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
                 <Row>
-                  {/* Academic Year Dropdown */}
                   <Col lg={4}>
                     <div className="mb-3">
                       <Label>Academic Year</Label>
@@ -487,6 +395,7 @@ const Career_Counseling_Guidance: React.FC = () => {
                     </div>
                   </Col>
 
+                  {/* Stream Dropdown */}
                   <Col lg={4}>
                     <div className="mb-3">
                       <Label>School</Label>
@@ -495,6 +404,8 @@ const Career_Counseling_Guidance: React.FC = () => {
                         onChange={(selectedOption) => {
                           validation.setFieldValue("stream", selectedOption);
                           setSelectedStream(selectedOption);
+                          validation.setFieldValue("department", null);
+                          setSelectedDepartment(null);
                         }}
                         isInvalid={
                           validation.touched.stream &&
@@ -522,7 +433,6 @@ const Career_Counseling_Guidance: React.FC = () => {
                             "department",
                             selectedOption
                           );
-                          setSelectedDepartment(selectedOption);
                         }}
                         isInvalid={
                           validation.touched.department &&
@@ -540,156 +450,25 @@ const Career_Counseling_Guidance: React.FC = () => {
 
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>Program</Label>
-                      <GetAllProgramDropdown
-                        value={validation.values.courses}
-                        onChange={(selectedOption) =>
-                          validation.setFieldValue("courses", selectedOption)
-                        }
-                        isInvalid={
-                          validation.touched.courses &&
-                          !!validation.errors.courses
-                        }
-                      />
-                      {validation.touched.courses &&
-                        validation.errors.courses && (
-                          <div className="text-danger">
-                            {Array.isArray(validation.errors.courses)
-                              ? validation.errors.courses.join(", ")
-                              : validation.errors.courses}
-                          </div>
-                        )}
-                    </div>
-                  </Col>
-
-                  <Col sm={4}>
-                    <div className="mb-3">
-                      <Label htmlFor="formFile" className="form-label">
-                        Area of Guidance
-                      </Label>
+                      <Label>No. of Books</Label>
                       <Input
-                        className={`form-control ${
-                          validation.touched.areaOfGuidance &&
-                          validation.errors.areaOfGuidance
-                            ? "is-invalid"
-                            : ""
-                        }`}
-                        type="text"
-                        id="areaOfGuidance"
-                        onChange={(e) =>
-                          validation.setFieldValue(
-                            "areaOfGuidance",
-                            e.target.value
-                          )
-                        }
-                        placeholder="Enter full time"
-                        value={validation.values.areaOfGuidance}
-                      />
-                      {validation.touched.areaOfGuidance &&
-                        validation.errors.areaOfGuidance && (
-                          <div className="text-danger">
-                            {validation.errors.areaOfGuidance}
-                          </div>
-                        )}
-                    </div>
-                  </Col>
-
-                  <Col lg={4}>
-                    <div className="mb-3">
-                      <Label>Date</Label>
-                      <Input
-                        type="date"
-                        name="date"
-                        value={
-                          validation.values.date
-                            ? moment(
-                                validation.values.date,
-                                "DD/MM/YYYY"
-                              ).format("YYYY-MM-DD") // Convert to yyyy-mm-dd for the input
-                            : ""
-                        }
-                        // onChange={validation.handleChange}
-                        onChange={(e) => {
-                          const formattedDate = moment(
-                            e.target.value,
-                            "YYYY-MM-DD"
-                          ).format("DD/MM/YYYY"); // Convert to dd/mm/yyyy
-                          validation.setFieldValue("date", formattedDate);
-                        }}
-                        placeholder="Enter date"
-                        className={
-                          validation.touched.date && validation.errors.date
-                            ? "is-invalid"
-                            : ""
-                        }
-                      />
-                      {validation.touched.date && validation.errors.date && (
-                        <div className="text-danger">
-                          {validation.errors.date}
-                        </div>
-                      )}
-                    </div>
-                  </Col>
-
-                  <Col sm={4}>
-                    <div className="mb-3">
-                      <Label htmlFor="formFile" className="form-label">
-                        No. of Participants/Attendees
-                      </Label>
-                      <Input
-                        className={`form-control ${
-                          validation.touched.noOfParticipants &&
-                          validation.errors.noOfParticipants
-                            ? "is-invalid"
-                            : ""
-                        }`}
                         type="number"
-                        id="noOfParticipants"
-                        onChange={(e) =>
-                          validation.setFieldValue(
-                            "noOfParticipants",
-                            e.target.value
-                          )
-                        }
-                        placeholder="Enter part time"
-                        value={validation.values.noOfParticipants}
-                      />
-                      {validation.touched.noOfParticipants &&
-                        validation.errors.noOfParticipants && (
-                          <div className="text-danger">
-                            {validation.errors.noOfParticipants}
-                          </div>
-                        )}
-                    </div>
-                  </Col>
-
-                  <Col sm={4}>
-                    <div className="mb-3">
-                      <Label htmlFor="formFile" className="form-label">
-                        Trainer/Resource Person details
-                      </Label>
-                      <Input
                         className={`form-control ${
-                          validation.touched.trainerResource &&
-                          validation.errors.trainerResource
+                          validation.touched.noOfBooks &&
+                          validation.errors.noOfBooks
                             ? "is-invalid"
                             : ""
                         }`}
-                        type="text"
-                        id="trainerResource"
+                        value={validation.values.noOfBooks}
                         onChange={(e) =>
-                          validation.setFieldValue(
-                            "trainerResource",
-                            e.target.value
-                          )
+                          validation.setFieldValue("noOfBooks", e.target.value)
                         }
-                        placeholder="Enter guest faculty"
-                        value={validation.values.trainerResource}
+                        placeholder="Enter No. of Participants"
                       />
-                      {validation.touched.trainerResource &&
-                        validation.errors.trainerResource && (
+                      {validation.touched.noOfBooks &&
+                        validation.errors.noOfBooks && (
                           <div className="text-danger">
-                            {validation.errors.trainerResource}
+                            {validation.errors.noOfBooks}
                           </div>
                         )}
                     </div>
@@ -698,63 +477,34 @@ const Career_Counseling_Guidance: React.FC = () => {
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
-                        Outcomes
+                        Upload list of books
                       </Label>
-                      <Input
-                        className={`form-control ${
-                          validation.touched.outcomes &&
-                          validation.errors.outcomes
-                            ? "is-invalid"
-                            : ""
-                        }`}
-                        type="text"
-                        id="outcomes"
-                        onChange={(e) =>
-                          validation.setFieldValue("outcomes", e.target.value)
-                        }
-                        placeholder="Enter professor of practice"
-                        value={validation.values.outcomes}
-                      />
-                      {validation.touched.outcomes &&
-                        validation.errors.outcomes && (
-                          <div className="text-danger">
-                            {validation.errors.outcomes}
-                          </div>
-                        )}
-                    </div>
-                  </Col>
-
-                  <Col sm={4}>
-                    <div className="mb-3">
-                      <Label htmlFor="formFile" className="form-label">
-                        Upload description of the activity
+                      <Tooltip
+                        placement="right"
+                        open={tooltipOpen}
+                        onClose={() => setTooltipOpen(false)}
+                        onOpen={() => setTooltipOpen(true)}
+                        title={<span>Upload file. Max size 10MB.</span>}
+                        arrow
+                      >
                         <i
                           id="infoIcon"
                           className="bi bi-info-circle ms-2"
                           style={{ cursor: "pointer", color: "#0d6efd" }}
                         ></i>
-                      </Label>
-                      <Tooltip
-                        placement="right"
-                        isOpen={tooltipOpen}
-                        target="infoIcon"
-                        toggle={toggleTooltip}
-                      >
-                        Upload an PDF file. Max size 10MB.
                       </Tooltip>
                       <Input
                         className={`form-control ${
-                          validation.touched.careerCounseling &&
-                          validation.errors.careerCounseling
+                          validation.touched.file && validation.errors.file
                             ? "is-invalid"
                             : ""
                         }`}
                         type="file"
-                        id="formFile"
                         innerRef={fileRef}
+                        id="formFile"
                         onChange={(event) => {
                           validation.setFieldValue(
-                            "careerCounseling",
+                            "file",
                             event.currentTarget.files
                               ? event.currentTarget.files[0]
                               : null
@@ -762,12 +512,11 @@ const Career_Counseling_Guidance: React.FC = () => {
                         }}
                         disabled={isFileUploadDisabled} // Disable the button if a file exists
                       />
-                      {validation.touched.careerCounseling &&
-                        validation.errors.careerCounseling && (
-                          <div className="text-danger">
-                            {validation.errors.careerCounseling}
-                          </div>
-                        )}
+                      {validation.touched.file && validation.errors.file && (
+                        <div className="text-danger">
+                          {validation.errors.file}
+                        </div>
+                      )}
                       {/* Show a message if the file upload button is disabled */}
                       {isFileUploadDisabled && (
                         <div className="text-warning mt-2">
@@ -775,21 +524,20 @@ const Career_Counseling_Guidance: React.FC = () => {
                         </div>
                       )}
                       {/* Only show the file name if it is a string (from the edit API) */}
-                      {typeof validation.values.careerCounseling ===
-                        "string" && (
+                      {typeof validation.values.file === "string" && (
                         <div className="mt-2 d-flex align-items-center">
                           <span
                             className="me-2"
                             style={{ fontWeight: "bold", color: "green" }}
                           >
-                            {validation.values.careerCounseling}
+                            {validation.values.file}
                           </span>
                           <Button
                             color="link"
                             className="text-primary"
                             onClick={() =>
                               handleDownloadFile(
-                                validation.values.careerCounseling as string
+                                validation.values.file as string
                               )
                             }
                             title="Download File"
@@ -801,8 +549,8 @@ const Career_Counseling_Guidance: React.FC = () => {
                             className="text-danger"
                             onClick={() =>
                               handleDeleteFile(
-                                validation.values.careerCounseling as string,
-                                "careerCounseling"
+                                validation.values.file as string,
+                                "Book"
                               )
                             }
                             title="Delete File"
@@ -811,21 +559,6 @@ const Career_Counseling_Guidance: React.FC = () => {
                           </Button>
                         </div>
                       )}
-                    </div>
-                  </Col>
-
-                  <Col lg={4}>
-                    <div className="mb-3">
-                      <Label>Download </Label>
-                      <div>
-                        <a
-                          href="/templateFiles/Guest Lectures.pdf"
-                          download
-                          className="btn btn-primary btn-sm"
-                        >
-                          Year Dept Guest Lecture
-                        </a>
-                      </div>
                     </div>
                   </Col>
                 </Row>
@@ -838,7 +571,7 @@ const Career_Counseling_Guidance: React.FC = () => {
                       <button
                         className="btn btn-secondary"
                         type="button"
-                        onClick={handleListCCGClick}
+                        onClick={handleListCSWClick}
                       >
                         List
                       </button>
@@ -849,17 +582,16 @@ const Career_Counseling_Guidance: React.FC = () => {
             </CardBody>
           </Card>
         </Container>
-        {/* Modal for Listing BOS */}
+        {/* Modal for Listing Books */}
         <Modal
           isOpen={isModalOpen}
           toggle={toggleModal}
           size="lg"
-          style={{ maxWidth: "100%", width: "auto" }}
+          style={{ maxWidth: "90%" }}
         >
-          <ModalHeader toggle={toggleModal}>
-            List Career Counseling & Guidance
-          </ModalHeader>
+          <ModalHeader toggle={toggleModal}>List Books</ModalHeader>
           <ModalBody>
+            {/* Global Search */}
             <div className="mb-3">
               <Input
                 type="text"
@@ -878,65 +610,42 @@ const Career_Counseling_Guidance: React.FC = () => {
               <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>Academic Year</th>
-                  <th>School</th>
+                  <th>Academic Year </th>
+                  <th>School </th>
                   <th>Department</th>
-                  <th>Program</th>
-                  <th>Area of Guidance</th>
-                  <th>Date</th>
-                  <th>No. of Participants/Attendees</th>
-                  <th>Trainer/Resource Person details</th>
-                  <th>Outcomes</th>
+                  <th>No. of Books </th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {currentRows.length > 0 ? (
-                  currentRows.map((bos, index) => (
-                    <tr key={bos.careerCounselingId}>
+                  currentRows.map((cds, index) => (
+                    <tr key={cds.id}>
                       <td>{index + 1}</td>
-                      <td>{bos.academicYear}</td>
-                      <td>{bos.streamName}</td>
-                      <td>{bos.departmentName}</td>
+                      <td>{cds.academicYear}</td>
+                      <td>{cds.streamName}</td>
+                      <td>{cds.departmentName}</td>
+                      <td>{cds.noOfBooks}</td>
                       <td>
-                        <ul className="list-disc list-inside">
-                          {Object.values(bos.courses).map((courseName, idx) => (
-                            <li key={idx}>
-                              {typeof courseName === "string" ||
-                              typeof courseName === "number"
-                                ? courseName
-                                : String(courseName)}
-                            </li>
-                          ))}
-                        </ul>
-                      </td>
-                      <td>{bos.areaOfGuidance}</td>
-                      <td>{bos.date}</td>
-                      <td>{bos.noOfParticipants}</td>
-                      <td>{bos.resourcePersonDetails}</td>
-                      <td>{bos.outcomes}</td>
-                      <td>
-                        <div className="d-flex justify-content-center gap-2">
-                          <button
-                            className="btn btn-sm btn-warning me-2"
-                            onClick={() => handleEdit(bos.careerCounselingId)}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            className="btn btn-sm btn-danger"
-                            onClick={() => handleDelete(bos.careerCounselingId)}
-                          >
-                            Delete
-                          </button>
-                        </div>
+                        <button
+                          className="btn btn-sm btn-warning me-2"
+                          onClick={() => handleEdit(cds.id)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="btn btn-sm btn-danger"
+                          onClick={() => handleDelete(cds.id)}
+                        >
+                          Delete
+                        </button>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
                     <td colSpan={4} className="text-center">
-                      No BOS data available.
+                      No Books data available.
                     </td>
                   </tr>
                 )}
@@ -964,7 +673,6 @@ const Career_Counseling_Guidance: React.FC = () => {
             </div>
           </ModalBody>
         </Modal>
-        {/* Confirmation Modal */}
         <Modal
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
@@ -994,4 +702,4 @@ const Career_Counseling_Guidance: React.FC = () => {
   );
 };
 
-export default Career_Counseling_Guidance;
+export default Books;
