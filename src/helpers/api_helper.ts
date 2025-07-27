@@ -48,6 +48,43 @@ axios.interceptors.response.use(
   }
 );
 
+
+// axios.interceptors.response.use(
+//   function (response: any) {
+//     // ✅ Always return the full response object so it includes status, headers, etc.
+//     return response;
+//   },
+//   function (error: any) {
+//     // ✅ Don't replace the error — attach a custom message if you want
+//     if (error.response) {
+//       const status = error.response.status;
+//       let customMessage = '';
+
+//       switch (status) {
+//         case 500:
+//           customMessage = 'Internal Server Error';
+//           break;
+//         case 401:
+//           customMessage = 'Invalid credentials';
+//           break;
+//         case 404:
+//           customMessage = 'Sorry! The data you are looking for could not be found';
+//           break;
+//         case 403:
+//           customMessage = 'You are not authorized to perform this action';
+//           break;
+//         default:
+//           customMessage = error.response.data?.message || error.message;
+//       }
+
+//       // 🔁 Attach a custom message but keep the full error object
+//       error.customMessage = customMessage;
+//     }
+
+//     return Promise.reject(error);
+//   }
+// );
+
 /**
  * Sets the default authorization (optional utility function)
  * @param {*} token
@@ -64,6 +101,10 @@ class APIClient {
   get = (url: any, params: any) => {
     return axios.get(url, params);
   };
+
+  getApi = (url: string, params?: any) => {
+  return axios.get(url, params ? { params } : undefined);
+};
 
   /**
    * Post given data to url

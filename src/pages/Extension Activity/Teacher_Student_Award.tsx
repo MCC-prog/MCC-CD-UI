@@ -579,48 +579,20 @@ const Teacher_Student_Award: React.FC = () => {
                 onChange={handleSearch}
               />
             </div>
-            <Table className="table-hover custom-table">
-              <thead>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
                 <tr>
                   <th>Sl.No</th>
-                  <th>
-                    Presenter Name
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.name}
-                      onChange={(e) => handleFilterChange(e, "name")}
-                    />
-                  </th>
-                  <th>
-                    Department
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.department}
-                      onChange={(e) => handleFilterChange(e, "department")}
-                    />
-                  </th>
-                  <th>
-                    Organization
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.organisation}
-                      onChange={(e) => handleFilterChange(e, "organisation")}
-                    />
-                  </th>
-                  <th>
-                    Year Of Receiving Award
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.awardReceivedYear}
-                      onChange={(e) =>
-                        handleFilterChange(e, "awardReceivedYear")
-                      }
-                    />
-                  </th>
+                  <th>Presenter Name</th>
+                  <th>Department</th>
+                  <th>Organization</th>
+                  <th>Year Of Receiving Award</th>
                   <th>Actions</th>
                 </tr>
               </thead>

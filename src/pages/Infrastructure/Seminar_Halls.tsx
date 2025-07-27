@@ -43,7 +43,7 @@ const Seminar_Halls: React.FC = () => {
     file: null as string | null,
   });
 
-const fileRef = useRef<HTMLInputElement | null>(null);
+  const fileRef = useRef<HTMLInputElement | null>(null);
 
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
@@ -102,7 +102,9 @@ const fileRef = useRef<HTMLInputElement | null>(null);
   // Fetch Seminar Halls data from the backend
   const fetchSeminarHallsData = async () => {
     try {
-      const response = await axios.get("/infrastructureSeminarHalls/getAllSeminarHalls"); // Replace with your backend API endpoint
+      const response = await axios.get(
+        "/infrastructureSeminarHalls/getAllSeminarHalls"
+      ); // Replace with your backend API endpoint
       setSeminarHallsData(response);
       setFilteredData(response);
     } catch (error) {
@@ -129,7 +131,10 @@ const fileRef = useRef<HTMLInputElement | null>(null);
   // Fetch the data for the selected policy ID and populate the form fields
   const handleEdit = async (id: string) => {
     try {
-      const response = await api.get(`/infrastructureSeminarHalls/edit?seminarHallId=${id}`, "");
+      const response = await api.get(
+        `/infrastructureSeminarHalls/edit?seminarHallId=${id}`,
+        ""
+      );
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
       // Filter the response where isCurrent or isCurrentForAdmission is true
       const filteredAcademicYearList = academicYearOptions.filter(
@@ -271,9 +276,9 @@ const fileRef = useRef<HTMLInputElement | null>(null);
       })
         .nullable()
         .required("Please select academic year"),
-        noOfSeminarHalls: Yup.string()
-          .required("Please enter the number of seminar halls")
-          .matches(/^[0-9]+$/, "Must be a number"),
+      noOfSeminarHalls: Yup.string()
+        .required("Please enter the number of seminar halls")
+        .matches(/^[0-9]+$/, "Must be a number"),
       file: Yup.mixed()
         .required("Please upload a file")
         .test("fileSize", "File size is too large", (value: any) => {
@@ -292,7 +297,7 @@ const fileRef = useRef<HTMLInputElement | null>(null);
       const formData = new FormData();
 
       formData.append("academicYear", values.academicYear?.value || "");
-        formData.append("noOfSeminarHalls", values.noOfSeminarHalls || "");
+      formData.append("noOfSeminarHalls", values.noOfSeminarHalls || "");
 
       // Handle the file conditionally
       if (isEditMode && typeof values.file === "string") {
@@ -311,16 +316,24 @@ const fileRef = useRef<HTMLInputElement | null>(null);
       try {
         if (isEditMode && editId) {
           // Call the update API
-          const response = await api.put(`/infrastructureSeminarHalls/update`, formData);
-          toast.success(response.message || "Seminar Hall updated successfully!");
+          const response = await api.put(
+            `/infrastructureSeminarHalls/update`,
+            formData
+          );
+          toast.success(
+            response.message || "Seminar Hall updated successfully!"
+          );
         } else {
           // Call the save API
-          const response = await api.create("/infrastructureSeminarHalls/save", formData);
+          const response = await api.create(
+            "/infrastructureSeminarHalls/save",
+            formData
+          );
           toast.success(response.message || "Seminar Hall added successfully!");
         }
         // Reset the form fields
         resetForm();
-          if (fileRef.current) {
+        if (fileRef.current) {
           fileRef.current.value = "";
         }
         setIsEditMode(false); // Reset edit mode
@@ -369,10 +382,12 @@ const fileRef = useRef<HTMLInputElement | null>(null);
                         )}
                     </div>
                   </Col>
-                    {/* Number of Seminar Halls Input */}
-                    <Col lg={4}>
+                  {/* Number of Seminar Halls Input */}
+                  <Col lg={4}>
                     <div className="mb-3">
-                      <Label htmlFor="noOfSeminarHalls">No. of Seminar Halls</Label>
+                      <Label htmlFor="noOfSeminarHalls">
+                        No. of Seminar Halls
+                      </Label>
                       <Input
                         type="number"
                         id="noOfSeminarHalls"
@@ -421,7 +436,7 @@ const fileRef = useRef<HTMLInputElement | null>(null);
                         }`}
                         type="file"
                         id="formFile"
-                          innerRef={fileRef}
+                        innerRef={fileRef}
                         onChange={(event) => {
                           validation.setFieldValue(
                             "file",
@@ -500,9 +515,7 @@ const fileRef = useRef<HTMLInputElement | null>(null);
         </Container>
         {/* Modal for Listing Policy Documents */}
         <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg">
-          <ModalHeader toggle={toggleModal}>
-            List of Seminar Halls
-          </ModalHeader>
+          <ModalHeader toggle={toggleModal}>List of Seminar Halls</ModalHeader>
           <ModalBody>
             {/* Global Search */}
             <div className="mb-3">
@@ -513,37 +526,19 @@ const fileRef = useRef<HTMLInputElement | null>(null);
                 onChange={handleSearch}
               />
             </div>
-            <Table className="table-hover custom-table">
-              <thead>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>
-                    Academic Year
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.academicYear}
-                      onChange={(e) => handleFilterChange(e, "academicYear")}
-                    />
-                  </th>
-                    <th>
-                        No. of Board Rooms
-                        <Input
-                        type="text"
-                        placeholder="Filter"
-                        value={filters.noOfSeminarHalls || ""}
-                        onChange={(e) => handleFilterChange(e, "noOfSeminarHalls")}
-                        />
-                  </th>
-                  <th>
-                    Documents
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.file || ""}
-                      onChange={(e) => handleFilterChange(e, "file")}
-                    />
-                  </th>
+                  <th>Academic Year</th>
+                  <th>No. of Board Rooms</th>
+                  <th>Documents</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -553,7 +548,9 @@ const fileRef = useRef<HTMLInputElement | null>(null);
                     <tr key={seminarHall.seminarHallId}>
                       <td>{index + 1}</td>
                       <td>{seminarHall.academicYear}</td>
-                      <td>{seminarHall.document?.file || "No file uploaded"}</td>
+                      <td>
+                        {seminarHall.document?.file || "No file uploaded"}
+                      </td>
                       <td>
                         <button
                           className="btn btn-sm btn-warning me-2"
@@ -563,7 +560,9 @@ const fileRef = useRef<HTMLInputElement | null>(null);
                         </button>
                         <button
                           className="btn btn-sm btn-danger"
-                          onClick={() => handleDelete(seminarHall.seminarHallId)}
+                          onClick={() =>
+                            handleDelete(seminarHall.seminarHallId)
+                          }
                         >
                           Delete
                         </button>

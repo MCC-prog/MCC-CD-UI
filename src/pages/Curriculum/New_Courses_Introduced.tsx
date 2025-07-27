@@ -112,7 +112,10 @@ const New_Courses_Introduced: React.FC = () => {
   // Fetch BOS data from the backend
   const fetchCoursesData = async () => {
     try {
-      const response = await api.get("/newCoursesIntroduced/getAllNewCoursesIntroduced", "");
+      const response = await api.get(
+        "/newCoursesIntroduced/getAllNewCoursesIntroduced",
+        ""
+      );
       setCourseData(response);
       setFilteredData(response);
     } catch (error) {
@@ -139,7 +142,10 @@ const New_Courses_Introduced: React.FC = () => {
   // Fetch the data for the selected new Courses Introduced ID and populate the form fields
   const handleEdit = async (id: string) => {
     try {
-      const response = await api.get(`/newCoursesIntroduced?newCourseIntroducedId=${id}`, "");
+      const response = await api.get(
+        `/newCoursesIntroduced?newCourseIntroducedId=${id}`,
+        ""
+      );
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
       // Filter the response where isCurrent or isCurrentForAdmission is true
       const filteredAcademicYearList = academicYearOptions.filter(
@@ -186,12 +192,8 @@ const New_Courses_Introduced: React.FC = () => {
           : null,
         file: response.documents?.Mom || null,
         syllabusFile: response.documents?.Syllabus || null,
-        programName:response.nciProgramName
-          ? response.nciProgramName
-          : "",
-        courseTitle: response.courseTitle
-          ? response.courseTitle
-          : "",
+        programName: response.nciProgramName ? response.nciProgramName : "",
+        courseTitle: response.courseTitle ? response.courseTitle : "",
       };
       const streamOption = mapValueToLabel(response.streamId, []); // Replace [] with stream options array if available
       const departmentOption = mapValueToLabel(response.departmentId, []); // Replace [] with department options array if available
@@ -215,7 +217,7 @@ const New_Courses_Introduced: React.FC = () => {
             }
           : null,
         programName: response.nciProgramName || "",
-        courseTitle:response.courseTitle|| "",
+        courseTitle: response.courseTitle || "",
       });
       setSelectedStream(streamOption);
       setSelectedDepartment(departmentOption);
@@ -253,7 +255,9 @@ const New_Courses_Introduced: React.FC = () => {
         );
         fetchCoursesData();
       } catch (error) {
-        toast.error("Failed to remove Curriculum New Courses Introduced. Please try again.");
+        toast.error(
+          "Failed to remove Curriculum New Courses Introduced. Please try again."
+        );
         console.error("Error deleting New Courses Introduced:", error);
       } finally {
         setIsDeleteModalOpen(false);
@@ -267,9 +271,12 @@ const New_Courses_Introduced: React.FC = () => {
     if (fileName) {
       try {
         // Ensure you set responseType to 'blob' to handle binary data
-        const response = await axios.get(`/newCoursesIntroduced/download/${fileName}`, {
-          responseType: "blob",
-        });
+        const response = await axios.get(
+          `/newCoursesIntroduced/download/${fileName}`,
+          {
+            responseType: "blob",
+          }
+        );
 
         // Create a Blob from the response data
         const blob = new Blob([response], { type: "*/*" });
@@ -348,9 +355,7 @@ const New_Courses_Introduced: React.FC = () => {
         .nullable()
         .required("Please select department"),
       programName: Yup.string().required("Please select programName"),
-      courseTitle: Yup.string().required(
-        "Please select Year of Course Title"
-      ),
+      courseTitle: Yup.string().required("Please select Year of Course Title"),
       programType: Yup.object<{ value: string; label: string }>()
         .nullable()
         .required("Please select program type"),
@@ -438,7 +443,7 @@ const New_Courses_Introduced: React.FC = () => {
         formData.append("syllabusFile", values.syllabusFile);
       }
 
-// If editing, include ID
+      // If editing, include ID
       if (isEditMode && editId) {
         formData.append("newCoursesIntroducedId", editId);
       }
@@ -446,19 +451,13 @@ const New_Courses_Introduced: React.FC = () => {
       try {
         if (isEditMode && editId) {
           // Call the update API
-          const response = await api.put(
-            `/newCoursesIntroduced`,
-            formData
-          );
+          const response = await api.put(`/newCoursesIntroduced`, formData);
           toast.success(
             response.message || "New Courses Introduced updated successfully!"
           );
         } else {
           // Call the save API
-          const response = await api.create(
-            "/newCoursesIntroduced",
-            formData
-          );
+          const response = await api.create("/newCoursesIntroduced", formData);
           toast.success(
             response.message || "New Courses Introduced added successfully!"
           );
@@ -681,7 +680,7 @@ const New_Courses_Introduced: React.FC = () => {
                         )}
                     </div>
                   </Col>
-                   <Col lg={4}>
+                  <Col lg={4}>
                     <div className="mb-3">
                       <Label>Course Title</Label>
                       <Input
@@ -849,9 +848,7 @@ const New_Courses_Introduced: React.FC = () => {
                   <Col lg={12}>
                     <div className="mt-3 d-flex justify-content-between">
                       <button className="btn btn-primary" type="submit">
-                        {isEditMode
-                          ? "Update "
-                          : "Save "}
+                        {isEditMode ? "Update " : "Save "}
                       </button>
                       <button
                         className="btn btn-secondary"
@@ -874,7 +871,9 @@ const New_Courses_Introduced: React.FC = () => {
           size="lg"
           style={{ maxWidth: "100%", width: "auto" }}
         >
-          <ModalHeader toggle={toggleModal}>List New Courses Introduced</ModalHeader>
+          <ModalHeader toggle={toggleModal}>
+            List New Courses Introduced
+          </ModalHeader>
           <ModalBody>
             {/* Global Search */}
             <div className="mb-3">
@@ -887,93 +886,25 @@ const New_Courses_Introduced: React.FC = () => {
             </div>
 
             {/* Table with Pagination */}
-            <Table className="table-hover custom-table">
-              <thead>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>
-                    Academic Year
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.academicYear}
-                      onChange={(e) => handleFilterChange(e, "academicYear")}
-                    />
-                  </th>
-                  <th>
-                    Semester Type
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.semesterType}
-                      onChange={(e) => handleFilterChange(e, "semesterType")}
-                    />
-                  </th>
-                  <th>
-                    Semester No
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.semesterNo}
-                      onChange={(e) => handleFilterChange(e, "semesterNo")}
-                    />
-                  </th>
-                  <th>
-                    Stream
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.stream}
-                      onChange={(e) => handleFilterChange(e, "stream")}
-                    />
-                  </th>
-                  <th>
-                    Department
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.department}
-                      onChange={(e) => handleFilterChange(e, "department")}
-                    />
-                  </th>
-                  <th>
-                    Program Type
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.programType}
-                      onChange={(e) => handleFilterChange(e, "programType")}
-                    />
-                  </th>
-                  <th>
-                    Degree
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.program}
-                      onChange={(e) => handleFilterChange(e, "program")}
-                    />
-                  </th>
-                  <th>
-                    Program Name
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.program}
-                      onChange={(e) => handleFilterChange(e, "programName")}
-                    />
-                  </th>
-                  <th>
-                    Course Title
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.courseTitle}
-                      onChange={(e) =>
-                        handleFilterChange(e, "courseTitle")
-                      }
-                    />
-                  </th>
+                  <th>Academic Year</th>
+                  <th>Semester Type</th>
+                  <th>Semester No</th>
+                  <th>Stream</th>
+                  <th>Department</th>
+                  <th>Program Type</th>
+                  <th>Degree</th>
+                  <th>Program Name</th>
+                  <th>Course Title</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -995,13 +926,17 @@ const New_Courses_Introduced: React.FC = () => {
                         <div className="d-flex justify-content-center gap-2">
                           <button
                             className="btn btn-sm btn-warning"
-                            onClick={() => handleEdit(nci.newCoursesIntroducedId)}
+                            onClick={() =>
+                              handleEdit(nci.newCoursesIntroducedId)
+                            }
                           >
                             Edit
                           </button>
                           <button
                             className="btn btn-sm btn-danger"
-                            onClick={() => handleDelete(nci.newCoursesIntroducedId)}
+                            onClick={() =>
+                              handleDelete(nci.newCoursesIntroducedId)
+                            }
                           >
                             Delete
                           </button>
