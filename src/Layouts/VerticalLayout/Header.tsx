@@ -11,8 +11,8 @@ import ProfileMenu from "../../Components/CommonForBoth/TopBarDropDown/ProfileMe
 
 // import images
 
-import logoLightSvg from "../../assets/images/logo-light.svg";
-import logo from "../../assets/images/logo.svg";
+import logoLightSvg from "../../assets/images/mccLogo.png";
+import logo from "../../assets/images/mccLogo.png";
 
 import { megaMenuContents } from "Components/constants/layout";
 
@@ -78,13 +78,13 @@ const Header = (props: any) => {
         <div className="navbar-header">
           <div className="d-flex">
             <div className="navbar-brand-box d-lg-none d-md-block">
-              <Link to="/" className="logo logo-dark">
+              <Link to="/dashboard" className="logo logo-dark">
                 <span className="logo-sm">
                   <img src={logo} alt="" height="22" />
                 </span>
               </Link>
 
-              <Link to="/" className="logo logo-light">
+              <Link to="/dashboard" className="logo logo-light">
                 <span className="logo-sm">
                   <img src={logoLightSvg} alt="" height="22" />
                 </span>
@@ -109,7 +109,15 @@ const Header = (props: any) => {
                 <span className="bx bx-search-alt" />
               </div>
             </form>
-
+            <Link to="/dashboard">
+              <button
+                type="button"
+                className="btn btn-sm px-4 font-size-13 header-item"
+                id="vertical-menu-btn"
+              >
+                Home
+              </button>
+            </Link>
             <Dropdown
               className="dropdown-mega d-none d-lg-block ms-2"
               isOpen={megaMenu}

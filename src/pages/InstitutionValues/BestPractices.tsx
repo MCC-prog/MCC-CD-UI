@@ -61,11 +61,12 @@ const BestPractices: React.FC = () => {
     department: "",
     association: "",
     objective: null as { value: string; label: string } | null,
-
   });
   const [filteredData, setFilteredData] = useState(activityData);
   const fileRef = useRef<HTMLInputElement | null>(null);
-  const [associationOptions, setAssociationOptions] = useState<{ value: string; label: string }[]>([]);
+  const [associationOptions, setAssociationOptions] = useState<
+    { value: string; label: string }[]
+  >([]);
   useEffect(() => {
     const fetchAssociations = async () => {
       try {
@@ -137,7 +138,10 @@ const BestPractices: React.FC = () => {
   // Fetch Best Practices data from the backend
   const fetchActivitiesData = async () => {
     try {
-      const response = await api.get("/institutionalValues/getAllInstitutionalValues?screenType=bestPractices", "");
+      const response = await api.get(
+        "/institutionalValues/getAllInstitutionalValues?screenType=bestPractices",
+        ""
+      );
       setActivityData(response);
       setFilteredData(response);
     } catch (error) {
@@ -165,7 +169,10 @@ const BestPractices: React.FC = () => {
   // Fetch the data for the selected Best Practices ID and populate the form fields
   const handleEdit = async (id: string) => {
     try {
-      const response = await api.get(`/institutionalValues?institutionalValuesId=${id}&screenType=bestPractices`, "");
+      const response = await api.get(
+        `/institutionalValues?institutionalValuesId=${id}&screenType=bestPractices`,
+        ""
+      );
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
       // Filter the response where isCurrent or isCurrentForAdmission is true
       const filteredAcademicYearList = academicYearOptions.filter(
@@ -190,16 +197,22 @@ const BestPractices: React.FC = () => {
           : null,
         department: response.departmentId
           ? {
-            value: response.departmentId.toString(),
-            label: response.departmentName,
-          }
+              value: response.departmentId.toString(),
+              label: response.departmentName,
+            }
           : null,
         otherDepartment: "",
         association: response.associationId
-          ? { value: response.associationId.toString(), label: response.associationName }
+          ? {
+              value: response.associationId.toString(),
+              label: response.associationName,
+            }
           : null,
         objective: response.eventObjective
-          ? { value: response.eventObjective.toString(), label: response.eventObjective }
+          ? {
+              value: response.eventObjective.toString(),
+              label: response.eventObjective,
+            }
           : null,
         file: response.file?.Institutional || null,
       };
@@ -208,8 +221,11 @@ const BestPractices: React.FC = () => {
       validation.setValues({
         ...mappedValues,
         academicYear: mappedValues.academicYear
-          ? { ...mappedValues.academicYear, value: String(mappedValues.academicYear.value) }
-          : null
+          ? {
+              ...mappedValues.academicYear,
+              value: String(mappedValues.academicYear.value),
+            }
+          : null,
       });
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
@@ -231,7 +247,10 @@ const BestPractices: React.FC = () => {
   const confirmDelete = async (id: string) => {
     if (deleteId) {
       try {
-        const response = await api.delete(`/institutionalValues/deleteInstitutionalValues?institutionalValuesId=${id}`, "");
+        const response = await api.delete(
+          `/institutionalValues/deleteInstitutionalValues?institutionalValuesId=${id}`,
+          ""
+        );
         toast.success(
           response.message || "Best Practices removed successfully!"
         );
@@ -251,9 +270,12 @@ const BestPractices: React.FC = () => {
     if (fileName) {
       try {
         // Ensure you set responseType to 'blob' to handle binary data
-        const response = await axios.get(`/institutionalValues/download/${fileName}`, {
-          responseType: "blob",
-        });
+        const response = await axios.get(
+          `/institutionalValues/download/${fileName}`,
+          {
+            responseType: "blob",
+          }
+        );
 
         // Create a Blob from the response data
         const blob = new Blob([response], { type: "*/*" });
@@ -274,7 +296,9 @@ const BestPractices: React.FC = () => {
 
         toast.success("File downloaded successfully!");
       } catch (error) {
-        toast.error("Failed to download Best Practices file. Please try again.");
+        toast.error(
+          "Failed to download Best Practices file. Please try again."
+        );
         console.error("Error downloading file:", error);
       }
     } else {
@@ -366,7 +390,7 @@ const BestPractices: React.FC = () => {
           }
           return true;
         }
-      )
+      ),
     }),
     onSubmit: async (values, { resetForm }) => {
       // Create FormData object
@@ -399,17 +423,18 @@ const BestPractices: React.FC = () => {
         formData.append("institutional", values.file);
       }
       try {
-        const response = isEditMode && editId
-          ? await api.put(`/institutionalValues`, formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data'
-            }
-          })
-          : await api.create(`/institutionalValues`, formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data'
-            }
-          });
+        const response =
+          isEditMode && editId
+            ? await api.put(`/institutionalValues`, formData, {
+                headers: {
+                  "Content-Type": "multipart/form-data",
+                },
+              })
+            : await api.create(`/institutionalValues`, formData, {
+                headers: {
+                  "Content-Type": "multipart/form-data",
+                },
+              });
         toast.success(
           response.message || "Best Practices updated successfully!"
         );
@@ -434,7 +459,10 @@ const BestPractices: React.FC = () => {
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <Breadcrumb title="Institutional Values" breadcrumbItem="Best Practices" />
+          <Breadcrumb
+            title="Institutional Values"
+            breadcrumbItem="Best Practices"
+          />
           <Card>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
@@ -472,23 +500,33 @@ const BestPractices: React.FC = () => {
                         type="select"
                         name="semesterNo"
                         value={validation.values.semesterNo?.value || ""}
-                        onChange={e => {
+                        onChange={(e) => {
                           const val = e.target.value;
                           const selected = val
                             ? { value: val, label: `Semester ${val}` }
                             : null;
                           validation.setFieldValue("semesterNo", selected);
                         }}
-                        className={validation.touched.semesterNo && validation.errors.semesterNo ? "is-invalid" : ""}
+                        className={
+                          validation.touched.semesterNo &&
+                          validation.errors.semesterNo
+                            ? "is-invalid"
+                            : ""
+                        }
                       >
                         <option value="">Select Semester</option>
                         {[...Array(8)].map((_, i) => (
-                          <option key={i + 1} value={i + 1}>{i + 1}</option>
+                          <option key={i + 1} value={i + 1}>
+                            {i + 1}
+                          </option>
                         ))}
                       </Input>
-                      {validation.touched.semesterNo && validation.errors.semesterNo && (
-                        <div className="text-danger">{validation.errors.semesterNo}</div>
-                      )}
+                      {validation.touched.semesterNo &&
+                        validation.errors.semesterNo && (
+                          <div className="text-danger">
+                            {validation.errors.semesterNo}
+                          </div>
+                        )}
                     </div>
                   </Col>
                   {/* Stream Dropdown */}
@@ -552,11 +590,12 @@ const BestPractices: React.FC = () => {
                         <Label>Specify Department</Label>
                         <Input
                           type="text"
-                          className={`form-control ${validation.touched.otherDepartment &&
+                          className={`form-control ${
+                            validation.touched.otherDepartment &&
                             validation.errors.otherDepartment
-                            ? "is-invalid"
-                            : ""
-                            }`}
+                              ? "is-invalid"
+                              : ""
+                          }`}
                           value={validation.values.otherDepartment}
                           onChange={(e) =>
                             validation.setFieldValue(
@@ -582,27 +621,41 @@ const BestPractices: React.FC = () => {
                         type="select"
                         name="association"
                         value={validation.values.association?.value || ""}
-                        onChange={e => {
-                          const selected = associationOptions.find(opt => opt.value === e.target.value) || null;
+                        onChange={(e) => {
+                          const selected =
+                            associationOptions.find(
+                              (opt) => opt.value === e.target.value
+                            ) || null;
                           validation.setFieldValue("association", selected);
                         }}
-                        className={validation.touched.association && validation.errors.association ? "is-invalid" : ""}
+                        className={
+                          validation.touched.association &&
+                          validation.errors.association
+                            ? "is-invalid"
+                            : ""
+                        }
                       >
                         <option value="">Select Association</option>
-                        {associationOptions.map(opt => (
+                        {associationOptions.map((opt) => (
                           <option key={opt.value} value={opt.value}>
                             {opt.label}
                           </option>
                         ))}
                       </Input>
-                      {validation.touched.association && validation.errors.association && (
-                        <div className="text-danger">{validation.errors.association}</div>
-                      )}
+                      {validation.touched.association &&
+                        validation.errors.association && (
+                          <div className="text-danger">
+                            {validation.errors.association}
+                          </div>
+                        )}
                     </div>
                   </Col>
                   <Col sm={4}>
                     <div className="mb-3">
-                      <Label htmlFor="objective of the event" className="form-label">
+                      <Label
+                        htmlFor="objective of the event"
+                        className="form-label"
+                      >
                         Objective of the event
                       </Label>
                       <Input
@@ -610,26 +663,46 @@ const BestPractices: React.FC = () => {
                         name="objective"
                         id="objective of the event"
                         value={validation.values.objective?.value || ""}
-                        onChange={e => {
+                        onChange={(e) => {
                           const val = e.target.value;
                           const selected = val
                             ? { value: val, label: val }
                             : null;
                           validation.setFieldValue("objective", selected);
                         }}
-                        className={validation.touched.objective && validation.errors?.objective ? "is-invalid" : ""}
+                        className={
+                          validation.touched.objective &&
+                          validation.errors?.objective
+                            ? "is-invalid"
+                            : ""
+                        }
                       >
                         <option value="">Select objective of the event</option>
-                        <option value="Universal Values of peace">Universal Values of peace</option>
-                        <option value="Truth and harmony">Truth and harmony</option>
-                        <option value="Gender sensitization and equity">Gender sensitization and equity</option>
-                        <option value="Constitutional values">Constitutional values</option>
-                        <option value="Commemoration of National and international days">Commemoration of National and international days </option>
-                        <option value="Wellness and health">Wellness and health</option>
+                        <option value="Universal Values of peace">
+                          Universal Values of peace
+                        </option>
+                        <option value="Truth and harmony">
+                          Truth and harmony
+                        </option>
+                        <option value="Gender sensitization and equity">
+                          Gender sensitization and equity
+                        </option>
+                        <option value="Constitutional values">
+                          Constitutional values
+                        </option>
+                        <option value="Commemoration of National and international days">
+                          Commemoration of National and international days{" "}
+                        </option>
+                        <option value="Wellness and health">
+                          Wellness and health
+                        </option>
                       </Input>
-                      {validation.touched.objective && validation.errors?.objective && (
-                        <div className="text-danger">{validation.errors.objective}</div>
-                      )}
+                      {validation.touched.objective &&
+                        validation.errors?.objective && (
+                          <div className="text-danger">
+                            {validation.errors.objective}
+                          </div>
+                        )}
                     </div>
                   </Col>
                   <Col sm={4}>
@@ -638,10 +711,11 @@ const BestPractices: React.FC = () => {
                         Upload file
                       </Label>
                       <Input
-                        className={`form-control ${validation.touched.file && validation.errors.file
-                          ? "is-invalid"
-                          : ""
-                          }`}
+                        className={`form-control ${
+                          validation.touched.file && validation.errors.file
+                            ? "is-invalid"
+                            : ""
+                        }`}
                         type="file"
                         id="formFile"
                         innerRef={fileRef}
@@ -653,7 +727,12 @@ const BestPractices: React.FC = () => {
                               : null
                           );
                         }}
-                        disabled={!!(typeof validation.values.file === "string" && validation.values.file)} // Disable if file name exists
+                        disabled={
+                          !!(
+                            typeof validation.values.file === "string" &&
+                            validation.values.file
+                          )
+                        } // Disable if file name exists
                       />
                       {validation.touched.file && validation.errors.file && (
                         <div className="text-danger">
@@ -661,42 +740,48 @@ const BestPractices: React.FC = () => {
                         </div>
                       )}
                       {/* Show a message if the file upload button is disabled */}
-                      {typeof validation.values.file === "string" && validation.values.file && (
-                        <div className="text-warning mt-2">
-                          Please remove the existing file to upload a new one.
-                        </div>
-                      )}
+                      {typeof validation.values.file === "string" &&
+                        validation.values.file && (
+                          <div className="text-warning mt-2">
+                            Please remove the existing file to upload a new one.
+                          </div>
+                        )}
                       {/* Only show the file name if it is a string (from the edit API) */}
-                      {typeof validation.values.file === "string" && validation.values.file && (
-                        <div className="mt-2 d-flex align-items-center">
-                          <span
-                            className="me-2"
-                            style={{ fontWeight: "bold", color: "green" }}
-                          >
-                            {validation.values.file}
-                          </span>
-                          <Button
-                            color="link"
-                            className="text-primary"
-                            onClick={() =>
-                              handleDownloadFile(
-                                validation.values.file as string
-                              )
-                            }
-                            title="Download File"
-                          >
-                            <i className="bi bi-download"></i>
-                          </Button>
-                          <Button
-                            color="link"
-                            className="text-danger"
-                            onClick={() => handleDeleteFile(validation.values.file as string)}
-                            title="Delete File"
-                          >
-                            <i className="bi bi-trash"></i>
-                          </Button>
-                        </div>
-                      )}
+                      {typeof validation.values.file === "string" &&
+                        validation.values.file && (
+                          <div className="mt-2 d-flex align-items-center">
+                            <span
+                              className="me-2"
+                              style={{ fontWeight: "bold", color: "green" }}
+                            >
+                              {validation.values.file}
+                            </span>
+                            <Button
+                              color="link"
+                              className="text-primary"
+                              onClick={() =>
+                                handleDownloadFile(
+                                  validation.values.file as string
+                                )
+                              }
+                              title="Download File"
+                            >
+                              <i className="bi bi-download"></i>
+                            </Button>
+                            <Button
+                              color="link"
+                              className="text-danger"
+                              onClick={() =>
+                                handleDeleteFile(
+                                  validation.values.file as string
+                                )
+                              }
+                              title="Delete File"
+                            >
+                              <i className="bi bi-trash"></i>
+                            </Button>
+                          </div>
+                        )}
                     </div>
                   </Col>
                 </Row>
@@ -740,66 +825,22 @@ const BestPractices: React.FC = () => {
             </div>
 
             {/* Table with Pagination */}
-            <Table className="table-hover custom-table">
-              <thead>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>
-                    Academic Year
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.academicYear}
-                      onChange={(e) => handleFilterChange(e, "academicYear")}
-                    />
-                  </th>
-                  <th>
-                    Semester
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.semesterNo}
-                      onChange={(e) => handleFilterChange(e, "semesterNo")}
-                    />
-                  </th>
-                  <th>
-                    School
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.stream}
-                      onChange={(e) => handleFilterChange(e, "stream")}
-                    />
-                  </th>
-                  <th>
-                    Department
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.department}
-                      onChange={(e) => handleFilterChange(e, "department")}
-                    />
-                  </th>
-                  <th>
-                    Association
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.association}
-                      onChange={(e) => handleFilterChange(e, "association")}
-                    />
-                  </th>
-                  <th>
-                    objective
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.objective?.value || ""}
-                      onChange={(e) => handleFilterChange(e, "objective")}
-                    />
-                  </th>
-
-
+                  <th>Academic Year</th>
+                  <th>Semester</th>
+                  <th>School</th>
+                  <th>Department</th>
+                  <th>Association</th>
+                  <th>Objective</th>
                   <th>Actions</th>
                 </tr>
               </thead>

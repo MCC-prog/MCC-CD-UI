@@ -63,25 +63,18 @@ const Activity: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
 
-  // Handle global search
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toLowerCase();
-    setSearchTerm(value);
-
-    const filtered = getAllData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-
   // Calculate the paginated data
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
   const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
+
+  const handlePageChange = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+
+  const modalBodyRef = React.useRef<HTMLDivElement>(null);
 
   // Fetch Notification data from the backend
   const fetchGetAllData = async () => {
@@ -208,6 +201,7 @@ const Activity: React.FC = () => {
 
       setIsEditMode(true);
       setEditId(id);
+      modalBodyRef.current?.scrollTo({ top: 0, behavior: "smooth" });
     } catch (error) {
       console.error("Error fetching Notification data by ID:", error);
     }
@@ -257,6 +251,7 @@ const Activity: React.FC = () => {
       fromTime: Yup.string().required("From Time is required"),
       toTime: Yup.string().required("To Time is required"),
       message: Yup.string().required("Message is required"),
+      isForAllDepartments: Yup.string().required(),
       department: Yup.array()
         .of(Yup.object({ value: Yup.string(), label: Yup.string() }))
         .when("isForAllDepartments", {
@@ -280,7 +275,7 @@ const Activity: React.FC = () => {
           fromTime: values.fromTime + ":00", // add seconds
           toTime: values.toTime + ":00", // add seconds
           message: values.message,
-          isForAllDepartments: formData.isForAllDepartments === "true",
+          isForAllDepartments: validation.values.isForAllDepartments === "true",
           departmentId: values.department.map((dept: any) =>
             parseInt(dept.value)
           ),
@@ -309,7 +304,7 @@ const Activity: React.FC = () => {
           fromTime: "",
           toTime: "",
           message: "",
-          isForAllDepartments: "no",
+          isForAllDepartments: "false",
         });
         setIsEditMode(false);
         setEditId(null);
@@ -379,264 +374,308 @@ const Activity: React.FC = () => {
         keyboard={false}
       >
         <ModalHeader toggle={toggleModal}>Edit Notification</ModalHeader>
-        <ModalBody>
-          <Form>
-            <Row>
-              {/* From Date & Time */}
-              <Col lg="4">
-                <FormGroup>
-                  <Label for="fromDate">From Date</Label>
-                  <Input
-                    type="date"
-                    name="fromDate"
-                    value={validation.values.fromDate}
-                    onChange={(e) =>
-                      validation.setFieldValue("fromDate", e.target.value)
-                    }
-                    className={
-                      validation.touched.fromDate && validation.errors.fromDate
-                        ? "is-invalid"
-                        : ""
-                    }
-                  />
-                  {validation.touched.fromDate &&
-                    validation.errors.fromDate && (
-                      <div className="text-danger">
-                        {validation.errors.fromDate}
-                      </div>
-                    )}
-                </FormGroup>
-              </Col>
-
-              {/* To Date & Time */}
-              <Col lg="4">
-                <FormGroup>
-                  <Label for="toDate">To Date</Label>
-                  <Input
-                    type="date"
-                    name="toDate"
-                    value={validation.values.toDate}
-                    onChange={(e) =>
-                      validation.setFieldValue("toDate", e.target.value)
-                    }
-                    className={
-                      validation.touched.toDate && validation.errors.toDate
-                        ? "is-invalid"
-                        : ""
-                    }
-                  />
-                  {validation.touched.toDate && validation.errors.toDate && (
-                    <div className="text-danger">
-                      {validation.errors.toDate}
-                    </div>
-                  )}
-                </FormGroup>
-              </Col>
-
-              {/* Department Dropdown */}
-              <Col lg="4">
-                <div className="mb-3">
-                  <Label>Department</Label>
-                  <Select
-                    isMulti
-                    styles={dropdownStyles}
-                    options={options}
-                    value={validation.values.department}
-                    onChange={(selectedOptions) =>
-                      validation.setFieldValue("department", selectedOptions)
-                    }
-                    className={
-                      validation.touched.department &&
-                      validation.errors.department
-                        ? "select-error"
-                        : ""
-                    }
-                  />
-                  {validation.touched.department &&
-                    validation.errors.department && (
-                      <div className="text-danger">
-                        {Array.isArray(validation.errors.department)
-                          ? validation.errors.department.join(", ")
-                          : validation.errors.department}
-                      </div>
-                    )}
-                </div>
-              </Col>
-            </Row>
-
-            <Row>
-              <Col lg="4">
-                <FormGroup>
-                  <Label for="fromTime">From Time</Label>
-                  <Input
-                    type="time"
-                    name="fromTime"
-                    value={validation.values.fromTime}
-                    onChange={(e) =>
-                      validation.setFieldValue("fromTime", e.target.value)
-                    }
-                    className={
-                      validation.touched.fromTime && validation.errors.fromTime
-                        ? "is-invalid"
-                        : ""
-                    }
-                  />
-                  {validation.touched.fromTime &&
-                    validation.errors.fromTime && (
-                      <div className="text-danger">
-                        {validation.errors.fromTime}
-                      </div>
-                    )}
-                </FormGroup>
-              </Col>
-              <Col lg="4">
-                <FormGroup>
-                  <Label for="toTime">To Time</Label>
-                  <Input
-                    type="time"
-                    name="toTime"
-                    value={validation.values.toTime}
-                    onChange={(e) =>
-                      validation.setFieldValue("toTime", e.target.value)
-                    }
-                    className={
-                      validation.touched.toTime && validation.errors.toTime
-                        ? "is-invalid"
-                        : ""
-                    }
-                  />
-                  {validation.touched.toTime && validation.errors.toTime && (
-                    <div className="text-danger">
-                      {validation.errors.toTime}
-                    </div>
-                  )}
-                </FormGroup>
-              </Col>
-              <Col lg="4">
-                <FormGroup>
-                  <Label for="isForAllDepartments">
-                    Is For All Departments?
-                  </Label>
-                  <div>
-                    <FormGroup check inline>
-                      <Label check>
-                        <Input
-                          type="radio"
-                          name="isForAllDepartments"
-                          value="true"
-                          checked={formData.isForAllDepartments === "true"}
-                          onChange={handleInputChange}
-                        />{" "}
-                        Yes
-                      </Label>
-                    </FormGroup>
-                    <FormGroup check inline>
-                      <Label check>
-                        <Input
-                          type="radio"
-                          name="isForAllDepartments"
-                          value="false"
-                          checked={formData.isForAllDepartments === "false"}
-                          onChange={handleInputChange}
-                        />{" "}
-                        No
-                      </Label>
-                    </FormGroup>
-                  </div>
-                </FormGroup>
-              </Col>
-              <Col lg="4">
-                <FormGroup>
-                  <Label for="message">Message</Label>
-                  <Input
-                    type="textarea"
-                    name="message"
-                    value={validation.values.message}
-                    onChange={(e) =>
-                      validation.setFieldValue("message", e.target.value)
-                    }
-                    className={
-                      validation.touched.message && validation.errors.message
-                        ? "is-invalid"
-                        : ""
-                    }
-                  />
-                  {validation.touched.message && validation.errors.message && (
-                    <div className="text-danger">
-                      {validation.errors.message}
-                    </div>
-                  )}
-                </FormGroup>
-              </Col>
-            </Row>
-          </Form>
-          <div className="d-flex justify-content-center gap-3 mt-4">
-            <Button color="primary" onClick={() => validation.handleSubmit()}>
-              {isEditMode ? "Update" : "Save"}
-            </Button>
-            <Button color="secondary" onClick={toggleModal}>
-              Cancel
-            </Button>
-          </div>
-
-          <br />
-          <Table
-            striped
-            bordered
-            hover
-            responsive
-            className="align-middle text-center"
+        <ModalBody innerRef={modalBodyRef}>
+          <div
+            ref={modalBodyRef}
+            style={{ maxHeight: "80vh", overflowY: "auto" }}
           >
-            <thead className="table-dark">
-              <tr>
-                <th>#</th>
-                <th>From Date</th>
-                <th>To Date</th>
-                <th>From Time</th>
-                <th>To Time</th>
-                <th>Message</th>
-                <th>Is For All Departments</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentRows.length > 0 ? (
-                currentRows.map((mcr, index) => (
-                  <tr key={mcr.notificationId}>
-                    <td>{indexOfFirstRow + index + 1}</td>
-                    <td>{mcr.fromDate}</td>
-                    <td>{mcr.toDate}</td>
-                    <td>{mcr.fromTime}</td>
-                    <td>{mcr.toTime}</td>
-                    <td>{mcr.message}</td>
-                    <td>{mcr.isForAllDepartments ? "Yes" : "No"}</td>
-                    <td>
-                      <div className="d-flex justify-content-center gap-2">
-                        <button
-                          className="btn btn-sm btn-warning"
-                          onClick={() => handleEdit(mcr.notificationId)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="btn btn-sm btn-danger"
-                          onClick={() => handleDelete(mcr.notificationId)}
-                        >
-                          Delete
-                        </button>
+            <Form>
+              <Row>
+                {/* From Date & Time */}
+                <Col lg="4">
+                  <FormGroup>
+                    <Label for="fromDate">From Date</Label>
+                    <Input
+                      type="date"
+                      name="fromDate"
+                      value={validation.values.fromDate}
+                      onChange={(e) =>
+                        validation.setFieldValue("fromDate", e.target.value)
+                      }
+                      className={
+                        validation.touched.fromDate &&
+                        validation.errors.fromDate
+                          ? "is-invalid"
+                          : ""
+                      }
+                    />
+                    {validation.touched.fromDate &&
+                      validation.errors.fromDate && (
+                        <div className="text-danger">
+                          {validation.errors.fromDate}
+                        </div>
+                      )}
+                  </FormGroup>
+                </Col>
+
+                {/* To Date & Time */}
+                <Col lg="4">
+                  <FormGroup>
+                    <Label for="toDate">To Date</Label>
+                    <Input
+                      type="date"
+                      name="toDate"
+                      value={validation.values.toDate}
+                      onChange={(e) =>
+                        validation.setFieldValue("toDate", e.target.value)
+                      }
+                      className={
+                        validation.touched.toDate && validation.errors.toDate
+                          ? "is-invalid"
+                          : ""
+                      }
+                    />
+                    {validation.touched.toDate && validation.errors.toDate && (
+                      <div className="text-danger">
+                        {validation.errors.toDate}
                       </div>
+                    )}
+                  </FormGroup>
+                </Col>
+
+                {/* Department Dropdown */}
+                <Col lg="4">
+                  <div className="mb-3">
+                    <Label>Department</Label>
+                    <Select
+                      isMulti
+                      styles={dropdownStyles}
+                      options={options}
+                      value={validation.values.department}
+                      onChange={(selectedOptions) =>
+                        validation.setFieldValue("department", selectedOptions)
+                      }
+                      className={
+                        validation.touched.department &&
+                        validation.errors.department
+                          ? "select-error"
+                          : ""
+                      }
+                    />
+                    {validation.touched.department &&
+                      validation.errors.department && (
+                        <div className="text-danger">
+                          {Array.isArray(validation.errors.department)
+                            ? validation.errors.department.join(", ")
+                            : validation.errors.department}
+                        </div>
+                      )}
+                  </div>
+                </Col>
+              </Row>
+
+              <Row>
+                <Col lg="4">
+                  <FormGroup>
+                    <Label for="fromTime">From Time</Label>
+                    <Input
+                      type="time"
+                      name="fromTime"
+                      value={validation.values.fromTime}
+                      onChange={(e) =>
+                        validation.setFieldValue("fromTime", e.target.value)
+                      }
+                      className={
+                        validation.touched.fromTime &&
+                        validation.errors.fromTime
+                          ? "is-invalid"
+                          : ""
+                      }
+                    />
+                    {validation.touched.fromTime &&
+                      validation.errors.fromTime && (
+                        <div className="text-danger">
+                          {validation.errors.fromTime}
+                        </div>
+                      )}
+                  </FormGroup>
+                </Col>
+
+                <Col lg="4">
+                  <FormGroup>
+                    <Label for="toTime">To Time</Label>
+                    <Input
+                      type="time"
+                      name="toTime"
+                      value={validation.values.toTime}
+                      onChange={(e) =>
+                        validation.setFieldValue("toTime", e.target.value)
+                      }
+                      className={
+                        validation.touched.toTime && validation.errors.toTime
+                          ? "is-invalid"
+                          : ""
+                      }
+                    />
+                    {validation.touched.toTime && validation.errors.toTime && (
+                      <div className="text-danger">
+                        {validation.errors.toTime}
+                      </div>
+                    )}
+                  </FormGroup>
+                </Col>
+
+                <Col lg="4">
+                  <FormGroup>
+                    <Label for="isForAllDepartments">
+                      Is For All Departments?
+                    </Label>
+                    <div>
+                      <FormGroup check inline>
+                        <Label check>
+                          <Input
+                            type="radio"
+                            name="isForAllDepartments"
+                            value="true"
+                            checked={
+                              validation.values.isForAllDepartments === "true"
+                            }
+                            onChange={() =>
+                              validation.setFieldValue(
+                                "isForAllDepartments",
+                                "true"
+                              )
+                            }
+                          />{" "}
+                          Yes
+                        </Label>
+                      </FormGroup>
+                      <FormGroup check inline>
+                        <Label check>
+                          <Input
+                            type="radio"
+                            name="isForAllDepartments"
+                            value="false"
+                            checked={
+                              validation.values.isForAllDepartments === "false"
+                            }
+                            onChange={() =>
+                              validation.setFieldValue(
+                                "isForAllDepartments",
+                                "false"
+                              )
+                            }
+                          />{" "}
+                          No
+                        </Label>
+                      </FormGroup>
+                    </div>
+                  </FormGroup>
+                </Col>
+
+                <Col lg="4">
+                  <FormGroup>
+                    <Label for="message">Message</Label>
+                    <Input
+                      type="textarea"
+                      name="message"
+                      value={validation.values.message}
+                      onChange={(e) =>
+                        validation.setFieldValue("message", e.target.value)
+                      }
+                      className={
+                        validation.touched.message && validation.errors.message
+                          ? "is-invalid"
+                          : ""
+                      }
+                    />
+                    {validation.touched.message &&
+                      validation.errors.message && (
+                        <div className="text-danger">
+                          {validation.errors.message}
+                        </div>
+                      )}
+                  </FormGroup>
+                </Col>
+              </Row>
+            </Form>
+            <div className="d-flex justify-content-center gap-3 mt-4">
+              <Button color="primary" onClick={() => validation.handleSubmit()}>
+                {isEditMode ? "Update" : "Save"}
+              </Button>
+              <Button color="secondary" onClick={toggleModal}>
+                Cancel
+              </Button>
+            </div>
+
+            <br />
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
+                <tr>
+                  <th>#</th>
+                  <th>From Date</th>
+                  <th>To Date</th>
+                  <th>From Time</th>
+                  <th>To Time</th>
+                  <th>Message</th>
+                  <th>Is For All Departments</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentRows.length > 0 ? (
+                  currentRows.map((mcr, index) => (
+                    <tr key={mcr.notificationId}>
+                      <td>{indexOfFirstRow + index + 1}</td>
+                      <td>{mcr.fromDate}</td>
+                      <td>{mcr.toDate}</td>
+                      <td>{mcr.fromTime}</td>
+                      <td>{mcr.toTime}</td>
+                      <td>{mcr.message}</td>
+                      <td>{mcr.isForAllDepartments ? "Yes" : "No"}</td>
+                      <td>
+                        <div className="d-flex justify-content-center gap-2">
+                          <button
+                            className="btn btn-sm btn-warning"
+                            onClick={() => handleEdit(mcr.notificationId)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="btn btn-sm btn-danger"
+                            onClick={() => handleDelete(mcr.notificationId)}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={8} className="text-center">
+                      No Notification data available.
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={8} className="text-center">
-                    No Notification data available.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </Table>
+                )}
+              </tbody>
+            </Table>
+            <div className="d-flex justify-content-between align-items-center mt-3">
+              <Button
+                color="primary"
+                disabled={currentPage === 1}
+                onClick={() => handlePageChange(currentPage - 1)}
+              >
+                Previous
+              </Button>
+              <div>
+                Page {currentPage} of {totalPages}
+              </div>
+              <Button
+                color="primary"
+                disabled={currentPage === totalPages}
+                onClick={() => handlePageChange(currentPage + 1)}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
         </ModalBody>
       </Modal>
       <Modal

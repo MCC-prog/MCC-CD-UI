@@ -197,6 +197,9 @@ const handleFormSubmit = async (e: React.FormEvent) => {
       setIsDeleteModalOpen(false);
       setModalOpen(false);
       setDeleteId(null);
+      setTimeout(() => {
+        window.location.reload();
+      }, 4000);
     }
   }
 };
