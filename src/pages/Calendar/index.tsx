@@ -273,6 +273,9 @@ const CalendarComponent: React.FC = () => {
         endDate: new Date(),
       });
       fetchEvents();
+       setTimeout(() => {
+        toast.dismiss();
+      }, 4000);
     }
   };
 
@@ -377,8 +380,9 @@ const CalendarComponent: React.FC = () => {
             </Button>
           </ModalFooter>
         </Modal>
+        <ToastContainer />
       </>
-      <ToastContainer />
+      {/* <ToastContainer /> */}
     </React.Fragment>
   );
 };

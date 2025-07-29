@@ -808,8 +808,8 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
                     <div className="mb-3">
                       <Label>Download </Label>
                       <div>
-                        <a
-                          href="/templateFiles/bos.pdf"
+                         <a
+                          href={`${process.env.PUBLIC_URL}/templateFiles/YEAR_DEPT_NAME_COMPETITIVE_EXAM.xlsx`}
                           download
                           className="btn btn-primary btn-sm"
                         >

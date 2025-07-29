@@ -1407,6 +1407,20 @@ const Student_Centric_Teaching: React.FC = () => {
                                 )}
                               </div>
                             </Col>
+                            <Col lg={4}>
+                              <div className="mb-3">
+                                <Label>Experiential Learning</Label>
+                                <div>
+                                  <a
+                                    href={`${process.env.PUBLIC_URL}/templateFiles/STUDENT CENTRIC TEACHING METHODOLOGY-EXPERENTIAL LEARNING.xlsx`}
+                                    download
+                                    className="btn btn-primary btn-sm"
+                                  >
+                                    Template
+                                  </a>
+                                </div>
+                              </div>
+                            </Col>
                           </Row>
                         )}
                         {/* Environment & Sustainability */}
@@ -1683,6 +1697,20 @@ const Student_Centric_Teaching: React.FC = () => {
                                   )}
                               </div>
                             </Col>
+                             <Col lg={4}>
+                              <div className="mb-3">
+                                <Label>Participative Learning</Label>
+                                <div>
+                                  <a
+                                    href={`${process.env.PUBLIC_URL}/templateFiles/STUDENT CENTRIC TEACHING METHODOLOGY -PARTICIPATIVE LEARNING.xlsx`}
+                                    download
+                                    className="btn btn-primary btn-sm"
+                                  >
+                                    Template
+                                  </a>
+                                </div>
+                              </div>
+                            </Col>
                           </Row>
                         )}
                         {/* Indian Knowledge System */}
@@ -1956,6 +1984,20 @@ const Student_Centric_Teaching: React.FC = () => {
                                     </Button>
                                   </div>
                                 )}
+                              </div>
+                            </Col>
+                             <Col lg={4}>
+                              <div className="mb-3">
+                                <Label>Problem Learning</Label>
+                                <div>
+                                  <a
+                                    href={`${process.env.PUBLIC_URL}/templateFiles/STUDENT CENTRIC METHODOLOGY - PROBLEM SOLVING.xlsx`}
+                                    download
+                                    className="btn btn-primary btn-sm"
+                                  >
+                                    Template
+                                  </a>
+                                </div>
                               </div>
                             </Col>
                           </Row>

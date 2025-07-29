@@ -841,11 +841,11 @@ const Bos: React.FC = () => {
                       <Label>Download Template</Label>
                       <div>
                         <a
-                          href="/templateFiles/bos.pdf"
+                          href={`${process.env.PUBLIC_URL}/templateFiles/BOS_MoM_DeptName_Aug24.docx`}
                           download
                           className="btn btn-primary btn-sm"
                         >
-                          Sample BOS Template
+                          BOS Template
                         </a>
                       </div>
                     </div>

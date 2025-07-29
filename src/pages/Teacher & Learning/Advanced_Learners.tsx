@@ -1495,11 +1495,11 @@ const Advanced_Learners: React.FC = () => {
                                 </Label>
                                 <div>
                                   <a
-                                    href="/templateFiles/bos.pdf"
+                                    href={`${process.env.PUBLIC_URL}/templateFiles/Format for Research Report.docx`}
                                     download
                                     className="btn btn-primary btn-sm"
                                   >
-                                    Download Template
+                                    Template
                                   </a>
                                 </div>
                               </div>
@@ -1509,11 +1509,11 @@ const Advanced_Learners: React.FC = () => {
                                 <Label>Synopsis Letter (Download)</Label>
                                 <div>
                                   <a
-                                    href="/templateFiles/bos.pdf"
+                                    href={`${process.env.PUBLIC_URL}/templateFiles/Project Sanction Letter - Template (Autosaved).docx`}
                                     download
                                     className="btn btn-primary btn-sm"
                                   >
-                                    Download Template
+                                    Template
                                   </a>
                                 </div>
                               </div>
@@ -1720,11 +1720,11 @@ const Advanced_Learners: React.FC = () => {
                                 <Label>Peer Teaching (Download)</Label>
                                 <div>
                                   <a
-                                    href="/templateFiles/bos.pdf"
+                                    href={`${process.env.PUBLIC_URL}/templateFiles/Format for Peer to Peer Teaching.docx`}
                                     download
                                     className="btn btn-primary btn-sm"
                                   >
-                                    Download Template
+                                    Template
                                   </a>
                                 </div>
                               </div>

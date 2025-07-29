@@ -824,8 +824,8 @@ const StudentProgression_Higher_Education: React.FC = () => {
                     <div className="mb-3">
                       <Label>Download </Label>
                       <div>
-                        <a
-                          href="/templateFiles/bos.pdf"
+                       <a
+                          href={`${process.env.PUBLIC_URL}/templateFiles/YEAR_DEPT NAME_HIGHER EDUCATION.xlsx`}
                           download
                           className="btn btn-primary btn-sm"
                         >
