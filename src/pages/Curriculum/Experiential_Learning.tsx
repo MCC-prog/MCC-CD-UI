@@ -1341,7 +1341,7 @@ const Experiential_Learning: React.FC = () => {
                       className="btn btn-tabs toggle-wizard-button"
                       onClick={toggleWizard}
                     >
-                      Experiential Learning
+                      PEDAGOGY
                     </Button>
                   </div>
                   {showWizard && (
@@ -1369,12 +1369,12 @@ const Experiential_Learning: React.FC = () => {
                               : tab === 2
                               ? "Internship"
                               : tab === 3
-                              ? "Field Project"
+                              ? "Field Visit"
                               : tab === 4
                               ? "Projects/Dissertation"
                               : tab === 5
-                              ? "Fellowship"
-                              : "Bootcamp"}
+                              ? "Fellowship Report"
+                              : "Bootcamp Report"}
                           </Button>
                         ))}
                       </div>
@@ -1483,10 +1483,10 @@ const Experiential_Learning: React.FC = () => {
                           <Form>
                             <Row>
                               <Col lg="4">
-                                <Label>Total number of joining student</Label>
+                                <Label>Total number of Interning student</Label>
                                 <Input
                                   type="text"
-                                  placeholder="Enter Total number of joining student"
+                                  placeholder="Enter Total number of Interning student"
                                   value={
                                     validation.values.internship
                                       ?.totalJoiningStudentsOfIntern
@@ -1612,11 +1612,11 @@ const Experiential_Learning: React.FC = () => {
                               <Col lg="4">
                                 <div className="mb-3">
                                   <Label>
-                                    Duration of field project start date
+                                    Duration of Field Visit start date
                                   </Label>
                                   <Input
                                     type="date"
-                                    placeholder="Enter Duration of field project start date"
+                                    placeholder="Enter Duration of Field Visit start date"
                                     value={
                                       validation.values.fieldProject
                                         .fieldProjectStartDate
@@ -1651,11 +1651,11 @@ const Experiential_Learning: React.FC = () => {
                               <Col lg="4">
                                 <div className="mb-3">
                                   <Label>
-                                    Duration of field project end date
+                                    Duration of Field Visit end date
                                   </Label>
                                   <Input
                                     type="date"
-                                    placeholder="Enter Duration of field project end date"
+                                    placeholder="Enter Duration of Field Visit end date"
                                     value={
                                       validation.values.fieldProject
                                         .fieldProjectEndDate
@@ -1720,7 +1720,7 @@ const Experiential_Learning: React.FC = () => {
                                     htmlFor="fieldProjectFile"
                                     className="form-label"
                                   >
-                                    Field Project File
+                                    Field Visit File
                                   </Label>
                                   {validation.values.fieldProject
                                     .fieldProjectFileName ? (

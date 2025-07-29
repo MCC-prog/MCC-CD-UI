@@ -558,7 +558,7 @@ const TrainingsAndWorkshops: React.FC = () => {
                             : ""
                         }`}
                       >
-                        <option value="">Select Type of Funding</option>
+                        <option value="">Select Program</option>
                         <option value="UG">UG</option>
                         <option value="PG">PG</option>
                       </Input>
@@ -573,7 +573,7 @@ const TrainingsAndWorkshops: React.FC = () => {
 
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>Academic training</Label>
+                      <Label>Type of Training</Label>
                       <Input
                         type="select"
                         name="academicTraining"
@@ -591,7 +591,7 @@ const TrainingsAndWorkshops: React.FC = () => {
                             : ""
                         }
                       >
-                        <option value="">Select Academic training</option>
+                        <option value="">Select Type of Training</option>
                         <option value="Recruitment training">
                           Recruitment training
                         </option>

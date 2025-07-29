@@ -268,6 +268,7 @@ const Conference_Seminars_Workshops: React.FC = () => {
 
   const capType = [
     { value: "Institutional", label: "Institutional" },
+    { value: "External", label: "External" },
     { value: "Others", label: "Others" },
   ];
 

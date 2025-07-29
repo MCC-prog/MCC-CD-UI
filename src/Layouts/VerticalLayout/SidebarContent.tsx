@@ -157,18 +157,18 @@ const SidebarContent = (props: any) => {
                   <Link to="/Bos_Data">{props.t("1.	BoS ")}</Link>
                 </li>
                 <li>
-                  <Link to="/Courses_With_Focus">
-                    {props.t("2. Courses with focus")}
-                  </Link>
-                </li>
-                <li>
                   <Link to="/New_Programs_Introduced">
-                    {props.t("3. New Programs Introduced ")}
+                    {props.t("2. New Programs Introduced ")}
                   </Link>
                 </li>
                 <li>
                   <Link to="/New_Courses_Introduced">
-                    {props.t("4. New Courses Introduced ")}
+                    {props.t("3. New Courses Introduced ")}
+                  </Link>
+                </li>
+                  <li>
+                  <Link to="/Courses_With_Focus">
+                    {props.t("4. Courses with focus")}
                   </Link>
                 </li>
                 <li>
@@ -266,7 +266,7 @@ const SidebarContent = (props: any) => {
             <li>
               <Link to="/#" className="has-arrow">
                 <i className="bx bx-group"></i>
-                <span>{props.t("STAFF PROFILE")}</span>
+                <span>{props.t("FACULTY PROFILE")}</span>
               </Link>
               <ul className="sub-menu">
                 <li>
@@ -586,9 +586,9 @@ const SidebarContent = (props: any) => {
                 <li>
                   <Link to="/placement/Internships">{props.t("4. Internships")}</Link>
                 </li>
-                <li>
+                {/* <li>
                   <Link to="/placement/careerFair">{props.t("5. Career Fair")}</Link>
-                </li>
+                </li> */}
               </ul>
             </li>
 

@@ -643,7 +643,7 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
                   </Col>
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>Organization</Label>
+                      <Label>Collaborating Organization</Label>
                       <Input
                         type="text"
                         className={`form-control ${

@@ -251,22 +251,27 @@ const GovernmentOrNGOFundedProjects = () => {
             : "CoInvestigatorDetails",
         governmentFundProjectAddTabDto: {
           additionalTabId: editId || null,
-          name: activeTab === "1"
-            ? values.principalInvestigator.name || null
-            : values.coInvestigator.name || null,
-          qualification: activeTab === "1"
-            ? values.principalInvestigator.qualification || null
-            : values.coInvestigator.qualification || null,
-          designation: activeTab === "1"
-            ? values.principalInvestigator.designation || null
-            : values.coInvestigator.designation || null,
-          departmentId: activeTab === "1"
-            ? values.principalInvestigator.department?.value || 0
-            : values.coInvestigator.department?.value || 0,
-          departmentName: activeTab === "1"
-            ? values.principalInvestigator.department?.label || null
-            : values.coInvestigator.department?.label || null
-        }
+          name:
+            activeTab === "1"
+              ? values.principalInvestigator.name || null
+              : values.coInvestigator.name || null,
+          qualification:
+            activeTab === "1"
+              ? values.principalInvestigator.qualification || null
+              : values.coInvestigator.qualification || null,
+          designation:
+            activeTab === "1"
+              ? values.principalInvestigator.designation || null
+              : values.coInvestigator.designation || null,
+          departmentId:
+            activeTab === "1"
+              ? values.principalInvestigator.department?.value || 0
+              : values.coInvestigator.department?.value || 0,
+          departmentName:
+            activeTab === "1"
+              ? values.principalInvestigator.department?.label || null
+              : values.coInvestigator.department?.label || null,
+        },
       };
 
       console.log("DTO Payload:", dtoPayload);
@@ -281,32 +286,42 @@ const GovernmentOrNGOFundedProjects = () => {
       if (isMultidisciplinary === "Yes") {
         if (activeTab === "1") {
           formData.append(
-            'abstractProject',
-            values.principalInvestigator.abstractFile && typeof values.principalInvestigator.abstractFile !== "string"
-              ? values.principalInvestigator.abstractFile as Blob
+            "abstractProject",
+            values.principalInvestigator.abstractFile &&
+              typeof values.principalInvestigator.abstractFile !== "string"
+              ? (values.principalInvestigator.abstractFile as Blob)
               : new Blob([], { type: "application/pdf" })
           );
           formData.append(
-            'sanctionOrder',
-            values.principalInvestigator.sanctionOrderFile && typeof values.principalInvestigator.sanctionOrderFile !== "string"
-              ? values.principalInvestigator.sanctionOrderFile as Blob
+            "sanctionOrder",
+            values.principalInvestigator.sanctionOrderFile &&
+              typeof values.principalInvestigator.sanctionOrderFile !== "string"
+              ? (values.principalInvestigator.sanctionOrderFile as Blob)
               : new Blob([], { type: "application/pdf" })
           );
         } else {
-          formData.append('abstractProject', new Blob([], { type: "application/pdf" }));
-          formData.append('sanctionOrder', new Blob([], { type: "application/pdf" }));
+          formData.append(
+            "abstractProject",
+            new Blob([], { type: "application/pdf" })
+          );
+          formData.append(
+            "sanctionOrder",
+            new Blob([], { type: "application/pdf" })
+          );
         }
       } else {
         formData.append(
-          'abstractProject',
-          values.principalInvestigator.abstractFile && typeof values.principalInvestigator.abstractFile !== "string"
-            ? values.principalInvestigator.abstractFile as Blob
+          "abstractProject",
+          values.principalInvestigator.abstractFile &&
+            typeof values.principalInvestigator.abstractFile !== "string"
+            ? (values.principalInvestigator.abstractFile as Blob)
             : new Blob([], { type: "application/pdf" })
         );
         formData.append(
-          'sanctionOrder',
-          values.principalInvestigator.sanctionOrderFile && typeof values.principalInvestigator.sanctionOrderFile !== "string"
-            ? values.principalInvestigator.sanctionOrderFile as Blob
+          "sanctionOrder",
+          values.principalInvestigator.sanctionOrderFile &&
+            typeof values.principalInvestigator.sanctionOrderFile !== "string"
+            ? (values.principalInvestigator.sanctionOrderFile as Blob)
             : new Blob([], { type: "application/pdf" })
         );
       }
@@ -471,10 +486,16 @@ const GovernmentOrNGOFundedProjects = () => {
   // Clear the file from the form and show success message
   const handleDeleteFile = async (docType: string) => {
     try {
-      const response = await api.delete(`/governmentFundProject/deleteGovernmentFundedProjectDocument?GovernmentFundProjectId=${editId}&docType=${docType}`, '');
+      const response = await api.delete(
+        `/governmentFundProject/deleteGovernmentFundedProjectDocument?GovernmentFundProjectId=${editId}&docType=${docType}`,
+        ""
+      );
       toast.success(response.message || "File deleted successfully!");
       if (docType === "sanctionOrder") {
-        validation.setFieldValue("principalInvestigator.sanctionOrderFile", null);
+        validation.setFieldValue(
+          "principalInvestigator.sanctionOrderFile",
+          null
+        );
         setIsSanctionFileUploadDisabled(false);
       } else if (docType === "abstractProject") {
         validation.setFieldValue("principalInvestigator.abstractFile", null);
@@ -1214,8 +1235,10 @@ const GovernmentOrNGOFundedProjects = () => {
                         }`}
                       >
                         <option value="">Select Type of Funding</option>
-                        <option value="Internal">Internal</option>
-                        <option value="External">External</option>
+                        <option value="MGMT">MGMT</option>
+                        <option value="External Funding Agent">
+                          External Funding Agent
+                        </option>
                       </Input>
                       {validation.touched.typeOfFunding &&
                         validation.errors.typeOfFunding && (

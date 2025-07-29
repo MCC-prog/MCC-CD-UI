@@ -560,7 +560,7 @@ const Books_Chapters = () => {
 
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>Faculty Name</Label>
+                      <Label>Author Name</Label>
                       <Input
                         type="text"
                         name="facultyName"
@@ -572,7 +572,7 @@ const Books_Chapters = () => {
                             ? "is-invalid"
                             : ""
                         }`}
-                        placeholder="Enter Faculty Name"
+                        placeholder="Enter Author Name"
                       />
                       {validation.touched.facultyName &&
                         validation.errors.facultyName && (
