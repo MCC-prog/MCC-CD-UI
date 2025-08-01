@@ -238,7 +238,7 @@ const Research_Publications = () => {
       // Append the file
       if (typeof values.researchPublication === "string") {
         // If the file is just a name, send null
-        formData.append("researchPublication", "null");
+        formData.append("researchPublication", new Blob([], { type: "application/pdf" }));
       } else if (values.researchPublication instanceof File) {
         // If the file is a File object, send the file
         formData.append("researchPublication", values.researchPublication);

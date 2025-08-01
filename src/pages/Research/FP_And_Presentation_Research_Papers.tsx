@@ -199,7 +199,7 @@ const FP_And_Presentation_Research_Papers = () => {
       // Append the file
       if (typeof values.facultyCertificate === "string") {
         // If the file is just a name, send null
-        formData.append("facultyCertificate", "null");
+        formData.append("facultyCertificate", new Blob([], { type: "application/pdf" }));
       } else if (values.facultyCertificate instanceof File) {
         // If the file is a File object, send the file
         formData.append("facultyCertificate", values.facultyCertificate);

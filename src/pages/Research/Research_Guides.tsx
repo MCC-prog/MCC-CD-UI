@@ -226,7 +226,7 @@ const Research_Guides = () => {
 
       // Append the file with the key `file`
       if (typeof values.uploadLetter === "string") {
-        formData.append("file", "null");
+        formData.append("file", new Blob([], { type: "application/pdf" }));
       } else if (values.uploadLetter instanceof File) {
         formData.append("file", values.uploadLetter);
       }

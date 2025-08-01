@@ -213,7 +213,7 @@ const Books_Chapters = () => {
       // Append the file
       if (typeof values.bookChapter === "string") {
         // If the file is just a name, send null
-        formData.append("bookChapter", "null");
+        formData.append("bookChapter", new Blob([], { type: "application/pdf" }));
       } else if (values.bookChapter instanceof File) {
         // If the file is a File object, send the file
         formData.append("bookChapter", values.bookChapter);
