@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback } from "react";
+import React, { useEffect, useRef, useCallback, useState } from "react";
 //Import Scrollbar
 import SimpleBar from "simplebar-react";
 
@@ -13,6 +13,8 @@ import withRouter from "../../Components/Common/withRouter";
 
 const SidebarContent = (props: any) => {
   const ref = useRef<any>();
+  const [searchQuery, setSearchQuery] = useState("");
+
   const activateParentDropdown = useCallback((item: any) => {
     item.classList.add("active");
     const parent = item.parentElement;
@@ -27,20 +29,19 @@ const SidebarContent = (props: any) => {
       const parent2 = parent.parentElement;
 
       if (parent2) {
-        parent2.classList.add("mm-show"); // ul tag
-
-        const parent3 = parent2.parentElement; // li tag
+        parent2.classList.add("mm-show");
+        const parent3 = parent2.parentElement;
 
         if (parent3) {
-          parent3.classList.add("mm-active"); // li
-          parent3.childNodes[0].classList.add("mm-active"); //a
-          const parent4 = parent3.parentElement; // ul
+          parent3.classList.add("mm-active");
+          parent3.childNodes[0].classList.add("mm-active");
+          const parent4 = parent3.parentElement;
           if (parent4) {
-            parent4.classList.add("mm-show"); // ul
+            parent4.classList.add("mm-show");
             const parent5 = parent4.parentElement;
             if (parent5) {
-              parent5.classList.add("mm-show"); // li
-              parent5.childNodes[0].classList.add("mm-active"); // a tag
+              parent5.classList.add("mm-show");
+              parent5.childNodes[0].classList.add("mm-active");
             }
           }
         }
@@ -52,19 +53,16 @@ const SidebarContent = (props: any) => {
     return false;
   }, []);
 
-  const removeActivation = (items) => {
-    for (var i = 0; i < items.length; ++i) {
-      var item = items[i];
+  const removeActivation = (items: any) => {
+    for (let i = 0; i < items.length; ++i) {
+      const item = items[i];
       const parent = items[i].parentElement;
 
       if (item && item.classList.contains("active")) {
         item.classList.remove("active");
       }
       if (parent) {
-        const parent2El =
-          parent.childNodes && parent.childNodes.lenght && parent.childNodes[1]
-            ? parent.childNodes[1]
-            : null;
+        const parent2El = parent.childNodes && parent.childNodes.length && parent.childNodes[1] ? parent.childNodes[1] : null;
         if (parent2El && parent2El.id !== "side-menu") {
           parent2El.classList.remove("mm-show");
         }
@@ -77,16 +75,16 @@ const SidebarContent = (props: any) => {
 
           const parent3 = parent2.parentElement;
           if (parent3) {
-            parent3.classList.remove("mm-active"); // li
-            parent3.childNodes[0].classList.remove("mm-active");
+            parent3.classList.remove("mm-active");
+            if (parent3.childNodes[0]) parent3.childNodes[0].classList.remove("mm-active");
 
-            const parent4 = parent3.parentElement; // ul
+            const parent4 = parent3.parentElement;
             if (parent4) {
-              parent4.classList.remove("mm-show"); // ul
+              parent4.classList.remove("mm-show");
               const parent5 = parent4.parentElement;
-              if (parent5) {
-                parent5.classList.remove("mm-show"); // li
-                parent5.childNodes[0].classList.remove("mm-active"); // a tag
+              if (parent5 && parent5.childNodes[0]) {
+                parent5.classList.remove("mm-show");
+                parent5.childNodes[0].classList.remove("mm-active");
               }
             }
           }
@@ -114,7 +112,7 @@ const SidebarContent = (props: any) => {
   }, [props.router.location.pathname, activateParentDropdown]);
 
   useEffect(() => {
-    ref.current.recalculate();
+    ref.current?.recalculate();
   }, []);
 
   useEffect(() => {
@@ -135,12 +133,47 @@ const SidebarContent = (props: any) => {
     }
   }
 
+  const handleSearch = (query: string) => {
+    setSearchQuery(query.toLowerCase());
+  };
+
+  useEffect(() => {
+    const topMenus = document.querySelectorAll("#side-menu > li");
+    topMenus.forEach((menuItem: Element) => {
+      const subMenu = menuItem.querySelector("ul");
+      let matchFound = false;
+
+      if (subMenu) {
+        const children = subMenu.querySelectorAll("li");
+        children.forEach((child: Element) => {
+          const link = child.querySelector("a");
+          if (link) {
+            const text = link.textContent?.toLowerCase() || "";
+            const isMatch = text.includes(searchQuery);
+            (child as HTMLElement).style.display = isMatch ? "block" : "none";
+            if (isMatch) matchFound = true;
+          }
+        });
+        subMenu.classList.toggle("mm-show", !!searchQuery && matchFound);
+        menuItem.classList.toggle("mm-active", !!searchQuery && matchFound);
+      }
+    });
+  }, [searchQuery]);
+
   return (
     <React.Fragment>
       <SimpleBar className="h-100" ref={ref}>
         <div id="sidebar-menu">
+          <div className="p-3">
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Search menu..."
+            onChange={(e) => handleSearch(e.target.value)}
+          />
+        </div>
           <ul className="metismenu list-unstyled" id="side-menu">
-            <li className="menu-title">{props.t("Menu")} </li>
+            {/* <li className="menu-title">{props.t("Menu")} </li> */}
             <li>
               <Link to="/dashboard">
                 <i className="bx bx-home-circle"></i>
@@ -709,6 +742,11 @@ const SidebarContent = (props: any) => {
                     {props.t("7. Seminar halls - infrastructure")}
                   </Link>
                 </li>
+                <li>
+                  <Link to="/infrastructure/softwares">
+                    {props.t("8. Softwares")}
+                  </Link>
+                </li>
               </ul>
             </li>
 
@@ -719,16 +757,16 @@ const SidebarContent = (props: any) => {
               </Link>
               <ul className="sub-menu">
                 <li>
-                  <Link to="/governance/policyDocument">{props.t("1. Policy document")}</Link>
+                  <Link to="/policyDocument">{props.t("1. Policy document")}</Link>
                 </li>
                 <li>
-                  <Link to="/governance/aaa">{props.t("2. AAA")}</Link>
+                  <Link to="/aaa">{props.t("2. AAA")}</Link>
                 </li>
                 <li>
-                  <Link to="/governance/greenAudit">{props.t("3. Green Audit")}</Link>
+                  <Link to="/greenAudit">{props.t("3. Green Audit")}</Link>
                 </li>
                 <li>
-                  <Link to="/governance/energyAudit">{props.t("4. Energy Audit")}</Link>
+                  <Link to="/energyAudit">{props.t("4. Energy Audit")}</Link>
                 </li>
               </ul>
             </li>

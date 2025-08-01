@@ -132,7 +132,7 @@ const Seminar_Halls: React.FC = () => {
   const handleEdit = async (id: string) => {
     try {
       const response = await api.get(
-        `/infrastructureSeminarHalls/edit?seminarHallId=${id}`,
+        `/infrastructureSeminarHalls/edit?seminarHallsId=${id}`,
         ""
       );
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
@@ -186,7 +186,7 @@ const Seminar_Halls: React.FC = () => {
     if (deleteId) {
       try {
         const response = await api.delete(
-          `/infrastructureSeminarHalls/deleteSeminarHall?seminarHallId=${id}`,
+          `/infrastructureSeminarHalls/deleteSeminarHalls?seminarHallsId=${id}`,
           ""
         );
         toast.success(response.message || "Seminar Hall removed successfully!");
@@ -246,7 +246,7 @@ const Seminar_Halls: React.FC = () => {
     try {
       // Call the delete API
       const response = await api.delete(
-        `/infrastructureSeminarHalls/deleteSeminarHallDocument?seminarHallId=${editId}`,
+        `/infrastructureSeminarHalls/deleteSeminarHallsDocument?seminarHallsId=${editId}`,
         ""
       );
       // Show success message
@@ -311,7 +311,7 @@ const Seminar_Halls: React.FC = () => {
 
       // If editing, include ID
       if (isEditMode && editId) {
-        formData.append("seminarHallId", editId);
+        formData.append("seminarHallsId", editId);
       }
       try {
         if (isEditMode && editId) {
@@ -383,26 +383,32 @@ const Seminar_Halls: React.FC = () => {
                     </div>
                   </Col>
                   {/* Number of Seminar Halls Input */}
-                  <Col lg={4}>
+                  <Col sm={4}>
                     <div className="mb-3">
-                      <Label htmlFor="noOfSeminarHalls">
+                      <Label htmlFor="noOfSeminarHalls" className="form-label">
                         No. of Seminar Halls
                       </Label>
                       <Input
                         type="number"
+                        name="noOfSeminarHalls"
                         id="noOfSeminarHalls"
-                        value={validation.values.noOfSeminarHalls}
-                        onChange={validation.handleChange}
-                        onBlur={validation.handleBlur}
-                        className={`form-control ${
+                        value={validation.values.noOfSeminarHalls || ""}
+                        onChange={(e) =>
+                          validation.setFieldValue(
+                            "noOfSeminarHalls",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Enter number of seminar halls"
+                        className={
                           validation.touched.noOfSeminarHalls &&
-                          validation.errors.noOfSeminarHalls
+                          validation.errors?.noOfSeminarHalls
                             ? "is-invalid"
                             : ""
-                        }`}
+                        }
                       />
                       {validation.touched.noOfSeminarHalls &&
-                        validation.errors.noOfSeminarHalls && (
+                        validation.errors?.noOfSeminarHalls && (
                           <div className="text-danger">
                             {validation.errors.noOfSeminarHalls}
                           </div>
@@ -545,23 +551,24 @@ const Seminar_Halls: React.FC = () => {
               <tbody>
                 {currentRows.length > 0 ? (
                   currentRows.map((seminarHall, index) => (
-                    <tr key={seminarHall.seminarHallId}>
+                    <tr key={seminarHall.seminarHallsId}>
                       <td>{index + 1}</td>
                       <td>{seminarHall.academicYear}</td>
+                      <td>{seminarHall.noOfSeminarHalls}</td>
                       <td>
-                        {seminarHall.document?.file || "No file uploaded"}
+                        {seminarHall.document?.seminarHalls || "No file uploaded"}
                       </td>
                       <td>
                         <button
                           className="btn btn-sm btn-warning me-2"
-                          onClick={() => handleEdit(seminarHall.seminarHallId)}
+                          onClick={() => handleEdit(seminarHall.seminarHallsId)}
                         >
                           Edit
                         </button>
                         <button
                           className="btn btn-sm btn-danger"
                           onClick={() =>
-                            handleDelete(seminarHall.seminarHallId)
+                            handleDelete(seminarHall.seminarHallsId)
                           }
                         >
                           Delete

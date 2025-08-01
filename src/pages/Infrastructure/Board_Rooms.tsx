@@ -39,7 +39,7 @@ const Board_Rooms: React.FC = () => {
   const [filteredData, setFilteredData] = useState(boardRoomsData);
   const [filters, setFilters] = useState({
     academicYear: "",
-    noOfBoardRooms: "",
+    noOfBoardrooms: "",
     file: null as string | null,
   });
 
@@ -132,7 +132,7 @@ const Board_Rooms: React.FC = () => {
   const handleEdit = async (id: string) => {
     try {
       const response = await api.get(
-        `/infrastructureBoardRooms/edit?boardRoomId=${id}`,
+        `/infrastructureBoardRooms/edit?boardRoomsId=${id}`,
         ""
       );
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
@@ -149,7 +149,7 @@ const Board_Rooms: React.FC = () => {
       // Map API response to Formik values
       const mappedValues = {
         academicYear: mapValueToLabel(response.academicYear, academicYearList),
-        noOfBoardRooms: response.noOfBoardRooms || "",
+        noOfBoardrooms: response.noOfBoardrooms || "",
         file: response.document?.boardRooms || null,
       };
 
@@ -186,7 +186,7 @@ const Board_Rooms: React.FC = () => {
     if (deleteId) {
       try {
         const response = await api.delete(
-          `/infrastructureBoardRooms/deleteBoardRoom?boardRoomId=${id}`,
+          `/infrastructureBoardRooms/deleteBoardRooms?boardRoomsId=${id}`,
           ""
         );
         toast.success(response.message || "Board Room removed successfully!");
@@ -246,7 +246,7 @@ const Board_Rooms: React.FC = () => {
     try {
       // Call the delete API
       const response = await api.delete(
-        `/infrastructureBoardRooms/deleteBoardRoomDocument?boardRoomId=${editId}`,
+        `/infrastructureBoardRooms/deleteBoardRoomsDocument?boardRoomsId=${editId}`,
         ""
       );
       // Show success message
@@ -266,7 +266,7 @@ const Board_Rooms: React.FC = () => {
   const validation = useFormik({
     initialValues: {
       academicYear: null as AcademicYearOption,
-      noOfBoardRooms: "",
+      noOfBoardrooms: "",
       file: null as File | string | null,
     },
     validationSchema: Yup.object({
@@ -276,7 +276,7 @@ const Board_Rooms: React.FC = () => {
       })
         .nullable()
         .required("Please select academic year"),
-      noOfBoardRooms: Yup.string()
+      noOfBoardrooms: Yup.string()
         .required("Please enter the number of board rooms")
         .matches(/^[0-9]+$/, "Must be a number"),
       file: Yup.mixed()
@@ -297,7 +297,7 @@ const Board_Rooms: React.FC = () => {
       const formData = new FormData();
 
       formData.append("academicYear", values.academicYear?.value || "");
-      formData.append("noOfBoardRooms", values.noOfBoardRooms || "");
+      formData.append("noOfBoardrooms", values.noOfBoardrooms || "");
 
       // Handle the file conditionally
       if (isEditMode && typeof values.file === "string") {
@@ -311,7 +311,7 @@ const Board_Rooms: React.FC = () => {
 
       // If editing, include ID
       if (isEditMode && editId) {
-        formData.append("boardRoomId", editId);
+        formData.append("boardRoomsId", editId);
       }
       try {
         if (isEditMode && editId) {
@@ -381,30 +381,38 @@ const Board_Rooms: React.FC = () => {
                     </div>
                   </Col>
                   {/* Number of Board Rooms Input */}
-                  <Col lg={4}>
+                  <Col sm={4}>
                     <div className="mb-3">
-                      <Label htmlFor="noOfBoardRooms">No. of Board Rooms</Label>
+                      <Label htmlFor="noOfBoardrooms" className="form-label">
+                        No. of Board Rooms
+                      </Label>
                       <Input
                         type="number"
-                        id="noOfBoardRooms"
-                        value={validation.values.noOfBoardRooms}
-                        onChange={validation.handleChange}
-                        onBlur={validation.handleBlur}
-                        className={`form-control ${
-                          validation.touched.noOfBoardRooms &&
-                          validation.errors.noOfBoardRooms
+                        name="noOfBoardrooms"
+                        id="noOfBoardrooms"
+                        value={validation.values.noOfBoardrooms || ""}
+                        onChange={(e) =>
+                          validation.setFieldValue(
+                            "noOfBoardrooms",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Enter number of board rooms"
+                        className={
+                          validation.touched.noOfBoardrooms &&
+                          validation.errors?.noOfBoardrooms
                             ? "is-invalid"
                             : ""
-                        }`}
+                        }
                       />
-                      {validation.touched.noOfBoardRooms &&
-                        validation.errors.noOfBoardRooms && (
+                      {validation.touched.noOfBoardrooms &&
+                        validation.errors?.noOfBoardrooms && (
                           <div className="text-danger">
-                            {validation.errors.noOfBoardRooms}
-                          </div>
-                        )}
-                    </div>
-                  </Col>
+                            {validation.errors.noOfBoardrooms}
+                                            </div>
+                                          )}
+                                      </div>
+                                    </Col>
 
                   <Col sm={4}>
                     <div className="mb-3">
@@ -541,20 +549,21 @@ const Board_Rooms: React.FC = () => {
               <tbody>
                 {currentRows.length > 0 ? (
                   currentRows.map((boardRoom, index) => (
-                    <tr key={boardRoom.boardRoomId}>
+                    <tr key={boardRoom.boardRoomsId}>
                       <td>{index + 1}</td>
                       <td>{boardRoom.academicYear}</td>
-                      <td>{boardRoom.document?.file || "No file uploaded"}</td>
+                      <td>{boardRoom.noOfBoardrooms}</td>
+                      <td>{boardRoom.document?.boardRooms || "No file uploaded"}</td>
                       <td>
                         <button
                           className="btn btn-sm btn-warning me-2"
-                          onClick={() => handleEdit(boardRoom.boardRoomId)}
+                          onClick={() => handleEdit(boardRoom.boardRoomsId)}
                         >
                           Edit
                         </button>
                         <button
                           className="btn btn-sm btn-danger"
-                          onClick={() => handleDelete(boardRoom.boardRoomId)}
+                          onClick={() => handleDelete(boardRoom.boardRoomsId)}
                         >
                           Delete
                         </button>

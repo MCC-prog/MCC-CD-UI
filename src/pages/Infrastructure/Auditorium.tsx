@@ -16,6 +16,7 @@ import {
   ModalHeader,
   Row,
   Table,
+  Tooltip,
 } from "reactstrap";
 import * as Yup from "yup";
 import { APIClient } from "../../helpers/api_helper";
@@ -26,24 +27,17 @@ import axios from "axios";
 const api = new APIClient();
 
 const Auditorium: React.FC = () => {
-  // State variables for managing modal, edit mode, and delete confirmation
   const [isEditMode, setIsEditMode] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
-  // State variable for managing delete confirmation modal
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  // State variable for managing file upload status
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
-  // State variable for managing the modal for listing Classrooms data
   const [isModalOpen, setIsModalOpen] = useState(false);
-  // State variable for managing the list of Classrooms data data
   const [classroomData, setClassroomData] = useState<any[]>([]);
-
-  // State variable for managing search term and pagination
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
-  // State variable for managing filters
+
   const [filters, setFilters] = useState({
     blockName: "",
     seatingCapacity: "",
@@ -51,6 +45,9 @@ const Auditorium: React.FC = () => {
   const [filteredData, setFilteredData] = useState(classroomData);
 
   const fileRef = useRef<HTMLInputElement | null>(null);
+
+  const [tooltipOpen, setTooltipOpen] = useState(false);
+  const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
 
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -146,7 +143,7 @@ const Auditorium: React.FC = () => {
       const mappedValues = {
         blockName: response.blockName || "",
         seatingCapacity: response.seatingCapacity || "",
-        file: response.file?.auditorium || null,
+        file: response.document?.auditorium || null,
       };
 
       // Update Formik values
@@ -154,8 +151,8 @@ const Auditorium: React.FC = () => {
         ...mappedValues,
       });
       // In your handleEdit, after setting Formik values:
-      if (response.file?.auditorium) {
-        validation.setFieldValue("file", response.file.auditorium);
+      if (response.document?.auditorium) {
+        validation.setFieldValue("file", response.document.auditorium);
         setIsFileUploadDisabled(true);
       } else {
         validation.setFieldValue("file", null);
@@ -240,11 +237,11 @@ const Auditorium: React.FC = () => {
 
   // Handle file deletion
   // Clear the file from the form and show success message
-  const handleDeleteFile = async (fileName: string) => {
+  const handleDeleteFile = async () => {
     try {
       // Call the delete API
       const response = await api.delete(
-        `/infrastructureAuditorium/deleteAuditoriumDocument?auditoriumId=${fileName}`,
+        `/infrastructureAuditorium/deleteAuditoriumDocument?auditoriumId=${editId}`,
         ""
       );
       // Show success message
@@ -307,18 +304,18 @@ const Auditorium: React.FC = () => {
 
       if (isEditMode && typeof values.file === "string") {
         formData.append(
-          "auditorium",
+          "file",
           new Blob([], { type: "application/pdf" }),
           "empty.pdf"
         );
       } else if (isEditMode && values.file === null) {
         formData.append(
-          "auditorium",
+          "file",
           new Blob([], { type: "application/pdf" }),
           "empty.pdf"
         );
       } else if (values.file) {
-        formData.append("auditorium", values.file);
+        formData.append("file", values.file);
       }
 
       try {
@@ -344,8 +341,8 @@ const Auditorium: React.FC = () => {
         }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
-        // display the Auditorium data List
-        fetchAuditoriumData();
+        setIsFileUploadDisabled(false);
+        handleListAuditoriumClick();
       } catch (error) {
         // Display error message
         toast.error("Failed to save Auditorium details. Please try again.");
@@ -436,7 +433,20 @@ const Auditorium: React.FC = () => {
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
                         Upload Pdf
+                        <i
+                          id="infoIcon"
+                          className="bi bi-info-circle ms-2"
+                          style={{ cursor: "pointer", color: "#0d6efd" }}
+                        ></i>
                       </Label>
+                      <Tooltip
+                        placement="right"
+                        isOpen={tooltipOpen}
+                        target="infoIcon"
+                        toggle={toggleTooltip}
+                      >
+                        Upload an PDF file. Max size 10MB.
+                      </Tooltip>
                       <Input
                         className={`form-control ${
                           validation.touched.file && validation.errors.file
@@ -453,7 +463,6 @@ const Auditorium: React.FC = () => {
                               ? event.currentTarget.files[0]
                               : null
                           );
-                          validation.setFieldTouched("file", true, true);
                         }}
                         disabled={isFileUploadDisabled}
                       />
@@ -492,11 +501,7 @@ const Auditorium: React.FC = () => {
                             <Button
                               color="link"
                               className="text-danger"
-                              onClick={() =>
-                                handleDeleteFile(
-                                  validation.values.file as string
-                                )
-                              }
+                              onClick={() => handleDeleteFile()}
                               title="Delete File"
                             >
                               <i className="bi bi-trash"></i>

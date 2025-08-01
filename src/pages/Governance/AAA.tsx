@@ -2,7 +2,7 @@ import axios from "axios";
 import Breadcrumb from "Components/Common/Breadcrumb";
 import AcademicYearDropdown from "Components/DropDowns/AcademicYearDropdown";
 import { useFormik } from "formik";
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import {
   Button,
@@ -22,6 +22,14 @@ import {
 } from "reactstrap";
 import * as Yup from "yup";
 import { APIClient } from "../../helpers/api_helper";
+import $ from "jquery";
+import "datatables.net-bs5";
+import "datatables.net-buttons-bs5";
+import "datatables.net-buttons/js/buttons.html5.js";
+import "datatables.net-buttons/js/buttons.print.js";
+import "jszip";
+import "pdfmake/build/pdfmake";
+import "pdfmake/build/vfs_fonts";
 
 const api = new APIClient();
 
@@ -46,6 +54,10 @@ const AAA: React.FC = () => {
 
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
+
+  const tableRef = useRef<HTMLTableElement>(null);
+
+
 
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -328,6 +340,60 @@ const AAA: React.FC = () => {
     },
   });
 
+useEffect(() => {
+  if (aaaData.length === 0) return; // wait until data is loaded
+
+  const table = $("#aaaId").DataTable({
+    destroy: true, // destroy existing instance if re-rendered
+    dom: "Bfrtip",
+    buttons: [
+      {
+        extend: "copy",
+        exportOptions: {
+          columns: ":not(:last-child)", // skip Actions column
+        },
+        
+      },
+      {
+        extend: "csv",
+        exportOptions: {
+          columns: ":not(:last-child)",
+        },
+      },
+      {
+        extend: "pdf",
+        exportOptions: {
+          columns: ":not(:last-child)",
+        },
+      },
+      {
+        extend: "print",
+        exportOptions: {
+          columns: ":not(:last-child)",
+        },
+      },
+    ],
+    searching: false,
+    paging: false,
+  });
+  $(".dt-buttons").addClass("mb-3 gap-2");
+    $(".buttons-copy").addClass("btn btn-success");
+  $(".buttons-csv").addClass("btn btn-info");
+  $(".buttons-pdf").addClass("btn btn-danger");
+  $(".buttons-print").addClass("btn btn-warning");
+
+  $("#aaaId").on("buttons-action.dt", function (e, buttonApi, dataTable, node, config) {
+    if (buttonApi.text() === "Copy") {
+      toast.success("Copied to clipboard!");
+    }
+  });
+
+  return () => {
+    table.destroy(); // clean up
+  };
+}, [aaaData]);
+
+
   return (
     <React.Fragment>
       <div className="page-content">
@@ -481,14 +547,23 @@ const AAA: React.FC = () => {
                 onChange={handleSearch}
               />
             </div>
+            {/* <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            > */}
             <Table
               striped
               bordered
               hover
               responsive
               className="align-middle text-center"
+              id="aaaId"
+              innerRef={tableRef}
             >
-                         <thead className="table-dark">
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
@@ -581,3 +656,4 @@ const AAA: React.FC = () => {
 };
 
 export default AAA;
+

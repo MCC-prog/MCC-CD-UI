@@ -2,7 +2,7 @@ import axios from "axios";
 import Breadcrumb from "Components/Common/Breadcrumb";
 import AcademicYearDropdown from "Components/DropDowns/AcademicYearDropdown";
 import { useFormik } from "formik";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import {
   Button,
@@ -22,6 +22,14 @@ import {
 } from "reactstrap";
 import * as Yup from "yup";
 import { APIClient } from "../../helpers/api_helper";
+import $ from "jquery";
+import "datatables.net-bs5";
+import "datatables.net-buttons-bs5";
+import "datatables.net-buttons/js/buttons.html5.js";
+import "datatables.net-buttons/js/buttons.print.js";
+import "jszip";
+import "pdfmake/build/pdfmake";
+import "pdfmake/build/vfs_fonts";
 
 const api = new APIClient();
 
@@ -39,11 +47,13 @@ const Amphitheatre: React.FC = () => {
   const [filteredData, setFilteredData] = useState(amphitheatreData);
   const [filters, setFilters] = useState({
     academicYear: "",
-    noOfAmphitheatres: "",
+    noOfAmphitheatre: "",
     file: null as string | null,
   });
 
-const fileRef = useRef<HTMLInputElement | null>(null);
+  const fileRef = useRef<HTMLInputElement | null>(null);
+
+  const tableRef = useRef<HTMLTableElement>(null);
 
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
@@ -102,7 +112,9 @@ const fileRef = useRef<HTMLInputElement | null>(null);
   // Fetch Amphitheatre data from the backend
   const fetchAmphitheatreData = async () => {
     try {
-      const response = await axios.get("/infrastructureAmphitheatres/getAllAmphitheatres"); // Replace with your backend API endpoint
+      const response = await axios.get(
+        "/infrastructureAmphitheatre/getAllAmphitheatre"
+      ); // Replace with your backend API endpoint
       setAmphitheatreData(response);
       setFilteredData(response);
     } catch (error) {
@@ -129,7 +141,10 @@ const fileRef = useRef<HTMLInputElement | null>(null);
   // Fetch the data for the selected policy ID and populate the form fields
   const handleEdit = async (id: string) => {
     try {
-      const response = await api.get(`/infrastructureAmphitheatres/edit?amphitheatreId=${id}`, "");
+      const response = await api.get(
+        `/infrastructureAmphitheatre/edit?amphitheatreId=${id}`,
+        ""
+      );
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
       // Filter the response where isCurrent or isCurrentForAdmission is true
       const filteredAcademicYearList = academicYearOptions.filter(
@@ -144,8 +159,8 @@ const fileRef = useRef<HTMLInputElement | null>(null);
       // Map API response to Formik values
       const mappedValues = {
         academicYear: mapValueToLabel(response.academicYear, academicYearList),
-        noOfAmphitheatres: response.noOfAmphitheatres || "",
-        file: response.document?.amphitheatres || null,
+        noOfAmphitheatre: response.noOfAmphitheatre || "",
+        file: response.document?.amphitheatre || null,
       };
 
       // Update Formik values
@@ -158,13 +173,20 @@ const fileRef = useRef<HTMLInputElement | null>(null);
             }
           : null,
       });
+      if (response.document?.amphitheatre) {
+        validation.setFieldValue("file", response.document.amphitheatre);
+        setIsFileUploadDisabled(true);
+      } else {
+        validation.setFieldValue("file", null);
+        setIsFileUploadDisabled(false);
+      }
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       // Disable the file upload button if a file exists
-      setIsFileUploadDisabled(!!response.document?.aaa);
+      setIsFileUploadDisabled(!!response.document?.amphitheatre);
       toggleModal();
     } catch (error) {
-      console.error("Error fetching Board Room data by ID:", error);
+      console.error("Error fetching Amphitheatre data by ID:", error);
     }
   };
 
@@ -181,7 +203,7 @@ const fileRef = useRef<HTMLInputElement | null>(null);
     if (deleteId) {
       try {
         const response = await api.delete(
-          `/infrastructureAmphitheatres/deleteAmphitheatre?amphitheatreId=${id}`,
+          `/infrastructureAmphitheatre/deleteAmphitheatre?amphitheatreId=${id}`,
           ""
         );
         toast.success(response.message || "Amphitheatre removed successfully!");
@@ -202,7 +224,7 @@ const fileRef = useRef<HTMLInputElement | null>(null);
       try {
         // Ensure you set responseType to 'blob' to handle binary data
         const response = await axios.get(
-          `/infrastructureAmphitheatres/download/${fileName}`,
+          `/infrastructureAmphitheatre/download/${fileName}`,
           {
             responseType: "blob",
           }
@@ -241,7 +263,7 @@ const fileRef = useRef<HTMLInputElement | null>(null);
     try {
       // Call the delete API
       const response = await api.delete(
-        `/infrastructureAmphitheatres/deleteAmphitheatreDocument?amphitheatreId=${editId}`,
+        `/infrastructureAmphitheatre/deleteAmphitheatreDocument?amphitheatreId=${editId}`,
         ""
       );
       // Show success message
@@ -261,7 +283,7 @@ const fileRef = useRef<HTMLInputElement | null>(null);
   const validation = useFormik({
     initialValues: {
       academicYear: null as AcademicYearOption,
-      noOfAmphitheatres: "",
+      noOfAmphitheatre: "",
       file: null as File | string | null,
     },
     validationSchema: Yup.object({
@@ -271,9 +293,9 @@ const fileRef = useRef<HTMLInputElement | null>(null);
       })
         .nullable()
         .required("Please select academic year"),
-        noOfAmphitheatres: Yup.string()
-          .required("Please enter the number of amphitheatres")
-          .matches(/^[0-9]+$/, "Must be a number"),
+      noOfAmphitheatre: Yup.string()
+        .required("Please enter the number of amphitheatres")
+        .matches(/^[0-9]+$/, "Must be a number"),
       file: Yup.mixed()
         .required("Please upload a file")
         .test("fileSize", "File size is too large", (value: any) => {
@@ -292,8 +314,8 @@ const fileRef = useRef<HTMLInputElement | null>(null);
       const formData = new FormData();
 
       formData.append("academicYear", values.academicYear?.value || "");
-        formData.append("noOfAmphitheatres", values.noOfAmphitheatres || "");
-
+      formData.append("noOfAmphitheatre", values.noOfAmphitheatre);
+      formData.append("amphitheatreId", editId || "");
       // Handle the file conditionally
       if (isEditMode && typeof values.file === "string") {
         // Pass an empty Blob instead of null
@@ -311,16 +333,24 @@ const fileRef = useRef<HTMLInputElement | null>(null);
       try {
         if (isEditMode && editId) {
           // Call the update API
-          const response = await api.put(`/infrastructureAmphitheatres/update`, formData);
-          toast.success(response.message || "Amphitheatre updated successfully!");
+          const response = await api.put(
+            `/infrastructureAmphitheatre/update`,
+            formData
+          );
+          toast.success(
+            response.message || "Amphitheatre updated successfully!"
+          );
         } else {
           // Call the save API
-          const response = await api.create("/infrastructureAmphitheatres/save", formData);
+          const response = await api.create(
+            "/infrastructureAmphitheatre/save",
+            formData
+          );
           toast.success(response.message || "Amphitheatre added successfully!");
         }
         // Reset the form fields
         resetForm();
-          if (fileRef.current) {
+        if (fileRef.current) {
           fileRef.current.value = "";
         }
         setIsEditMode(false); // Reset edit mode
@@ -334,6 +364,60 @@ const fileRef = useRef<HTMLInputElement | null>(null);
       }
     },
   });
+  useEffect(() => {
+    if (amphitheatreData.length === 0) return; // wait until data is loaded
+
+    const table = $("#amphitheatreId").DataTable({
+      destroy: true, // destroy existing instance if re-rendered
+      dom: "Bfrtip",
+      buttons: [
+        {
+          extend: "copy",
+          exportOptions: {
+            columns: ":not(:last-child)", // skip Actions column
+          },
+        },
+        {
+          extend: "csv",
+          exportOptions: {
+            columns: ":not(:last-child)",
+          },
+        },
+        {
+          extend: "pdf",
+          exportOptions: {
+            columns: ":not(:last-child)",
+          },
+        },
+        {
+          extend: "print",
+          exportOptions: {
+            columns: ":not(:last-child)",
+          },
+        },
+      ],
+      searching: false,
+      paging: false,
+    });
+    $(".dt-buttons").addClass("mb-3 gap-2");
+    $(".buttons-copy").addClass("btn btn-success");
+    $(".buttons-csv").addClass("btn btn-info");
+    $(".buttons-pdf").addClass("btn btn-danger");
+    $(".buttons-print").addClass("btn btn-warning");
+
+    $("#amphitheatreId").on(
+      "buttons-action.dt",
+      function (e, buttonApi, dataTable, node, config) {
+        if (buttonApi.text() === "Copy") {
+          toast.success("Copied to clipboard!");
+        }
+      }
+    );
+
+    return () => {
+      table.destroy(); // clean up
+    };
+  }, [amphitheatreData]);
 
   return (
     <React.Fragment>
@@ -369,27 +453,35 @@ const fileRef = useRef<HTMLInputElement | null>(null);
                         )}
                     </div>
                   </Col>
-                    {/* Number of Amphitheatres Input */}
-                    <Col lg={4}>
+                  {/* Number of Amphitheatres Input */}
+                  <Col sm={4}>
                     <div className="mb-3">
-                      <Label htmlFor="noOfAmphitheatres">No. of Amphitheatres</Label>
+                      <Label htmlFor="noOfAmphitheatre" className="form-label">
+                        No. of Amphitheatres
+                      </Label>
                       <Input
                         type="number"
-                        id="noOfAmphitheatres"
-                        value={validation.values.noOfAmphitheatres}
-                        onChange={validation.handleChange}
-                        onBlur={validation.handleBlur}
-                        className={`form-control ${
-                          validation.touched.noOfAmphitheatres &&
-                          validation.errors.noOfAmphitheatres
+                        name="noOfAmphitheatre"
+                        id="noOfAmphitheatre"
+                        value={validation.values.noOfAmphitheatre || ""}
+                        onChange={(e) =>
+                          validation.setFieldValue(
+                            "noOfAmphitheatre",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Enter number of amphitheatres"
+                        className={
+                          validation.touched.noOfAmphitheatre &&
+                          validation.errors?.noOfAmphitheatre
                             ? "is-invalid"
                             : ""
-                        }`}
+                        }
                       />
-                      {validation.touched.noOfAmphitheatres &&
-                        validation.errors.noOfAmphitheatres && (
+                      {validation.touched.noOfAmphitheatre &&
+                        validation.errors?.noOfAmphitheatre && (
                           <div className="text-danger">
-                            {validation.errors.noOfAmphitheatres}
+                            {validation.errors.noOfAmphitheatre}
                           </div>
                         )}
                     </div>
@@ -398,7 +490,7 @@ const fileRef = useRef<HTMLInputElement | null>(null);
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
-                        Upload Board Room Documents
+                        Upload Documents
                         <i
                           id="infoIcon"
                           className="bi bi-info-circle ms-2"
@@ -421,7 +513,7 @@ const fileRef = useRef<HTMLInputElement | null>(null);
                         }`}
                         type="file"
                         id="formFile"
-                          innerRef={fileRef}
+                        innerRef={fileRef}
                         onChange={(event) => {
                           validation.setFieldValue(
                             "file",
@@ -500,9 +592,7 @@ const fileRef = useRef<HTMLInputElement | null>(null);
         </Container>
         {/* Modal for Listing Policy Documents */}
         <Modal isOpen={isModalOpen} toggle={toggleModal} size="lg">
-          <ModalHeader toggle={toggleModal}>
-            List of Amphitheatres
-          </ModalHeader>
+          <ModalHeader toggle={toggleModal}>List of Amphitheatres</ModalHeader>
           <ModalBody>
             {/* Global Search */}
             <div className="mb-3">
@@ -514,24 +604,20 @@ const fileRef = useRef<HTMLInputElement | null>(null);
               />
             </div>
             <Table
-                          striped
-                          bordered
-                          hover
-                          responsive
-                          className="align-middle text-center"
-                        >
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+              id="amphitheatreId"
+              innerRef={tableRef}
+            >
               <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>
-                    Academic Year
-                  </th>
-                    <th>
-                        No. of Amphitheatres
-                  </th>
-                  <th>
-                    Documents
-                  </th>
+                  <th>Academic Year</th>
+                  <th>No. of Amphitheatres</th>
+                  <th>Documents</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -541,17 +627,24 @@ const fileRef = useRef<HTMLInputElement | null>(null);
                     <tr key={amphitheatre.amphitheatreId}>
                       <td>{index + 1}</td>
                       <td>{amphitheatre.academicYear}</td>
-                      <td>{amphitheatre.document?.file || "No file uploaded"}</td>
+                      <td>{amphitheatre.noOfAmphitheatre}</td>
+                      <td>
+                        {amphitheatre.document?.amphitheatre || "No file uploaded"}
+                      </td>
                       <td>
                         <button
                           className="btn btn-sm btn-warning me-2"
-                          onClick={() => handleEdit(amphitheatre.amphitheatreId)}
+                          onClick={() =>
+                            handleEdit(amphitheatre.amphitheatreId)
+                          }
                         >
                           Edit
                         </button>
                         <button
                           className="btn btn-sm btn-danger"
-                          onClick={() => handleDelete(amphitheatre.amphitheatreId)}
+                          onClick={() =>
+                            handleDelete(amphitheatre.amphitheatreId)
+                          }
                         >
                           Delete
                         </button>

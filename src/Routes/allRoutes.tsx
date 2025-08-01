@@ -309,10 +309,10 @@ const authProtectedRoutes = [
   { path: "/Alumni/distinguishedAlumni", component: <DistinguishedAlumni /> },
 
   //_________________GOVERNANCE___________________________//
-  { path: "/governance/policyDocument", component: <PolicyDocument /> },
-  { path: "/governance/aaa", component: <AAA /> },
-  { path: "/governance/greenAudit", component: <GreenAudit /> },
-  { path: "/governance/energyAudit", component: <EnergyAudit /> },
+  { path: "/policyDocument", component: <PolicyDocument /> },
+  { path: "/aaa", component: <AAA /> },
+  { path: "/greenAudit", component: <GreenAudit /> },
+  { path: "/energyAudit", component: <EnergyAudit /> },
 ];
 
 const publicRoutes = [

@@ -104,7 +104,7 @@ const Softwares: React.FC = () => {
   const fetchSoftwareData = async () => {
     try {
       const response = await api.get(
-        "/infrastructureSoftware/getAllSoftware",
+        "/infrastructureSoftwares/getAllSoftwares",
         ""
       );
       setSoftwareData(response);
@@ -134,7 +134,7 @@ const Softwares: React.FC = () => {
   const handleEdit = async (id: string) => {
     try {
       const response = await api.get(
-        `/infrastructureSoftware/getSoftwareById?softwareId=${id}`,
+        `/infrastructureSoftwares/edit?softwaresId=${id}`,
         ""
       );
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
@@ -160,7 +160,7 @@ const Softwares: React.FC = () => {
               label: response.departmentName,
             }
           : null,
-        file: response.documents?.Mom || null,
+        file: response.document?.softwares || null,
         nameOfSoftware: response.nameOfSoftware ? response.nameOfSoftware : "",
         noOfLicenses: response.noOfLicenses ? response.noOfLicenses : "",
       };
@@ -169,7 +169,7 @@ const Softwares: React.FC = () => {
       // Update Formik values
       validation.setValues({
         ...mappedValues,
-        file: response.documents?.Mom || null,
+        file: response.document?.softwares || null,
         academicYear: mappedValues.academicYear
           ? {
               ...mappedValues.academicYear,
@@ -182,7 +182,7 @@ const Softwares: React.FC = () => {
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       // Disable the file upload button if a file exists
-      setIsFileUploadDisabled(!!response.documents?.software);
+      setIsFileUploadDisabled(!!response.document?.softwares);
       toggleModal();
     } catch (error) {
       console.error("Error fetching New Courses Introduced data by ID:", error);
@@ -202,7 +202,7 @@ const Softwares: React.FC = () => {
     if (deleteId) {
       try {
         const response = await api.delete(
-          `/infrastructureSoftware/deleteSoftware?softwareId=${id}`,
+          `/infrastructureSoftwares/deleteSoftwares?softwaresId=${id}`,
           ""
         );
         toast.success(response.message || " Software removed successfully!");
@@ -262,7 +262,7 @@ const Softwares: React.FC = () => {
     try {
       // Call the delete API
       const response = await api.delete(
-        `/infrastructureSoftware/deleteSoftwareDocument?softwareDocumentId=${editId}`,
+        `/infrastructureSoftwares/deleteSoftwaresDocument?softwaresId=${editId}`,
         ""
       );
       // Show success message
@@ -332,7 +332,7 @@ const Softwares: React.FC = () => {
       formData.append("streamId", String(values.stream?.value || ""));
       formData.append("nameOfSoftware", values.nameOfSoftware);
       formData.append("noOfLicenses", String(values.noOfLicenses || ""));
-      formData.append("softwareId", String(editId || ""));
+      formData.append("softwaresId", String(editId || ""));
 
       if (isEditMode && typeof values.file === "string") {
         // Pass an empty Blob instead of null
@@ -345,21 +345,21 @@ const Softwares: React.FC = () => {
 
       // If editing, include ID
       if (isEditMode && editId) {
-        formData.append("softwareId", editId);
+        formData.append("softwaresId", editId);
       }
 
       try {
         if (isEditMode && editId) {
           // Call the update API
           const response = await api.put(
-            `/infrastructureSoftware/update`,
+            `/infrastructureSoftwares/update`,
             formData
           );
           toast.success(response.message || "Software updated successfully!");
         } else {
           // Call the save API
           const response = await api.create(
-            "/infrastructureSoftware/save",
+            "/infrastructureSoftwares/save",
             formData
           );
           toast.success(response.message || "New Software added successfully!");
@@ -467,6 +467,70 @@ const Softwares: React.FC = () => {
                         )}
                     </div>
                   </Col>
+                  <Col sm={4}>
+                    <div className="mb-3">
+                      <Label htmlFor="nameOfSoftware" className="form-label">
+                        Name of Software
+                      </Label>
+                      <Input
+                        type="text"
+                        name="nameOfSoftware"
+                        id="nameOfSoftware"
+                        value={validation.values.nameOfSoftware || ""}
+                        onChange={(e) =>
+                          validation.setFieldValue(
+                            "nameOfSoftware",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Enter name of software"
+                        className={
+                          validation.touched.nameOfSoftware &&
+                          validation.errors?.nameOfSoftware
+                            ? "is-invalid"
+                            : ""
+                        }
+                      />
+                      {validation.touched.nameOfSoftware &&
+                        validation.errors?.nameOfSoftware && (
+                          <div className="text-danger">
+                            {validation.errors.nameOfSoftware}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+                  <Col sm={4}>
+                    <div className="mb-3">
+                      <Label htmlFor="noOfLicenses" className="form-label">
+                        No. of Licenses
+                      </Label>
+                      <Input
+                        type="number"
+                        name="noOfLicenses"
+                        id="noOfLicenses"
+                        value={validation.values.noOfLicenses || ""}
+                        onChange={(e) =>
+                          validation.setFieldValue(
+                            "noOfLicenses",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Enter number of licenses"
+                        className={
+                          validation.touched.noOfLicenses &&
+                          validation.errors?.noOfLicenses
+                            ? "is-invalid"
+                            : ""
+                        }
+                      />
+                      {validation.touched.noOfLicenses &&
+                        validation.errors?.noOfLicenses && (
+                          <div className="text-danger">
+                            {validation.errors.noOfLicenses}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
 
                   <Col sm={4}>
                     <div className="mb-3">
@@ -481,6 +545,7 @@ const Softwares: React.FC = () => {
                         }`}
                         type="file"
                         id="software"
+                        innerRef={fileRef}
                         onChange={(event) => {
                           validation.setFieldValue(
                             "file",
@@ -598,7 +663,7 @@ const Softwares: React.FC = () => {
               <tbody>
                 {currentRows.length > 0 ? (
                   currentRows.map((software, index) => (
-                    <tr key={software.softwareId}>
+                    <tr key={software.softwaresId}>
                       <td>{indexOfFirstRow + index + 1}</td>
                       <td>{software.academicYear}</td>
                       <td>{software.streamName}</td>
@@ -609,13 +674,13 @@ const Softwares: React.FC = () => {
                         <div className="d-flex justify-content-center gap-2">
                           <button
                             className="btn btn-sm btn-warning"
-                            onClick={() => handleEdit(software.softwareId)}
+                            onClick={() => handleEdit(software.softwaresId)}
                           >
                             Edit
                           </button>
                           <button
                             className="btn btn-sm btn-danger"
-                            onClick={() => handleDelete(software.softwareId)}
+                            onClick={() => handleDelete(software.softwaresId)}
                           >
                             Delete
                           </button>
