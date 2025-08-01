@@ -511,13 +511,13 @@ const Innovative_Teaching_Methodologies: React.FC = () => {
                   </Col>
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>Course Name</Label>
+                      <Label>Course Title</Label>
                       <Input
                         type="text"
                         name="courseName"
                         value={validation.values.courseName}
                         onChange={validation.handleChange}
-                        placeholder="Enter Course Name"
+                        placeholder="Enter Course Title"
                         className={
                           validation.touched.courseName &&
                           validation.errors.courseName

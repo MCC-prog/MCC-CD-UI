@@ -958,6 +958,20 @@ const New_Programs_Introduced: React.FC = () => {
                       )}
                     </div>
                   </Col>
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Download Template</Label>
+                      <div>
+                        <a
+                          href={`${process.env.PUBLIC_URL}/templateFiles/BOS_MOM_New Program_Dept Name.docx`}
+                          download
+                          className="btn btn-primary btn-sm"
+                        >
+                          Template
+                        </a>
+                      </div>
+                    </div>
+                  </Col>
                 </Row>
                 <Row>
                   <Col lg={12}>

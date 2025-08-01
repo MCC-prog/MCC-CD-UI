@@ -58,11 +58,13 @@ const AssociationActivites: React.FC = () => {
     stream: "",
     program: "",
     activityName: "",
-    dateOfActivity: ""
+    dateOfActivity: "",
   });
   const [filteredData, setFilteredData] = useState(bosData);
   const fileRef = useRef<HTMLInputElement | null>(null);
-  const [programOptions, setProgramOptions] = useState<{ value: string; label: string }[]>([]);
+  const [programOptions, setProgramOptions] = useState<
+    { value: string; label: string }[]
+  >([]);
   useEffect(() => {
     const fetchPrograms = async () => {
       try {
@@ -137,7 +139,10 @@ const AssociationActivites: React.FC = () => {
   // Fetch Association data from the backend
   const fetchAssociationData = async () => {
     try {
-      const response = await api.get("associationActivitie/getAllAssociationActivitie", "");
+      const response = await api.get(
+        "associationActivitie/getAllAssociationActivitie",
+        ""
+      );
       setAssoData(response);
       setFilteredData(response);
     } catch (error) {
@@ -165,7 +170,10 @@ const AssociationActivites: React.FC = () => {
   // Fetch the data for the selected Association ID and populate the form fields
   const handleEdit = async (id: string) => {
     try {
-      const response = await api.get(`/associationActivitie?associationActivitieId=${id}`, "");
+      const response = await api.get(
+        `/associationActivitie?associationActivitieId=${id}`,
+        ""
+      );
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
       // Filter the response where isCurrent or isCurrentForAdmission is true
       const filteredAcademicYearList = academicYearOptions.filter(
@@ -190,7 +198,10 @@ const AssociationActivites: React.FC = () => {
           ? { value: response.streamId.toString(), label: response.streamName }
           : null,
         program: response.programId
-          ? { value: response.programId.toString(), label: response.programName }
+          ? {
+              value: response.programId.toString(),
+              label: response.programName,
+            }
           : null,
         file: response.file?.Activity || null,
         activityDate: response.activityDate
@@ -204,13 +215,16 @@ const AssociationActivites: React.FC = () => {
       validation.setValues({
         ...mappedValues,
         academicYear: mappedValues.academicYear
-          ? { ...mappedValues.academicYear, value: String(mappedValues.academicYear.value) }
+          ? {
+              ...mappedValues.academicYear,
+              value: String(mappedValues.academicYear.value),
+            }
           : null,
         stream: mappedValues.stream
           ? { ...mappedValues.stream, value: String(mappedValues.stream.value) }
           : null,
         activityDate: mappedValues.activityDate || "",
-        activityName: response.activityName || ""
+        activityName: response.activityName || "",
       });
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
@@ -232,7 +246,10 @@ const AssociationActivites: React.FC = () => {
   const confirmDelete = async (id: string) => {
     if (deleteId) {
       try {
-        const response = await api.delete(`/associationActivitie/deleteAssociationActivitie?associationActivitieId=${id}`, "");
+        const response = await api.delete(
+          `/associationActivitie/deleteAssociationActivitie?associationActivitieId=${id}`,
+          ""
+        );
         toast.success(
           response.message || "Association Activity removed successfully!"
         );
@@ -252,9 +269,12 @@ const AssociationActivites: React.FC = () => {
     if (fileName) {
       try {
         // Ensure you set responseType to 'blob' to handle binary data
-        const response = await axios.get(`/associationActivitie/download/${fileName}`, {
-          responseType: "blob",
-        });
+        const response = await axios.get(
+          `/associationActivitie/download/${fileName}`,
+          {
+            responseType: "blob",
+          }
+        );
 
         // Create a Blob from the response data
         const blob = new Blob([response], { type: "*/*" });
@@ -350,7 +370,7 @@ const AssociationActivites: React.FC = () => {
           }
           return true;
         }
-      )
+      ),
     }),
     onSubmit: async (values, { resetForm }) => {
       const formData = new FormData();
@@ -378,21 +398,20 @@ const AssociationActivites: React.FC = () => {
       }
 
       try {
-        const response = isEditMode && editId
-          ? await api.put(`/associationActivitie`, formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data'
-            }
-          })
-          : await api.create(`/associationActivitie`, formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data'
-            }
-          });
+        const response =
+          isEditMode && editId
+            ? await api.put(`/associationActivitie`, formData, {
+                headers: {
+                  "Content-Type": "multipart/form-data",
+                },
+              })
+            : await api.create(`/associationActivitie`, formData, {
+                headers: {
+                  "Content-Type": "multipart/form-data",
+                },
+              });
 
-        toast.success(
-          response.message || "Alumini updated successfully!"
-        );
+        toast.success(response.message || "Alumini updated successfully!");
 
         fetchAssociationData();
         // Reset the form fields
@@ -416,7 +435,10 @@ const AssociationActivites: React.FC = () => {
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <Breadcrumb title="Curricuum" breadcrumbItem="Association Activities" />
+          <Breadcrumb
+            title="Curricuum"
+            breadcrumbItem="Association Activities"
+          />
           <Card>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
@@ -453,23 +475,33 @@ const AssociationActivites: React.FC = () => {
                         type="select"
                         name="semester"
                         value={validation.values.semester?.value || ""}
-                        onChange={e => {
+                        onChange={(e) => {
                           const val = e.target.value;
                           const selected = val
                             ? { value: val, label: `Semester ${val}` }
                             : null;
                           validation.setFieldValue("semester", selected);
                         }}
-                        className={validation.touched.semester && validation.errors.semester ? "is-invalid" : ""}
+                        className={
+                          validation.touched.semester &&
+                          validation.errors.semester
+                            ? "is-invalid"
+                            : ""
+                        }
                       >
                         <option value="">Select Semester</option>
                         {[...Array(8)].map((_, i) => (
-                          <option key={i + 1} value={i + 1}>{i + 1}</option>
+                          <option key={i + 1} value={i + 1}>
+                            {i + 1}
+                          </option>
                         ))}
                       </Input>
-                      {validation.touched.semester && validation.errors.semester && (
-                        <div className="text-danger">{validation.errors.semester}</div>
-                      )}
+                      {validation.touched.semester &&
+                        validation.errors.semester && (
+                          <div className="text-danger">
+                            {validation.errors.semester}
+                          </div>
+                        )}
                     </div>
                   </Col>
                   {/* Stream Dropdown */}
@@ -505,26 +537,35 @@ const AssociationActivites: React.FC = () => {
                         type="select"
                         name="program"
                         value={validation.values.program?.value || ""}
-                        onChange={e => {
-                          const selected = programOptions.find(opt => opt.value === e.target.value) || null;
+                        onChange={(e) => {
+                          const selected =
+                            programOptions.find(
+                              (opt) => opt.value === e.target.value
+                            ) || null;
                           validation.setFieldValue("program", selected);
                         }}
-                        className={validation.touched.program && validation.errors.program ? "is-invalid" : ""}
+                        className={
+                          validation.touched.program &&
+                          validation.errors.program
+                            ? "is-invalid"
+                            : ""
+                        }
                       >
                         <option value="">Select Program</option>
-                        {programOptions.map(opt => (
+                        {programOptions.map((opt) => (
                           <option key={opt.value} value={opt.value}>
                             {opt.label}
                           </option>
                         ))}
                       </Input>
-                      {validation.touched.program && validation.errors.program && (
-                        <div className="text-danger">
-                          {Array.isArray(validation.errors.program)
-                            ? validation.errors.program.join(", ")
-                            : validation.errors.program}
-                        </div>
-                      )}
+                      {validation.touched.program &&
+                        validation.errors.program && (
+                          <div className="text-danger">
+                            {Array.isArray(validation.errors.program)
+                              ? validation.errors.program.join(", ")
+                              : validation.errors.program}
+                          </div>
+                        )}
                     </div>
                   </Col>
                   <Col lg={4}>
@@ -538,14 +579,18 @@ const AssociationActivites: React.FC = () => {
                         onChange={validation.handleChange}
                         onBlur={validation.handleBlur}
                         className={
-                          validation.touched.activityName && validation.errors.activityName
+                          validation.touched.activityName &&
+                          validation.errors.activityName
                             ? "is-invalid"
                             : ""
                         }
                       />
-                      {validation.touched.activityName && validation.errors.activityName && (
-                        <div className="text-danger">{validation.errors.activityName}</div>
-                      )}
+                      {validation.touched.activityName &&
+                        validation.errors.activityName && (
+                          <div className="text-danger">
+                            {validation.errors.activityName}
+                          </div>
+                        )}
                     </div>
                   </Col>
                   <Col lg={4}>
@@ -553,17 +598,18 @@ const AssociationActivites: React.FC = () => {
                       <Label>Date of Activity</Label>
                       <Input
                         type="date" // Use native date input
-                        className={`form-control ${validation.touched.activityDate &&
+                        className={`form-control ${
+                          validation.touched.activityDate &&
                           validation.errors.activityDate
-                          ? "is-invalid"
-                          : ""
-                          }`}
+                            ? "is-invalid"
+                            : ""
+                        }`}
                         value={
                           validation.values.activityDate
                             ? moment(
-                              validation.values.activityDate,
-                              "DD/MM/YYYY"
-                            ).format("YYYY-MM-DD") // Convert to yyyy-mm-dd for the input
+                                validation.values.activityDate,
+                                "DD/MM/YYYY"
+                              ).format("YYYY-MM-DD") // Convert to yyyy-mm-dd for the input
                             : ""
                         }
                         onChange={(e) => {
@@ -592,10 +638,11 @@ const AssociationActivites: React.FC = () => {
                         Upload Report Activity
                       </Label>
                       <Input
-                        className={`form-control ${validation.touched.file && validation.errors.file
-                          ? "is-invalid"
-                          : ""
-                          }`}
+                        className={`form-control ${
+                          validation.touched.file && validation.errors.file
+                            ? "is-invalid"
+                            : ""
+                        }`}
                         type="file"
                         id="formFile"
                         innerRef={fileRef}
@@ -644,7 +691,9 @@ const AssociationActivites: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
-                            onClick={() => handleDeleteFile(validation.values.file as string)}
+                            onClick={() =>
+                              handleDeleteFile(validation.values.file as string)
+                            }
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>
@@ -708,66 +757,22 @@ const AssociationActivites: React.FC = () => {
             </div>
 
             {/* Table with Pagination */}
-            <Table className="table-hover custom-table">
-              <thead>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>
-                    Academic Year
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.academicYear}
-                      onChange={(e) => handleFilterChange(e, "academicYear")}
-                    />
-                  </th>
-                  <th>
-                    Semester No
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.semester}
-                      onChange={(e) => handleFilterChange(e, "semester")}
-                    />
-                  </th>
-                  <th>
-                    Stream
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.stream}
-                      onChange={(e) => handleFilterChange(e, "stream")}
-                    />
-                  </th>
-                  <th>
-                    Program
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.program}
-                      onChange={(e) => handleFilterChange(e, "program")}
-                    />
-                  </th>
-                  <th>
-                    Activity Name
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.activityName}
-                      onChange={(e) => handleFilterChange(e, "activityName")}
-                    />
-                  </th>
-                  <th>
-                    Date of Activity
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.dateOfActivity}
-                      onChange={(e) =>
-                        handleFilterChange(e, "dateOfActivity")
-                      }
-                    />
-                  </th>
+                  <th>Academic Year</th>
+                  <th>Semester No</th>
+                  <th>Stream</th>
+                  <th>Program</th>
+                  <th>Activity Name</th>
+                  <th>Date of Activity</th>
                   <th>Actions</th>
                 </tr>
               </thead>

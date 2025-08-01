@@ -680,14 +680,14 @@ const Cdp_Activites: React.FC = () => {
                   </Col>
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>Download Template</Label>
+                      <Label>Cdp Activity</Label>
                       <div>
                         <a
-                          href="/templateFiles/bos.pdf"
+                          href={`${process.env.PUBLIC_URL}/templateFiles/REPORT_DEPT_YEAR.docx`}
                           download
                           className="btn btn-primary btn-sm"
                         >
-                          Sample CDP Activity
+                          Template
                         </a>
                       </div>
                     </div>

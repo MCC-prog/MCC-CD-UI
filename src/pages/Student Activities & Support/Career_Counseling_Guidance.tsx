@@ -819,7 +819,7 @@ const Career_Counseling_Guidance: React.FC = () => {
                       <Label>Download </Label>
                       <div>
                         <a
-                          href="/templateFiles/Guest Lectures.pdf"
+                          href={`${process.env.PUBLIC_URL}/templateFiles/CAREER_DEPT_YEAR.docx`}
                           download
                           className="btn btn-primary btn-sm"
                         >

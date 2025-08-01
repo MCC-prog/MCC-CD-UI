@@ -38,16 +38,6 @@ export const addNewEvent = createAsyncThunk("calendar/addNewEvent", async (event
     }
 });
 
-export const deleteEvent = createAsyncThunk("calendar/deleteEvent", async (event: any) => {
-    try {
-        const response = deleteEventApi(event);
-        toast.success("Event Deleted Successfully", { autoClose: 2000 });
-        return response;
-    } catch (error) {
-        toast.error("Event Deleted Failed", { autoClose: 2000 });
-        return error;
-    }
-});
 
 export const updateEvent = createAsyncThunk("calendar/updateEvent", async (event: any) => {
     try {

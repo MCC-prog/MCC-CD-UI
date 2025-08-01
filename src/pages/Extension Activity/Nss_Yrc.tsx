@@ -672,14 +672,14 @@ const Nss_Yrc: React.FC = () => {
                   </Col>
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>Download Template</Label>
+                      <Label>Nss_Yrc</Label>
                       <div>
                         <a
-                          href="/templateFiles/bos.pdf"
+                          href={`${process.env.PUBLIC_URL}/templateFiles/REPORT_DEPT_YEAR.docx`}
                           download
                           className="btn btn-primary btn-sm"
                         >
-                          Sample NSS/YRC
+                          Template
                         </a>
                       </div>
                     </div>

@@ -921,6 +921,20 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
                       )}
                     </div>
                   </Col>
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Download </Label>
+                      <div>
+                        <a
+                          href={`${process.env.PUBLIC_URL}/templateFiles/YEAR_DeptorAssociation_EVENT.docx`}
+                          download
+                          className="btn btn-primary btn-sm"
+                        >
+                          Student Progression - Higher Education Template
+                        </a>
+                      </div>
+                    </div>
+                  </Col>
                 </Row>
                 <Row>
                   <Col lg={12}>

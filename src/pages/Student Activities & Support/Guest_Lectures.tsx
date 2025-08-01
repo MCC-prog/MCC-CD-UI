@@ -968,8 +968,8 @@ const Guest_Lectures: React.FC = () => {
                     <div className="mb-3">
                       <Label>Download </Label>
                       <div>
-                        <a
-                          href="/templateFiles/Guest Lectures.pdf"
+                         <a
+                          href={`${process.env.PUBLIC_URL}/templateFiles/YEAR_DEPT_GUEST LECTURE.docx`}
                           download
                           className="btn btn-primary btn-sm"
                         >

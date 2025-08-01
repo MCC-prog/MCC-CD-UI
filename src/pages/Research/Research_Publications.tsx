@@ -687,7 +687,7 @@ const Research_Publications = () => {
                         <option value="Scopus">Scopus</option>
                         <option value="Web of Science">Web of Science</option>
                         <option value="ABDC">ABDC</option>
-                        <option value="UGC">UGC</option>
+                        <option value="Research Centre">Research Centre</option>
                       </Input>
                       {validation.touched.indexation &&
                         validation.errors.indexation && (

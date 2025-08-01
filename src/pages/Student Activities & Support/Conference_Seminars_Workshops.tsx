@@ -268,6 +268,7 @@ const Conference_Seminars_Workshops: React.FC = () => {
 
   const capType = [
     { value: "Institutional", label: "Institutional" },
+    { value: "External", label: "External" },
     { value: "Others", label: "Others" },
   ];
 
@@ -1050,8 +1051,8 @@ const Conference_Seminars_Workshops: React.FC = () => {
                     <div className="mb-3">
                       <Label>Download Collaboration/Funding agency</Label>
                       <div>
-                        <a
-                          href="/templateFiles/bos.pdf"
+                         <a
+                          href={`${process.env.PUBLIC_URL}/templateFiles/REPORT_DEPT_YEAR(1).docx`}
                           download
                           className="btn btn-primary btn-sm"
                         >

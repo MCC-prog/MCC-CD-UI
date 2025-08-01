@@ -644,8 +644,8 @@ const SportsEvents_Conducted_College: React.FC = () => {
                     <div className="mb-3">
                       <Label>Download </Label>
                       <div>
-                        <a
-                          href="/templateFiles/bos.pdf"
+                       <a
+                          href={`${process.env.PUBLIC_URL}/templateFiles/SPORTS_YEAR.docx`}
                           download
                           className="btn btn-primary btn-sm"
                         >

@@ -61,13 +61,15 @@ const DistinguishedAlumni: React.FC = () => {
     department: "",
     programType: "",
     program: "",
-    jobRole: ""
+    jobRole: "",
   });
   const [filteredData, setFilteredData] = useState(bosData);
 
   const fileRef = useRef<HTMLInputElement | null>(null);
 
-  const [programOptions, setProgramOptions] = useState<{ value: string; label: string }[]>([]);
+  const [programOptions, setProgramOptions] = useState<
+    { value: string; label: string }[]
+  >([]);
 
   useEffect(() => {
     const fetchPrograms = async () => {
@@ -143,7 +145,10 @@ const DistinguishedAlumni: React.FC = () => {
   // Fetch Alumini data from the backend
   const fetchAluminiData = async () => {
     try {
-      const response = await api.get("/distinguishAlumniOfTheLastFiveYears/getAllDistinguishAlumniOfTheLastFiveYears", "");
+      const response = await api.get(
+        "/distinguishAlumniOfTheLastFiveYears/getAllDistinguishAlumniOfTheLastFiveYears",
+        ""
+      );
       setAluminiData(response);
       setFilteredData(response);
     } catch (error) {
@@ -171,7 +176,10 @@ const DistinguishedAlumni: React.FC = () => {
   // Fetch the data for the selected Alumini ID and populate the form fields
   const handleEdit = async (id: string) => {
     try {
-      const response = await api.get(`/distinguishAlumniOfTheLastFiveYears?distinguishAlumniOfTheLastFiveYearsId=${id}`, "");
+      const response = await api.get(
+        `/distinguishAlumniOfTheLastFiveYears?distinguishAlumniOfTheLastFiveYearsId=${id}`,
+        ""
+      );
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
       // Filter the response where isCurrent or isCurrentForAdmission is true
       const filteredAcademicYearList = academicYearOptions.filter(
@@ -191,24 +199,25 @@ const DistinguishedAlumni: React.FC = () => {
           : null,
         department: response.departmentId
           ? {
-            value: response.departmentId.toString(),
-            label: response.departmentName,
-          }
+              value: response.departmentId.toString(),
+              label: response.departmentName,
+            }
           : null,
         program: response.programId
           ? {
-            value: response.programId.toString(),
-            label: response.programName,
-          } : null,
+              value: response.programId.toString(),
+              label: response.programName,
+            }
+          : null,
         otherDepartment: "", // default
         name: response.name || "",
         registerNumber: response.registerNumber || "",
         batch: response.batchId
-        ? {
-          value: response.batchId.toString(),
-          label: response.batchName,
-        }
-        : null,
+          ? {
+              value: response.batchId.toString(),
+              label: response.batchName,
+            }
+          : null,
         jobRole: response.jobRole
           ? { value: response.jobRole, label: response.jobRole }
           : null,
@@ -218,22 +227,34 @@ const DistinguishedAlumni: React.FC = () => {
       validation.setValues({
         ...mappedValues,
         academicYear: mappedValues.academicYear
-          ? { ...mappedValues.academicYear, value: String(mappedValues.academicYear.value) }
+          ? {
+              ...mappedValues.academicYear,
+              value: String(mappedValues.academicYear.value),
+            }
           : null,
         stream: mappedValues.stream
           ? { ...mappedValues.stream, value: String(mappedValues.stream.value) }
           : null,
         department: mappedValues.department
-          ? { ...mappedValues.department, value: String(mappedValues.department.value) }
+          ? {
+              ...mappedValues.department,
+              value: String(mappedValues.department.value),
+            }
           : null,
         program: mappedValues.program
-          ? { ...mappedValues.program, value: String(mappedValues.program.value) }
+          ? {
+              ...mappedValues.program,
+              value: String(mappedValues.program.value),
+            }
           : null,
         batch: mappedValues.batch
           ? { ...mappedValues.batch, value: String(mappedValues.batch.value) }
           : null,
         jobRole: mappedValues.jobRole
-          ? { ...mappedValues.jobRole, value: String(mappedValues.jobRole.value) }
+          ? {
+              ...mappedValues.jobRole,
+              value: String(mappedValues.jobRole.value),
+            }
           : null,
       });
 
@@ -257,7 +278,10 @@ const DistinguishedAlumni: React.FC = () => {
   const confirmDelete = async (id: string) => {
     if (deleteId) {
       try {
-        const response = await api.delete(`/distinguishAlumniOfTheLastFiveYears/deleteDistinguishAlumniOfTheLastFiveYears?distinguishAlumniOfTheLastFiveYearsId=${id}`, "");
+        const response = await api.delete(
+          `/distinguishAlumniOfTheLastFiveYears/deleteDistinguishAlumniOfTheLastFiveYears?distinguishAlumniOfTheLastFiveYearsId=${id}`,
+          ""
+        );
         toast.success(
           response.message || "Curriculum Alumini removed successfully!"
         );
@@ -332,21 +356,26 @@ const DistinguishedAlumni: React.FC = () => {
       formData.append("programId", values.program?.value || "");
 
       try {
-        const response = isEditMode && editId
-          ? await api.put(`/distinguishAlumniOfTheLastFiveYears`, formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data'
-            }
-          })
-          : await api.create(`/distinguishAlumniOfTheLastFiveYears`, formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data'
-            }
-          });
+        const response =
+          isEditMode && editId
+            ? await api.put(`/distinguishAlumniOfTheLastFiveYears`, formData, {
+                headers: {
+                  "Content-Type": "multipart/form-data",
+                },
+              })
+            : await api.create(
+                `/distinguishAlumniOfTheLastFiveYears`,
+                formData,
+                {
+                  headers: {
+                    "Content-Type": "multipart/form-data",
+                  },
+                }
+              );
 
-          toast.success(
-            response.message || "Curriculum Alumini updated successfully!"
-          );
+        toast.success(
+          response.message || "Curriculum Alumini updated successfully!"
+        );
         // Refresh the page data to show the uploaded file
         fetchAluminiData();
 
@@ -408,12 +437,20 @@ const DistinguishedAlumni: React.FC = () => {
                         type="text"
                         name="name"
                         value={validation.values.name || ""}
-                        onChange={e => validation.setFieldValue("name", e.target.value)}
+                        onChange={(e) =>
+                          validation.setFieldValue("name", e.target.value)
+                        }
                         placeholder="Enter Name"
-                        className={validation.touched.name && validation.errors.name ? "is-invalid" : ""}
+                        className={
+                          validation.touched.name && validation.errors.name
+                            ? "is-invalid"
+                            : ""
+                        }
                       />
                       {validation.touched.name && validation.errors.name && (
-                        <div className="text-danger">{validation.errors.name}</div>
+                        <div className="text-danger">
+                          {validation.errors.name}
+                        </div>
                       )}
                     </div>
                   </Col>
@@ -425,13 +462,26 @@ const DistinguishedAlumni: React.FC = () => {
                         type="text"
                         name="registerNumber"
                         value={validation.values.registerNumber || ""}
-                        onChange={e => validation.setFieldValue("registerNumber", e.target.value)}
+                        onChange={(e) =>
+                          validation.setFieldValue(
+                            "registerNumber",
+                            e.target.value
+                          )
+                        }
                         placeholder="Enter Register Number"
-                        className={validation.touched.registerNumber && validation.errors.registerNumber ? "is-invalid" : ""}
+                        className={
+                          validation.touched.registerNumber &&
+                          validation.errors.registerNumber
+                            ? "is-invalid"
+                            : ""
+                        }
                       />
-                      {validation.touched.registerNumber && validation.errors.registerNumber && (
-                        <div className="text-danger">{validation.errors.registerNumber}</div>
-                      )}
+                      {validation.touched.registerNumber &&
+                        validation.errors.registerNumber && (
+                          <div className="text-danger">
+                            {validation.errors.registerNumber}
+                          </div>
+                        )}
                     </div>
                   </Col>
 
@@ -442,14 +492,18 @@ const DistinguishedAlumni: React.FC = () => {
                         type="select"
                         name="batch"
                         value={validation.values.batch?.value || ""}
-                        onChange={e => {
+                        onChange={(e) => {
                           const val = e.target.value;
                           const selected = val
                             ? { value: val, label: val }
                             : null;
                           validation.setFieldValue("batch", selected);
                         }}
-                        className={validation.touched.batch && validation.errors.batch ? "is-invalid" : ""}
+                        className={
+                          validation.touched.batch && validation.errors.batch
+                            ? "is-invalid"
+                            : ""
+                        }
                       >
                         <option value="">Select Batch</option>
                         <option value="2023">b2</option>
@@ -457,7 +511,9 @@ const DistinguishedAlumni: React.FC = () => {
                         <option value="2025">b0</option>
                       </Input>
                       {validation.touched.batch && validation.errors.batch && (
-                        <div className="text-danger">{validation.errors.batch}</div>
+                        <div className="text-danger">
+                          {validation.errors.batch}
+                        </div>
                       )}
                     </div>
                   </Col>
@@ -523,11 +579,12 @@ const DistinguishedAlumni: React.FC = () => {
                         <Label>Specify Department</Label>
                         <Input
                           type="text"
-                          className={`form-control ${validation.touched.otherDepartment &&
+                          className={`form-control ${
+                            validation.touched.otherDepartment &&
                             validation.errors.otherDepartment
-                            ? "is-invalid"
-                            : ""
-                            }`}
+                              ? "is-invalid"
+                              : ""
+                          }`}
                           value={validation.values.otherDepartment}
                           onChange={(e) =>
                             validation.setFieldValue(
@@ -554,26 +611,35 @@ const DistinguishedAlumni: React.FC = () => {
                         type="select"
                         name="program"
                         value={validation.values.program?.value || ""}
-                        onChange={e => {
-                          const selected = programOptions.find(opt => opt.value === e.target.value) || null;
+                        onChange={(e) => {
+                          const selected =
+                            programOptions.find(
+                              (opt) => opt.value === e.target.value
+                            ) || null;
                           validation.setFieldValue("program", selected);
                         }}
-                        className={validation.touched.program && validation.errors.program ? "is-invalid" : ""}
+                        className={
+                          validation.touched.program &&
+                          validation.errors.program
+                            ? "is-invalid"
+                            : ""
+                        }
                       >
                         <option value="">Select Program</option>
-                        {programOptions.map(opt => (
+                        {programOptions.map((opt) => (
                           <option key={opt.value} value={opt.value}>
                             {opt.label}
                           </option>
                         ))}
                       </Input>
-                      {validation.touched.program && validation.errors.program && (
-                        <div className="text-danger">
-                          {Array.isArray(validation.errors.program)
-                            ? validation.errors.program.join(", ")
-                            : validation.errors.program}
-                        </div>
-                      )}
+                      {validation.touched.program &&
+                        validation.errors.program && (
+                          <div className="text-danger">
+                            {Array.isArray(validation.errors.program)
+                              ? validation.errors.program.join(", ")
+                              : validation.errors.program}
+                          </div>
+                        )}
                     </div>
                   </Col>
                   <Col lg={4}>
@@ -583,22 +649,32 @@ const DistinguishedAlumni: React.FC = () => {
                         type="select"
                         name="jobRole"
                         value={validation.values.jobRole?.value || ""}
-                        onChange={e => {
+                        onChange={(e) => {
                           const val = e.target.value;
                           const selected = val
                             ? { value: val, label: val }
                             : null;
                           validation.setFieldValue("jobRole", selected);
                         }}
-                        className={validation.touched.jobRole && validation.errors.jobRole ? "is-invalid" : ""}
+                        className={
+                          validation.touched.jobRole &&
+                          validation.errors.jobRole
+                            ? "is-invalid"
+                            : ""
+                        }
                       >
                         <option value="">Select Job Role</option>
-                        <option value="Higher Education">Higher Education</option>
+                        <option value="Higher Education">
+                          Higher Education
+                        </option>
                         <option value="Company">Company</option>
                       </Input>
-                      {validation.touched.jobRole && validation.errors.jobRole && (
-                        <div className="text-danger">{validation.errors.jobRole}</div>
-                      )}
+                      {validation.touched.jobRole &&
+                        validation.errors.jobRole && (
+                          <div className="text-danger">
+                            {validation.errors.jobRole}
+                          </div>
+                        )}
                     </div>
                   </Col>
                 </Row>
@@ -642,81 +718,24 @@ const DistinguishedAlumni: React.FC = () => {
             </div>
 
             {/* Table with Pagination */}
-            <Table className="table-hover custom-table">
-              <thead>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>
-                    Academic Year
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.academicYear}
-                      onChange={(e) => handleFilterChange(e, "academicYear")}
-                    />
-                  </th>
-                  <th>
-                    Name
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.name}
-                      onChange={(e) => handleFilterChange(e, "name")}
-                    />
-                  </th>
-                  <th>Register Number
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.registerNumber}
-                      onChange={(e) => handleFilterChange(e, "registerNumber")}
-                    />
-                  </th>
-                  <th>
-                    Batch
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.batch}
-                      onChange={(e) => handleFilterChange(e, "batch")}
-                    />
-                  </th>
-                  <th>
-                    Stream
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.stream}
-                      onChange={(e) => handleFilterChange(e, "stream")}
-                    />
-                  </th>
-                  <th>
-                    Department
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.department}
-                      onChange={(e) => handleFilterChange(e, "department")}
-                    />
-                  </th>
-                  <th>
-                    Program
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.program}
-                      onChange={(e) => handleFilterChange(e, "program")}
-                    />
-                  </th>
-                  <th>
-                    Job Role
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.jobRole}
-                      onChange={(e) => handleFilterChange(e, "jobRole")}
-                    />
-                  </th>
+                  <th>Academic Year</th>
+                  <th>Name</th>
+                  <th>Register Number</th>
+                  <th>Batch</th>
+                  <th>Stream</th>
+                  <th>Department</th>
+                  <th>Program</th>
+                  <th>Job Role</th>
                   <th>Actions</th>
                 </tr>
               </thead>

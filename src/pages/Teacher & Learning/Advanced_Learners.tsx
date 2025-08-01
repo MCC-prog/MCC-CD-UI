@@ -1,6 +1,6 @@
 import Breadcrumb from "Components/Common/Breadcrumb";
 import { useFormik } from "formik";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import Select from "react-select";
 import * as Yup from "yup";
 import {
@@ -74,7 +74,7 @@ const getTabValidationSchema = (tab: number | null) => {
     researchAmount: Yup.number(),
     file: Yup.mixed().nullable(),
     SynopsisFile: Yup.mixed().nullable(),
-    peerCourseTitile: Yup.object().nullable(),
+    peerCourseTitile: Yup.string(),
     peerMentorShip: Yup.object().nullable(),
     peerRegisterNumber: Yup.string(),
     peerTeacherCoOrdinator: Yup.string(),
@@ -140,9 +140,7 @@ const getTabValidationSchema = (tab: number | null) => {
       return Yup.object({
         ...mainFormSchema,
         ...allTabFields,
-        peerCourseTitile: Yup.object()
-          .nullable()
-          .required("Please select course title"),
+        peerCourseTitile: Yup.string().required("Please enter course title"),
         peerMentorShip: Yup.object()
           .nullable()
           .required("Please select mentorship"),
@@ -220,7 +218,7 @@ const Advanced_Learners: React.FC = () => {
 
           break;
         case 2:
-          validation.setFieldValue("peerCourseTitile", null);
+          validation.setFieldValue("peerCourseTitile", "");
           validation.setFieldValue("peerMentorShip", null);
           validation.setFieldValue("peerRegisterNumber", "");
           validation.setFieldValue("peerTeacherCoOrdinator", "");
@@ -244,6 +242,9 @@ const Advanced_Learners: React.FC = () => {
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
   const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
 
+  const fileProjRef = useRef<HTMLInputElement | null>(null);
+  const fileSynRef = useRef<HTMLInputElement | null>(null);
+  const filePeerRef = useRef<HTMLInputElement | null>(null);
   // Handle page change
   const handlePageChange = (pageNumber: number) => {
     setCurrentPage(pageNumber);
@@ -388,22 +389,7 @@ const Advanced_Learners: React.FC = () => {
           : "",
         file: response.documents?.projectSanctionLetter || null,
         SynopsisFile: response.documents?.synopsisReport || null,
-        peerCourseTitile: response.peerTeachingDto
-          ? {
-              value: response.peerTeachingDto.courseTitle,
-              label: response.peerTeachingDto.courseTitle,
-            }
-          : null,
-        peerMentorShip: response.peerTeachingDto
-          ? {
-              value: response.peerTeachingDto.mentorship,
-              label: response.peerTeachingDto.mentorship
-                ? response.peerTeachingDto.mentorship === "true"
-                  ? "Yes"
-                  : "No"
-                : "",
-            }
-          : null,
+        peerCourseTitile: response.peerTeachingDto?.courseTitle || "",
         peerRegisterNumber: response.peerTeachingDto?.registerNo || "",
         peerTeacherCoOrdinator:
           response.peerTeachingDto?.teacherCordinator || "",
@@ -413,6 +399,13 @@ const Advanced_Learners: React.FC = () => {
       const departmentOption = mapValueToLabel(response.departmentId, []); // Replace [] with department options array if available
       const programTypeOption = mapValueToLabel(response.programTypeId, []); // Replace [] with program type options array if available
       const degreeOption = mapValueToLabel(response.programId, []);
+      // Convert boolean to string
+      const mentorshipValue = String(response.mentorship); // "true" or "false"
+
+      // Find matching option
+      const selectedOption = mentorShipOpt.find(
+        (opt) => opt.value === mentorshipValue
+      );
 
       // Update Formik values
       formik.setValues({
@@ -454,22 +447,7 @@ const Advanced_Learners: React.FC = () => {
           : "",
         file: response.documents.projectSanctionLetter || null, // Reset file field
         SynopsisFile: response.documents.synopsisReport || null, // Reset SynopsisFile field
-        peerCourseTitile: response.peerTeachingDto
-          ? {
-              value: response.peerTeachingDto.courseTitle,
-              label: response.peerTeachingDto.courseTitle,
-            }
-          : null,
-        peerMentorShip: response.peerTeachingDto
-          ? {
-              value: response.peerTeachingDto.mentorship,
-              label: response.peerTeachingDto.mentorship
-                ? response.peerTeachingDto.mentorship === "true"
-                  ? "Yes"
-                  : "No"
-                : "",
-            }
-          : null,
+        peerCourseTitile: response.peerTeachingDto?.courseTitle || "",
         peerRegisterNumber: response.peerTeachingDto?.registerNo || "",
         peerTeacherCoOrdinator:
           response.peerTeachingDto?.teacherCordinator || "",
@@ -546,26 +524,9 @@ const Advanced_Learners: React.FC = () => {
         setActiveTab(2);
         formik.setFieldValue(
           "peerCourseTitile",
-          response.peerTeachingDto.courseTitle
-            ? {
-                value: response.peerTeachingDto.courseTitle,
-                label: response.peerTeachingDto.courseTitle,
-              }
-            : null
+          response.peerTeachingDto.courseTitle || ""
         );
-        formik.setFieldValue(
-          "peerMentorShip",
-          response.peerTeachingDto.mentorship
-            ? {
-                value: response.peerTeachingDto.mentorship,
-                label: response.peerTeachingDto.mentorship
-                  ? response.peerTeachingDto.mentorship === "true"
-                    ? "Yes"
-                    : "No"
-                  : "",
-              }
-            : null
-        );
+        formik.setFieldValue("peerMentorShip", selectedOption);
         formik.setFieldValue(
           "peerRegisterNumber",
           response.peerTeachingDto.registerNo || ""
@@ -656,10 +617,6 @@ const Advanced_Learners: React.FC = () => {
     { value: "Non-Funded", label: "Non-Funded" },
   ];
 
-  const courseTitile = [
-    { value: "G", label: "B.COM.General" },
-    { value: "P", label: "B.COM.Professional" },
-  ];
   const mentorShipOpt = [
     { value: "true", label: "Yes" },
     { value: "false", label: "No" },
@@ -777,7 +734,7 @@ const Advanced_Learners: React.FC = () => {
     researchProjectType: OptionType;
     SynopsisFile: File | null;
     file: File | null;
-    peerCourseTitile: OptionType;
+    peerCourseTitile: string;
     peerMentorShip: OptionType;
     peerRegisterNumber: string;
     peerTeacherCoOrdinator: string;
@@ -802,7 +759,7 @@ const Advanced_Learners: React.FC = () => {
       researchProjectType: null,
       SynopsisFile: null,
       file: null,
-      peerCourseTitile: null,
+      peerCourseTitile: "",
       peerMentorShip: null,
       peerRegisterNumber: "",
       peerTeacherCoOrdinator: "",
@@ -815,7 +772,7 @@ const Advanced_Learners: React.FC = () => {
       // Block submit if no Focus Area tab is active
       if (!activeTab) {
         formik.setStatus(
-          "Please select a Focus Area and fill at least one focus area type."
+          "Please select a Advance Learner Type and fill at least one Advance Learner type."
         );
         setSubmitting(false);
         return;
@@ -865,8 +822,8 @@ const Advanced_Learners: React.FC = () => {
           activeTab === 2
             ? {
                 peerTeachingId: peerTeachingId,
-                courseTitle: values.peerCourseTitile,
-                mentorship: values.peerMentorShip,
+                courseTitle: values.peerCourseTitile || "",
+                mentorship: values.peerMentorShip?.value || "",
                 registerNo: values.peerRegisterNumber,
                 teacherCordinator: values.peerTeacherCoOrdinator,
               }
@@ -953,6 +910,15 @@ const Advanced_Learners: React.FC = () => {
               });
         toast.success(response.message || "Successfully submitted!");
         resetForm();
+        if (fileProjRef.current) {
+          fileProjRef.current.value = "";
+        }
+        if (fileSynRef.current) {
+          fileSynRef.current.value = "";
+        }
+        if (filePeerRef.current) {
+          filePeerRef.current.value = "";
+        }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
       } catch (error) {
@@ -1370,6 +1336,7 @@ const Advanced_Learners: React.FC = () => {
                                   }`}
                                   type="file"
                                   id="syllabus"
+                                  innerRef={fileProjRef}
                                   onChange={(event) => {
                                     formik.setFieldValue(
                                       "file",
@@ -1451,6 +1418,7 @@ const Advanced_Learners: React.FC = () => {
                                       : ""
                                   }`}
                                   type="file"
+                                  innerRef={fileSynRef}
                                   id="syllabus"
                                   onChange={(event) => {
                                     formik.setFieldValue(
@@ -1527,11 +1495,11 @@ const Advanced_Learners: React.FC = () => {
                                 </Label>
                                 <div>
                                   <a
-                                    href="/templateFiles/bos.pdf"
+                                    href={`${process.env.PUBLIC_URL}/templateFiles/Format for Research Report.docx`}
                                     download
                                     className="btn btn-primary btn-sm"
                                   >
-                                    Download Template
+                                    Template
                                   </a>
                                 </div>
                               </div>
@@ -1541,11 +1509,11 @@ const Advanced_Learners: React.FC = () => {
                                 <Label>Synopsis Letter (Download)</Label>
                                 <div>
                                   <a
-                                    href="/templateFiles/bos.pdf"
+                                    href={`${process.env.PUBLIC_URL}/templateFiles/Project Sanction Letter - Template (Autosaved).docx`}
                                     download
                                     className="btn btn-primary btn-sm"
                                   >
-                                    Download Template
+                                    Template
                                   </a>
                                 </div>
                               </div>
@@ -1559,22 +1527,20 @@ const Advanced_Learners: React.FC = () => {
                             <Col lg={4}>
                               <div className="mb-3">
                                 <Label>Course</Label>
-                                <Select
-                                  options={courseTitile}
+                                <Input
+                                  type="text"
                                   value={formik.values.peerCourseTitile}
-                                  onChange={(selectedOption) =>
+                                  onChange={(e) =>
                                     formik.setFieldValue(
                                       "peerCourseTitile",
-                                      selectedOption
+                                      e.target.value
                                     )
                                   }
-                                  placeholder="Select Program Type"
-                                  styles={dropdownStyles}
-                                  menuPortalTarget={document.body}
+                                  placeholder="Enter Course Title"
                                   className={
                                     formik.touched.peerCourseTitile &&
                                     formik.errors.peerCourseTitile
-                                      ? "select-error"
+                                      ? "is-invalid"
                                       : ""
                                   }
                                 />
@@ -1681,6 +1647,7 @@ const Advanced_Learners: React.FC = () => {
                                   }`}
                                   type="file"
                                   id="peerFile"
+                                  innerRef={filePeerRef}
                                   onChange={(event) => {
                                     formik.setFieldValue(
                                       "peerFile",
@@ -1753,11 +1720,11 @@ const Advanced_Learners: React.FC = () => {
                                 <Label>Peer Teaching (Download)</Label>
                                 <div>
                                   <a
-                                    href="/templateFiles/bos.pdf"
+                                    href={`${process.env.PUBLIC_URL}/templateFiles/Format for Peer to Peer Teaching.docx`}
                                     download
                                     className="btn btn-primary btn-sm"
                                   >
-                                    Download Template
+                                    Template
                                   </a>
                                 </div>
                               </div>

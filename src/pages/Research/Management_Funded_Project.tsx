@@ -925,8 +925,8 @@ const Management_Funded_Project: React.FC = () => {
                                                     }`}
                                             >
                                                 <option value="">Select Type of Funding</option>
-                                                <option value="Internal">Internal</option>
-                                                <option value="External">External</option>
+                                                <option value="MGMT">MGMT</option>
+                                                <option value="External Funding Agent">External Funding Agent</option>
                                             </Input>
                                             {validation.touched.typeOfFunding && validation.errors.typeOfFunding && (
                                                 <div className="text-danger">{validation.errors.typeOfFunding}</div>

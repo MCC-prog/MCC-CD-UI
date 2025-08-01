@@ -690,13 +690,13 @@ const CapacityDevelopment_Skills: React.FC = () => {
                   <Col lg={4}>
                     <div className="mb-3">
                       <Label>Download Capacity Development Dept Year</Label>
-                      <div>
+                          <div>
                         <a
-                          href="/templateFiles/bos.pdf"
+                          href={`${process.env.PUBLIC_URL}/templateFiles/Capacity Devl_Dept_Year.docx`}
                           download
                           className="btn btn-primary btn-sm"
                         >
-                          Download Template
+                          Template
                         </a>
                       </div>
                     </div>

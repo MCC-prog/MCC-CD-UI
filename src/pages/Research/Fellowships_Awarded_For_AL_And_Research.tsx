@@ -1213,8 +1213,10 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
                         }`}
                       >
                         <option value="">Select Type of Funding</option>
-                        <option value="Internal">Internal</option>
-                        <option value="External">External</option>
+                        <option value="MGMT">MGMT</option>
+                        <option value="External Funding Agent">
+                          External Funding Agent
+                        </option>
                       </Input>
                       {validation.touched.typeOfFunding &&
                         validation.errors.typeOfFunding && (
@@ -1271,7 +1273,7 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
                 <Col lg={4}>
                   <div className="mb-3">
                     <Label htmlFor="formFile" className="form-label">
-                      Fellowship
+                      Sanction Letter
                     </Label>
                     <Input
                       className={`form-control ${
