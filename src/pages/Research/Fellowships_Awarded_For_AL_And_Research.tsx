@@ -175,31 +175,31 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
     principalInvestigator:
       isMultidisciplinary === "Yes" && activeTab === "1"
         ? Yup.object({
-            name: Yup.string().required("Please enter name"),
-            qualification: Yup.string().required("Please enter qualification"),
-            designation: Yup.string().required("Please enter designation"),
-            department: Yup.object<{ value: string; label: string }>()
-              .nullable()
-              .required("Please select department"),
-            //date: Yup.date().required("Please select a date"),
-            abstractFile: Yup.mixed().required(
-              "Please upload the abstract file"
-            ),
-            sanctionOrderFile: Yup.mixed().required(
-              "Please upload the sanction order file"
-            ),
-          })
+          name: Yup.string().required("Please enter name"),
+          qualification: Yup.string().required("Please enter qualification"),
+          designation: Yup.string().required("Please enter designation"),
+          department: Yup.object<{ value: string; label: string }>()
+            .nullable()
+            .required("Please select department"),
+          //date: Yup.date().required("Please select a date"),
+          abstractFile: Yup.mixed().required(
+            "Please upload the abstract file"
+          ),
+          sanctionOrderFile: Yup.mixed().required(
+            "Please upload the sanction order file"
+          ),
+        })
         : Yup.object(),
     coInvestigator:
       isMultidisciplinary === "Yes" && activeTab === "2"
         ? Yup.object({
-            name: Yup.string().required("Please enter name"),
-            qualification: Yup.string().required("Please enter qualification"),
-            designation: Yup.string().required("Please enter designation"),
-            department: Yup.object<{ value: string; label: string }>()
-              .nullable()
-              .required("Please select department"),
-          })
+          name: Yup.string().required("Please enter name"),
+          qualification: Yup.string().required("Please enter qualification"),
+          designation: Yup.string().required("Please enter designation"),
+          department: Yup.object<{ value: string; label: string }>()
+            .nullable()
+            .required("Please select department"),
+        })
         : Yup.object(),
   });
 
@@ -252,8 +252,8 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
           activeTab === "1"
             ? "PrincipleInvestigatorDetails"
             : "CoInvestigatorDetails",
-        managementFundProjectAddTabDto: {
-          additionalTabId: 0, // Set this as needed, or from edit data if available
+        fellowshipAwardedAddTabDto: {
+          additionalTabId: editId || null,
           name:
             activeTab === "1"
               ? values.principalInvestigator.name || ""
@@ -286,18 +286,20 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
       // Append the file with the key `file`
       if (isMultidisciplinary === "Yes") {
         if (activeTab === "1") {
-          formData.append(
-            "abstractProject",
-            values.principalInvestigator.abstractFile as Blob
-          );
-          formData.append(
-            "sanctionOrder",
-            values.principalInvestigator.sanctionOrderFile as Blob
-          );
+          if (values.principalInvestigator.abstractFile instanceof File) {
+            formData.append("abstractProject", values.principalInvestigator.abstractFile);
+          }
+          if (values.principalInvestigator.sanctionOrderFile instanceof File) {
+            formData.append(
+              "sanctionOrder",
+              values.principalInvestigator.sanctionOrderFile
+            );
+          }
         }
       }
+
       // append global fellowship file
-      if (values.fellowship) {
+      if (values.fellowship instanceof File) {
         formData.append("fellowship", values.fellowship as Blob);
       }
 
@@ -305,15 +307,15 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
         const response =
           isEditMode && editId
             ? await api.put(`/fellowshipAwarded/update`, formData, {
-                headers: {
-                  "Content-Type": "multipart/form-data",
-                },
-              })
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            })
             : await api.create(`/fellowshipAwarded/save`, formData, {
-                headers: {
-                  "Content-Type": "multipart/form-data",
-                },
-              });
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            });
 
         toast.success(response.message || "FWL record saved successfully!");
         // Reset the form fields
@@ -376,12 +378,11 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
           departmentOptions.find((opt) => opt.value === e.target.value) || null;
         validation.setFieldValue("principalInvestigator.department", selected);
       }}
-      className={`form-control ${
-        validation.touched.principalInvestigator?.department &&
+      className={`form-control ${validation.touched.principalInvestigator?.department &&
         validation.errors.principalInvestigator?.department
-          ? "is-invalid"
-          : ""
-      }`}
+        ? "is-invalid"
+        : ""
+        }`}
     >
       <option value="">Select Department</option>
       {departmentOptions.map((opt) => (
@@ -402,12 +403,11 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
           departmentOptions.find((opt) => opt.value === e.target.value) || null;
         validation.setFieldValue("coInvestigator.department", selected);
       }}
-      className={`form-control ${
-        validation.touched.coInvestigator?.department &&
+      className={`form-control ${validation.touched.coInvestigator?.department &&
         validation.errors.coInvestigator?.department
-          ? "is-invalid"
-          : ""
-      }`}
+        ? "is-invalid"
+        : ""
+        }`}
     >
       <option value="">Select Department</option>
       {departmentOptions.map((opt) => (
@@ -498,12 +498,11 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
             name="principalInvestigator.name"
             value={validation.values.principalInvestigator.name}
             onChange={validation.handleChange}
-            className={`form-control ${
-              validation.touched.principalInvestigator?.name &&
+            className={`form-control ${validation.touched.principalInvestigator?.name &&
               validation.errors.principalInvestigator?.name
-                ? "is-invalid"
-                : ""
-            }`}
+              ? "is-invalid"
+              : ""
+              }`}
             placeholder="Enter Name"
           />
           {validation.touched.principalInvestigator?.name &&
@@ -522,12 +521,11 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
             name="principalInvestigator.qualification"
             value={validation.values.principalInvestigator.qualification}
             onChange={validation.handleChange}
-            className={`form-control ${
-              validation.touched.principalInvestigator?.qualification &&
+            className={`form-control ${validation.touched.principalInvestigator?.qualification &&
               validation.errors.principalInvestigator?.qualification
-                ? "is-invalid"
-                : ""
-            }`}
+              ? "is-invalid"
+              : ""
+              }`}
             placeholder="Enter Qualification"
           />
           {validation.touched.principalInvestigator?.qualification &&
@@ -546,12 +544,11 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
             name="principalInvestigator.designation"
             value={validation.values.principalInvestigator.designation}
             onChange={validation.handleChange}
-            className={`form-control ${
-              validation.touched.principalInvestigator?.designation &&
+            className={`form-control ${validation.touched.principalInvestigator?.designation &&
               validation.errors.principalInvestigator?.designation
-                ? "is-invalid"
-                : ""
-            }`}
+              ? "is-invalid"
+              : ""
+              }`}
             placeholder="Enter Designation"
           />
           {validation.touched.principalInvestigator?.designation &&
@@ -610,12 +607,11 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
                 event.currentTarget.files?.[0] || null
               )
             }
-            className={`form-control ${
-              validation.touched.principalInvestigator?.abstractFile &&
+            className={`form-control ${validation.touched.principalInvestigator?.abstractFile &&
               validation.errors.principalInvestigator?.abstractFile
-                ? "is-invalid"
-                : ""
-            }`}
+              ? "is-invalid"
+              : ""
+              }`}
             disabled={isAbstractFileUploadDisabled} // Disable the button if a file exists
           />
           {validation.touched.principalInvestigator?.abstractFile &&
@@ -633,40 +629,40 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
           {/* Only show the file name if it is a string (from the edit API) */}
           {typeof validation.values.principalInvestigator.abstractFile ===
             "string" && (
-            <div className="mt-2 d-flex align-items-center">
-              <span
-                className="me-2"
-                style={{ fontWeight: "bold", color: "green" }}
-              >
-                {validation.values.principalInvestigator.abstractFile}
-              </span>
-              <Button
-                color="link"
-                className="text-primary"
-                onClick={() => {
-                  if (
-                    typeof validation.values.principalInvestigator
-                      .abstractFile === "string"
-                  ) {
-                    handleDownloadFile(
-                      validation.values.principalInvestigator.abstractFile
-                    );
-                  }
-                }}
-                title="Download File"
-              >
-                <i className="bi bi-download"></i>
-              </Button>
-              <Button
-                color="link"
-                className="text-danger"
-                onClick={() => handleDeleteFile("abstractProject")}
-                title="Delete File"
-              >
-                <i className="bi bi-trash"></i>
-              </Button>
-            </div>
-          )}
+              <div className="mt-2 d-flex align-items-center">
+                <span
+                  className="me-2"
+                  style={{ fontWeight: "bold", color: "green" }}
+                >
+                  {validation.values.principalInvestigator.abstractFile}
+                </span>
+                <Button
+                  color="link"
+                  className="text-primary"
+                  onClick={() => {
+                    if (
+                      typeof validation.values.principalInvestigator
+                        .abstractFile === "string"
+                    ) {
+                      handleDownloadFile(
+                        validation.values.principalInvestigator.abstractFile
+                      );
+                    }
+                  }}
+                  title="Download File"
+                >
+                  <i className="bi bi-download"></i>
+                </Button>
+                <Button
+                  color="link"
+                  className="text-danger"
+                  onClick={() => handleDeleteFile("abstractProject")}
+                  title="Delete File"
+                >
+                  <i className="bi bi-trash"></i>
+                </Button>
+              </div>
+            )}
         </div>
       </Col>
       <Col lg={4}>
@@ -681,12 +677,11 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
                 event.currentTarget.files?.[0] || null
               )
             }
-            className={`form-control ${
-              validation.touched.principalInvestigator?.sanctionOrderFile &&
+            className={`form-control ${validation.touched.principalInvestigator?.sanctionOrderFile &&
               validation.errors.principalInvestigator?.sanctionOrderFile
-                ? "is-invalid"
-                : ""
-            }`}
+              ? "is-invalid"
+              : ""
+              }`}
             disabled={isSanctionFileUploadDisabled} // Disable the button if a file exists
           />
           {validation.touched.principalInvestigator?.sanctionOrderFile &&
@@ -704,40 +699,40 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
           {/* Only show the file name if it is a string (from the edit API) */}
           {typeof validation.values.principalInvestigator?.sanctionOrderFile ===
             "string" && (
-            <div className="mt-2 d-flex align-items-center">
-              <span
-                className="me-2"
-                style={{ fontWeight: "bold", color: "green" }}
-              >
-                {validation.values.principalInvestigator?.sanctionOrderFile}
-              </span>
-              <Button
-                color="link"
-                className="text-primary"
-                onClick={() => {
-                  if (
-                    typeof validation.values.principalInvestigator
-                      ?.sanctionOrderFile === "string"
-                  ) {
-                    handleDownloadFile(
-                      validation.values.principalInvestigator?.sanctionOrderFile
-                    );
-                  }
-                }}
-                title="Download File"
-              >
-                <i className="bi bi-download"></i>
-              </Button>
-              <Button
-                color="link"
-                className="text-danger"
-                onClick={() => handleDeleteFile("sanctionOrder")}
-                title="Delete File"
-              >
-                <i className="bi bi-trash"></i>
-              </Button>
-            </div>
-          )}
+              <div className="mt-2 d-flex align-items-center">
+                <span
+                  className="me-2"
+                  style={{ fontWeight: "bold", color: "green" }}
+                >
+                  {validation.values.principalInvestigator?.sanctionOrderFile}
+                </span>
+                <Button
+                  color="link"
+                  className="text-primary"
+                  onClick={() => {
+                    if (
+                      typeof validation.values.principalInvestigator
+                        ?.sanctionOrderFile === "string"
+                    ) {
+                      handleDownloadFile(
+                        validation.values.principalInvestigator?.sanctionOrderFile
+                      );
+                    }
+                  }}
+                  title="Download File"
+                >
+                  <i className="bi bi-download"></i>
+                </Button>
+                <Button
+                  color="link"
+                  className="text-danger"
+                  onClick={() => handleDeleteFile("sanctionOrder")}
+                  title="Delete File"
+                >
+                  <i className="bi bi-trash"></i>
+                </Button>
+              </div>
+            )}
         </div>
       </Col>
     </Row>
@@ -753,12 +748,11 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
             name="coInvestigator.name"
             value={validation.values.coInvestigator.name}
             onChange={validation.handleChange}
-            className={`form-control ${
-              validation.touched.coInvestigator?.name &&
+            className={`form-control ${validation.touched.coInvestigator?.name &&
               validation.errors.coInvestigator?.name
-                ? "is-invalid"
-                : ""
-            }`}
+              ? "is-invalid"
+              : ""
+              }`}
             placeholder="Enter Name"
           />
           {validation.touched.coInvestigator?.name &&
@@ -777,12 +771,11 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
             name="coInvestigator.qualification"
             value={validation.values.coInvestigator.qualification}
             onChange={validation.handleChange}
-            className={`form-control ${
-              validation.touched.coInvestigator?.qualification &&
+            className={`form-control ${validation.touched.coInvestigator?.qualification &&
               validation.errors.coInvestigator?.qualification
-                ? "is-invalid"
-                : ""
-            }`}
+              ? "is-invalid"
+              : ""
+              }`}
             placeholder="Enter Qualification"
           />
           {validation.touched.coInvestigator?.qualification &&
@@ -801,12 +794,11 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
             name="coInvestigator.designation"
             value={validation.values.coInvestigator.designation}
             onChange={validation.handleChange}
-            className={`form-control ${
-              validation.touched.coInvestigator?.designation &&
+            className={`form-control ${validation.touched.coInvestigator?.designation &&
               validation.errors.coInvestigator?.designation
-                ? "is-invalid"
-                : ""
-            }`}
+              ? "is-invalid"
+              : ""
+              }`}
             placeholder="Enter Designation"
           />
           {validation.touched.coInvestigator?.designation &&
@@ -861,9 +853,9 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
           : null,
         department: response.departmentId
           ? {
-              value: response.departmentId.toString(),
-              label: response.departmentName,
-            }
+            value: response.departmentId.toString(),
+            label: response.departmentName,
+          }
           : null,
         facultyName: response.facultyName || "",
         projectTitle: response.projectTitle || "",
@@ -879,10 +871,10 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
           designation: response.principleInvestigatorDto?.designation || "",
           department: response.principleInvestigatorDto?.departmentId
             ? {
-                value:
-                  response.principleInvestigatorDto.departmentId.toString(),
-                label: response.principleInvestigatorDto.departmentName,
-              }
+              value:
+                response.principleInvestigatorDto.departmentId.toString(),
+              label: response.principleInvestigatorDto.departmentName,
+            }
             : null,
           date: response.principleInvestigatorDto?.date || "",
           abstractFile:
@@ -892,22 +884,22 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
         },
         coInvestigator: response.coInvestigatorDto
           ? {
-              name: response.coInvestigatorDto.name || "",
-              qualification: response.coInvestigatorDto.qualification || "",
-              designation: response.coInvestigatorDto.designation || "",
-              department: response.coInvestigatorDto.departmentId
-                ? {
-                    value: response.coInvestigatorDto.departmentId.toString(),
-                    label: response.coInvestigatorDto.departmentName,
-                  }
-                : null,
-            }
+            name: response.coInvestigatorDto.name || "",
+            qualification: response.coInvestigatorDto.qualification || "",
+            designation: response.coInvestigatorDto.designation || "",
+            department: response.coInvestigatorDto.departmentId
+              ? {
+                value: response.coInvestigatorDto.departmentId.toString(),
+                label: response.coInvestigatorDto.departmentName,
+              }
+              : null,
+          }
           : {
-              name: "",
-              qualification: "",
-              designation: "",
-              department: null,
-            },
+            name: "",
+            qualification: "",
+            designation: "",
+            department: null,
+          },
       };
 
       // Set multidisciplinary state and active tab
@@ -1051,12 +1043,11 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
                         <Label>Specify Department</Label>
                         <Input
                           type="text"
-                          className={`form-control ${
-                            validation.touched.otherDepartment &&
+                          className={`form-control ${validation.touched.otherDepartment &&
                             validation.errors.otherDepartment
-                              ? "is-invalid"
-                              : ""
-                          }`}
+                            ? "is-invalid"
+                            : ""
+                            }`}
                           value={validation.values.otherDepartment}
                           onChange={(e) =>
                             validation.setFieldValue(
@@ -1089,12 +1080,11 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
                             e.target.value
                           )
                         }
-                        className={`form-control ${
-                          validation.touched.facultyName &&
+                        className={`form-control ${validation.touched.facultyName &&
                           validation.errors.facultyName
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         placeholder="Enter Faculty Name"
                       />
                       {validation.touched.facultyName &&
@@ -1119,12 +1109,11 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
                             e.target.value
                           )
                         }
-                        className={`form-control ${
-                          validation.touched.projectTitle &&
+                        className={`form-control ${validation.touched.projectTitle &&
                           validation.errors.projectTitle
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         placeholder="Enter Project Title"
                       />
                       {validation.touched.projectTitle &&
@@ -1146,11 +1135,10 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
                         onChange={(e) =>
                           validation.setFieldValue("amount", e.target.value)
                         }
-                        className={`form-control ${
-                          validation.touched.amount && validation.errors.amount
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                        className={`form-control ${validation.touched.amount && validation.errors.amount
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         placeholder="Enter Amount"
                       />
                       {validation.touched.amount &&
@@ -1175,12 +1163,11 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
                             e.target.value
                           )
                         }
-                        className={`form-control ${
-                          validation.touched.monthOfGrant &&
+                        className={`form-control ${validation.touched.monthOfGrant &&
                           validation.errors.monthOfGrant
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         placeholder="Enter Month of Grant"
                       />
                       {validation.touched.monthOfGrant &&
@@ -1205,12 +1192,11 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
                             label: e.target.value,
                           })
                         }
-                        className={`form-control ${
-                          validation.touched.typeOfFunding &&
+                        className={`form-control ${validation.touched.typeOfFunding &&
                           validation.errors.typeOfFunding
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                          ? "is-invalid"
+                          : ""
+                          }`}
                       >
                         <option value="">Select Type of Funding</option>
                         <option value="MGMT">MGMT</option>
@@ -1276,12 +1262,11 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
                       Sanction Letter
                     </Label>
                     <Input
-                      className={`form-control ${
-                        validation.touched.fellowship &&
+                      className={`form-control ${validation.touched.fellowship &&
                         validation.errors.fellowship
-                          ? "is-invalid"
-                          : ""
-                      }`}
+                        ? "is-invalid"
+                        : ""
+                        }`}
                       type="file"
                       id="formFile"
                       onChange={(event) => {

@@ -205,35 +205,16 @@ const Management_Funded_Project: React.FC = () => {
             // File handling logic
             if (isMultidisciplinary === "Yes") {
                 if (activeTab === "1") {
-                    formData.append(
-                        'abstractProject',
-                        values.principalInvestigator.abstractFile && typeof values.principalInvestigator.abstractFile !== "string"
-                            ? values.principalInvestigator.abstractFile as Blob
-                            : new Blob([], { type: "application/pdf" })
-                    );
-                    formData.append(
-                        'sanctionOrder',
-                        values.principalInvestigator.sanctionOrderFile && typeof values.principalInvestigator.sanctionOrderFile !== "string"
-                            ? values.principalInvestigator.sanctionOrderFile as Blob
-                            : new Blob([], { type: "application/pdf" })
-                    );
-                } else {
-                    formData.append('abstractProject', new Blob([], { type: "application/pdf" }));
-                    formData.append('sanctionOrder', new Blob([], { type: "application/pdf" }));
+                    if (values.principalInvestigator.abstractFile instanceof File) {
+                        formData.append("abstractProject", values.principalInvestigator.abstractFile);
+                    }
+                    if (values.principalInvestigator.sanctionOrderFile instanceof File) {
+                        formData.append(
+                            "sanctionOrder",
+                            values.principalInvestigator.sanctionOrderFile
+                        );
+                    }
                 }
-            } else {
-                formData.append(
-                    'abstractProject',
-                    values.principalInvestigator.abstractFile && typeof values.principalInvestigator.abstractFile !== "string"
-                        ? values.principalInvestigator.abstractFile as Blob
-                        : new Blob([], { type: "application/pdf" })
-                );
-                formData.append(
-                    'sanctionOrder',
-                    values.principalInvestigator.sanctionOrderFile && typeof values.principalInvestigator.sanctionOrderFile !== "string"
-                        ? values.principalInvestigator.sanctionOrderFile as Blob
-                        : new Blob([], { type: "application/pdf" })
-                );
             }
 
             try {

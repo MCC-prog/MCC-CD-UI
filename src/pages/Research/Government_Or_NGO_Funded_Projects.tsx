@@ -173,31 +173,31 @@ const GovernmentOrNGOFundedProjects = () => {
     principalInvestigator:
       isMultidisciplinary === "Yes" && activeTab === "1"
         ? Yup.object({
-            name: Yup.string().required("Please enter name"),
-            qualification: Yup.string().required("Please enter qualification"),
-            designation: Yup.string().required("Please enter designation"),
-            department: Yup.object<{ value: string; label: string }>()
-              .nullable()
-              .required("Please select department"),
-            //date: Yup.date().required("Please select a date"),
-            abstractFile: Yup.mixed().required(
-              "Please upload the abstract file"
-            ),
-            sanctionOrderFile: Yup.mixed().required(
-              "Please upload the sanction order file"
-            ),
-          })
+          name: Yup.string().required("Please enter name"),
+          qualification: Yup.string().required("Please enter qualification"),
+          designation: Yup.string().required("Please enter designation"),
+          department: Yup.object<{ value: string; label: string }>()
+            .nullable()
+            .required("Please select department"),
+          //date: Yup.date().required("Please select a date"),
+          abstractFile: Yup.mixed().required(
+            "Please upload the abstract file"
+          ),
+          sanctionOrderFile: Yup.mixed().required(
+            "Please upload the sanction order file"
+          ),
+        })
         : Yup.object(),
     coInvestigator:
       isMultidisciplinary === "Yes" && activeTab === "2"
         ? Yup.object({
-            name: Yup.string().required("Please enter name"),
-            qualification: Yup.string().required("Please enter qualification"),
-            designation: Yup.string().required("Please enter designation"),
-            department: Yup.object<{ value: string; label: string }>()
-              .nullable()
-              .required("Please select department"),
-          })
+          name: Yup.string().required("Please enter name"),
+          qualification: Yup.string().required("Please enter qualification"),
+          designation: Yup.string().required("Please enter designation"),
+          department: Yup.object<{ value: string; label: string }>()
+            .nullable()
+            .required("Please select department"),
+        })
         : Yup.object(),
   });
 
@@ -239,11 +239,11 @@ const GovernmentOrNGOFundedProjects = () => {
         academicYear: values.academicYear?.value || 0,
         streamId: values.stream?.value || 0,
         departmentId: values.department?.value || 0,
-        facultyName: values.facultyName || null,
-        projectTitle: values.projectTitle || null,
-        amount: values.amount || null,
-        monthOfGrant: values.monthOfGrant || null,
-        fundingType: values.typeOfFunding?.value || null,
+        facultyName: values.facultyName || "",
+        projectTitle: values.projectTitle || "",
+        amount: values.amount || "",
+        monthOfGrant: values.monthOfGrant || "",
+        fundingType: values.typeOfFunding?.value || "",
         multidisciplinary: isMultidisciplinary === "Yes",
         multidisciplinaryType:
           activeTab === "1"
@@ -253,24 +253,24 @@ const GovernmentOrNGOFundedProjects = () => {
           additionalTabId: editId || null,
           name:
             activeTab === "1"
-              ? values.principalInvestigator.name || null
-              : values.coInvestigator.name || null,
+              ? values.principalInvestigator.name || ""
+              : values.coInvestigator.name || "",
           qualification:
             activeTab === "1"
-              ? values.principalInvestigator.qualification || null
-              : values.coInvestigator.qualification || null,
+              ? values.principalInvestigator.qualification || ""
+              : values.coInvestigator.qualification || "",
           designation:
             activeTab === "1"
-              ? values.principalInvestigator.designation || null
-              : values.coInvestigator.designation || null,
+              ? values.principalInvestigator.designation || ""
+              : values.coInvestigator.designation || "",
           departmentId:
             activeTab === "1"
               ? values.principalInvestigator.department?.value || 0
               : values.coInvestigator.department?.value || 0,
           departmentName:
             activeTab === "1"
-              ? values.principalInvestigator.department?.label || null
-              : values.coInvestigator.department?.label || null,
+              ? values.principalInvestigator.department?.label || ""
+              : values.coInvestigator.department?.label || "",
         },
       };
 
@@ -285,60 +285,31 @@ const GovernmentOrNGOFundedProjects = () => {
       // File handling logic
       if (isMultidisciplinary === "Yes") {
         if (activeTab === "1") {
-          formData.append(
-            "abstractProject",
-            values.principalInvestigator.abstractFile &&
-              typeof values.principalInvestigator.abstractFile !== "string"
-              ? (values.principalInvestigator.abstractFile as Blob)
-              : new Blob([], { type: "application/pdf" })
-          );
-          formData.append(
-            "sanctionOrder",
-            values.principalInvestigator.sanctionOrderFile &&
-              typeof values.principalInvestigator.sanctionOrderFile !== "string"
-              ? (values.principalInvestigator.sanctionOrderFile as Blob)
-              : new Blob([], { type: "application/pdf" })
-          );
-        } else {
-          formData.append(
-            "abstractProject",
-            new Blob([], { type: "application/pdf" })
-          );
-          formData.append(
-            "sanctionOrder",
-            new Blob([], { type: "application/pdf" })
-          );
+          if (values.principalInvestigator.abstractFile instanceof File) {
+            formData.append("abstractProject", values.principalInvestigator.abstractFile);
+          } 
+          if (values.principalInvestigator.sanctionOrderFile instanceof File) {
+            formData.append(
+              "sanctionOrder",
+              values.principalInvestigator.sanctionOrderFile
+            );
+          }
         }
-      } else {
-        formData.append(
-          "abstractProject",
-          values.principalInvestigator.abstractFile &&
-            typeof values.principalInvestigator.abstractFile !== "string"
-            ? (values.principalInvestigator.abstractFile as Blob)
-            : new Blob([], { type: "application/pdf" })
-        );
-        formData.append(
-          "sanctionOrder",
-          values.principalInvestigator.sanctionOrderFile &&
-            typeof values.principalInvestigator.sanctionOrderFile !== "string"
-            ? (values.principalInvestigator.sanctionOrderFile as Blob)
-            : new Blob([], { type: "application/pdf" })
-        );
       }
 
       try {
         const response =
           isEditMode && editId
             ? await api.put(`/governmentFundProject/update`, formData, {
-                headers: {
-                  "Content-Type": "multipart/form-data",
-                },
-              })
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            })
             : await api.create(`/governmentFundProject/save`, formData, {
-                headers: {
-                  "Content-Type": "multipart/form-data",
-                },
-              });
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            });
 
         toast.success(response.message || "GFP record saved successfully!");
         // Reset the form fields
@@ -401,12 +372,11 @@ const GovernmentOrNGOFundedProjects = () => {
           departmentOptions.find((opt) => opt.value === e.target.value) || null;
         validation.setFieldValue("principalInvestigator.department", selected);
       }}
-      className={`form-control ${
-        validation.touched.principalInvestigator?.department &&
+      className={`form-control ${validation.touched.principalInvestigator?.department &&
         validation.errors.principalInvestigator?.department
-          ? "is-invalid"
-          : ""
-      }`}
+        ? "is-invalid"
+        : ""
+        }`}
     >
       <option value="">Select Department</option>
       {departmentOptions.map((opt) => (
@@ -427,12 +397,11 @@ const GovernmentOrNGOFundedProjects = () => {
           departmentOptions.find((opt) => opt.value === e.target.value) || null;
         validation.setFieldValue("coInvestigator.department", selected);
       }}
-      className={`form-control ${
-        validation.touched.coInvestigator?.department &&
+      className={`form-control ${validation.touched.coInvestigator?.department &&
         validation.errors.coInvestigator?.department
-          ? "is-invalid"
-          : ""
-      }`}
+        ? "is-invalid"
+        : ""
+        }`}
     >
       <option value="">Select Department</option>
       {departmentOptions.map((opt) => (
@@ -517,12 +486,11 @@ const GovernmentOrNGOFundedProjects = () => {
             name="principalInvestigator.name"
             value={validation.values.principalInvestigator.name}
             onChange={validation.handleChange}
-            className={`form-control ${
-              validation.touched.principalInvestigator?.name &&
+            className={`form-control ${validation.touched.principalInvestigator?.name &&
               validation.errors.principalInvestigator?.name
-                ? "is-invalid"
-                : ""
-            }`}
+              ? "is-invalid"
+              : ""
+              }`}
             placeholder="Enter Name"
           />
           {validation.touched.principalInvestigator?.name &&
@@ -541,12 +509,11 @@ const GovernmentOrNGOFundedProjects = () => {
             name="principalInvestigator.qualification"
             value={validation.values.principalInvestigator.qualification}
             onChange={validation.handleChange}
-            className={`form-control ${
-              validation.touched.principalInvestigator?.qualification &&
+            className={`form-control ${validation.touched.principalInvestigator?.qualification &&
               validation.errors.principalInvestigator?.qualification
-                ? "is-invalid"
-                : ""
-            }`}
+              ? "is-invalid"
+              : ""
+              }`}
             placeholder="Enter Qualification"
           />
           {validation.touched.principalInvestigator?.qualification &&
@@ -565,12 +532,11 @@ const GovernmentOrNGOFundedProjects = () => {
             name="principalInvestigator.designation"
             value={validation.values.principalInvestigator.designation}
             onChange={validation.handleChange}
-            className={`form-control ${
-              validation.touched.principalInvestigator?.designation &&
+            className={`form-control ${validation.touched.principalInvestigator?.designation &&
               validation.errors.principalInvestigator?.designation
-                ? "is-invalid"
-                : ""
-            }`}
+              ? "is-invalid"
+              : ""
+              }`}
             placeholder="Enter Designation"
           />
           {validation.touched.principalInvestigator?.designation &&
@@ -629,12 +595,11 @@ const GovernmentOrNGOFundedProjects = () => {
                 event.currentTarget.files?.[0] || null
               )
             }
-            className={`form-control ${
-              validation.touched.principalInvestigator?.abstractFile &&
+            className={`form-control ${validation.touched.principalInvestigator?.abstractFile &&
               validation.errors.principalInvestigator?.abstractFile
-                ? "is-invalid"
-                : ""
-            }`}
+              ? "is-invalid"
+              : ""
+              }`}
             disabled={isAbstractFileUploadDisabled} // Disable the button if a file exists
           />
           {validation.touched.principalInvestigator?.abstractFile &&
@@ -652,43 +617,43 @@ const GovernmentOrNGOFundedProjects = () => {
           {/* Only show the file name if it is a string (from the edit API) */}
           {typeof validation.values.principalInvestigator.abstractFile ===
             "string" && (
-            <div className="mt-2 d-flex align-items-center">
-              <span
-                className="me-2"
-                style={{ fontWeight: "bold", color: "green" }}
-              >
-                {validation.values.principalInvestigator.abstractFile}
-              </span>
-              <Button
-                color="link"
-                className="text-primary"
-                onClick={() => {
-                  if (
-                    typeof validation.values.principalInvestigator
-                      .abstractFile === "string"
-                  ) {
-                    handleDownloadFile(
-                      validation.values.principalInvestigator.abstractFile
-                    );
-                  }
-                }}
-                title="Download File"
-              >
-                <i className="bi bi-download"></i>
-              </Button>
-              <Button
-                color="link"
-                className="text-danger"
-                onClick={() => {
-                  setDocumentType("abstractProject");
-                  handleDeleteFile("abstractProject");
-                }}
-                title="Delete File"
-              >
-                <i className="bi bi-trash"></i>
-              </Button>
-            </div>
-          )}
+              <div className="mt-2 d-flex align-items-center">
+                <span
+                  className="me-2"
+                  style={{ fontWeight: "bold", color: "green" }}
+                >
+                  {validation.values.principalInvestigator.abstractFile}
+                </span>
+                <Button
+                  color="link"
+                  className="text-primary"
+                  onClick={() => {
+                    if (
+                      typeof validation.values.principalInvestigator
+                        .abstractFile === "string"
+                    ) {
+                      handleDownloadFile(
+                        validation.values.principalInvestigator.abstractFile
+                      );
+                    }
+                  }}
+                  title="Download File"
+                >
+                  <i className="bi bi-download"></i>
+                </Button>
+                <Button
+                  color="link"
+                  className="text-danger"
+                  onClick={() => {
+                    setDocumentType("abstractProject");
+                    handleDeleteFile("abstractProject");
+                  }}
+                  title="Delete File"
+                >
+                  <i className="bi bi-trash"></i>
+                </Button>
+              </div>
+            )}
         </div>
       </Col>
       <Col lg={4}>
@@ -703,12 +668,11 @@ const GovernmentOrNGOFundedProjects = () => {
                 event.currentTarget.files?.[0] || null
               )
             }
-            className={`form-control ${
-              validation.touched.principalInvestigator?.sanctionOrderFile &&
+            className={`form-control ${validation.touched.principalInvestigator?.sanctionOrderFile &&
               validation.errors.principalInvestigator?.sanctionOrderFile
-                ? "is-invalid"
-                : ""
-            }`}
+              ? "is-invalid"
+              : ""
+              }`}
             disabled={isSanctionFileUploadDisabled} // Disable the button if a file exists
           />
           {validation.touched.principalInvestigator?.sanctionOrderFile &&
@@ -726,43 +690,43 @@ const GovernmentOrNGOFundedProjects = () => {
           {/* Only show the file name if it is a string (from the edit API) */}
           {typeof validation.values.principalInvestigator?.sanctionOrderFile ===
             "string" && (
-            <div className="mt-2 d-flex align-items-center">
-              <span
-                className="me-2"
-                style={{ fontWeight: "bold", color: "green" }}
-              >
-                {validation.values.principalInvestigator?.sanctionOrderFile}
-              </span>
-              <Button
-                color="link"
-                className="text-primary"
-                onClick={() => {
-                  if (
-                    typeof validation.values.principalInvestigator
-                      ?.sanctionOrderFile === "string"
-                  ) {
-                    handleDownloadFile(
-                      validation.values.principalInvestigator?.sanctionOrderFile
-                    );
-                  }
-                }}
-                title="Download File"
-              >
-                <i className="bi bi-download"></i>
-              </Button>
-              <Button
-                color="link"
-                className="text-danger"
-                onClick={() => {
-                  setDocumentType("sanctionOrder");
-                  handleDeleteFile("sanctionOrder");
-                }}
-                title="Delete File"
-              >
-                <i className="bi bi-trash"></i>
-              </Button>
-            </div>
-          )}
+              <div className="mt-2 d-flex align-items-center">
+                <span
+                  className="me-2"
+                  style={{ fontWeight: "bold", color: "green" }}
+                >
+                  {validation.values.principalInvestigator?.sanctionOrderFile}
+                </span>
+                <Button
+                  color="link"
+                  className="text-primary"
+                  onClick={() => {
+                    if (
+                      typeof validation.values.principalInvestigator
+                        ?.sanctionOrderFile === "string"
+                    ) {
+                      handleDownloadFile(
+                        validation.values.principalInvestigator?.sanctionOrderFile
+                      );
+                    }
+                  }}
+                  title="Download File"
+                >
+                  <i className="bi bi-download"></i>
+                </Button>
+                <Button
+                  color="link"
+                  className="text-danger"
+                  onClick={() => {
+                    setDocumentType("sanctionOrder");
+                    handleDeleteFile("sanctionOrder");
+                  }}
+                  title="Delete File"
+                >
+                  <i className="bi bi-trash"></i>
+                </Button>
+              </div>
+            )}
         </div>
       </Col>
     </Row>
@@ -778,12 +742,11 @@ const GovernmentOrNGOFundedProjects = () => {
             name="coInvestigator.name"
             value={validation.values.coInvestigator.name}
             onChange={validation.handleChange}
-            className={`form-control ${
-              validation.touched.coInvestigator?.name &&
+            className={`form-control ${validation.touched.coInvestigator?.name &&
               validation.errors.coInvestigator?.name
-                ? "is-invalid"
-                : ""
-            }`}
+              ? "is-invalid"
+              : ""
+              }`}
             placeholder="Enter Name"
           />
           {validation.touched.coInvestigator?.name &&
@@ -802,12 +765,11 @@ const GovernmentOrNGOFundedProjects = () => {
             name="coInvestigator.qualification"
             value={validation.values.coInvestigator.qualification}
             onChange={validation.handleChange}
-            className={`form-control ${
-              validation.touched.coInvestigator?.qualification &&
+            className={`form-control ${validation.touched.coInvestigator?.qualification &&
               validation.errors.coInvestigator?.qualification
-                ? "is-invalid"
-                : ""
-            }`}
+              ? "is-invalid"
+              : ""
+              }`}
             placeholder="Enter Qualification"
           />
           {validation.touched.coInvestigator?.qualification &&
@@ -826,12 +788,11 @@ const GovernmentOrNGOFundedProjects = () => {
             name="coInvestigator.designation"
             value={validation.values.coInvestigator.designation}
             onChange={validation.handleChange}
-            className={`form-control ${
-              validation.touched.coInvestigator?.designation &&
+            className={`form-control ${validation.touched.coInvestigator?.designation &&
               validation.errors.coInvestigator?.designation
-                ? "is-invalid"
-                : ""
-            }`}
+              ? "is-invalid"
+              : ""
+              }`}
             placeholder="Enter Designation"
           />
           {validation.touched.coInvestigator?.designation &&
@@ -886,9 +847,9 @@ const GovernmentOrNGOFundedProjects = () => {
           : null,
         department: response.departmentId
           ? {
-              value: response.departmentId.toString(),
-              label: response.departmentName,
-            }
+            value: response.departmentId.toString(),
+            label: response.departmentName,
+          }
           : null,
         facultyName: response.facultyName || "",
         projectTitle: response.projectTitle || "",
@@ -903,10 +864,10 @@ const GovernmentOrNGOFundedProjects = () => {
           designation: response.principleInvestigatorDto?.designation || "",
           department: response.principleInvestigatorDto?.departmentId
             ? {
-                value:
-                  response.principleInvestigatorDto.departmentId.toString(),
-                label: response.principleInvestigatorDto.departmentName,
-              }
+              value:
+                response.principleInvestigatorDto.departmentId.toString(),
+              label: response.principleInvestigatorDto.departmentName,
+            }
             : null,
           //date: response.principleInvestigatorDto?.date || "",
           abstractFile:
@@ -916,22 +877,22 @@ const GovernmentOrNGOFundedProjects = () => {
         },
         coInvestigator: response.coInvestigatorDto
           ? {
-              name: response.coInvestigatorDto.name || "",
-              qualification: response.coInvestigatorDto.qualification || "",
-              designation: response.coInvestigatorDto.designation || "",
-              department: response.coInvestigatorDto.departmentId
-                ? {
-                    value: response.coInvestigatorDto.departmentId.toString(),
-                    label: response.coInvestigatorDto.departmentName,
-                  }
-                : null,
-            }
+            name: response.coInvestigatorDto.name || "",
+            qualification: response.coInvestigatorDto.qualification || "",
+            designation: response.coInvestigatorDto.designation || "",
+            department: response.coInvestigatorDto.departmentId
+              ? {
+                value: response.coInvestigatorDto.departmentId.toString(),
+                label: response.coInvestigatorDto.departmentName,
+              }
+              : null,
+          }
           : {
-              name: "",
-              qualification: "",
-              designation: "",
-              department: null,
-            },
+            name: "",
+            qualification: "",
+            designation: "",
+            department: null,
+          },
       };
 
       // Set multidisciplinary state and active tab
@@ -1073,12 +1034,11 @@ const GovernmentOrNGOFundedProjects = () => {
                         <Label>Specify Department</Label>
                         <Input
                           type="text"
-                          className={`form-control ${
-                            validation.touched.otherDepartment &&
+                          className={`form-control ${validation.touched.otherDepartment &&
                             validation.errors.otherDepartment
-                              ? "is-invalid"
-                              : ""
-                          }`}
+                            ? "is-invalid"
+                            : ""
+                            }`}
                           value={validation.values.otherDepartment}
                           onChange={(e) =>
                             validation.setFieldValue(
@@ -1111,12 +1071,11 @@ const GovernmentOrNGOFundedProjects = () => {
                             e.target.value
                           )
                         }
-                        className={`form-control ${
-                          validation.touched.facultyName &&
+                        className={`form-control ${validation.touched.facultyName &&
                           validation.errors.facultyName
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         placeholder="Enter Faculty Name"
                       />
                       {validation.touched.facultyName &&
@@ -1141,12 +1100,11 @@ const GovernmentOrNGOFundedProjects = () => {
                             e.target.value
                           )
                         }
-                        className={`form-control ${
-                          validation.touched.projectTitle &&
+                        className={`form-control ${validation.touched.projectTitle &&
                           validation.errors.projectTitle
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         placeholder="Enter Project Title"
                       />
                       {validation.touched.projectTitle &&
@@ -1168,11 +1126,10 @@ const GovernmentOrNGOFundedProjects = () => {
                         onChange={(e) =>
                           validation.setFieldValue("amount", e.target.value)
                         }
-                        className={`form-control ${
-                          validation.touched.amount && validation.errors.amount
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                        className={`form-control ${validation.touched.amount && validation.errors.amount
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         placeholder="Enter Amount"
                       />
                       {validation.touched.amount &&
@@ -1197,12 +1154,11 @@ const GovernmentOrNGOFundedProjects = () => {
                             e.target.value
                           )
                         }
-                        className={`form-control ${
-                          validation.touched.monthOfGrant &&
+                        className={`form-control ${validation.touched.monthOfGrant &&
                           validation.errors.monthOfGrant
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         placeholder="Enter Month of Grant"
                       />
                       {validation.touched.monthOfGrant &&
@@ -1227,12 +1183,11 @@ const GovernmentOrNGOFundedProjects = () => {
                             label: e.target.value,
                           })
                         }
-                        className={`form-control ${
-                          validation.touched.typeOfFunding &&
+                        className={`form-control ${validation.touched.typeOfFunding &&
                           validation.errors.typeOfFunding
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                          ? "is-invalid"
+                          : ""
+                          }`}
                       >
                         <option value="">Select Type of Funding</option>
                         <option value="MGMT">MGMT</option>
