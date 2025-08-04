@@ -236,14 +236,14 @@ const GovernmentOrNGOFundedProjects = () => {
       // Prepare the JSON payload for the `dto` key
       const dtoPayload = {
         governmentFundProjectId: editId || null,
-        academicYear: values.academicYear?.value || 0,
-        streamId: values.stream?.value || 0,
-        departmentId: values.department?.value || 0,
-        facultyName: values.facultyName || "",
-        projectTitle: values.projectTitle || "",
-        amount: values.amount || "",
-        monthOfGrant: values.monthOfGrant || "",
-        fundingType: values.typeOfFunding?.value || "",
+        academicYear: values.academicYear?.value || null,
+        streamId: values.stream?.value || null,
+        departmentId: values.department?.value || null,
+        facultyName: values.facultyName || null,
+        projectTitle: values.projectTitle || null,
+        amount: values.amount || null,
+        monthOfGrant: values.monthOfGrant || null,
+        fundingType: values.typeOfFunding?.value || null,
         multidisciplinary: isMultidisciplinary === "Yes",
         multidisciplinaryType:
           activeTab === "1"
@@ -253,32 +253,30 @@ const GovernmentOrNGOFundedProjects = () => {
           additionalTabId: editId || null,
           name:
             activeTab === "1"
-              ? values.principalInvestigator.name || ""
-              : values.coInvestigator.name || "",
+              ? values.principalInvestigator.name || null
+              : values.coInvestigator.name || null,
           qualification:
             activeTab === "1"
-              ? values.principalInvestigator.qualification || ""
-              : values.coInvestigator.qualification || "",
+              ? values.principalInvestigator.qualification || null
+              : values.coInvestigator.qualification || null,
           designation:
             activeTab === "1"
-              ? values.principalInvestigator.designation || ""
-              : values.coInvestigator.designation || "",
+              ? values.principalInvestigator.designation || null
+              : values.coInvestigator.designation || null,
           departmentId:
             activeTab === "1"
-              ? values.principalInvestigator.department?.value || 0
-              : values.coInvestigator.department?.value || 0,
+              ? values.principalInvestigator.department?.value || null
+              : values.coInvestigator.department?.value || null,
           departmentName:
             activeTab === "1"
-              ? values.principalInvestigator.department?.label || ""
-              : values.coInvestigator.department?.label || "",
+              ? values.principalInvestigator.department?.label || null
+              : values.coInvestigator.department?.label || null,
         },
       };
 
-      console.log("DTO Payload:", dtoPayload);
-
-      // Append the JSON payload as a string with the key `managementFundProjectRequestDto`
+      // Append the JSON payload as a string with the key `governmentFundProjectAddTabDto`
       formData.append(
-        "governmentFundProjectRequestDto",
+        "governmentFundProjectRequestDto ",
         new Blob([JSON.stringify(dtoPayload)], { type: "application/json" })
       );
 
@@ -287,7 +285,7 @@ const GovernmentOrNGOFundedProjects = () => {
         if (activeTab === "1") {
           if (values.principalInvestigator.abstractFile instanceof File) {
             formData.append("abstractProject", values.principalInvestigator.abstractFile);
-          } 
+          }
           if (values.principalInvestigator.sanctionOrderFile instanceof File) {
             formData.append(
               "sanctionOrder",
