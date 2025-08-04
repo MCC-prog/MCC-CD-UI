@@ -16,6 +16,7 @@ import {
   ModalHeader,
   Row,
   Table,
+  Tooltip,
 } from "reactstrap";
 import * as Yup from "yup";
 import { APIClient } from "../../helpers/api_helper";
@@ -50,6 +51,8 @@ const ClassRooms: React.FC = () => {
     noOfSmartClassrooms: "",
   });
   const [filteredData, setFilteredData] = useState(classroomData);
+    const [tooltipOpen, setTooltipOpen] = useState(false);
+    const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
 
   const fileRef = useRef<HTMLInputElement | null>(null);
 
@@ -468,7 +471,20 @@ const ClassRooms: React.FC = () => {
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
                         Upload Pdf
+                         <i
+                          id="infoIcon"
+                          className="bi bi-info-circle ms-2"
+                          style={{ cursor: "pointer", color: "#0d6efd" }}
+                        ></i>
                       </Label>
+                         <Tooltip
+                        placement="right"
+                        isOpen={tooltipOpen}
+                        target="infoIcon"
+                        toggle={toggleTooltip}
+                      >
+                        Upload an PDF file. Max size 10MB.
+                      </Tooltip>
                       <Input
                         className={`form-control ${
                           validation.touched.file && validation.errors.file
@@ -485,7 +501,6 @@ const ClassRooms: React.FC = () => {
                               ? event.currentTarget.files[0]
                               : null
                           );
-                          validation.setFieldTouched("file", true, true);
                         }}
                         disabled={isFileUploadDisabled}
                       />

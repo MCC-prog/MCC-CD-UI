@@ -16,6 +16,7 @@ import {
   ModalHeader,
   Row,
   Table,
+  Tooltip,
 } from "reactstrap";
 import * as Yup from "yup";
 import { APIClient } from "../../helpers/api_helper";
@@ -26,24 +27,16 @@ import axios from "axios";
 const api = new APIClient();
 
 const ComputerLabs_SimulationLab: React.FC = () => {
-  // State variables for managing modal, edit mode, and delete confirmation
   const [isEditMode, setIsEditMode] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
-  // State variable for managing delete confirmation modal
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  // State variable for managing file upload status
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
-  // State variable for managing the modal for listing Classrooms data
   const [isModalOpen, setIsModalOpen] = useState(false);
-  // State variable for managing the list of Classrooms data data
   const [classroomData, setClassroomData] = useState<any[]>([]);
-
-  // State variable for managing search term and pagination
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
-  // State variable for managing filters
   const [filters, setFilters] = useState({
     blockName: "",
     noOfComputerLabs: "",
@@ -51,7 +44,11 @@ const ComputerLabs_SimulationLab: React.FC = () => {
   });
   const [filteredData, setFilteredData] = useState(classroomData);
 
-  const fileRef = useRef<HTMLInputElement | null>(null);
+    const fileRef = useRef<HTMLInputElement | null>(null);
+   const [tooltipOpen, setTooltipOpen] = useState(false);
+      const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
+       
+      const tableRef = useRef<HTMLTableElement>(null);
 
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -151,7 +148,7 @@ const ComputerLabs_SimulationLab: React.FC = () => {
         blockName: response.blockName || "",
         noOfComputerLabs: response.noOfComputerLabs || "",
         noOfComputers: response.noOfComputers || "",
-        file: response.file?.ComputerLabs || null,
+        file: response.document?.computerLabs || null,
       };
 
       // Update Formik values
@@ -159,8 +156,8 @@ const ComputerLabs_SimulationLab: React.FC = () => {
         ...mappedValues,
       });
       // In your handleEdit, after setting Formik values:
-      if (response.file?.computerLabs) {
-        validation.setFieldValue("file", response.file.computerLabs);
+      if (response.document?.computerLabs) {
+        validation.setFieldValue("file", response.document.computerLabs);
         setIsFileUploadDisabled(true);
       } else {
         validation.setFieldValue("file", null);
@@ -169,6 +166,7 @@ const ComputerLabs_SimulationLab: React.FC = () => {
       setIsEditMode(true);
       setEditId(id);
       toggleModal();
+      setIsFileUploadDisabled(!!response.document?.computerLabs);
     } catch (error) {
       console.error("Error fetching Classrooms data data by ID:", error);
     }
@@ -251,11 +249,11 @@ const ComputerLabs_SimulationLab: React.FC = () => {
 
   // Handle file deletion
   // Clear the file from the form and show success message
-  const handleDeleteFile = async (fileName: string) => {
+  const handleDeleteFile = async () => {
     try {
       // Call the delete API
       const response = await api.delete(
-        `/infrastructureComputerLabs/deleteComputerLabsDocument?computerLabsId=${fileName}`,
+        `/infrastructureComputerLabs/deleteComputerLabsDocument?computerLabsId=${editId}`,
         ""
       );
       // Show success message
@@ -287,31 +285,20 @@ const ComputerLabs_SimulationLab: React.FC = () => {
         "Please enter number of computer labs"
       ),
       noOfComputers: Yup.number().required("Please enter number of computers"),
-      file: Yup.mixed().test(
-        "fileValidation",
-        "Please upload a valid file",
-        function (value) {
-          // Skip validation if the file upload is disabled (file exists)
-          if (isFileUploadDisabled) {
-            return true;
-          }
-          // Perform validation if the file upload is enabled (file doesn't exist)
-          if (!value) {
-            return this.createError({ message: "Please upload a file" });
-          }
-          // Check file size (2MB limit)
-          if (value instanceof File && value.size > 2 * 1024 * 1024) {
-            return this.createError({ message: "File size is too large" });
-          }
-          // Check file type
-          const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
-          if (value instanceof File && !allowedTypes.includes(value.type)) {
-            return this.createError({ message: "Unsupported file format" });
-          }
-          return true;
-        }
-      ),
-    }),
+          file: Yup.mixed()
+            .required("Please upload a file")
+            .test("fileSize", "File size is too large", (value: any) => {
+              if (typeof value === "string") return true;
+              return value && value.size <= 2 * 1024 * 1024; // 2MB limit
+            })
+            .test("fileType", "Unsupported file format", (value: any) => {
+              if (typeof value === "string") return true;
+              return (
+                value &&
+                ["application/pdf", "image/jpeg", "image/png"].includes(value.type)
+              );
+            }),
+        }),
     onSubmit: async (values, { resetForm }) => {
       // Create FormData object
       const formData = new FormData();
@@ -320,20 +307,18 @@ const ComputerLabs_SimulationLab: React.FC = () => {
       formData.append("blockName", values.blockName);
       formData.append("noOfComputerLabs", String(values.noOfComputerLabs));
       formData.append("noOfComputers", String(values.noOfComputers));
-      if (isEditMode && typeof values.file === "string") {
-        formData.append(
-          "computerLabs",
-          new Blob([], { type: "application/pdf" }),
-          "empty.pdf"
-        );
+       if (isEditMode && typeof values.file === "string") {
+        // Pass an empty Blob instead of null
+        formData.append("file", new Blob([]), "empty.pdf");
       } else if (isEditMode && values.file === null) {
-        formData.append(
-          "computerLabs",
-          new Blob([], { type: "application/pdf" }),
-          "empty.pdf"
-        );
+        formData.append("file", new Blob([]), "empty.pdf");
       } else if (values.file) {
-        formData.append("computerLabs", values.file);
+        formData.append("file", values.file);
+      }
+
+      // If editing, include ID
+      if (isEditMode && editId) {
+        formData.append("computerLabsId", editId);
       }
 
       try {
@@ -361,8 +346,8 @@ const ComputerLabs_SimulationLab: React.FC = () => {
         }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
-        // display the ComputerLabs data List
-        fetchComputerLabs_SimulationLabData();
+        setIsFileUploadDisabled(false); // Enable the file upload button
+       handleListComputerLabs_SimulationLabClick();
       } catch (error) {
         // Display error message
         toast.error("Failed to save ComputerLabs details. Please try again.");
@@ -488,7 +473,20 @@ const ComputerLabs_SimulationLab: React.FC = () => {
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
                         Upload Pdf
+                        <i
+                          id="infoIcon"
+                          className="bi bi-info-circle ms-2"
+                          style={{ cursor: "pointer", color: "#0d6efd" }}
+                        ></i>
                       </Label>
+                      <Tooltip
+                        placement="right"
+                        isOpen={tooltipOpen}
+                        target="infoIcon"
+                        toggle={toggleTooltip}
+                      >
+                        Upload an PDF file. Max size 10MB.
+                      </Tooltip>
                       <Input
                         className={`form-control ${
                           validation.touched.file && validation.errors.file
@@ -505,7 +503,6 @@ const ComputerLabs_SimulationLab: React.FC = () => {
                               ? event.currentTarget.files[0]
                               : null
                           );
-                          validation.setFieldTouched("file", true, true);
                         }}
                         disabled={isFileUploadDisabled}
                       />
@@ -546,7 +543,7 @@ const ComputerLabs_SimulationLab: React.FC = () => {
                               className="text-danger"
                               onClick={() =>
                                 handleDeleteFile(
-                                  validation.values.file as string
+                               
                                 )
                               }
                               title="Delete File"

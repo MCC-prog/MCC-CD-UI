@@ -91,15 +91,15 @@ const Header = (props: any) => {
               </Link>
             </div>
 
-            <button
+            {/* <button
               type="button"
               onClick={() => tToggle()}
               className="btn btn-sm px-3 font-size-16 header-item "
               id="vertical-menu-btn"
             >
               <i className="fa fa-fw fa-bars" />
-            </button>
-            <form className="app-search d-none d-lg-block">
+            </button> */}
+            {/* <form className="app-search d-none d-lg-block">
               <div className="position-relative">
                 <input
                   type="text"
@@ -108,7 +108,7 @@ const Header = (props: any) => {
                 />
                 <span className="bx bx-search-alt" />
               </div>
-            </form>
+            </form> */}
             <Link to="/dashboard">
               <button
                 type="button"
@@ -138,7 +138,12 @@ const Header = (props: any) => {
                       <ul className="list-unstyled megamenu-list">
                         {section.items.map((item, itemIdx) => (
                           <li key={itemIdx}>
-                            <Link to={item.path}>{item.label}</Link>
+                            <Link
+                              to={item.path}
+                              onClick={() => setmegaMenu(false)}
+                            >
+                              {item.label}
+                            </Link>
                           </li>
                         ))}
                       </ul>

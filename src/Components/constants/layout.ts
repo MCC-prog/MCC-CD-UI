@@ -289,11 +289,11 @@ const megaMenuContents = [
   {
     title: "PLACEMENT",
     items: [
-      "On campus placement data",
-      "Off campus placement data",
-      "Training programs & Workshops",
-      "Internships",
-      "Career Fair",
+      { label: "1. On campus placement data", path: "/placement/onCampus" },
+      { label: "2. Off campus placement data", path: "/placement/offCampus" },
+      { label: "3. Training programs & Workshops", path: "/placement/trainingsAndWorkshops" },
+      { label: "4. Internships", path: "/placement/Internships" },
+    //  { label: "5. Career Fair", path: "/placement/careerFair" },
     ],
   },
   {
@@ -310,37 +310,45 @@ const megaMenuContents = [
   {
     title: "ALUMNI",
     items: [
-      "Association Activities",
-      "Scholarships provided by Alumni Association",
-      "Financial Contribution by Alumni",
-      "Distinguished Alumni of the last five years",
+      { label: "1. Alumni Association", path: "/Alumni/associationActivities" },
+      { label: "2. Scholarships provided by Alumni Association", path: "/Alumni/scholarships" },
+      { label: "3. Financial Contribution by Alumni", path: "/Alumni/financialContribution" },
+      { label: "4. Distinguished Alumni of the last five years", path: "/Alumni/distinguishedAlumni" },
     ],
   },
   {
     title: "INSTITUTIONAL VALUES",
     items: [
-      "Activities hosted to build universal values of peace, truth & harmony",
-      "Gender sensitization & equity programs",
-      "Programs for imbibing Constitutional Values among students",
-      "Commemoration of major National/International Days",
-      "Best Practices",
+      { label: "1. Activities hosted to build universal values of peace, truth & harmony", path: "/institutionalValues/activitiesPeace" },
+      { label: "2. Gender sensitization & equity programs", path: "/institutionalValues/equityPrograms" },
+      { label: "3. Programs for imbibing Constitutional Values among students", path: "/institutionalValues/constitutionValues" },
+      { label: "4. Commemoration of major National/International Days", path: "/institutionalValues/nationalInternationalDays" },
+      { label: "5. Best Practices", path: "/institutionalValues/bestPractices" },
+
     ],
   },
   {
     title: "INFRASTRUCTURE",
     items: [
-      "Classrooms",
-      "Labs",
-      "Computer labs / Simulation lab",
-      "Auditorium",
-      "Board rooms",
-      "Amphitheatre",
-      "Seminar halls - infrastructure",
+      { label: "1. Classrooms", path: "/infrastructure/classrooms" },
+      { label: "2. Labs", path: "/infrastructure/labs" },
+      { label: "3. Computer labs / Simulation lab", path: "/infrastructure/computerLabs" },
+      { label: "4. Auditorium", path: "/infrastructure/auditorium" },
+      { label: "5. Board rooms", path: "/infrastructure/boardRooms" },
+      { label: "6. Amphitheatre", path: "/infrastructure/amphitheatre" },
+      { label: "7. Seminar halls - infrastructure", path: "/infrastructure/seminarHalls" },
+      { label: "8. Software", path: "/infrastructure/software" },
+
     ],
   },
   {
     title: "GOVERNANCE",
-    items: ["Policy document", "AAA", "Green Audit", "Energy Audit"],
+    items: [
+      { label: "1. Policy document", path: "/policyDocument" },
+      { label: "2. AAA", path: "/aaa" },
+      { label: "3. Green Audit", path: "/greenAudit" },
+      { label: "4. Energy Audit", path: "/energyAudit" },
+    ],
   },
 ];
 
