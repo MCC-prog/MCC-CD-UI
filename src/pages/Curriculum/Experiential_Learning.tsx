@@ -1,6 +1,6 @@
 import Breadcrumb from "Components/Common/Breadcrumb";
 import { useFormik } from "formik";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Select from "react-select";
 import * as Yup from "yup";
 import {
@@ -35,6 +35,14 @@ import { toast, ToastContainer } from "react-toastify";
 import { APIClient } from "../../helpers/api_helper";
 import { SEMESTER_NO_OPTIONS } from "Components/constants/layout";
 import axios from "axios";
+import $ from "jquery";
+import "datatables.net-bs5";
+import "datatables.net-buttons-bs5";
+import "datatables.net-buttons/js/buttons.html5.js";
+import "datatables.net-buttons/js/buttons.print.js";
+import "jszip";
+import "pdfmake/build/pdfmake";
+import "pdfmake/build/vfs_fonts";
 
 const api = new APIClient();
 
@@ -88,28 +96,12 @@ const Experiential_Learning: React.FC = () => {
   const communicationLetterRef = useRef<HTMLInputElement>(null);
   const fieldStudentExcelRef = useRef<HTMLInputElement>(null);
 
+  const tableRef = useRef<HTMLTableElement>(null);
+
   // Search/filter logic
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
-    const filtered = experientialLearningData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-
-  const handleFilterChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    column: string
-  ) => {
-    const value = e.target.value.toLowerCase();
-    const updatedFilters = { ...filters, [column]: value };
-    setFilters(updatedFilters);
-
     const filtered = experientialLearningData.filter((row) =>
       Object.values(row).some((val) =>
         String(val || "")
@@ -1107,6 +1099,62 @@ const Experiential_Learning: React.FC = () => {
       }
     },
   });
+
+  useEffect(() => {
+    if (experientialLearningData.length === 0) return;
+
+    const initializeDataTable = () => {
+      const table = $("#id").DataTable({
+        destroy: true,
+        dom: "Bfrtip",
+        buttons: [
+          {
+            extend: "copy",
+          },
+          {
+            extend: "csv",
+          },
+        ],
+        columnDefs: [
+          {
+            targets: [3, 4], // Make sure indexes match actual column positions
+            visible: false,
+          },
+        ],
+        searching: false,
+        paging: false,
+      });
+
+      $(".dt-buttons").addClass("mb-3 gap-2");
+      $(".buttons-copy").addClass("btn btn-success");
+      $(".buttons-csv").addClass("btn btn-info");
+
+      // Prevent duplicate toast triggers
+      $("#id")
+        .off("buttons-action.dt")
+        .on("buttons-action.dt", function (e, buttonApi) {
+          if (buttonApi.text() === "Copy") {
+            toast.success("Copied to clipboard!");
+          }
+        });
+
+      return table;
+    };
+
+    // Delay DataTable init slightly to allow DOM updates
+    const timeout = setTimeout(() => {
+      const table = initializeDataTable();
+    }, 0);
+
+    return () => {
+      clearTimeout(timeout);
+      const existingTable = $.fn.DataTable.isDataTable("#id");
+      if (existingTable) {
+        $("#id").DataTable().destroy();
+      }
+      $("#id").off("buttons-action.dt");
+    };
+  }, [experientialLearningData]);
 
   return (
     <React.Fragment>
@@ -2530,7 +2578,125 @@ const Experiential_Learning: React.FC = () => {
                 onChange={handleSearch}
               />
             </div>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+              id="id"
+              innerRef={tableRef}
+              style={{ display: "none" }}
+            >
+              <thead className="table-dark">
+                <tr>
+                  <th>#</th>
+                  <th>Academic Year</th>
+                  <th>Semester Type</th>
+                  <th>Semester No</th>
+                  <th>Stream</th>
+                  <th>Department</th>
+                  <th>Program Type</th>
+                  <th>Degree</th>
+                  <th>Program Title</th>
+                  <th>Course Title</th>
 
+                  <th>File Path (Pedagogy)</th>
+
+                  <th>Total number of Interning student(Internship)</th>
+                  <th>Organisation name(Internship)</th>
+                  <th>Location of the organisation(Internship)</th>
+
+                  <th>Total number of participating student(Field Visit)</th>
+                  <th>Duration of Field Visit start date(Field Visit)</th>
+                  <th>Duration of Field Visit end date(Field Visit)</th>
+                  <th>Location of Organisation(Field Visit)</th>
+                  <th>Field Project File(Field Visit)</th>
+                  <th>Communication Letter(Field Visit)</th>
+                  <th>Student Excel Sheet(Field Visit)</th>
+
+                  <th>
+                    Total number of participating student(Projects/Dissertation)
+                  </th>
+                  <th>Duration of Project start date(Projects/Dissertation)</th>
+                  <th>Duration of Project end date(Projects/Dissertation)</th>
+
+                  <th>Student Excel Sheet(Fellowship)</th>
+                  <th>Fellowship File(Fellowship)</th>
+
+                  <th>Student Excel Sheet(Bootcamp)</th>
+                  <th>Bootcamp File(Bootcamp)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {experientialLearningData.length > 0 ? (
+                  experientialLearningData.map((el, index) => (
+                    <tr key={el.id}>
+                      <td>{indexOfFirstRow + index + 1}</td>
+                      <td>{el.academicYear}</td>
+                      <td>{el.semType}</td>
+                      <td>{el.semNumber}</td>
+                      <td>{el.streamName}</td>
+                      <td>{el.departmentName}</td>
+                      <td>{el.programTypeName}</td>
+                      <td>{el.programName}</td>
+                      <td>{el.programTitle}</td>
+                      <td>{el.courseTitle}</td>
+
+                      <td>{el.pedagogy.filePath?.Pedagogy || "N/A"}</td>
+                      <td>{el.internship?.totalInterningStudents || "N/A"}</td>
+                      <td>{el.internship?.internOrgName || "N/A"}</td>
+                      <td>{el.internship?.internOrgLocation || "N/A"}</td>
+
+                      <td>
+                        {el.fieldProject?.totalFieldProjectStudents || "N/A"}
+                      </td>
+                      <td>{el.fieldProject?.fieldProjectStratDate || "N/A"}</td>
+                      <td>{el.fieldProject?.fieldProjectEndDate || "N/A"}</td>
+                      <td>
+                        {el.fieldProject?.fielsProjectOrgLocation || "N/A"}
+                      </td>
+                      <td>
+                        {el.fieldProject?.filePath?.FieldProject || "N/A"}
+                      </td>
+                      <td>
+                        {el.fieldProject?.filePath?.CommunicationLetter ||
+                          "N/A"}
+                      </td>
+                      <td>
+                        {el.fieldProject?.filePath?.StudentExcelSheet || "N/A"}
+                      </td>
+
+                      <td>
+                        {el.dissertation
+                          ?.totalParticipatingStudentsdissertation || "N/A"}
+                      </td>
+                      <td>{el.dissertation?.dissertationStartDate || "N/A"}</td>
+                      <td>{el.dissertation?.dissertationEndDate || "N/A"}</td>
+
+                      <td>
+                        {el.fellowship?.filePath?.studentExcelSheetFileName ||
+                          "N/A"}
+                      </td>
+                      <td>
+                        {el.fellowship?.filePath?.fellowshipFileName || "N/A"}
+                      </td>
+                      <td>
+                        {el.bootcamp?.filePath?.studentExcelSheetFileName ||
+                          "N/A"}
+                      </td>
+                      <td>{el.bootcamp?.filePath?.Bootcamp || "N/A"}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={11} className="text-center">
+                      No EL data available.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </Table>
             {/* Table with Pagination */}
             <Table
               striped
@@ -2551,13 +2717,12 @@ const Experiential_Learning: React.FC = () => {
                   <th>Degree</th>
                   <th>Program Title</th>
                   <th>Course Title</th>
-
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((el, index) => (
+                {experientialLearningData.length > 0 ? (
+                  experientialLearningData.map((el, index) => (
                     <tr key={el.id}>
                       <td>{indexOfFirstRow + index + 1}</td>
                       <td>{el.academicYear}</td>
@@ -2596,7 +2761,6 @@ const Experiential_Learning: React.FC = () => {
                 )}
               </tbody>
             </Table>
-            {/* Pagination Controls */}
             <div className="d-flex justify-content-between align-items-center mt-3">
               <Button
                 color="primary"

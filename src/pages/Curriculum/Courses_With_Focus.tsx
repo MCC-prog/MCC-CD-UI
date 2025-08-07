@@ -1,6 +1,6 @@
 import Breadcrumb from "Components/Common/Breadcrumb";
 import { useFormik } from "formik";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Select from "react-select";
 import * as Yup from "yup";
 import {
@@ -30,6 +30,14 @@ import { ToastContainer } from "react-toastify";
 import { toast } from "react-toastify";
 import { SEMESTER_NO_OPTIONS } from "../../Components/constants/layout";
 import axios from "axios";
+import $ from "jquery";
+import "datatables.net-bs5";
+import "datatables.net-buttons-bs5";
+import "datatables.net-buttons/js/buttons.html5.js";
+import "datatables.net-buttons/js/buttons.print.js";
+import "jszip";
+import "pdfmake/build/pdfmake";
+import "pdfmake/build/vfs_fonts";
 
 const api = new APIClient();
 
@@ -335,6 +343,8 @@ const Courses_With_Focus: React.FC = () => {
     yearOfIntroduction: "",
     percentage: "",
   });
+
+  const tableRef = useRef<HTMLTableElement>(null);
 
   // Utility
   const mapValueToLabel = (
@@ -984,6 +994,62 @@ const Courses_With_Focus: React.FC = () => {
     activeTab === tab && touched && error ? (
       <div className="text-danger">{error}</div>
     ) : null;
+
+  useEffect(() => {
+    if (CWFData.length === 0) return;
+
+    const initializeDataTable = () => {
+      const table = $("#exportId").DataTable({
+        destroy: true,
+        dom: "Bfrtip",
+        buttons: [
+          {
+            extend: "copy",
+          },
+          {
+            extend: "csv",
+          },
+        ],
+        columnDefs: [
+          {
+            targets: [3, 4], // Make sure indexes match actual column positions
+            visible: false,
+          },
+        ],
+        searching: false,
+        paging: false,
+      });
+
+      $(".dt-buttons").addClass("mb-3 gap-2");
+      $(".buttons-copy").addClass("btn btn-success");
+      $(".buttons-csv").addClass("btn btn-info");
+
+      // Prevent duplicate toast triggers
+      $("#exportId")
+        .off("buttons-action.dt")
+        .on("buttons-action.dt", function (e, buttonApi) {
+          if (buttonApi.text() === "Copy") {
+            toast.success("Copied to clipboard!");
+          }
+        });
+
+      return table;
+    };
+
+    // Delay DataTable init slightly to allow DOM updates
+    const timeout = setTimeout(() => {
+      const table = initializeDataTable();
+    }, 0);
+
+    return () => {
+      clearTimeout(timeout);
+      const existingTable = $.fn.DataTable.isDataTable("#exportId");
+      if (existingTable) {
+        $("#exportId").DataTable().destroy();
+      }
+      $("#exportId").off("buttons-action.dt");
+    };
+  }, [CWFData]);
 
   return (
     <React.Fragment>
@@ -2354,6 +2420,113 @@ const Courses_With_Focus: React.FC = () => {
                 onChange={handleSearch}
               />
             </div>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+              id="exportId"
+              innerRef={tableRef}
+              style={{ display: "none" }}
+            >
+              <thead className="table-dark">
+                <tr>
+                  <th>#</th>
+                  <th>Academic Year</th>
+                  <th>Semester Type</th>
+                  <th>Semester No</th>
+                  <th>Stream</th>
+                  <th>Department</th>
+                  <th>Program Type</th>
+                  <th>Program</th>
+                  <th>Focus Area</th>
+                  <th>Course Title(Gender)</th>
+                  <th>Course Type(Gender)</th>
+                  <th>File Path(Gender)</th>
+
+                  <th>Course Title(Sustainability)</th>
+                  <th>Course Type(Sustainability)</th>
+                  <th>File Path(Sustainability)</th>
+
+                   <th>Course Title(Indian Knowledge System)</th>
+                  <th>Course Type(Indian Knowledge System)</th>
+                  <th>File Path(Indian Knowledge System)</th>
+
+                  <th>Course Title(Employability)</th>
+                  <th>Course Type(Employability)</th>
+                  <th>File Path(Employability)</th>
+
+                  <th>Course Title(Skill Enhancement)</th>
+                  <th>Course Type(Skill Enhancement)</th>
+                  <th>File Path(Skill Enhancement)</th>
+
+                  <th>Course Title(Entrepreneurship)</th>
+                  <th>Course Type(Entrepreneurship)</th>
+                  <th>File Path(Entrepreneurship)</th>
+
+                  {/* <th>Course Title(Ethics)</th>
+                  <th>Course Type(Ethics)</th>
+                  <th>File Path(Ethics)</th> */}
+                </tr>
+              </thead>
+              <tbody>
+                {currentRows.length > 0 ? (
+                  currentRows.map((cwf, index) => (
+                    <tr key={cwf.coursesWithFocusId}>
+                      <td>{indexOfFirstRow + index + 1}</td>
+                      <td>{cwf.academicYear}</td>
+                      <td>{cwf.semType}</td>
+                      <td>{cwf.semNumber}</td>
+                      <td>{cwf.streamName}</td>
+                      <td>{cwf.departmentName}</td>
+                      <td>{cwf.programTypeName}</td>
+                      <td>{cwf.programName}</td>
+                      <td>{cwf.focusArea}</td>
+
+                      {/* Gender */}
+                      <td>{cwf.ecoGenderC?.courseTitle || "N/A"}</td>
+                      <td>{cwf.ecoGenderC?.courseType || "N/A"}</td>
+                      <td>{cwf.ecoGenderC?.filePath?.EcoGenderC || "N/A"}</td>
+
+                      {/* Employability */}
+                      <td>{cwf.ecoEmployC?.courseTitle || "N/A"}</td>
+                      <td>{cwf.ecoEmployC?.courseType || "N/A"}</td>
+                      <td>{cwf.ecoEmployC?.filePath?.EcoEmployC || "N/A"}</td>
+
+                      {/* Skill Enhancement */}
+                      <td>{cwf.ecoSkillC?.courseTitle || "N/A"}</td>
+                      <td>{cwf.ecoSkillC?.courseType || "N/A"}</td>
+                      <td>{cwf.ecoSkillC?.filePath?.EcoSkillC || "N/A"}</td>
+
+                      {/* Entrepreneurship */}
+                      <td>{cwf.ecoEntreC?.courseTitle || "N/A"}</td>
+                      <td>{cwf.ecoEntreC?.courseType || "N/A"}</td>
+                      <td>{cwf.ecoEntreC?.filePath?.EcoEntreC || "N/A"}</td>
+
+                      {/* Ethics (assuming ecoIKSC is for ethics) */}
+                      <td>{cwf.ecoIKSC?.courseTitle || "N/A"}</td>
+                      <td>{cwf.ecoIKSC?.courseType || "N/A"}</td>
+                      <td>{cwf.ecoIKSC?.filePath?.EcoIKSC || "N/A"}</td>
+
+                      {/* Sustainability */}
+                      <td>{cwf.ecoEnvironmentalC?.courseTitle || "N/A"}</td>
+                      <td>{cwf.ecoEnvironmentalC?.courseType || "N/A"}</td>
+                      <td>
+                        {cwf.ecoEnvironmentalC?.filePath?.EcoEnvironmentalC ||
+                          "N/A"}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={27} className="text-center">
+                      No Courses With Focus available.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </Table>
             <Table
               striped
               bordered

@@ -6,7 +6,7 @@ import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
 import Select from "react-select";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { useFormik } from "formik";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -27,6 +27,13 @@ import { APIClient } from "../../helpers/api_helper";
 import { toast, ToastContainer } from "react-toastify";
 import moment from "moment";
 import { Tooltip } from "@mui/material";
+import $ from "jquery";
+import "datatables.net-bs5";
+import "datatables.net-buttons-bs5";
+import "datatables.net-buttons/js/buttons.html5.js";
+import "jszip";
+import "pdfmake/build/pdfmake";
+import "pdfmake/build/vfs_fonts";
 
 const api = new APIClient();
 
@@ -55,6 +62,8 @@ const Annual_Expenditure: React.FC = () => {
   const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
+
+  const tableRef = useRef<HTMLTableElement>(null);
 
   const fileRef = useRef<HTMLInputElement | null>(null);
 
@@ -351,6 +360,46 @@ const Annual_Expenditure: React.FC = () => {
     },
   });
 
+  useEffect(() => {
+    if (annualExpData.length === 0) return; // wait until data is loaded
+
+    const table = $("#id").DataTable({
+      destroy: true,
+      scrollX: true,
+      autoWidth: false,
+      dom: "Bfrtip",
+      buttons: [
+        {
+          extend: "copy",
+          exportOptions: {
+            columns: ":not(:last-child)", // skip Actions column
+          },
+        },
+        {
+          extend: "csv",
+          exportOptions: {
+            columns: ":not(:last-child)",
+          },
+        },
+      ],
+    });
+    $(".dt-buttons").addClass("mb-3 gap-2");
+    $(".buttons-copy").addClass("btn btn-success");
+    $(".buttons-csv").addClass("btn btn-info");
+
+    $("#id").on(
+      "buttons-action.dt",
+      function (e, buttonApi, dataTable, node, config) {
+        if (buttonApi.text() === "Copy") {
+          toast.success("Copied to clipboard!");
+        }
+      }
+    );
+
+    return () => {
+      table.destroy(); // clean up
+    };
+  }, [annualExpData]);
   return (
     <React.Fragment>
       <div className="page-content">
@@ -549,34 +598,22 @@ const Annual_Expenditure: React.FC = () => {
           isOpen={isModalOpen}
           toggle={toggleModal}
           size="lg"
-          style={{ maxWidth: "90%" }}
+          style={{ maxWidth: "100%", width: "auto" }}
         >
           <ModalHeader toggle={toggleModal}>
             List Annual Expenditure
           </ModalHeader>
           <ModalBody>
             {/* Global Search */}
-            <div className="mb-3">
-              <Input
-                type="text"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={handleSearch}
-              />
-            </div>
-            <Table
-              striped
-              bordered
-              hover
-              responsive
-              className="align-middle text-center"
-            >
+            <Table striped bordered hover id="id" innerRef={tableRef}>
               <thead className="table-dark">
                 <tr>
                   <th>#</th>
                   <th>Academic Year </th>
                   <th>School </th>
                   <th>Amount</th>
+                  <th className="d-none">FilePath</th>
+
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -588,6 +625,9 @@ const Annual_Expenditure: React.FC = () => {
                       <td>{cds.academicYear}</td>
                       <td>{cds.streamName}</td>
                       <td>{cds.amount}</td>
+                      <td className="d-none">
+                        {cds.filePath.AnnualExpenditure || "N/A"}
+                      </td>
                       <td>
                         <button
                           className="btn btn-sm btn-warning me-2"
@@ -613,26 +653,6 @@ const Annual_Expenditure: React.FC = () => {
                 )}
               </tbody>
             </Table>
-            {/* Pagination Controls */}
-            <div className="d-flex justify-content-between align-items-center mt-3">
-              <Button
-                color="primary"
-                disabled={currentPage === 1}
-                onClick={() => handlePageChange(currentPage - 1)}
-              >
-                Previous
-              </Button>
-              <div>
-                Page {currentPage} of {totalPages}
-              </div>
-              <Button
-                color="primary"
-                disabled={currentPage === totalPages}
-                onClick={() => handlePageChange(currentPage + 1)}
-              >
-                Next
-              </Button>
-            </div>
           </ModalBody>
         </Modal>
         <Modal

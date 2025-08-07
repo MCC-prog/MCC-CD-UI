@@ -226,6 +226,10 @@ span.flatpickr-weekday {
       width: 40px !important;
     }
   }
+  .modal-dialog{
+    margin-right: 15px;
+    margin-left: 15px;
+  }
 }
 
 @media (max-width: 320px) {
@@ -450,7 +454,11 @@ span.flatpickr-weekday {
 .jobs-categories .card-body a:last-child {
   margin-bottom: 0 !important;
 }
-
+@media (min-width: 991px) {
+  .dataTables_scrollHeadInner{
+    width: auto !important;
+  }
+}
 @media (max-width: 991.98px) {
   .search-box {
     display: block !important;
@@ -463,6 +471,13 @@ span.flatpickr-weekday {
         border-radius: 0.25rem !important;
       }
     }
+  }
+  .dataTables_scrollHead{
+    overflow: visible !important;
+  }
+  .dataTables_scrollHeadInner,
+  .dataTables_scrollBody{
+    width: max-content !important;
   }
 }
 
@@ -946,3 +961,52 @@ aside.EmojiPickerReact.epr-main {
   border-color: red !important;
   border-radius: 4px !important;
 } 
+
+table.dataTable {
+  width: 100% !important;
+}
+
+.dataTables_wrapper .dataTables_filter input {
+  width: auto;
+  display: inline-block;
+}
+
+.dataTables_wrapper .dataTables_paginate {
+  float: right;
+  text-align: right;
+  margin-top: 10px;
+}
+
+.dt-buttons {
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+
+
+.dataTables_scrollHead .dataTable{
+  margin: 0px !important;
+}
+.dataTables_scrollHead .dataTable th{
+  color: #fff;
+  background-color: #000;
+}
+#id_filter input.form-control{
+  min-height: calc(1.5em + 0.5rem + 11px);
+}
+.dataTables_scroll{
+  overflow-x: auto !important;
+  width: 100%;
+}
+@media (min-width: 767px) {
+  #id_filter input.form-control{
+    min-width: 300px;
+  }
+  .dataTables_wrapper .dataTables_filter label{
+    margin-bottom: 0px;
+  }
+  .modal-dialog{
+    margin-right: 30px;
+    margin-left: 30px;
+  }
+}

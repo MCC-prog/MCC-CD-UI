@@ -8,7 +8,7 @@ import ProgramTypeDropdown from "Components/DropDowns/ProgramTypeDropdown";
 import SemesterDropdowns from "Components/DropDowns/SemesterDropdowns";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { useFormik } from "formik";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -31,7 +31,13 @@ import { toast, ToastContainer } from "react-toastify";
 import GetAllProgramDropdown from "Components/DropDowns/GetAllProgramDropdown";
 import Select from "react-select";
 import moment from "moment";
-
+import $ from "jquery";
+import "datatables.net-bs5";
+import "datatables.net-buttons-bs5";
+import "datatables.net-buttons/js/buttons.html5.js";
+import "jszip";
+import "pdfmake/build/pdfmake";
+import "pdfmake/build/vfs_fonts";
 const api = new APIClient();
 
 const Guest_Lectures: React.FC = () => {
@@ -67,6 +73,7 @@ const Guest_Lectures: React.FC = () => {
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
 
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const tableRef = useRef<HTMLTableElement>(null);
 
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -504,6 +511,47 @@ const Guest_Lectures: React.FC = () => {
       }
     },
   });
+
+  useEffect(() => {
+    if (gLData.length === 0) return; // wait until data is loaded
+
+    const table = $("#id").DataTable({
+      destroy: true,
+      scrollX: true,
+      autoWidth: false,
+      dom: "Bfrtip",
+      buttons: [
+        {
+          extend: "copy",
+          exportOptions: {
+            columns: ":not(:last-child)", // skip Actions column
+          },
+        },
+        {
+          extend: "csv",
+          exportOptions: {
+            columns: ":not(:last-child)",
+          },
+        },
+      ],
+    });
+    $(".dt-buttons").addClass("mb-3 gap-2");
+    $(".buttons-copy").addClass("btn btn-success");
+    $(".buttons-csv").addClass("btn btn-info");
+
+    $("#id").on(
+      "buttons-action.dt",
+      function (e, buttonApi, dataTable, node, config) {
+        if (buttonApi.text() === "Copy") {
+          toast.success("Copied to clipboard!");
+        }
+      }
+    );
+
+    return () => {
+      table.destroy(); // clean up
+    };
+  }, [gLData]);
 
   return (
     <React.Fragment>
@@ -968,7 +1016,7 @@ const Guest_Lectures: React.FC = () => {
                     <div className="mb-3">
                       <Label>Download </Label>
                       <div>
-                         <a
+                        <a
                           href={`${process.env.PUBLIC_URL}/templateFiles/YEAR_DEPT_GUEST LECTURE.docx`}
                           download
                           className="btn btn-primary btn-sm"
@@ -1008,21 +1056,7 @@ const Guest_Lectures: React.FC = () => {
         >
           <ModalHeader toggle={toggleModal}>List Guest Lectures</ModalHeader>
           <ModalBody>
-            <div className="mb-3">
-              <Input
-                type="text"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={handleSearch}
-              />
-            </div>
-            <Table
-              striped
-              bordered
-              hover
-              responsive
-              className="align-middle text-center"
-            >
+            <Table striped bordered hover id="id" innerRef={tableRef}>
               <thead className="table-dark">
                 <tr>
                   <th>#</th>
@@ -1036,6 +1070,7 @@ const Guest_Lectures: React.FC = () => {
                   <th>Title of Talk</th>
                   <th>Target Audience</th>
                   <th>No.Of Participants</th>
+                  <th className="d-none">File</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -1054,9 +1089,9 @@ const Guest_Lectures: React.FC = () => {
                       <td>{gl.titleOfTalk}</td>
                       <td>{gl.targetAudience}</td>
                       <td>{gl.noOfParticipants}</td>
+                      <td className="d-none">{gl?.filePath.guestLecture}</td>
                       <td>
-                        <div className="d-flex justify-content-center gap-2">
-                          <button
+                        <button
                             className="btn btn-sm btn-warning me-2"
                             onClick={() => handleEdit(gl.guestLectureId)}
                           >
@@ -1068,8 +1103,7 @@ const Guest_Lectures: React.FC = () => {
                           >
                             Delete
                           </button>
-                        </div>
-                      </td>
+                       </td>
                     </tr>
                   ))
                 ) : (
@@ -1081,26 +1115,6 @@ const Guest_Lectures: React.FC = () => {
                 )}
               </tbody>
             </Table>
-            {/* Pagination Controls */}
-            <div className="d-flex justify-content-between align-items-center mt-3">
-              <Button
-                color="primary"
-                disabled={currentPage === 1}
-                onClick={() => handlePageChange(currentPage - 1)}
-              >
-                Previous
-              </Button>
-              <div>
-                Page {currentPage} of {totalPages}
-              </div>
-              <Button
-                color="primary"
-                disabled={currentPage === totalPages}
-                onClick={() => handlePageChange(currentPage + 1)}
-              >
-                Next
-              </Button>
-            </div>
           </ModalBody>
         </Modal>
         {/* Confirmation Modal */}

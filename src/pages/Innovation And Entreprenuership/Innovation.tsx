@@ -8,7 +8,7 @@ import SemesterDropdowns from "Components/DropDowns/SemesterDropdowns";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { ToastContainer } from "react-toastify";
 import { useFormik } from "formik";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -31,7 +31,13 @@ import "react-toastify/dist/ReactToastify.css";
 import { SEMESTER_NO_OPTIONS } from "../../Components/constants/layout";
 import axios from "axios";
 import moment from "moment";
-
+import $ from "jquery";
+import "datatables.net-bs5";
+import "datatables.net-buttons-bs5";
+import "datatables.net-buttons/js/buttons.html5.js";
+import "jszip";
+import "pdfmake/build/pdfmake";
+import "pdfmake/build/vfs_fonts";
 const api = new APIClient();
 
 const Innovation: React.FC = () => {
@@ -69,6 +75,7 @@ const Innovation: React.FC = () => {
     percentage: "",
   });
   const [filteredData, setFilteredData] = useState(inovData);
+  const tableRef = useRef<HTMLTableElement>(null);
 
   const fileRef = useRef<HTMLInputElement | null>(null);
 
@@ -410,6 +417,47 @@ const Innovation: React.FC = () => {
     },
   });
 
+  useEffect(() => {
+    if (inovData.length === 0) return; // wait until data is loaded
+
+    const table = $("#id").DataTable({
+      destroy: true,
+      scrollX: true,
+      autoWidth: false,
+      dom: "Bfrtip",
+      buttons: [
+        {
+          extend: "copy",
+          exportOptions: {
+            columns: ":not(:last-child)", // skip Actions column
+          },
+        },
+        {
+          extend: "csv",
+          exportOptions: {
+            columns: ":not(:last-child)",
+          },
+        },
+      ],
+    });
+    $(".dt-buttons").addClass("mb-3 gap-2");
+    $(".buttons-copy").addClass("btn btn-success");
+    $(".buttons-csv").addClass("btn btn-info");
+
+    $("#id").on(
+      "buttons-action.dt",
+      function (e, buttonApi, dataTable, node, config) {
+        if (buttonApi.text() === "Copy") {
+          toast.success("Copied to clipboard!");
+        }
+      }
+    );
+
+    return () => {
+      table.destroy(); // clean up
+    };
+  }, [inovData]);
+
   return (
     <React.Fragment>
       <div className="page-content">
@@ -636,32 +684,16 @@ const Innovation: React.FC = () => {
           size="lg"
           style={{ maxWidth: "100%", width: "auto" }}
         >
-          <ModalHeader toggle={toggleModal}>List BOS</ModalHeader>
+          <ModalHeader toggle={toggleModal}>List Innovation</ModalHeader>
           <ModalBody>
-            {/* Global Search */}
-            <div className="mb-3">
-              <Input
-                type="text"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={handleSearch}
-              />
-            </div>
-
-            {/* Table with Pagination */}
-            <Table
-              striped
-              bordered
-              hover
-              responsive
-              className="align-middle text-center"
-            >
+            <Table striped bordered hover id="id" innerRef={tableRef}>
               <thead className="table-dark">
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
                   <th>Stream</th>
                   <th>Department</th>
+                  <th className="d-none">FilePath</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -673,6 +705,7 @@ const Innovation: React.FC = () => {
                       <td>{bos.academicYear}</td>
                       <td>{bos.streamName}</td>
                       <td>{bos.departmentName}</td>
+                      <td className="d-none">{bos?.filePath.Innovation || "N/A"}</td>
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
@@ -700,26 +733,6 @@ const Innovation: React.FC = () => {
                 )}
               </tbody>
             </Table>
-            {/* Pagination Controls */}
-            <div className="d-flex justify-content-between align-items-center mt-3">
-              <Button
-                color="primary"
-                disabled={currentPage === 1}
-                onClick={() => handlePageChange(currentPage - 1)}
-              >
-                Previous
-              </Button>
-              <div>
-                Page {currentPage} of {totalPages}
-              </div>
-              <Button
-                color="primary"
-                disabled={currentPage === totalPages}
-                onClick={() => handlePageChange(currentPage + 1)}
-              >
-                Next
-              </Button>
-            </div>
           </ModalBody>
         </Modal>
         {/* Confirmation Modal */}

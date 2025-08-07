@@ -6,7 +6,7 @@ import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
 import Select from "react-select";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { useFormik } from "formik";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -27,7 +27,13 @@ import { APIClient } from "../../helpers/api_helper";
 import { toast, ToastContainer } from "react-toastify";
 import moment from "moment";
 import { Tooltip } from "@mui/material";
-
+import $ from "jquery";
+import "datatables.net-bs5";
+import "datatables.net-buttons-bs5";
+import "datatables.net-buttons/js/buttons.html5.js";
+import "jszip";
+import "pdfmake/build/pdfmake";
+import "pdfmake/build/vfs_fonts";
 const api = new APIClient();
 
 const Research_Journals: React.FC = () => {
@@ -57,21 +63,7 @@ const Research_Journals: React.FC = () => {
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
 
   const fileRef = useRef<HTMLInputElement | null>(null);
-
-  // Handle global search
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toLowerCase();
-    setSearchTerm(value);
-
-    const filtered = cswData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
+  const tableRef = useRef<HTMLTableElement>(null);
 
   // Calculate the paginated data
   const indexOfLastRow = currentPage * rowsPerPage;
@@ -338,6 +330,46 @@ const Research_Journals: React.FC = () => {
     },
   });
 
+    useEffect(() => {
+      if (cswData.length === 0) return; // wait until data is loaded
+  
+      const table = $("#id").DataTable({
+        destroy: true,
+        scrollX: true,
+        autoWidth: false,
+        dom: "Bfrtip",
+        buttons: [
+          {
+            extend: "copy",
+            exportOptions: {
+              columns: ":not(:last-child)", // skip Actions column
+            },
+          },
+          {
+            extend: "csv",
+            exportOptions: {
+              columns: ":not(:last-child)",
+            },
+          },
+        ],
+      });
+      $(".dt-buttons").addClass("mb-3 gap-2");
+      $(".buttons-copy").addClass("btn btn-success");
+      $(".buttons-csv").addClass("btn btn-info");
+  
+      $("#id").on(
+        "buttons-action.dt",
+        function (e, buttonApi, dataTable, node, config) {
+          if (buttonApi.text() === "Copy") {
+            toast.success("Copied to clipboard!");
+          }
+        }
+      );
+  
+      return () => {
+        table.destroy(); // clean up
+      };
+    }, [cswData]);
   return (
     <React.Fragment>
       <div className="page-content">
@@ -488,31 +520,17 @@ const Research_Journals: React.FC = () => {
           isOpen={isModalOpen}
           toggle={toggleModal}
           size="lg"
-          style={{ maxWidth: "90%" }}
+          style={{ maxWidth: "100%", width: "auto" }}
         >
           <ModalHeader toggle={toggleModal}>List Research Journals</ModalHeader>
           <ModalBody>
             {/* Global Search */}
-            <div className="mb-3">
-              <Input
-                type="text"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={handleSearch}
-              />
-            </div>
-            <Table
-              striped
-              bordered
-              hover
-              responsive
-              className="align-middle text-center"
-            >
+            <Table striped bordered hover id="id" innerRef={tableRef}>
               <thead className="table-dark">
                 <tr>
                   <th>#</th>
                   <th>Journal Type </th>
-                  {/* <th>File </th> */}
+                  <th className="d-none">File </th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -522,7 +540,9 @@ const Research_Journals: React.FC = () => {
                     <tr key={cds.id}>
                       <td>{index + 1}</td>
                       <td>{cds.journalType}</td>
-                      {/* <td>{cds.file}</td> */}
+                      <td className="d-none">
+                        {cds?.filePath.ResearchJournal || "N/A"}
+                      </td>
                       <td>
                         <button
                           className="btn btn-sm btn-warning me-2"

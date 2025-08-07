@@ -4,7 +4,7 @@ import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { ToastContainer } from "react-toastify";
 import { useFormik } from "formik";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -28,6 +28,13 @@ import { SEMESTER_NO_OPTIONS } from "../../Components/constants/layout";
 import axios from "axios";
 import moment from "moment";
 import Select from "react-select";
+import $ from "jquery";
+import "datatables.net-bs5";
+import "datatables.net-buttons-bs5";
+import "datatables.net-buttons/js/buttons.html5.js";
+import "jszip";
+import "pdfmake/build/pdfmake";
+import "pdfmake/build/vfs_fonts";
 
 const api = new APIClient();
 
@@ -67,6 +74,7 @@ const Fdps: React.FC = () => {
   });
   const [filteredData, setFilteredData] = useState(fdpsData);
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const tableRef = useRef<HTMLTableElement>(null);
 
   const dropdownStyles = {
     menu: (provided: any) => ({
@@ -85,25 +93,6 @@ const Fdps: React.FC = () => {
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
-
-    const filtered = fdpsData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-
-  // Handle column-specific filters
-  const handleFilterChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    column: string
-  ) => {
-    const value = e.target.value.toLowerCase();
-    const updatedFilters = { ...filters, [column]: value };
-    setFilters(updatedFilters);
 
     const filtered = fdpsData.filter((row) =>
       Object.values(row).some((val) =>
@@ -469,6 +458,48 @@ const Fdps: React.FC = () => {
       }
     },
   });
+
+  useEffect(() => {
+    if (fdpsData.length === 0) return; // wait until data is loaded
+
+    const table = $("#id").DataTable({
+      destroy: true,
+      scrollX: true,
+      autoWidth: false,
+      dom: "Bfrtip",
+      buttons: [
+        {
+          extend: "copy",
+          exportOptions: {
+            columns: ":not(:last-child)", // skip Actions column
+          },
+        },
+        {
+          extend: "csv",
+          exportOptions: {
+            columns: ":not(:last-child)",
+          },
+        },
+      ],
+    });
+    $(".dt-buttons").addClass("mb-3 gap-2");
+    $(".buttons-copy").addClass("btn btn-success");
+    $(".buttons-csv").addClass("btn btn-info");
+
+    $("#id").on(
+      "buttons-action.dt",
+      function (e, buttonApi, dataTable, node, config) {
+        if (buttonApi.text() === "Copy") {
+          toast.success("Copied to clipboard!");
+        }
+      }
+    );
+
+    return () => {
+      table.destroy(); // clean up
+    };
+  }, [fdpsData]);
+
   return (
     <React.Fragment>
       <div className="page-content">
@@ -845,14 +876,14 @@ const Fdps: React.FC = () => {
                   <Col lg={12}>
                     <div className="mt-3 d-flex justify-content-between">
                       <button className="btn btn-primary" type="submit">
-                        {isEditMode ? "Update FDPS" : "Save FDPS"}
+                        {isEditMode ? "Update" : "Save"}
                       </button>
                       <button
                         className="btn btn-secondary"
                         type="button"
                         onClick={handleListFDPSClick}
                       >
-                        List FDPS
+                        List
                       </button>
                     </div>
                   </Col>
@@ -870,36 +901,20 @@ const Fdps: React.FC = () => {
         >
           <ModalHeader toggle={toggleModal}>List FDPS</ModalHeader>
           <ModalBody>
-            {/* Global Search */}
-            <div className="mb-3">
-              <Input
-                type="text"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={handleSearch}
-              />
-            </div>
-
-            {/* Table with Pagination */}
-            <Table
-              striped
-              bordered
-              hover
-              responsive
-              className="align-middle text-center"
-            >
+            <Table striped bordered hover id="id" innerRef={tableRef}>
               <thead className="table-dark">
                 <tr>
                   <th>#</th>
+                  <th>Faculty Name</th>
                   <th>Academic Year</th>
-                  <th>Semester Type</th>
-                  <th>Semester No</th>
                   <th>Stream</th>
                   <th>Department</th>
-                  <th>Program Type</th>
-                  <th>Program</th>
-                  <th>Year of Introduction</th>
-                  <th>Percentage</th>
+                  <th>Title of FDPS</th>
+                  <th>Start date</th>
+                  <th>End date</th>
+                  <th>Organizing Institution</th>
+                  <th>Type</th>
+                  <th className="d-none">FilePath</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -917,6 +932,7 @@ const Fdps: React.FC = () => {
                       <td>{bos.endDate}</td>
                       <td>{bos.organizingInstitution}</td>
                       <td>{bos.identity}</td>
+                      <td className="d-none">{bos?.filePath.file || "N/A"}</td>
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
@@ -944,26 +960,6 @@ const Fdps: React.FC = () => {
                 )}
               </tbody>
             </Table>
-            {/* Pagination Controls */}
-            <div className="d-flex justify-content-between align-items-center mt-3">
-              <Button
-                color="primary"
-                disabled={currentPage === 1}
-                onClick={() => handlePageChange(currentPage - 1)}
-              >
-                Previous
-              </Button>
-              <div>
-                Page {currentPage} of {totalPages}
-              </div>
-              <Button
-                color="primary"
-                disabled={currentPage === totalPages}
-                onClick={() => handlePageChange(currentPage + 1)}
-              >
-                Next
-              </Button>
-            </div>
           </ModalBody>
         </Modal>
         {/* Confirmation Modal */}

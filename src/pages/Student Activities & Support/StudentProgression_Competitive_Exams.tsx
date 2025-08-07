@@ -8,7 +8,7 @@ import ProgramTypeDropdown from "Components/DropDowns/ProgramTypeDropdown";
 import SemesterDropdowns from "Components/DropDowns/SemesterDropdowns";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { useFormik } from "formik";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -30,7 +30,13 @@ import { APIClient } from "../../helpers/api_helper";
 import { toast, ToastContainer } from "react-toastify";
 import GetAllProgramDropdown from "Components/DropDowns/GetAllProgramDropdown";
 import moment from "moment";
-
+import $ from "jquery";
+import "datatables.net-bs5";
+import "datatables.net-buttons-bs5";
+import "datatables.net-buttons/js/buttons.html5.js";
+import "jszip";
+import "pdfmake/build/pdfmake";
+import "pdfmake/build/vfs_fonts";
 import Select from "react-select";
 const api = new APIClient();
 
@@ -64,40 +70,7 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
     excel: null,
   });
   const fileRef = useRef<HTMLInputElement | null>(null);
-
-  // Handle global search
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toLowerCase();
-    setSearchTerm(value);
-
-    const filtered = sceData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-
-  // Handle column-specific filters
-  const handleFilterChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    column: string
-  ) => {
-    const value = e.target.value.toLowerCase();
-    const updatedFilters = { ...filters, [column]: value };
-    setFilters(updatedFilters);
-
-    const filtered = sceData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
+  const tableRef = useRef<HTMLTableElement>(null);
 
   // Calculate the paginated data
   const indexOfLastRow = currentPage * rowsPerPage;
@@ -209,9 +182,9 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
           : null,
         excel: response.documents?.competitiveExam || null,
       };
- const streamOption = mapValueToLabel(response.streamId, []); // Replace [] with stream options array if available
+      const streamOption = mapValueToLabel(response.streamId, []); // Replace [] with stream options array if available
       const departmentOption = mapValueToLabel(response.departmentId, []); // Replace [] with department options array if available
-     
+
       // Update Formik values
       validation.setValues({
         academicYear: mappedValues.academicYear
@@ -245,9 +218,9 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
           : null,
         excel: response.documents?.competitiveExam || null, // Use the file from the response
       });
-        setSelectedStream(streamOption);
+      setSelectedStream(streamOption);
       setSelectedDepartment(departmentOption);
-      
+
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();
@@ -484,6 +457,46 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
     },
   });
 
+  useEffect(() => {
+    if (sceData.length === 0) return; // wait until data is loaded
+
+    const table = $("#id").DataTable({
+      destroy: true,
+      scrollX: true,
+      autoWidth: false,
+      dom: "Bfrtip",
+      buttons: [
+        {
+          extend: "copy",
+          exportOptions: {
+            columns: ":not(:last-child)", // skip Actions column
+          },
+        },
+        {
+          extend: "csv",
+          exportOptions: {
+            columns: ":not(:last-child)",
+          },
+        },
+      ],
+    });
+    $(".dt-buttons").addClass("mb-3 gap-2");
+    $(".buttons-copy").addClass("btn btn-success");
+    $(".buttons-csv").addClass("btn btn-info");
+
+    $("#id").on(
+      "buttons-action.dt",
+      function (e, buttonApi, dataTable, node, config) {
+        if (buttonApi.text() === "Copy") {
+          toast.success("Copied to clipboard!");
+        }
+      }
+    );
+
+    return () => {
+      table.destroy(); // clean up
+    };
+  }, [sceData]);
   return (
     <React.Fragment>
       <div className="page-content">
@@ -808,7 +821,7 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
                     <div className="mb-3">
                       <Label>Download </Label>
                       <div>
-                         <a
+                        <a
                           href={`${process.env.PUBLIC_URL}/templateFiles/YEAR_DEPT_NAME_COMPETITIVE_EXAM.xlsx`}
                           download
                           className="btn btn-primary btn-sm"
@@ -850,21 +863,7 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
             List Student Progression - Competitive Exams
           </ModalHeader>
           <ModalBody>
-            <div className="mb-3">
-              <Input
-                type="text"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={handleSearch}
-              />
-            </div>
-            <Table
-              striped
-              bordered
-              hover
-              responsive
-              className="align-middle text-center"
-            >
+            <Table striped bordered hover id="id" innerRef={tableRef}>
               <thead className="table-dark">
                 <tr>
                   <th>#</th>
@@ -875,6 +874,7 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
                   <th>Program</th>
                   <th>Competitive Exam Name</th>
                   <th>Status</th>
+                  <th className="d-none">File Path</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -901,9 +901,11 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
                       </td>
                       <td>{bos.competitiveExamName}</td>
                       <td>{bos.status}</td>
+                      <td className="d-none">
+                        {bos.filePath?.competitiveExam || "N/A"}
+                      </td>
                       <td>
-                        <div className="d-flex justify-content-center gap-2">
-                          <button
+                       <button
                             className="btn btn-sm btn-warning me-2"
                             onClick={() => handleEdit(bos.competitiveExamId)}
                           >
@@ -915,8 +917,7 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
                           >
                             Delete
                           </button>
-                        </div>
-                      </td>
+                     </td>
                     </tr>
                   ))
                 ) : (
@@ -928,26 +929,6 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
                 )}
               </tbody>
             </Table>
-            {/* Pagination Controls */}
-            <div className="d-flex justify-content-between align-items-center mt-3">
-              <Button
-                color="primary"
-                disabled={currentPage === 1}
-                onClick={() => handlePageChange(currentPage - 1)}
-              >
-                Previous
-              </Button>
-              <div>
-                Page {currentPage} of {totalPages}
-              </div>
-              <Button
-                color="primary"
-                disabled={currentPage === totalPages}
-                onClick={() => handlePageChange(currentPage + 1)}
-              >
-                Next
-              </Button>
-            </div>
           </ModalBody>
         </Modal>
         {/* Confirmation Modal */}

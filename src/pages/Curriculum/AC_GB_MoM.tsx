@@ -1,6 +1,6 @@
 import Breadcrumb from "Components/Common/Breadcrumb";
 import { useFormik } from "formik";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Select from "react-select";
 import * as Yup from "yup";
 import {
@@ -23,7 +23,14 @@ import moment from "moment";
 import { toast, ToastContainer } from "react-toastify";
 import { APIClient } from "../../helpers/api_helper";
 import axios from "axios";
-
+import $ from "jquery";
+import "datatables.net-bs5";
+import "datatables.net-buttons-bs5";
+import "datatables.net-buttons/js/buttons.html5.js";
+import "datatables.net-buttons/js/buttons.print.js";
+import "jszip";
+import "pdfmake/build/pdfmake";
+import "pdfmake/build/vfs_fonts";
 const api = new APIClient();
 
 const AC_GB_MoM: React.FC = () => {
@@ -47,29 +54,12 @@ const AC_GB_MoM: React.FC = () => {
   const acFileRef = useRef<HTMLInputElement | null>(null);
   const gbFileRef = useRef<HTMLInputElement | null>(null);
 
+  const tableRef = useRef<HTMLTableElement>(null);
+
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
-
-    const filtered = acGbMomData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-
-  // Handle column-specific filters
-  const handleFilterChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    column: string
-  ) => {
-    const value = e.target.value.toLowerCase();
-    const updatedFilters = { ...filters, [column]: value };
-    setFilters(updatedFilters);
 
     const filtered = acGbMomData.filter((row) =>
       Object.values(row).some((val) =>
@@ -400,6 +390,62 @@ const AC_GB_MoM: React.FC = () => {
     },
   });
 
+  useEffect(() => {
+    if (acGbMomData.length === 0) return;
+
+    const initializeDataTable = () => {
+      const table = $("#bosDataId").DataTable({
+        destroy: true,
+        dom: "Bfrtip",
+        buttons: [
+          {
+            extend: "copy",
+          },
+          {
+            extend: "csv",
+          },
+        ],
+        columnDefs: [
+          {
+            targets: [3, 4], // Make sure indexes match actual column positions
+            visible: false,
+          },
+        ],
+        searching: false,
+        paging: false,
+      });
+
+      $(".dt-buttons").addClass("mb-3 gap-2");
+      $(".buttons-copy").addClass("btn btn-success");
+      $(".buttons-csv").addClass("btn btn-info");
+
+      // Prevent duplicate toast triggers
+      $("#bosDataId")
+        .off("buttons-action.dt")
+        .on("buttons-action.dt", function (e, buttonApi) {
+          if (buttonApi.text() === "Copy") {
+            toast.success("Copied to clipboard!");
+          }
+        });
+
+      return table;
+    };
+
+    // Delay DataTable init slightly to allow DOM updates
+    const timeout = setTimeout(() => {
+      const table = initializeDataTable();
+    }, 0);
+
+    return () => {
+      clearTimeout(timeout);
+      const existingTable = $.fn.DataTable.isDataTable("#bosDataId");
+      if (existingTable) {
+        $("#bosDataId").DataTable().destroy();
+      }
+      $("#bosDataId").off("buttons-action.dt");
+    };
+  }, [acGbMomData]);
+
   return (
     <React.Fragment>
       <div className="page-content">
@@ -643,6 +689,45 @@ const AC_GB_MoM: React.FC = () => {
                 onChange={handleSearch}
               />
             </div>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+              id="bosDataId"
+              innerRef={tableRef}
+              style={{ display: "none" }}
+            >
+              <thead className="table-dark">
+                <tr>
+                  <th>#</th>
+                  <th>Academic Year</th>
+                  <th>Date</th>
+                  <th>File</th>
+                  <th>GB File</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentRows.length > 0 ? (
+                  currentRows.map((acgb, index) => (
+                    <tr key={acgb.acGbMomId}>
+                      <td>{index + 1}</td>
+                      <td>{acgb.academicYear}</td>
+                      <td>{acgb.date}</td>
+                      <td>{acgb.filePath?.AcademicCouncilMom || "N/A"}</td>
+                      <td>{acgb.filePath?.GoverningBodyMom || "N/A"}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={4} className="text-center">
+                      No Ac & Gb Mom data available.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </Table>
             <Table
               striped
               bordered

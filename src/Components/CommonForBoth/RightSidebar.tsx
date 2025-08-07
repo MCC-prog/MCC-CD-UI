@@ -148,7 +148,7 @@ const RightSidebar = ({ toggleCanvas, show }: sidebar) => {
                 />
 
                 <label className="me-1" htmlFor="radioFluid">Fluid</label>
-                <input
+                {/* <input
                   type="radio"
                   id="radioBoxed"
                   name="radioWidth"
@@ -160,7 +160,7 @@ const RightSidebar = ({ toggleCanvas, show }: sidebar) => {
                     }
                   }}
                 />
-                <label htmlFor="radioBoxed" className="me-1">Boxed</label>
+                <label htmlFor="radioBoxed" className="me-1">Boxed</label> */}
                 <input
                   type="radio"
                   id="radioscrollable"
@@ -244,7 +244,7 @@ const RightSidebar = ({ toggleCanvas, show }: sidebar) => {
                         }
                       }} />
                     <label className="me-1" htmlFor="sidebarCompact">Compact</label>
-                    <input type="radio" id="sidebarIcon" name="sidebarType"
+                    {/* <input type="radio" id="sidebarIcon" name="sidebarType"
                       value={LEFT_SIDEBAR_TYPES.ICON}
                       checked={leftSidebarTypes === LEFT_SIDEBAR_TYPES.ICON}
                       onChange={e => {
@@ -252,7 +252,7 @@ const RightSidebar = ({ toggleCanvas, show }: sidebar) => {
                           dispatch(changeLeftSidebarType(e.target.value))
                         }
                       }} />
-                    <label className="me-1" htmlFor="sidebarIcon">Icon</label>
+                    <label className="me-1" htmlFor="sidebarIcon">Icon</label> */}
                   </div>
                   <hr className="mt-1" />
                   <div className="radio-toolbar coloropt-radio">

@@ -1,6 +1,6 @@
 import Breadcrumb from "Components/Common/Breadcrumb";
 import { useFormik } from "formik";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Select from "react-select";
 import * as Yup from "yup";
 import {
@@ -25,6 +25,14 @@ import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import { SEMESTER_NO_OPTIONS } from "Components/constants/layout";
 import { APIClient } from "../../helpers/api_helper";
+import $ from "jquery";
+import "datatables.net-bs5";
+import "datatables.net-buttons-bs5";
+import "datatables.net-buttons/js/buttons.html5.js";
+import "datatables.net-buttons/js/buttons.print.js";
+import "jszip";
+import "pdfmake/build/pdfmake";
+import "pdfmake/build/vfs_fonts";
 
 const api = new APIClient();
 
@@ -50,30 +58,16 @@ const Innovative_Teaching_Methodologies: React.FC = () => {
   const [filteredData, setFilteredData] = useState(ITMData);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+
+  const fileRef = useRef<HTMLInputElement | null>(null);
+
+  const tableRef = useRef<HTMLTableElement>(null);
+
   const rowsPerPage = 10;
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
-
-    const filtered = ITMData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-
-  // Handle column-specific filters
-  const handleFilterChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    column: string
-  ) => {
-    const value = e.target.value.toLowerCase();
-    const updatedFilters = { ...filters, [column]: value };
-    setFilters(updatedFilters);
 
     const filtered = ITMData.filter((row) =>
       Object.values(row).some((val) =>
@@ -191,8 +185,6 @@ const Innovative_Teaching_Methodologies: React.FC = () => {
       });
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
-      // Disable the file upload button if a file exists
-      setIsFileUploadDisabled(!!response.documents?.innovativePedagogy);
       toggleModal();
     } catch (error) {
       console.error("Error fetching BOS data by ID:", error);
@@ -282,7 +274,7 @@ const Innovative_Teaching_Methodologies: React.FC = () => {
     try {
       // Call the delete API
       const response = await api.delete(
-        `/innovativeTeachingMethodology/deleteInnovativeMethodDocument?innovativeMethodologyDocumentId=${editId}`,
+        `/innovativeTeachingMethodology/deleteInnovativeMethodDocument?innovativeMethodologyId=${editId}`,
         ""
       );
       // Show success message
@@ -360,18 +352,21 @@ const Innovative_Teaching_Methodologies: React.FC = () => {
           : ""
       );
       formData.append("courseTitle", values.courseName || "");
-      formData.append("innovativeTeachingMethodologyId", editId || "");
+      formData.append("innovativeMethodologyId", editId || "");
 
-      if (isEditMode) {
-        if (
-          typeof values.file === "string" || // still the original file path
-          values.file === null // or explicitly cleared
-        ) {
-          formData.append("innovativePedagogy", new Blob([]), "empty.txt");
-        } else if (values.file instanceof File) {
-          formData.append("innovativePedagogy", values.file);
-        }
-      } else if (values.file instanceof File) {
+      if (isEditMode && typeof values.file === "string") {
+        formData.append(
+          "innovativePedagogy",
+          new Blob([], { type: "application/pdf" }),
+          "empty.pdf"
+        );
+      } else if (isEditMode && values.file === null) {
+        formData.append(
+          "innovativePedagogy",
+          new Blob([], { type: "application/pdf" }),
+          "empty.pdf"
+        );
+      } else if (values.file) {
         formData.append("innovativePedagogy", values.file);
       }
       try {
@@ -398,6 +393,9 @@ const Innovative_Teaching_Methodologies: React.FC = () => {
         }
         // Reset the form fields
         resetForm();
+        if (fileRef.current) {
+          fileRef.current.value = "";
+        }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         // display the Innovative Teaching Methodologies List
@@ -414,6 +412,62 @@ const Innovative_Teaching_Methodologies: React.FC = () => {
       }
     },
   });
+
+  useEffect(() => {
+    if (ITMData.length === 0) return;
+
+    const initializeDataTable = () => {
+      const table = $("#bosDataId").DataTable({
+        destroy: true,
+        dom: "Bfrtip",
+        buttons: [
+          {
+            extend: "copy",
+          },
+          {
+            extend: "csv",
+          },
+        ],
+        columnDefs: [
+          {
+            targets: [3, 4], // Make sure indexes match actual column positions
+            visible: false,
+          },
+        ],
+        searching: false,
+        paging: false,
+      });
+
+      $(".dt-buttons").addClass("mb-3 gap-2");
+      $(".buttons-copy").addClass("btn btn-success");
+      $(".buttons-csv").addClass("btn btn-info");
+
+      // Prevent duplicate toast triggers
+      $("#bosDataId")
+        .off("buttons-action.dt")
+        .on("buttons-action.dt", function (e, buttonApi) {
+          if (buttonApi.text() === "Copy") {
+            toast.success("Copied to clipboard!");
+          }
+        });
+
+      return table;
+    };
+
+    // Delay DataTable init slightly to allow DOM updates
+    const timeout = setTimeout(() => {
+      const table = initializeDataTable();
+    }, 0);
+
+    return () => {
+      clearTimeout(timeout);
+      const existingTable = $.fn.DataTable.isDataTable("#bosDataId");
+      if (existingTable) {
+        $("#bosDataId").DataTable().destroy();
+      }
+      $("#bosDataId").off("buttons-action.dt");
+    };
+  }, [ITMData]);
 
   return (
     <React.Fragment>
@@ -555,6 +609,7 @@ const Innovative_Teaching_Methodologies: React.FC = () => {
                           );
                         }}
                         disabled={isFileUploadDisabled} // Disable the button if a file exists
+                        innerRef={fileRef}
                       />
                       {validation.touched.file && validation.errors.file && (
                         <div className="text-danger">
@@ -612,7 +667,7 @@ const Innovative_Teaching_Methodologies: React.FC = () => {
                         type="button"
                         onClick={handleListBosClick}
                       >
-                        List of Innovative Teaching Methodologies
+                        List
                       </button>
                     </div>
                   </Col>
@@ -642,6 +697,49 @@ const Innovative_Teaching_Methodologies: React.FC = () => {
               />
             </div>
 
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+              id="bosDataId"
+              innerRef={tableRef}
+              style={{ display: "none" }}
+            >
+              <thead className="table-dark">
+                <tr>
+                  <th>#</th>
+                  <th>Academic Year</th>
+                  <th>Semester Type</th>
+                  <th>Semester No</th>
+                  <th>Stream</th>
+                  <th>Program</th>
+                  <th>File Path</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentRows.length > 0 ? (
+                  currentRows.map((bos, index) => (
+                    <tr key={bos.innovativeTeachingMethodologyId}>
+                      <td>{indexOfFirstRow + index + 1}</td>
+                      <td>{bos.academicYear || "N/A"}</td>
+                      <td>{bos.semType || "N/A"}</td>
+                      <td>{bos.semesterNo || "N/A"}</td>
+                      <td>{Object.values(bos.courses).join(", ") || "N/A"}</td>
+                      <td>{bos.courseTitle || "N/A"}</td>
+                      <td>{bos.filePath?.innovativePedagogy || "N/A"}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={11} className="text-center">
+                      No Innovative Teaching Methodologies data available.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </Table>
             {/* Table with Pagination */}
             <Table
               striped

@@ -1,6 +1,6 @@
 import Breadcrumb from "Components/Common/Breadcrumb";
 import { useFormik } from "formik";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Select from "react-select";
 import * as Yup from "yup";
 import {
@@ -37,6 +37,14 @@ import { APIClient } from "../../helpers/api_helper";
 import axios from "axios";
 import { SEMESTER_NO_OPTIONS } from "Components/constants/layout";
 import GetAllProgramDropdown from "Components/DropDowns/GetAllProgramDropdown";
+import $ from "jquery";
+import "datatables.net-bs5";
+import "datatables.net-buttons-bs5";
+import "datatables.net-buttons/js/buttons.html5.js";
+import "datatables.net-buttons/js/buttons.print.js";
+import "jszip";
+import "pdfmake/build/pdfmake";
+import "pdfmake/build/vfs_fonts";
 
 const api = new APIClient();
 // Helper: Check if any field in the current tab is filled
@@ -252,6 +260,12 @@ const Student_Centric_Teaching: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
+
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  const file2Ref = useRef<HTMLInputElement | null>(null);
+  const file3Ref = useRef<HTMLInputElement | null>(null);
+
+  const tableRef = useRef<HTMLTableElement>(null);
 
   // Calculate the paginated data
   const indexOfLastRow = currentPage * rowsPerPage;
@@ -847,6 +861,15 @@ const Student_Centric_Teaching: React.FC = () => {
               });
         toast.success(response.message || "Successfully submitted!");
         resetForm();
+        if (fileRef.current) {
+          fileRef.current.value = ""; // Clear the file input
+        }
+        if (file2Ref.current) {
+          file2Ref.current.value = ""; // Clear the file input
+        }
+        if (file3Ref.current) {
+          file3Ref.current.value = ""; // Clear the file input
+        }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
       } catch (error) {
@@ -860,6 +883,62 @@ const Student_Centric_Teaching: React.FC = () => {
     activeTab === tab && touched && error ? (
       <div className="text-danger">{error}</div>
     ) : null;
+
+  useEffect(() => {
+    if (CWFData.length === 0) return;
+
+    const initializeDataTable = () => {
+      const table = $("#bosDataId").DataTable({
+        destroy: true,
+        dom: "Bfrtip",
+        buttons: [
+          {
+            extend: "copy",
+          },
+          {
+            extend: "csv",
+          },
+        ],
+        columnDefs: [
+          {
+            targets: [3, 4], // Make sure indexes match actual column positions
+            visible: false,
+          },
+        ],
+        searching: false,
+        paging: false,
+      });
+
+      $(".dt-buttons").addClass("mb-3 gap-2");
+      $(".buttons-copy").addClass("btn btn-success");
+      $(".buttons-csv").addClass("btn btn-info");
+
+      // Prevent duplicate toast triggers
+      $("#bosDataId")
+        .off("buttons-action.dt")
+        .on("buttons-action.dt", function (e, buttonApi) {
+          if (buttonApi.text() === "Copy") {
+            toast.success("Copied to clipboard!");
+          }
+        });
+
+      return table;
+    };
+
+    // Delay DataTable init slightly to allow DOM updates
+    const timeout = setTimeout(() => {
+      const table = initializeDataTable();
+    }, 0);
+
+    return () => {
+      clearTimeout(timeout);
+      const existingTable = $.fn.DataTable.isDataTable("#bosDataId");
+      if (existingTable) {
+        $("#bosDataId").DataTable().destroy();
+      }
+      $("#bosDataId").off("buttons-action.dt");
+    };
+  }, [CWFData]);
 
   return (
     <React.Fragment>
@@ -1355,6 +1434,7 @@ const Student_Centric_Teaching: React.FC = () => {
                                         : null
                                     );
                                   }}
+                                  innerRef={fileRef}
                                 />
                                 {showTabError(
                                   1,
@@ -1636,6 +1716,7 @@ const Student_Centric_Teaching: React.FC = () => {
                                         : null
                                     );
                                   }}
+                                  innerRef={file2Ref}
                                 />
                                 {showTabError(
                                   2,
@@ -1697,7 +1778,7 @@ const Student_Centric_Teaching: React.FC = () => {
                                   )}
                               </div>
                             </Col>
-                             <Col lg={4}>
+                            <Col lg={4}>
                               <div className="mb-3">
                                 <Label>Participative Learning</Label>
                                 <div>
@@ -1928,6 +2009,7 @@ const Student_Centric_Teaching: React.FC = () => {
                                         : null
                                     );
                                   }}
+                                  innerRef={file3Ref}
                                   disabled={
                                     typeof validation.values.fileProblemLg ===
                                       "string" &&
@@ -1986,7 +2068,7 @@ const Student_Centric_Teaching: React.FC = () => {
                                 )}
                               </div>
                             </Col>
-                             <Col lg={4}>
+                            <Col lg={4}>
                               <div className="mb-3">
                                 <Label>Problem Learning</Label>
                                 <div>
@@ -2017,7 +2099,7 @@ const Student_Centric_Teaching: React.FC = () => {
                         type="button"
                         onClick={handleListCWFClick}
                       >
-                        List Student Centric Teaching
+                        List
                       </button>
                     </div>
                     <div className="mt-3">
@@ -2051,7 +2133,128 @@ const Student_Centric_Teaching: React.FC = () => {
                 onChange={handleSearch}
               />
             </div>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+              id="bosDataId"
+              innerRef={tableRef}
+              style={{ display: "none" }}
+            >
+              <thead className="table-dark">
+                <tr>
+                  <th>#</th>
+                  <th>Academic Year</th>
+                  <th>Semester Type</th>
+                  <th>Semester No</th>
+                  <th>Stream</th>
+                  <th>Department</th>
+                  <th>Courses</th>
+                  <th>Course Title</th>
+                  <th>Methodology Tab</th>
 
+                  <th>EL - Case Study</th>
+                  <th>EL - Industrial Visit</th>
+                  <th>EL - Workshop</th>
+                  <th>EL - Simulation</th>
+                  <th>EL - Internship</th>
+                  <th>EL - Exhibition</th>
+                  <th>EL - Awareness Drive</th>
+                  <th>EL - Street Plays</th>
+                  <th>EL - File Path</th>
+
+                  <th>PL - Case Study</th>
+                  <th>PL - Industrial Visit</th>
+                  <th>PL - Workshop</th>
+                  <th>PL - Simulation</th>
+                  <th>PL - Internship</th>
+                  <th>PL - Exhibition</th>
+                  <th>PL - Awareness Drive</th>
+                  <th>PL - Street Plays</th>
+                  <th>PL - File Path</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {currentRows.length > 0 ? (
+                  currentRows.map((als, index) => (
+                    <tr key={als.studentCentricMethodologyId}>
+                      <td>{indexOfFirstRow + index + 1}</td>
+                      <td>{als.academicYear}</td>
+                      <td>{als.semType}</td>
+                      <td>{als.semester}</td>
+                      <td>{als.streamName}</td>
+                      <td>{als.departmentName}</td>
+                      <td>{Object.values(als.courses).join(", ")}</td>
+                      <td>{als.courseTitle}</td>
+                      <td>{als.methodologyTab}</td>
+
+                      {/* ExperientialLearningDto */}
+                      <td>{als.experientialLearningDto?.caseStudy || "N/A"}</td>
+                      <td>
+                        {als.experientialLearningDto?.industrialVisit || "N/A"}
+                      </td>
+                      <td>{als.experientialLearningDto?.workShop || "N/A"}</td>
+                      <td>
+                        {als.experientialLearningDto?.simulation || "N/A"}
+                      </td>
+                      <td>
+                        {als.experientialLearningDto?.internship || "N/A"}
+                      </td>
+                      <td>
+                        {als.experientialLearningDto?.exhibition || "N/A"}
+                      </td>
+                      <td>
+                        {als.experientialLearningDto?.awarenessDrive || "N/A"}
+                      </td>
+                      <td>
+                        {als.experientialLearningDto?.streetPlays || "N/A"}
+                      </td>
+                      <td>
+                        {als.experientialLearningDto?.filePath
+                          ?.ExperientialLearning || "N/A"}
+                      </td>
+
+                      {/* ParticipativeLearningDto */}
+                      <td>
+                        {als.participativeLearningDto?.caseStudy || "N/A"}
+                      </td>
+                      <td>
+                        {als.participativeLearningDto?.industrialVisit || "N/A"}
+                      </td>
+                      <td>{als.participativeLearningDto?.workShop || "N/A"}</td>
+                      <td>
+                        {als.participativeLearningDto?.simulation || "N/A"}
+                      </td>
+                      <td>
+                        {als.participativeLearningDto?.internship || "N/A"}
+                      </td>
+                      <td>
+                        {als.participativeLearningDto?.exhibition || "N/A"}
+                      </td>
+                      <td>
+                        {als.participativeLearningDto?.awarenessDrive || "N/A"}
+                      </td>
+                      <td>
+                        {als.participativeLearningDto?.streetPlays || "N/A"}
+                      </td>
+                      <td>
+                        {als.participativeLearningDto?.filePath
+                          ?.ParticipativeLearning || "N/A"}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={27} className="text-center">
+                      No Advanced Learners data available.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </Table>
             {/* Table with Pagination */}
             <Table
               striped

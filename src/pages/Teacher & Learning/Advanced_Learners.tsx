@@ -1,6 +1,6 @@
 import Breadcrumb from "Components/Common/Breadcrumb";
 import { useFormik } from "formik";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Select from "react-select";
 import * as Yup from "yup";
 import {
@@ -36,6 +36,14 @@ import { s } from "@fullcalendar/core/internal-common";
 import DegreeDropdown from "Components/DropDowns/DegreeDropdown";
 import { SEMESTER_NO_OPTIONS } from "Components/constants/layout";
 import axios from "axios";
+import $ from "jquery";
+import "datatables.net-bs5";
+import "datatables.net-buttons-bs5";
+import "datatables.net-buttons/js/buttons.html5.js";
+import "datatables.net-buttons/js/buttons.print.js";
+import "jszip";
+import "pdfmake/build/pdfmake";
+import "pdfmake/build/vfs_fonts";
 
 const api = new APIClient();
 
@@ -188,6 +196,8 @@ const Advanced_Learners: React.FC = () => {
   const [peerTeachingId, setPeerTeachingId] = useState<number | null>(null);
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
   const [editResData, setEditResData] = useState<any>(null);
+
+  const tableRef = useRef<HTMLTableElement>(null);
 
   const clearTabFields = async (validation: any, tab: number | null) => {
     try {
@@ -933,6 +943,58 @@ const Advanced_Learners: React.FC = () => {
     activeTab === tab && touched && error ? (
       <div className="text-danger">{error}</div>
     ) : null;
+
+  useEffect(() => {
+    if (advancedLearnerData.length === 0) return;
+
+    const table = $("#advanceLearnerId").DataTable({
+      destroy: true,
+      dom: "Bfrtip",
+      buttons: [
+        {
+          extend: "copy",
+          exportOptions: {
+            columns: ":not(:last-child)",
+          },
+        },
+        {
+          extend: "csv",
+          exportOptions: {
+            columns: ":not(:last-child)",
+          },
+        },
+      ],
+      columnDefs: [
+        {
+          targets: [3, 4], // adjust as per actual hidden column indexes
+          visible: false,
+        },
+      ],
+      searching: false,
+      paging: false,
+    });
+
+    $(".dt-buttons").addClass("mb-3 gap-2");
+    $(".buttons-copy").addClass("btn btn-success");
+    $(".buttons-csv").addClass("btn btn-info");
+
+    // ✅ Prevent multiple event bindings
+    $("#advanceLearnerId")
+      .off("buttons-action.dt")
+      .on(
+        "buttons-action.dt",
+        function (e, buttonApi, dataTable, node, config) {
+          if (buttonApi.text() === "Copy") {
+            toast.success("Copied to clipboard!");
+          }
+        }
+      );
+
+    return () => {
+      table.destroy();
+      $("#advanceLearnerId").off("buttons-action.dt"); // clean up listener too
+    };
+  }, [advancedLearnerData]);
 
   return (
     <React.Fragment>
@@ -1782,6 +1844,98 @@ const Advanced_Learners: React.FC = () => {
             </div>
 
             {/* Table with Pagination */}
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+              id="advanceLearnerId"
+              innerRef={tableRef}
+              style={{ display: "none" }}
+            >
+              <thead className="table-dark">
+                <tr>
+                  <th>#</th>
+                  <th>Academic Year</th>
+                  <th>Semester Type</th>
+                  <th>Semester No</th>
+                  <th>Stream</th>
+                  <th>Department</th>
+                  <th>Program Type</th>
+                  <th>Program</th>
+                  <th>AdvanceLearnerType</th>
+                  <th>Project Title</th>
+                  <th>Duration</th>
+                  <th>Type of Project</th>
+                  <th>Guide Name</th>
+                  <th>Type</th>
+                  <th>Amount</th>
+                  <th> Project Sanction Letter(File Path)</th>{" "}
+                  <th>Synopsis Letter(File Path)</th> <th>Course</th>
+                  <th>Mentorship</th>
+                  <th>Register Number</th>
+                  <th>Teacher Co-Ordinator</th>
+                  <th>Peer Teaching(File Path)</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentRows.length > 0 ? (
+                  currentRows.map((als, index) => (
+                    <tr key={als.advanceLearnerId}>
+                      <td>{indexOfFirstRow + index + 1}</td>
+                      <td>{als.academicYear}</td>
+                      <td>{als.semType}</td>
+                      <td>{als.semesterNo}</td>
+                      <td>{als.streamName}</td>
+                      <td>{als.departmentName}</td>
+                      <td>{als.programTypeName}</td>
+                      <td>{als.programName}</td>
+                      <td>{als.advanceLearnerType}</td>
+
+                      <td>{als.researchProjectDto?.projectTitle || "N/A"}</td>
+
+                      <td>{als.researchProjectDto?.duration || "N/A"}</td>
+                      <td>{als.researchProjectDto?.typeOfProject || "N/A"}</td>
+                      <td>{als.researchProjectDto?.guideName || "N/A"}</td>
+                      <td>{als.researchProjectDto?.fundType || "N/A"}</td>
+                      <td>{als.researchProjectDto?.amount || "N/A"}</td>
+
+                      <td>{als.filePath?.projectSanctionLetter || "N/A"}</td>
+                      <td>{als.filePath?.synopsisReport || "N/A"}</td>
+                      <td>{als.peerTeachingDto?.courseTitle || "N/A"}</td>
+                      <td>{als.peerTeachingDto?.mentorship || "N/A"}</td>
+                      <td>{als.peerTeachingDto?.registerNo || "N/A"}</td>
+                      <td>{als.teacherCordinator || "N/A"}</td>
+                      <td>{als.filePath?.peerTeaching || "N/A"}</td>
+                      <td>
+                        <div className="d-flex justify-content-center gap-2">
+                          <button
+                            className="btn btn-sm btn-warning"
+                            onClick={() => handleEdit(als.advanceLearnerId)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="btn btn-sm btn-danger"
+                            onClick={() => handleDelete(als.advanceLearnerId)}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={11} className="text-center">
+                      No Advanced Learners data available.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </Table>
             <Table
               striped
               bordered

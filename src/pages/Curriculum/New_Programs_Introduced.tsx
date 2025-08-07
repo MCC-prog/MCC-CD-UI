@@ -1,6 +1,6 @@
 import Breadcrumb from "Components/Common/Breadcrumb";
 import { useFormik } from "formik";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Select from "react-select";
 import * as Yup from "yup";
 import { Card, CardBody, Col, Container, Input, Label, Row } from "reactstrap";
@@ -24,6 +24,15 @@ import { toast } from "react-toastify";
 import { ToastContainer } from "react-toastify";
 import axios from "axios";
 import moment from "moment";
+import $ from "jquery";
+import "datatables.net-bs5";
+import "datatables.net-buttons-bs5";
+import "datatables.net-buttons/js/buttons.html5.js";
+import "datatables.net-buttons/js/buttons.print.js";
+import "jszip";
+import "pdfmake/build/pdfmake";
+import "pdfmake/build/vfs_fonts";
+
 const api = new APIClient();
 
 const New_Programs_Introduced: React.FC = () => {
@@ -34,7 +43,7 @@ const New_Programs_Introduced: React.FC = () => {
   const [editId, setEditId] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  // State variable for managing the list of BOS data
+  // State variable for managing the list of New Program Introduced data
   const [bosData, setBosData] = useState<any[]>([]);
   const [filteredData, setFilteredData] = useState(bosData);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -57,6 +66,8 @@ const New_Programs_Introduced: React.FC = () => {
 
   const fileRef = useRef<HTMLInputElement | null>(null);
   const sylRef = useRef<HTMLInputElement | null>(null);
+
+  const tableRef = useRef<HTMLTableElement>(null);
 
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -105,19 +116,19 @@ const New_Programs_Introduced: React.FC = () => {
   // Calculate total pages
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
-  // Toggle the modal for listing BOS
+  // Toggle the modal for listing New Program Introduced
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };
 
-  // Fetch BOS data from the backend
+  // Fetch New Program Introduced data from the backend
   const fetchBosData = async () => {
     try {
       const response = await api.get("/newProgram/getAllNewProgram", "");
       setBosData(response);
       setFilteredData(response);
     } catch (error) {
-      console.error("Error fetching BOS data:", error);
+      console.error("Error fetching New Program Introduced data:", error);
     }
   };
 
@@ -174,7 +185,7 @@ const New_Programs_Introduced: React.FC = () => {
   };
 
   // Handle edit action
-  // Fetch the data for the selected BOS ID and populate the form fields
+  // Fetch the data for the selected New Program Introduced ID and populate the form fields
   const handleEdit = async (id: string) => {
     try {
       const response = await api.get(`/newProgram/edit?newProgramId=${id}`, "");
@@ -264,7 +275,7 @@ const New_Programs_Introduced: React.FC = () => {
       setEditId(id); // Store the ID of the record being edited
       toggleModal();
     } catch (error) {
-      console.error("Error fetching BOS data by ID:", error);
+      console.error("Error fetching New Program Introduced data by ID:", error);
     }
   };
 
@@ -276,7 +287,7 @@ const New_Programs_Introduced: React.FC = () => {
   };
 
   // Confirm deletion of the record
-  // Call the delete API and refresh the BOS data
+  // Call the delete API and refresh the New Program Introduced data
   const confirmDelete = async (id: string) => {
     if (deleteId) {
       try {
@@ -292,7 +303,7 @@ const New_Programs_Introduced: React.FC = () => {
         toast.error(
           "Failed to remove New Program Introduced. Please try again."
         );
-        console.error("Error deleting BOS:", error);
+        console.error("Error deleting New Program Introduced:", error);
       } finally {
         setIsDeleteModalOpen(false);
         setDeleteId(null);
@@ -528,11 +539,66 @@ const New_Programs_Introduced: React.FC = () => {
       } catch (error) {
         // Display error message
         toast.error("Failed to save New Program Introduced. Please try again.");
-        console.error("Error creating BOS:", error);
+        console.error("Error creating New Program Introduced:", error);
       }
     },
   });
 
+  useEffect(() => {
+    if (bosData.length === 0) return;
+
+    const initializeDataTable = () => {
+      const table = $("#bosDataId").DataTable({
+        destroy: true,
+        dom: "Bfrtip",
+        buttons: [
+          {
+            extend: "copy"
+          },
+          {
+            extend: "csv"
+          },
+        ],
+        columnDefs: [
+          {
+            targets: [3, 4], // Make sure indexes match actual column positions
+            visible: false,
+          },
+        ],
+        searching: false,
+        paging: false,
+      });
+
+      $(".dt-buttons").addClass("mb-3 gap-2");
+      $(".buttons-copy").addClass("btn btn-success");
+      $(".buttons-csv").addClass("btn btn-info");
+
+      // Prevent duplicate toast triggers
+      $("#bosDataId")
+        .off("buttons-action.dt")
+        .on("buttons-action.dt", function (e, buttonApi) {
+          if (buttonApi.text() === "Copy") {
+            toast.success("Copied to clipboard!");
+          }
+        });
+
+      return table;
+    };
+
+    // Delay DataTable init slightly to allow DOM updates
+    const timeout = setTimeout(() => {
+      const table = initializeDataTable();
+    }, 0);
+
+    return () => {
+      clearTimeout(timeout);
+      const existingTable = $.fn.DataTable.isDataTable("#bosDataId");
+      if (existingTable) {
+        $("#bosDataId").DataTable().destroy();
+      }
+      $("#bosDataId").off("buttons-action.dt");
+    };
+  }, [bosData]);
   return (
     <React.Fragment>
       <div className="page-content">
@@ -977,16 +1043,14 @@ const New_Programs_Introduced: React.FC = () => {
                   <Col lg={12}>
                     <div className="mt-3 d-flex justify-content-between">
                       <button className="btn btn-primary" type="submit">
-                        {isEditMode
-                          ? "Update New Program Introduced"
-                          : "Save New Program Introduced"}
+                        {isEditMode ? "Update " : "Save "}
                       </button>
                       <button
                         className="btn btn-secondary"
                         type="button"
                         onClick={handleListNPIClick}
                       >
-                        List New Program Introduced
+                        List
                       </button>
                     </div>
                   </Col>
@@ -995,14 +1059,16 @@ const New_Programs_Introduced: React.FC = () => {
             </CardBody>
           </Card>
         </Container>
-        {/* Modal for Listing BOS */}
+        {/* Modal for Listing New Program Introduced */}
         <Modal
           isOpen={isModalOpen}
           toggle={toggleModal}
           size="lg"
           style={{ maxWidth: "100%", width: "auto" }}
         >
-          <ModalHeader toggle={toggleModal}>List BOS</ModalHeader>
+          <ModalHeader toggle={toggleModal}>
+            List New Program Introduced
+          </ModalHeader>
           <ModalBody>
             {/* Global Search */}
             <div className="mb-3">
@@ -1013,7 +1079,59 @@ const New_Programs_Introduced: React.FC = () => {
                 onChange={handleSearch}
               />
             </div>
-
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+              id="bosDataId"
+              innerRef={tableRef}
+              style={{ display: "none" }}
+            >
+              <thead className="table-dark">
+                <tr>
+                  <th>#</th>
+                  <th>Academic Year</th>
+                  <th>Semester Type</th>
+                  <th>Semester No</th>
+                  <th>Stream</th>
+                  <th>Department</th>
+                  <th>Program Type</th>
+                  <th>Degree</th>
+                  <th>Program Name</th>
+                  <th>Introduction Year</th>
+                  <th>MOM (File Path)</th>
+                  <th>Syllabus (File Path)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentRows.length > 0 ? (
+                  currentRows.map((npi, index) => (
+                    <tr key={npi.newProgramId}>
+                      <td>{indexOfFirstRow + index + 1}</td>
+                      <td>{npi.academicYear}</td>
+                      <td>{npi.semType}</td>
+                      <td>{npi.semesterNo}</td>
+                      <td>{npi.streamName}</td>
+                      <td>{npi.departmentName}</td>
+                      <td>{npi.programTypeName}</td>
+                      <td>{npi.degreeName}</td>
+                      <td>{npi.programName}</td>
+                      <td>{npi.introductionYear}</td>
+                      <td>{npi.filePath?.mom || "N/A"}</td>
+                      <td>{npi.filePath?.syllabus || "N/A"}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={11} className="text-center">
+                      No New Program Introduced data available.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </Table>
             {/* Table with Pagination */}
             <Table
               striped
@@ -1072,7 +1190,7 @@ const New_Programs_Introduced: React.FC = () => {
                 ) : (
                   <tr>
                     <td colSpan={11} className="text-center">
-                      No BOS data available.
+                      No New Program Introduced data available.
                     </td>
                   </tr>
                 )}
@@ -1080,13 +1198,15 @@ const New_Programs_Introduced: React.FC = () => {
             </Table>
             {/* Pagination Controls */}
             <div className="d-flex justify-content-between align-items-center mt-3">
-              <Button
-                color="primary"
-                disabled={currentPage === 1}
-                onClick={() => handlePageChange(currentPage - 1)}
-              >
-                Previous
-              </Button>
+              <div className="d-flex gap-2">
+                <Button
+                  color="primary"
+                  disabled={currentPage === 1}
+                  onClick={() => handlePageChange(currentPage - 1)}
+                >
+                  Previous
+                </Button>
+              </div>
               <div>
                 Page {currentPage} of {totalPages}
               </div>

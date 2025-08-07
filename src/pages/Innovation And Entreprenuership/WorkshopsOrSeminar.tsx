@@ -8,7 +8,7 @@ import SemesterDropdowns from "Components/DropDowns/SemesterDropdowns";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { ToastContainer } from "react-toastify";
 import { useFormik } from "formik";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -32,6 +32,13 @@ import { SEMESTER_NO_OPTIONS } from "../../Components/constants/layout";
 import axios from "axios";
 import moment from "moment";
 import Select from "react-select";
+import $ from "jquery";
+import "datatables.net-bs5";
+import "datatables.net-buttons-bs5";
+import "datatables.net-buttons/js/buttons.html5.js";
+import "jszip";
+import "pdfmake/build/pdfmake";
+import "pdfmake/build/vfs_fonts";
 
 const api = new APIClient();
 
@@ -74,6 +81,7 @@ const WorkshopsOrSeminars: React.FC = () => {
   const [filteredData, setFilteredData] = useState(wosData);
 
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const tableRef = useRef<HTMLTableElement>(null);
 
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -485,6 +493,47 @@ const WorkshopsOrSeminars: React.FC = () => {
       }
     },
   });
+
+  useEffect(() => {
+    if (wosData.length === 0) return; // wait until data is loaded
+
+    const table = $("#id").DataTable({
+      destroy: true,
+      scrollX: true,
+      autoWidth: false,
+      dom: "Bfrtip",
+      buttons: [
+        {
+          extend: "copy",
+          exportOptions: {
+            columns: ":not(:last-child)", // skip Actions column
+          },
+        },
+        {
+          extend: "csv",
+          exportOptions: {
+            columns: ":not(:last-child)",
+          },
+        },
+      ],
+    });
+    $(".dt-buttons").addClass("mb-3 gap-2");
+    $(".buttons-copy").addClass("btn btn-success");
+    $(".buttons-csv").addClass("btn btn-info");
+
+    $("#id").on(
+      "buttons-action.dt",
+      function (e, buttonApi, dataTable, node, config) {
+        if (buttonApi.text() === "Copy") {
+          toast.success("Copied to clipboard!");
+        }
+      }
+    );
+
+    return () => {
+      table.destroy(); // clean up
+    };
+  }, [wosData]);
 
   return (
     <React.Fragment>
@@ -924,7 +973,7 @@ const WorkshopsOrSeminars: React.FC = () => {
                         type="button"
                         onClick={handleListWOSClick}
                       >
-                        List Workshops Or Seminars Conducted
+                        List
                       </button>
                     </div>
                   </Col>
@@ -944,24 +993,7 @@ const WorkshopsOrSeminars: React.FC = () => {
             List Workshops Or Seminars Conducted
           </ModalHeader>
           <ModalBody>
-            {/* Global Search */}
-            <div className="mb-3">
-              <Input
-                type="text"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={handleSearch}
-              />
-            </div>
-
-            {/* Table with Pagination */}
-            <Table
-              striped
-              bordered
-              hover
-              responsive
-              className="align-middle text-center"
-            >
+            <Table striped bordered hover id="id" innerRef={tableRef}>
               <thead className="table-dark">
                 <tr>
                   <th>#</th>
@@ -976,6 +1008,7 @@ const WorkshopsOrSeminars: React.FC = () => {
                   <th>Organized By</th>
                   <th>From Date</th>
                   <th>To Date</th>
+                  <th className="d-none">File Path</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -995,6 +1028,9 @@ const WorkshopsOrSeminars: React.FC = () => {
                       <td>{wos.organizedBy}</td>
                       <td>{wos.fromDate}</td>
                       <td>{wos.toDate}</td>
+                      <td className="d-none">
+                        {wos.filePath?.Workshops || "N/A"}
+                      </td>
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
@@ -1022,26 +1058,6 @@ const WorkshopsOrSeminars: React.FC = () => {
                 )}
               </tbody>
             </Table>
-            {/* Pagination Controls */}
-            <div className="d-flex justify-content-between align-items-center mt-3">
-              <Button
-                color="primary"
-                disabled={currentPage === 1}
-                onClick={() => handlePageChange(currentPage - 1)}
-              >
-                Previous
-              </Button>
-              <div>
-                Page {currentPage} of {totalPages}
-              </div>
-              <Button
-                color="primary"
-                disabled={currentPage === totalPages}
-                onClick={() => handlePageChange(currentPage + 1)}
-              >
-                Next
-              </Button>
-            </div>
           </ModalBody>
         </Modal>
         {/* Confirmation Modal */}

@@ -9,7 +9,7 @@ import ProgramTypeDropdown from "Components/DropDowns/ProgramTypeDropdown";
 import SemesterDropdowns from "Components/DropDowns/SemesterDropdowns";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { useFormik } from "formik";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -29,6 +29,14 @@ import * as Yup from "yup";
 import { APIClient } from "../../helpers/api_helper";
 import { toast, ToastContainer } from "react-toastify";
 import moment from "moment";
+import $ from "jquery";
+import "datatables.net-bs5";
+import "datatables.net-buttons-bs5";
+import "datatables.net-buttons/js/buttons.html5.js";
+import "datatables.net-buttons/js/buttons.print.js";
+import "jszip";
+import "pdfmake/build/pdfmake";
+import "pdfmake/build/vfs_fonts";
 
 const api = new APIClient();
 const Value_Added_Program: React.FC = () => {
@@ -43,49 +51,17 @@ const Value_Added_Program: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
-  // State variable for managing filters
-  const [filters, setFilters] = useState({
-    academicYear: "",
-    stream: "",
-    noOfCredits: "",
-    startDate: "",
-    studentName: "",
-    registerNumber: "",
-    courseTitle: "",
-    NumberOfStudentsEnrl: "",
-    NumberOfStudentsCompleted: "",
-    endDate: "",
-    resourcePerson: "",
-    hostingInstOrg: "",
-  });
   const [filteredData, setFilteredData] = useState(vapData);
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
 
   const fileRef = useRef<HTMLInputElement | null>(null);
 
+  const tableRef = useRef<HTMLTableElement>(null);
+
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
-
-    const filtered = vapData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-
-  // Handle column-specific filters
-  const handleFilterChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    column: string
-  ) => {
-    const value = e.target.value.toLowerCase();
-    const updatedFilters = { ...filters, [column]: value };
-    setFilters(updatedFilters);
 
     const filtered = vapData.filter((row) =>
       Object.values(row).some((val) =>
@@ -491,6 +467,62 @@ const Value_Added_Program: React.FC = () => {
       }
     },
   });
+
+  useEffect(() => {
+    if (vapData.length === 0) return;
+
+    const initializeDataTable = () => {
+      const table = $("#bosDataId").DataTable({
+        destroy: true,
+        dom: "Bfrtip",
+        buttons: [
+          {
+            extend: "copy",
+          },
+          {
+            extend: "csv",
+          },
+        ],
+        columnDefs: [
+          {
+            targets: [3, 4], // Make sure indexes match actual column positions
+            visible: false,
+          },
+        ],
+        searching: false,
+        paging: false,
+      });
+
+      $(".dt-buttons").addClass("mb-3 gap-2");
+      $(".buttons-copy").addClass("btn btn-success");
+      $(".buttons-csv").addClass("btn btn-info");
+
+      // Prevent duplicate toast triggers
+      $("#bosDataId")
+        .off("buttons-action.dt")
+        .on("buttons-action.dt", function (e, buttonApi) {
+          if (buttonApi.text() === "Copy") {
+            toast.success("Copied to clipboard!");
+          }
+        });
+
+      return table;
+    };
+
+    // Delay DataTable init slightly to allow DOM updates
+    const timeout = setTimeout(() => {
+      const table = initializeDataTable();
+    }, 0);
+
+    return () => {
+      clearTimeout(timeout);
+      const existingTable = $.fn.DataTable.isDataTable("#bosDataId");
+      if (existingTable) {
+        $("#bosDataId").DataTable().destroy();
+      }
+      $("#bosDataId").off("buttons-action.dt");
+    };
+  }, [vapData]);
 
   return (
     <React.Fragment>
@@ -1012,6 +1044,74 @@ const Value_Added_Program: React.FC = () => {
         >
           <ModalHeader toggle={toggleModal}>List</ModalHeader>
           <ModalBody>
+            <div className="mb-3">
+              <Input
+                type="text"
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={handleSearch}
+              />
+            </div>
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+              id="bosDataId"
+              innerRef={tableRef}
+              style={{ display: "none" }}
+            >
+              <thead className="table-dark">
+                <tr>
+                  <th>#</th>
+                  <th>Academic Year</th>
+                  <th>Stream Name</th>
+                  <th>Department Name</th>
+                  <th>Student Name</th>
+                  <th>Register No</th>
+                  <th>Course Title</th>
+                  <th>No of Students Enrolled</th>
+                  <th>No of Students Completed</th>
+                  <th>Start Date</th>
+                  <th>End Date</th>
+                  <th>Resource Person</th>
+                  <th>Organization</th>
+                  <th>No. of Credits</th>
+                  <th>File Path</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentRows.length > 0 ? (
+                  currentRows.map((vap, index) => (
+                    <tr key={vap.bosDataId}>
+                      <td>{index + 1}</td>
+                      <td>{vap.academicYear}</td>
+                      <td>{vap.streamName}</td>
+                      <td>{vap.departmentName}</td>
+                      <td>{vap.studentName}</td>
+                      <td>{vap.registerNo}</td>
+                      <td>{vap.courseTitle}</td>
+                      <td>{vap.noOfStudentsEnrolled}</td>
+                      <td>{vap.noOfStudentsCompleted}</td>
+                      <td>{vap.startDate}</td>
+                      <td>{vap.endDate}</td>
+                      <td>{vap.resourcePerson}</td>
+                      <td>{vap.organization}</td>
+                      <td>{vap.noOfCredits}</td>
+                      <td>{vap.filePath?.valueAddedCourse || "N/A"}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={15} className="text-center">
+                      No BOS data available.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </Table>
+
             <Table
               striped
               bordered

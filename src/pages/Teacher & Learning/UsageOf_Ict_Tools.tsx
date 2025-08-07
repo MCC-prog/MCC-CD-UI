@@ -8,7 +8,7 @@ import ProgramTypeDropdown from "Components/DropDowns/ProgramTypeDropdown";
 import SemesterDropdowns from "Components/DropDowns/SemesterDropdowns";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { useFormik } from "formik";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import {
   Button,
@@ -27,6 +27,14 @@ import {
 } from "reactstrap";
 import * as Yup from "yup";
 import { APIClient } from "../../helpers/api_helper";
+import $ from "jquery";
+import "datatables.net-bs5";
+import "datatables.net-buttons-bs5";
+import "datatables.net-buttons/js/buttons.html5.js";
+import "datatables.net-buttons/js/buttons.print.js";
+import "jszip";
+import "pdfmake/build/pdfmake";
+import "pdfmake/build/vfs_fonts";
 
 const api = new APIClient();
 
@@ -56,6 +64,8 @@ const UsageOf_Ict_Tools: React.FC = () => {
     percentage: "",
   });
   const [filteredData, setFilteredData] = useState(bosData);
+
+  const tableRef = useRef<HTMLTableElement>(null);
 
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -259,12 +269,68 @@ const UsageOf_Ict_Tools: React.FC = () => {
     },
   });
 
+  useEffect(() => {
+    if (bosData.length === 0) return;
+
+    const initializeDataTable = () => {
+      const table = $("#bosDataId").DataTable({
+        destroy: true,
+        dom: "Bfrtip",
+        buttons: [
+          {
+            extend: "copy",
+          },
+          {
+            extend: "csv",
+          },
+        ],
+        columnDefs: [
+          {
+            targets: [3], // Make sure indexes match actual column positions
+            visible: false,
+          },
+        ],
+        searching: false,
+        paging: false,
+      });
+
+      $(".dt-buttons").addClass("mb-3 gap-2");
+      $(".buttons-copy").addClass("btn btn-success");
+      $(".buttons-csv").addClass("btn btn-info");
+
+      // Prevent duplicate toast triggers
+      $("#bosDataId")
+        .off("buttons-action.dt")
+        .on("buttons-action.dt", function (e, buttonApi) {
+          if (buttonApi.text() === "Copy") {
+            toast.success("Copied to clipboard!");
+          }
+        });
+
+      return table;
+    };
+
+    // Delay DataTable init slightly to allow DOM updates
+    const timeout = setTimeout(() => {
+      const table = initializeDataTable();
+    }, 0);
+
+    return () => {
+      clearTimeout(timeout);
+      const existingTable = $.fn.DataTable.isDataTable("#bosDataId");
+      if (existingTable) {
+        $("#bosDataId").DataTable().destroy();
+      }
+      $("#bosDataId").off("buttons-action.dt");
+    };
+  }, [bosData]);
+
   return (
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
           <Breadcrumb
-            title="Usage of Ict tools"
+            title="Teacher & Learning"
             breadcrumbItem="Usage of Ict tools"
           />
           <Card style={{ minHeight: "300px", overflow: "visible" }}>
@@ -379,7 +445,9 @@ const UsageOf_Ict_Tools: React.FC = () => {
           size="lg"
           style={{ maxWidth: "100%", width: "auto" }}
         >
-          <ModalHeader toggle={toggleModal}>List BOS</ModalHeader>
+          <ModalHeader toggle={toggleModal}>
+            List Usage of Ict tools
+          </ModalHeader>
           <ModalBody>
             {/* Global Search */}
             <div className="mb-3">
@@ -390,7 +458,43 @@ const UsageOf_Ict_Tools: React.FC = () => {
                 onChange={handleSearch}
               />
             </div>
-
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+              id="bosDataId"
+              innerRef={tableRef}
+              style={{ display: "none" }}
+            >
+              <thead className="table-dark">
+                <tr>
+                  <th>#</th>
+                  <th>Stream</th>
+                  <th>Department</th>
+                  <th>Name of the tool</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentRows.length > 0 ? (
+                  currentRows.map((bos, index) => (
+                    <tr key={bos.bosDataId}>
+                      <td>{indexOfFirstRow + index + 1}</td>
+                      <td>{bos.streamName}</td>
+                      <td>{bos.departmentName}</td>
+                      <td>{bos.toolName}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={11} className="text-center">
+                      No BOS data available.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </Table>
             {/* Table with Pagination */}
             <Table
               striped

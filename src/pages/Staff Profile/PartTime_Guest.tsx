@@ -6,7 +6,7 @@ import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
 import Select from "react-select";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { useFormik } from "formik";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -26,7 +26,13 @@ import * as Yup from "yup";
 import { APIClient } from "../../helpers/api_helper";
 import { toast, ToastContainer } from "react-toastify";
 import moment from "moment";
-
+import $ from "jquery";
+import "datatables.net-bs5";
+import "datatables.net-buttons-bs5";
+import "datatables.net-buttons/js/buttons.html5.js";
+import "jszip";
+import "pdfmake/build/pdfmake";
+import "pdfmake/build/vfs_fonts";
 const api = new APIClient();
 
 const PartTime_Guest: React.FC = () => {
@@ -41,54 +47,10 @@ const PartTime_Guest: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
   const [filteredData, setFilteredData] = useState(bosData);
-  const [filters, setFilters] = useState({
-    facultyType: "",
-    name: "",
-    stream: "",
-    department: "",
-    designation: "",
-    qualification: "",
-    vidwaanId: "",
-    dateOfJoining: "",
-    academicExp: "",
-    industryExp: "",
-  });
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const tableRef = useRef<HTMLTableElement>(null);
 
-  // Handle global search
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toLowerCase();
-    setSearchTerm(value);
-
-    const filtered = bosData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-
-  // Handle column-specific filters
-  const handleFilterChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    column: string
-  ) => {
-    const value = e.target.value.toLowerCase();
-    const updatedFilters = { ...filters, [column]: value };
-    setFilters(updatedFilters);
-
-    const filtered = bosData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
 
   // Calculate the paginated data
   const indexOfLastRow = currentPage * rowsPerPage;
@@ -349,6 +311,47 @@ const PartTime_Guest: React.FC = () => {
       }
     },
   });
+
+  useEffect(() => {
+    if (bosData.length === 0) return; // wait until data is loaded
+
+    const table = $("#id").DataTable({
+      destroy: true,
+      scrollX: true,
+      autoWidth: false,
+      dom: "Bfrtip",
+      buttons: [
+        {
+          extend: "copy",
+          exportOptions: {
+            columns: ":not(:last-child)", // skip Actions column
+          },
+        },
+        {
+          extend: "csv",
+          exportOptions: {
+            columns: ":not(:last-child)",
+          },
+        },
+      ],
+    });
+    $(".dt-buttons").addClass("mb-3 gap-2");
+    $(".buttons-copy").addClass("btn btn-success");
+    $(".buttons-csv").addClass("btn btn-info");
+
+    $("#id").on(
+      "buttons-action.dt",
+      function (e, buttonApi, dataTable, node, config) {
+        if (buttonApi.text() === "Copy") {
+          toast.success("Copied to clipboard!");
+        }
+      }
+    );
+
+    return () => {
+      table.destroy(); // clean up
+    };
+  }, [bosData]);
 
   return (
     <React.Fragment>
@@ -703,26 +706,12 @@ const PartTime_Guest: React.FC = () => {
           isOpen={isModalOpen}
           toggle={toggleModal}
           size="lg"
-          style={{ maxWidth: "90%" }}
+          style={{ maxWidth: "100%", width: "auto" }}
         >
-          <ModalHeader toggle={toggleModal}>List Teacher Details</ModalHeader>
+          <ModalHeader toggle={toggleModal}>List Part-Time/Guest Faculty</ModalHeader>
           <ModalBody>
             {/* Global Search */}
-            <div className="mb-3">
-              <Input
-                type="text"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={handleSearch}
-              />
-            </div>
-            <Table
-              striped
-              bordered
-              hover
-              responsive
-              className="align-middle text-center"
-            >
+            <Table striped bordered hover id="id" innerRef={tableRef}>
               <thead className="table-dark">
                 <tr>
                   <th>#</th>
@@ -733,6 +722,9 @@ const PartTime_Guest: React.FC = () => {
                   <th>Designation</th>
                   <th>Qualification</th>
                   <th>VIDWAAN ID</th>
+                  <th className="d-none">Date of Joining</th>
+                  <th className="d-none">Academic Exp (%)</th>
+                  <th className="d-none">Industry Exp (%)</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -748,6 +740,9 @@ const PartTime_Guest: React.FC = () => {
                       <td>{bos.designation}</td>
                       <td>{bos.qualification}</td>
                       <td>{bos.vidwanId}</td>
+                      <td className="d-none">{bos.joiningDate} </td>
+                      <td className="d-none">{bos.academicExperience}</td>
+                      <td className="d-none">{bos.industrialExperience}</td>
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
@@ -775,26 +770,6 @@ const PartTime_Guest: React.FC = () => {
                 )}
               </tbody>
             </Table>
-            {/* Pagination Controls */}
-            <div className="d-flex justify-content-between align-items-center mt-3">
-              <Button
-                color="primary"
-                disabled={currentPage === 1}
-                onClick={() => handlePageChange(currentPage - 1)}
-              >
-                Previous
-              </Button>
-              <div>
-                Page {currentPage} of {totalPages}
-              </div>
-              <Button
-                color="primary"
-                disabled={currentPage === totalPages}
-                onClick={() => handlePageChange(currentPage + 1)}
-              >
-                Next
-              </Button>
-            </div>
           </ModalBody>
         </Modal>
         <Modal

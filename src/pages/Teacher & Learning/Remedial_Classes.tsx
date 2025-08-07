@@ -1,6 +1,6 @@
 import Breadcrumb from "Components/Common/Breadcrumb";
 import { useFormik } from "formik";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Select from "react-select";
 import * as Yup from "yup";
 import {
@@ -35,6 +35,14 @@ import { toast, ToastContainer } from "react-toastify";
 import { APIClient } from "../../helpers/api_helper";
 import axios from "axios";
 import { SEMESTER_NO_OPTIONS } from "Components/constants/layout";
+import $ from "jquery";
+import "datatables.net-bs5";
+import "datatables.net-buttons-bs5";
+import "datatables.net-buttons/js/buttons.html5.js";
+import "datatables.net-buttons/js/buttons.print.js";
+import "jszip";
+import "pdfmake/build/pdfmake";
+import "pdfmake/build/vfs_fonts";
 
 const api = new APIClient();
 
@@ -69,29 +77,15 @@ const Remedial_Classes: React.FC = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  const file2Ref = useRef<HTMLInputElement | null>(null);
+
+  const tableRef = useRef<HTMLTableElement>(null);
+
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
-
-    const filtered = remedialData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-
-  // Handle column-specific filters
-  const handleFilterChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    column: string
-  ) => {
-    const value = e.target.value.toLowerCase();
-    const updatedFilters = { ...filters, [column]: value };
-    setFilters(updatedFilters);
 
     const filtered = remedialData.filter((row) =>
       Object.values(row).some((val) =>
@@ -494,6 +488,12 @@ const Remedial_Classes: React.FC = () => {
         }
         // Reset the form fields
         resetForm();
+        if (fileRef.current) {
+          fileRef.current.value = "";
+        }
+        if (file2Ref.current) {
+          file2Ref.current.value = "";
+        }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         // display the Remedial Classes List
@@ -505,6 +505,62 @@ const Remedial_Classes: React.FC = () => {
       }
     },
   });
+
+  useEffect(() => {
+    if (remedialData.length === 0) return;
+
+    const initializeDataTable = () => {
+      const table = $("#bosDataId").DataTable({
+        destroy: true,
+        dom: "Bfrtip",
+        buttons: [
+          {
+            extend: "copy",
+          },
+          {
+            extend: "csv",
+          },
+        ],
+        columnDefs: [
+          {
+            targets: [3, 4], // Make sure indexes match actual column positions
+            visible: false,
+          },
+        ],
+        searching: false,
+        paging: false,
+      });
+
+      $(".dt-buttons").addClass("mb-3 gap-2");
+      $(".buttons-copy").addClass("btn btn-success");
+      $(".buttons-csv").addClass("btn btn-info");
+
+      // Prevent duplicate toast triggers
+      $("#bosDataId")
+        .off("buttons-action.dt")
+        .on("buttons-action.dt", function (e, buttonApi) {
+          if (buttonApi.text() === "Copy") {
+            toast.success("Copied to clipboard!");
+          }
+        });
+
+      return table;
+    };
+
+    // Delay DataTable init slightly to allow DOM updates
+    const timeout = setTimeout(() => {
+      const table = initializeDataTable();
+    }, 0);
+
+    return () => {
+      clearTimeout(timeout);
+      const existingTable = $.fn.DataTable.isDataTable("#bosDataId");
+      if (existingTable) {
+        $("#bosDataId").DataTable().destroy();
+      }
+      $("#bosDataId").off("buttons-action.dt");
+    };
+  }, [remedialData]);
 
   return (
     <React.Fragment>
@@ -755,6 +811,7 @@ const Remedial_Classes: React.FC = () => {
                               : null
                           );
                         }}
+                        innerRef={fileRef}
                       />
                       {validation.touched.attendanceEntry &&
                         validation.errors.attendanceEntry && (
@@ -827,6 +884,7 @@ const Remedial_Classes: React.FC = () => {
                               : null
                           );
                         }}
+                        innerRef={file2Ref}
                       />
                       {validation.touched.remidialClassNotice &&
                         validation.errors.remidialClassNotice && (
@@ -935,7 +993,59 @@ const Remedial_Classes: React.FC = () => {
                 onChange={handleSearch}
               />
             </div>
-
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+              id="bosDataId"
+              innerRef={tableRef}
+              style={{ display: "none" }}
+            >
+              <thead className="table-dark">
+                <tr>
+                  <th>#</th>
+                  <th>Academic Year</th>
+                  <th>Semester Type</th>
+                  <th>Semester No</th>
+                  <th>Stream</th>
+                  <th>Department</th>
+                  <th>Program Type</th>
+                  <th>Degree</th>
+                  <th>Program</th>
+                  <th>Course Title</th>
+                  <th>Attendance Entry(File Path)</th>
+                  <th>Remedial Class Notice(File Path)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentRows.length > 0 ? (
+                  currentRows.map((npi, index) => (
+                    <tr key={npi.remidialClassId}>
+                      <td>{indexOfFirstRow + index + 1}</td>
+                      <td>{npi.academicYear}</td>
+                      <td>{npi.semType}</td>
+                      <td>{npi.semesterNo}</td>
+                      <td>{npi.streamName}</td>
+                      <td>{npi.departmentName}</td>
+                      <td>{npi.programTypeName}</td>
+                      <td>{npi.programName}</td>
+                      <td>{Object.values(npi.courses).join(", ")}</td>
+                      <td>{npi.courseTitle}</td>
+                      <td>{npi.filePath?.attendanceEntry || "N/A"}</td>
+                      <td>{npi.filePath?.remidialClassNotice || "N/A"}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={11} className="text-center">
+                      No Remedial Classes data available.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </Table>
             {/* Table with Pagination */}
             <Table
               striped

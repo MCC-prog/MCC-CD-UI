@@ -34,8 +34,13 @@ import moment from "moment";
 import Select from "react-select";
 import GetAllSubjectDropdown from "Components/DropDowns/GetAllSubjectDropdown";
 import GetAllClasses from "Components/DropDowns/GetAllClasses";
-import { register } from "module";
-import { s } from "@fullcalendar/core/internal-common";
+import $ from "jquery";
+import "datatables.net-bs5";
+import "datatables.net-buttons-bs5";
+import "datatables.net-buttons/js/buttons.html5.js";
+import "jszip";
+import "pdfmake/build/pdfmake";
+import "pdfmake/build/vfs_fonts";
 
 const api = new APIClient();
 
@@ -82,6 +87,7 @@ const Malpractice_committee_Report: React.FC = () => {
 
   const fileRef = useRef<HTMLInputElement | null>(null);
   const fileActRef = useRef<HTMLInputElement | null>(null);
+  const tableRef = useRef<HTMLTableElement>(null);
 
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -606,6 +612,47 @@ const Malpractice_committee_Report: React.FC = () => {
       }
     },
   });
+
+  useEffect(() => {
+    if (mcrData.length === 0) return; // wait until data is loaded
+
+    const table = $("#id").DataTable({
+      destroy: true,
+      scrollX: true,
+      autoWidth: false,
+      dom: "Bfrtip",
+      buttons: [
+        {
+          extend: "copy",
+          exportOptions: {
+            columns: ":not(:last-child)", // skip Actions column
+          },
+        },
+        {
+          extend: "csv",
+          exportOptions: {
+            columns: ":not(:last-child)",
+          },
+        },
+      ],
+    });
+    $(".dt-buttons").addClass("mb-3 gap-2");
+    $(".buttons-copy").addClass("btn btn-success");
+    $(".buttons-csv").addClass("btn btn-info");
+
+    $("#id").on(
+      "buttons-action.dt",
+      function (e, buttonApi, dataTable, node, config) {
+        if (buttonApi.text() === "Copy") {
+          toast.success("Copied to clipboard!");
+        }
+      }
+    );
+
+    return () => {
+      table.destroy(); // clean up
+    };
+  }, [mcrData]);
 
   return (
     <React.Fragment>
@@ -1178,24 +1225,7 @@ const Malpractice_committee_Report: React.FC = () => {
         >
           <ModalHeader toggle={toggleModal}>List Report</ModalHeader>
           <ModalBody>
-            {/* Global Search */}
-            <div className="mb-3">
-              <Input
-                type="text"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={handleSearch}
-              />
-            </div>
-
-            {/* Table with Pagination */}
-            <Table
-              striped
-              bordered
-              hover
-              responsive
-              className="align-middle text-center"
-            >
+            <Table striped bordered hover id="id" innerRef={tableRef}>
               <thead className="table-dark">
                 <tr>
                   <th>#</th>
@@ -1206,9 +1236,21 @@ const Malpractice_committee_Report: React.FC = () => {
                   <th>Program</th>
                   <th>Candidate Name</th>
                   <th>Register Number</th>
+
+                  {/* Hidden columns */}
+                  <th className="d-none">Course</th>
+                  <th className="d-none">Class</th>
+                  <th className="d-none">Exam Name</th>
+                  <th className="d-none">Subject</th>
+                  <th className="d-none">Date of Exam</th>
+                  <th className="d-none">Type of Malpractice</th>
+                  <th className="d-none">Invigilator Report</th>
+                  <th className="d-none">Action Taken Report</th>
+
                   <th>Actions</th>
                 </tr>
               </thead>
+
               <tbody>
                 {currentRows.length > 0 ? (
                   currentRows.map((mcr, index) => (
@@ -1221,27 +1263,42 @@ const Malpractice_committee_Report: React.FC = () => {
                       <td>{mcr.programName}</td>
                       <td>{mcr.nameOfTheCandidate}</td>
                       <td>{mcr.registerNumber}</td>
+
+                      {/* Hidden fields */}
+                      <td className="d-none">{mcr.courseName || "N/A"}</td>
+                      <td className="d-none">{mcr.className || "N/A"}</td>
+                      <td className="d-none">{mcr.nameOfTheExam || "N/A"}</td>
+                      <td className="d-none">{mcr.subjectName || "N/A"}</td>
+                      <td className="d-none">{mcr.dateOfExam || "N/A"}</td>
+                      <td className="d-none">
+                        {mcr.typeOfMalpractise || "N/A"}
+                      </td>
+                      <td className="d-none">
+                        {mcr.filePath?.Invigilator || "N/A"}
+                      </td>
+                      <td className="d-none">
+                        {mcr.filePath?.ActionTaken || "N/A"}
+                      </td>
+
                       <td>
-                        <div className="d-flex justify-content-center gap-2">
-                          <button
-                            className="btn btn-sm btn-warning"
-                            onClick={() => handleEdit(mcr.id)}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            className="btn btn-sm btn-danger"
-                            onClick={() => handleDelete(mcr.id)}
-                          >
-                            Delete
-                          </button>
-                        </div>
+                        <button
+                          className="btn btn-sm btn-warning"
+                          onClick={() => handleEdit(mcr.id)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="btn btn-sm btn-danger"
+                          onClick={() => handleDelete(mcr.id)}
+                        >
+                          Delete
+                        </button>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={11} className="text-center">
+                    <td colSpan={17} className="text-center">
                       No Malpractice Committee report data available.
                     </td>
                   </tr>

@@ -1,6 +1,6 @@
 import Breadcrumb from "Components/Common/Breadcrumb";
 import { useFormik } from "formik";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Select from "react-select";
 import * as Yup from "yup";
 import { Card, CardBody, Col, Container, Input, Label, Row } from "reactstrap";
@@ -23,7 +23,15 @@ import { SEMESTER_NO_OPTIONS } from "Components/constants/layout";
 import { toast } from "react-toastify";
 import { ToastContainer } from "react-toastify";
 import axios from "axios";
-import moment from "moment";
+import $ from "jquery";
+import "datatables.net-bs5";
+import "datatables.net-buttons-bs5";
+import "datatables.net-buttons/js/buttons.html5.js";
+import "datatables.net-buttons/js/buttons.print.js";
+import "jszip";
+import "pdfmake/build/pdfmake";
+import "pdfmake/build/vfs_fonts";
+
 const api = new APIClient();
 
 const New_Courses_Introduced: React.FC = () => {
@@ -57,29 +65,12 @@ const New_Courses_Introduced: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
 
+  const tableRef = useRef<HTMLTableElement>(null);
+
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
-
-    const filtered = courseData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-
-  // Handle column-specific filters
-  const handleFilterChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    column: string
-  ) => {
-    const value = e.target.value.toLowerCase();
-    const updatedFilters = { ...filters, [column]: value };
-    setFilters(updatedFilters);
 
     const filtered = courseData.filter((row) =>
       Object.values(row).some((val) =>
@@ -477,6 +468,61 @@ const New_Courses_Introduced: React.FC = () => {
     },
   });
 
+  useEffect(() => {
+    if (courseData.length === 0) return;
+
+    const initializeDataTable = () => {
+      const table = $("#bosDataId").DataTable({
+        destroy: true,
+        dom: "Bfrtip",
+        buttons: [
+          {
+            extend: "copy",
+          },
+          {
+            extend: "csv",
+          },
+        ],
+        columnDefs: [
+          {
+            targets: [3, 4], // Make sure indexes match actual column positions
+            visible: false,
+          },
+        ],
+        searching: false,
+        paging: false,
+      });
+
+      $(".dt-buttons").addClass("mb-3 gap-2");
+      $(".buttons-copy").addClass("btn btn-success");
+      $(".buttons-csv").addClass("btn btn-info");
+
+      // Prevent duplicate toast triggers
+      $("#bosDataId")
+        .off("buttons-action.dt")
+        .on("buttons-action.dt", function (e, buttonApi) {
+          if (buttonApi.text() === "Copy") {
+            toast.success("Copied to clipboard!");
+          }
+        });
+
+      return table;
+    };
+
+    // Delay DataTable init slightly to allow DOM updates
+    const timeout = setTimeout(() => {
+      const table = initializeDataTable();
+    }, 0);
+
+    return () => {
+      clearTimeout(timeout);
+      const existingTable = $.fn.DataTable.isDataTable("#bosDataId");
+      if (existingTable) {
+        $("#bosDataId").DataTable().destroy();
+      }
+      $("#bosDataId").off("buttons-action.dt");
+    };
+  }, [courseData]);
   return (
     <React.Fragment>
       <div className="page-content">
@@ -869,7 +915,7 @@ const New_Courses_Introduced: React.FC = () => {
                         type="button"
                         onClick={handleListNewCoursesIntroducedClick}
                       >
-                        List New Courses Introduced
+                        List
                       </button>
                     </div>
                   </Col>
@@ -898,7 +944,57 @@ const New_Courses_Introduced: React.FC = () => {
                 onChange={handleSearch}
               />
             </div>
-
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              className="align-middle text-center"
+              id="bosDataId"
+              innerRef={tableRef}
+              style={{ display: "none" }}
+            >
+              <thead className="table-dark">
+                <tr>
+                  <th>#</th>
+                  <th>Academic Year</th>
+                  <th>Semester Type</th>
+                  <th>Semester No</th>
+                  <th>Stream</th>
+                  <th>Department</th>
+                  <th>Program Type</th>
+                  <th>Degree</th>
+                  <th>Program Name</th>
+                  <th>Course Title</th>
+                  <th>File Path</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentRows.length > 0 ? (
+                  currentRows.map((nci, index) => (
+                    <tr key={nci.bosDataId}>
+                      <td>{indexOfFirstRow + index + 1}</td>
+                      <td>{nci.academicYear}</td>
+                      <td>{nci.semType}</td>
+                      <td>{nci.semNumber}</td>
+                      <td>{nci.streamName}</td>
+                      <td>{nci.departmentName}</td>
+                      <td>{nci.programTypeName}</td>
+                      <td>{nci.programName}</td>
+                      <td>{nci.nciProgramName}</td>
+                      <td>{nci.courseTitle}</td>
+                      <td>{nci.filePath?.Syllabus || "N/A"}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={11} className="text-center">
+                      No New Courses Introduced data available.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </Table>
             {/* Table with Pagination */}
             <Table
               striped
