@@ -991,7 +991,7 @@ table.dataTable {
   color: #fff;
   background-color: #000;
 }
-#id_filter input.form-control{
+.dataTables_filter input.form-control{
   min-height: calc(1.5em + 0.5rem + 11px);
 }
 .dataTables_scroll{
@@ -999,14 +999,19 @@ table.dataTable {
   width: 100%;
 }
 @media (min-width: 767px) {
-  #id_filter input.form-control{
+  .dataTables_filter input.form-control{
     min-width: 300px;
   }
   .dataTables_wrapper .dataTables_filter label{
     margin-bottom: 0px;
   }
   .modal-dialog{
+    --bs-modal-width: 100% !important;
     margin-right: 30px;
     margin-left: 30px;
+  }
+  .modal-content{
+    max-height: 90vh;
+    overflow-y: auto;
   }
 }

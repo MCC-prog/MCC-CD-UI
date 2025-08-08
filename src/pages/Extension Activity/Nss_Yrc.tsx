@@ -694,7 +694,7 @@ const Nss_Yrc: React.FC = () => {
                         {isEditMode ? "Update" : "Save"}
                       </button>
                       <button
-                        className="btn btn-primary"
+                        className="btn btn-secondary"
                         type="button"
                         onClick={handleListNssClick}
                       >

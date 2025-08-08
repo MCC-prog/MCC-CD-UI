@@ -693,7 +693,7 @@ const Cdp_Activites: React.FC = () => {
                         {isEditMode ? "Update" : "Save"}
                       </button>
                       <button
-                        className="btn btn-primary"
+                        className="btn btn-secondary"
                         type="button"
                         onClick={handleListCdpClick}
                       >
@@ -715,7 +715,13 @@ const Cdp_Activites: React.FC = () => {
         >
           <ModalHeader toggle={toggleModal}>List CDP Activites</ModalHeader>
           <ModalBody>
-            <Table striped bordered hover id="id" innerRef={tableRef}>
+            <Table
+              striped
+              bordered
+              hover
+              id="id"
+              innerRef={tableRef}
+            >
               <thead>
                 <tr>
                   <th>Sl.No</th>
