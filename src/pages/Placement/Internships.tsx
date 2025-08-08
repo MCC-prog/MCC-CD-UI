@@ -20,6 +20,13 @@ import { APIClient } from "../../helpers/api_helper";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
+import $ from "jquery";
+import "datatables.net-bs5";
+import "datatables.net-buttons-bs5";
+import "datatables.net-buttons/js/buttons.html5.js";
+import "jszip";
+import "pdfmake/build/pdfmake";
+import "pdfmake/build/vfs_fonts";
 
 const api = new APIClient();
 
@@ -41,6 +48,8 @@ const Internships: React.FC = () => {
         departmentFile: useRef<HTMLInputElement | null>(null),
         personalFile: useRef<HTMLInputElement | null>(null),
     };
+
+    const tableRef = useRef<HTMLTableElement>(null);
 
     // Fetch internships on initial load
     const fetchInternships = async () => {

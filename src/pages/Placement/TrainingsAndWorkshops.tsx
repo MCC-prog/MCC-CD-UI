@@ -8,7 +8,7 @@ import SemesterDropdowns from "Components/DropDowns/SemesterDropdowns";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { ToastContainer } from "react-toastify";
 import { useFormik } from "formik";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -31,6 +31,13 @@ import "react-toastify/dist/ReactToastify.css";
 import { SEMESTER_NO_OPTIONS } from "../../Components/constants/layout";
 import axios from "axios";
 import moment from "moment";
+import $ from "jquery";
+import "datatables.net-bs5";
+import "datatables.net-buttons-bs5";
+import "datatables.net-buttons/js/buttons.html5.js";
+import "jszip";
+import "pdfmake/build/pdfmake";
+import "pdfmake/build/vfs_fonts";
 
 const api = new APIClient();
 
@@ -54,73 +61,9 @@ const TrainingsAndWorkshops: React.FC = () => {
   const [selectedStream, setSelectedStream] = useState<any>(null);
   const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
   // State variable for managing search term and pagination
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 10;
-  // State variable for managing filters
-  const [filters, setFilters] = useState({
-    academicYear: "",
-    stream: "",
-    program: "",
-    academicTraining: "",
-    startDate: "",
-    endDate: "",
-    targetAudience: "",
-    no_ofParticipants: "",
-    totalHours: "",
-    resourcePersons: "",
-    partnerOrganization: "",
-  });
   const [filteredData, setFilteredData] = useState(bosData);
-
+const tableRef = useRef<HTMLTableElement>(null);  
   const fileRef = useRef<HTMLInputElement | null>(null);
-
-  // Handle global search
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toLowerCase();
-    setSearchTerm(value);
-
-    const filtered = bosData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-
-  // Handle column-specific filters
-  const handleFilterChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    column: string
-  ) => {
-    const value = e.target.value.toLowerCase();
-    const updatedFilters = { ...filters, [column]: value };
-    setFilters(updatedFilters);
-
-    const filtered = bosData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-
-  // Calculate the paginated data
-  const indexOfLastRow = currentPage * rowsPerPage;
-  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
-  const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
-
-  // Handle page change
-  const handlePageChange = (pageNumber: number) => {
-    setCurrentPage(pageNumber);
-  };
-
-  // Calculate total pages
-  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
   // Toggle the modal for listing BOS
   const toggleModal = () => {
@@ -468,6 +411,9 @@ const TrainingsAndWorkshops: React.FC = () => {
           toast.success("Record saved successfully!");
         }
         resetForm();
+        if (fileRef.current) {
+          fileRef.current.value = "";
+        }
         setIsEditMode(false);
         setEditId(null);
         fetchTrainingAndWorkshopsData();
@@ -476,6 +422,47 @@ const TrainingsAndWorkshops: React.FC = () => {
       }
     },
   });
+   useEffect(() => {
+    if (bosData.length === 0) return; // wait until data is loaded
+
+    const table = $("#id").DataTable({
+      destroy: true, // destroy existing instance if re-rendered
+      scrollX: true, 
+       autoWidth: false, 
+      dom: "Bfrtip",
+      buttons: [
+        {
+          extend: "copy",
+          exportOptions: {
+            columns: ":not(:last-child)", // skip Actions column
+          },
+        },
+        {
+          extend: "csv",
+          exportOptions: {
+            columns: ":not(:last-child)",
+          },
+        },
+      ],
+    });
+    $(".dt-buttons").addClass("mb-3 gap-2");
+    $(".buttons-copy").addClass("btn btn-success");
+    $(".buttons-csv").addClass("btn btn-info");
+
+    $("#id").on(
+      "buttons-action.dt",
+      function (e, buttonApi, dataTable, node, config) {
+        if (buttonApi.text() === "Copy") {
+          toast.success("Copied to clipboard!");
+        }
+      }
+    );
+
+    return () => {
+      table.destroy(); // clean up
+    };
+  }, [bosData]);
+
 
   return (
     <React.Fragment>
@@ -1025,23 +1012,12 @@ const TrainingsAndWorkshops: React.FC = () => {
             List Trainings and Workshops Data
           </ModalHeader>
           <ModalBody>
-            {/* Global Search */}
-            <div className="mb-3">
-              <Input
-                type="text"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={handleSearch}
-              />
-            </div>
-
-            {/* Table with Pagination */}
             <Table
               striped
               bordered
               hover
-              responsive
-              className="align-middle text-center"
+              id="id"
+              innerRef={tableRef}
             >
               <thead className="table-dark">
                 <tr>
@@ -1057,14 +1033,16 @@ const TrainingsAndWorkshops: React.FC = () => {
                   <th>Total Hours</th>
                   <th>Resource Persons</th>
                   <th>Partner Organization</th>
+                   <th className="d-none">Attendance Report File Path</th> {/* Hidden */}
+                   <th className="d-none">Report File Path</th> {/* Hidden */}
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((row, index) => (
+                {bosData.length > 0 ? (
+                  bosData.map((row, index) => (
                     <tr key={row.id || index}>
-                      <td>{indexOfFirstRow + index + 1}</td>
+                      <td>{index + 1}</td>
                       <td>{row.academicYear}</td>
                       <td>{row.streamName}</td>
                       <td>{row.programName}</td>
@@ -1076,6 +1054,8 @@ const TrainingsAndWorkshops: React.FC = () => {
                       <td>{row.totalHours}</td>
                       <td>{row.resourcePersons}</td>
                       <td>{row.partneringOrganization}</td>
+                      <td className="d-none">{row.filePath?.Attendance || "N/A"}</td> {/* Hidden */}
+                      <td className="d-none">{row.filePath?.Report || "N/A"}</td> {/* Hidden */}
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
@@ -1103,26 +1083,6 @@ const TrainingsAndWorkshops: React.FC = () => {
                 )}
               </tbody>
             </Table>
-            {/* Pagination Controls */}
-            <div className="d-flex justify-content-between align-items-center mt-3">
-              <Button
-                color="primary"
-                disabled={currentPage === 1}
-                onClick={() => handlePageChange(currentPage - 1)}
-              >
-                Previous
-              </Button>
-              <div>
-                Page {currentPage} of {totalPages}
-              </div>
-              <Button
-                color="primary"
-                disabled={currentPage === totalPages}
-                onClick={() => handlePageChange(currentPage + 1)}
-              >
-                Next
-              </Button>
-            </div>
           </ModalBody>
         </Modal>
         {/* Confirmation Modal */}

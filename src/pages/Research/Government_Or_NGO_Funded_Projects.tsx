@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import {
@@ -29,6 +29,13 @@ import { APIClient } from "helpers/api_helper";
 import { toast, ToastContainer } from "react-toastify";
 import moment from "moment";
 import axios from "axios";
+import $ from "jquery";
+import "datatables.net-bs5";
+import "datatables.net-buttons-bs5";
+import "datatables.net-buttons/js/buttons.html5.js";
+import "jszip";
+import "pdfmake/build/pdfmake";
+import "pdfmake/build/vfs_fonts";
 
 const api = new APIClient();
 
@@ -36,15 +43,12 @@ const GovernmentOrNGOFundedProjects = () => {
   const [departmentOptions, setDepartmentOptions] = useState<
     { value: string; label: string }[]
   >([]);
-  // State variables for managing modal, edit mode, and delete confirmation
   const [isEditMode, setIsEditMode] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
-  // State variable for managing file upload status
   const [isAbstractFileUploadDisabled, setIsAbstractFileUploadDisabled] =
     useState(false);
   const [isSanctionFileUploadDisabled, setIsSanctionFileUploadDisabled] =
     useState(false);
-  // State variable for managing delete confirmation modal
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [selectedStream, setSelectedStream] = useState<any>(null);
@@ -52,26 +56,11 @@ const GovernmentOrNGOFundedProjects = () => {
   const [isMultidisciplinary, setIsMultidisciplinary] = useState<string>("No");
   const [activeTab, setActiveTab] = useState<string>("1");
   const [documentType, setDocumentType] = useState<string>("");
-  // State variable for managing the modal for listing GFP
   const [isModalOpen, setIsModalOpen] = useState(false);
-  // State variable for managing the list of GFP data
   const [gfpData, setGfpData] = useState<any[]>([]);
-  // State variable for managing search term and pagination
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 10;
-  // State variable for managing filters
-  const [filters, setFilters] = useState({
-    academicYear: "",
-    stream: "",
-    department: "",
-    facultyName: "",
-    projectTitle: "",
-    amount: "",
-    monthOfGrant: "",
-    typeOfFunding: "",
-  });
   const [filteredData, setFilteredData] = useState(gfpData);
+  const tableRef = useRef<HTMLTableElement>(null);
+     const fileRef = useRef<HTMLInputElement | null>(null);
 
   // Fetch department data on mount
   useEffect(() => {
@@ -89,53 +78,6 @@ const GovernmentOrNGOFundedProjects = () => {
     };
     fetchDepartments();
   }, []);
-
-  // Handle global search
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toLowerCase();
-    setSearchTerm(value);
-
-    const filtered = gfpData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-
-  // Handle column-specific filters
-  const handleFilterChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    column: string
-  ) => {
-    const value = e.target.value.toLowerCase();
-    const updatedFilters = { ...filters, [column]: value };
-    setFilters(updatedFilters);
-
-    const filtered = gfpData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-
-  // Calculate the paginated data
-  const indexOfLastRow = currentPage * rowsPerPage;
-  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
-  const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
-
-  // Handle page change
-  const handlePageChange = (pageNumber: number) => {
-    setCurrentPage(pageNumber);
-  };
-
-  // Calculate total pages
-  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
   // Toggle the modal for listing GFP
   const toggleModal = () => {
@@ -312,6 +254,9 @@ const GovernmentOrNGOFundedProjects = () => {
         toast.success(response.message || "GFP record saved successfully!");
         // Reset the form fields
         resetForm();
+        if (fileRef.current) {
+          fileRef.current.value = "";
+        }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         handleListGFPClick(); // Refresh the list
@@ -586,6 +531,7 @@ const GovernmentOrNGOFundedProjects = () => {
           <Label>Abstract of the Project</Label>
           <Input
             type="file"
+            innerRef={fileRef} // Reference for the file input
             name="principalInvestigator.abstractFile"
             onChange={(event) =>
               validation.setFieldValue(
@@ -659,6 +605,7 @@ const GovernmentOrNGOFundedProjects = () => {
           <Label>Sanction Order</Label>
           <Input
             type="file"
+            innerRef={fileRef} // Reference for the file input
             name="principalInvestigator.sanctionOrderFile"
             onChange={(event) =>
               validation.setFieldValue(
@@ -933,6 +880,46 @@ const GovernmentOrNGOFundedProjects = () => {
     const matchedOption = options.find((option) => option.value === value);
     return matchedOption ? matchedOption : { value, label: String(value) };
   };
+      useEffect(() => {
+    if (gfpData.length === 0) return; // wait until data is loaded
+
+    const table = $("#governmentFundProjectId").DataTable({
+      destroy: true, // destroy existing instance if re-rendered
+      scrollX: true, 
+       autoWidth: false, 
+      dom: "Bfrtip",
+      buttons: [
+        {
+          extend: "copy",
+          exportOptions: {
+            columns: ":not(:last-child)", // skip Actions column
+          },
+        },
+        {
+          extend: "csv",
+          exportOptions: {
+            columns: ":not(:last-child)",
+          },
+        },
+      ],
+    });
+    $(".dt-buttons").addClass("mb-3 gap-2");
+    $(".buttons-copy").addClass("btn btn-success");
+    $(".buttons-csv").addClass("btn btn-info");
+
+    $("#governmentFundProjectId").on(
+      "buttons-action.dt",
+      function (e, buttonApi, dataTable, node, config) {
+        if (buttonApi.text() === "Copy") {
+          toast.success("Copied to clipboard!");
+        }
+      }
+    );
+
+    return () => {
+      table.destroy(); // clean up
+    };
+  }, [gfpData]);
 
   return (
     <React.Fragment>
@@ -1276,24 +1263,14 @@ const GovernmentOrNGOFundedProjects = () => {
             List Government/NGO Funded Project
           </ModalHeader>
           <ModalBody>
-            {/* Global Search */}
-            <div className="mb-3">
-              <Input
-                type="text"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={handleSearch}
-              />
-            </div>
-
             <Table
               striped
               bordered
               hover
-              responsive
-              className="align-middle text-center"
+               id="governmentFundProjectId"
+              innerRef={tableRef}
             >
-              <thead className="table-dark">
+              <thead>
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
@@ -1304,14 +1281,16 @@ const GovernmentOrNGOFundedProjects = () => {
                   <th>Amount</th>
                   <th>Month of Grant</th>
                   <th>Type of Funding</th>
+                   <th className="d-none">AbstractProject File Path</th> {/* Hidden */}
+                  <th className="d-none">SanctionOrder File Path</th> {/* Hidden */}
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((gfp, index) => (
+                {gfpData.length > 0 ? (
+                  gfpData.map((gfp, index) => (
                     <tr key={gfp.governmentFundProjectId}>
-                      <td>{indexOfFirstRow + index + 1}</td>
+                      <td>{index + 1}</td>
                       <td>{gfp.academicYear}</td>
                       <td>{gfp.streamName}</td>
                       <td>{gfp.departmentName}</td>
@@ -1320,6 +1299,8 @@ const GovernmentOrNGOFundedProjects = () => {
                       <td>{gfp.amount}</td>
                       <td>{gfp.monthOfGrant}</td>
                       <td>{gfp.fundingType}</td>
+                      <td className="d-none">{gfp?.principleInvestigatorDto?.filePath?.abstractProject || "N/A"}</td> {/* Hidden */}
+                      <td className="d-none">{gfp?.principleInvestigatorDto?.filePath?.sanctionOrder || "N/A"}</td> {/* Hidden */}
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
@@ -1351,26 +1332,6 @@ const GovernmentOrNGOFundedProjects = () => {
                 )}
               </tbody>
             </Table>
-            {/* Pagination Controls */}
-            <div className="d-flex justify-content-between align-items-center mt-3">
-              <Button
-                color="primary"
-                disabled={currentPage === 1}
-                onClick={() => handlePageChange(currentPage - 1)}
-              >
-                Previous
-              </Button>
-              <div>
-                Page {currentPage} of {totalPages}
-              </div>
-              <Button
-                color="primary"
-                disabled={currentPage === totalPages}
-                onClick={() => handlePageChange(currentPage + 1)}
-              >
-                Next
-              </Button>
-            </div>
           </ModalBody>
         </Modal>
         {/* Confirmation Modal */}

@@ -3,7 +3,7 @@ import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -23,6 +23,13 @@ import Breadcrumb from "Components/Common/Breadcrumb";
 import { toast, ToastContainer } from "react-toastify";
 import { APIClient } from "helpers/api_helper";
 import axios from "axios";
+import $ from "jquery";
+import "datatables.net-bs5";
+import "datatables.net-buttons-bs5";
+import "datatables.net-buttons/js/buttons.html5.js";
+import "jszip";
+import "pdfmake/build/pdfmake";
+import "pdfmake/build/vfs_fonts";
 
 const api = new APIClient();
 
@@ -45,67 +52,9 @@ const Research_Guides = () => {
   // State variable for managing the modal for listing BOS
   const [isModalOpen, setIsModalOpen] = useState(false);
   // State variable for managing search term and pagination
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 10;
-  // State variable for managing filters
-  const [filters, setFilters] = useState({
-    academicYear: "",
-    stream: "",
-    department: "",
-    guideName: "",
-    guideAffiliation: "",
-    numberOfStudents: "",
-  });
-
+ const tableRef = useRef<HTMLTableElement>(null);
+    const fileRef = useRef<HTMLInputElement | null>(null);
   const [filteredData, setFilteredData] = useState(researchGuideData);
-
-  // Handle global search
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toLowerCase();
-    setSearchTerm(value);
-
-    const filtered = researchGuideData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-
-  // Handle column-specific filters
-  const handleFilterChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    column: string
-  ) => {
-    const value = e.target.value.toLowerCase();
-    const updatedFilters = { ...filters, [column]: value };
-    setFilters(updatedFilters);
-
-    const filtered = researchGuideData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-
-  // Calculate the paginated data
-  const indexOfLastRow = currentPage * rowsPerPage;
-  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
-  const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
-
-  // Handle page change
-  const handlePageChange = (pageNumber: number) => {
-    setCurrentPage(pageNumber);
-  };
-
-  // Calculate total pages
-  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
   // Toggle the modal for listing BOS
   const toggleModal = () => {
@@ -250,6 +199,9 @@ const Research_Guides = () => {
         );
         // Reset the form fields
         resetForm();
+        if (fileRef.current) {
+          fileRef.current.value = "";
+        }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         handleListResearchGuidesClick(); // Refresh the list
@@ -519,6 +471,47 @@ const Research_Guides = () => {
     toggleModal();
     fetchResearchGuidesData();
   };
+    useEffect(() => {
+    if (researchGuideData.length === 0) return; // wait until data is loaded
+
+    const table = $("#researchGuideId").DataTable({
+      destroy: true, // destroy existing instance if re-rendered
+      scrollX: true, 
+       autoWidth: false, 
+      dom: "Bfrtip",
+      buttons: [
+        {
+          extend: "copy",
+          exportOptions: {
+            columns: ":not(:last-child)", // skip Actions column
+          },
+        },
+        {
+          extend: "csv",
+          exportOptions: {
+            columns: ":not(:last-child)",
+          },
+        },
+      ],
+    });
+    $(".dt-buttons").addClass("mb-3 gap-2");
+    $(".buttons-copy").addClass("btn btn-success");
+    $(".buttons-csv").addClass("btn btn-info");
+
+    $("#researchGuideId").on(
+      "buttons-action.dt",
+      function (e, buttonApi, dataTable, node, config) {
+        if (buttonApi.text() === "Copy") {
+          toast.success("Copied to clipboard!");
+        }
+      }
+    );
+
+    return () => {
+      table.destroy(); // clean up
+    };
+  }, [researchGuideData]);
+
 
   return (
     <React.Fragment>
@@ -957,6 +950,7 @@ const Research_Guides = () => {
                         }`}
                         type="file"
                         id="formFile"
+                        innerRef={fileRef} // Use ref to access the file input
                         onChange={(event) => {
                           validation.setFieldValue(
                             "uploadLetter",
@@ -1047,23 +1041,13 @@ const Research_Guides = () => {
         >
           <ModalHeader toggle={toggleModal}>List BOS</ModalHeader>
           <ModalBody>
-            {/* Global Search */}
-            <div className="mb-3">
-              <Input
-                type="text"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={handleSearch}
-              />
-            </div>
-
             {/* Table with Pagination */}
             <Table
               striped
               bordered
               hover
-              responsive
-              className="align-middle text-center"
+              id="researchGuideId"
+              innerRef={tableRef}
             >
               <thead className="table-dark">
                 <tr>
@@ -1074,20 +1058,22 @@ const Research_Guides = () => {
                   <th>Guide Name</th>
                   <th>Guide Afffiliation</th>
                   <th>Number of Students</th>
+                  <th className="d-none">File Path</th> {/* Hidden */}
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((rg, index) => (
+                {researchGuideData.length > 0 ? (
+                  researchGuideData.map((rg, index) => (
                     <tr key={rg.researchGuideId}>
-                      <td>{indexOfFirstRow + index + 1}</td>
+                      <td>{index + 1}</td>
                       <td>{rg.academicYear}</td>
                       <td>{rg.streamName}</td>
                       <td>{rg.departmentName}</td>
                       <td>{rg.guideName}</td>
                       <td>{rg.guidesAffiliation}</td>
                       <td>{rg.noOfStudents}</td>
+                      <td className="d-none">{rg?.filePath?.letter || "N/A"}</td> {/* Hidden */}
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
@@ -1115,26 +1101,6 @@ const Research_Guides = () => {
                 )}
               </tbody>
             </Table>
-            {/* Pagination Controls */}
-            <div className="d-flex justify-content-between align-items-center mt-3">
-              <Button
-                color="primary"
-                disabled={currentPage === 1}
-                onClick={() => handlePageChange(currentPage - 1)}
-              >
-                Previous
-              </Button>
-              <div>
-                Page {currentPage} of {totalPages}
-              </div>
-              <Button
-                color="primary"
-                disabled={currentPage === totalPages}
-                onClick={() => handlePageChange(currentPage + 1)}
-              >
-                Next
-              </Button>
-            </div>
           </ModalBody>
         </Modal>
         {/* Confirmation Modal */}

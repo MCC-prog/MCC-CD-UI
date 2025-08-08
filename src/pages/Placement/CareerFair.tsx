@@ -20,6 +20,14 @@ import { APIClient } from "../../helpers/api_helper";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
+import $ from "jquery";
+import "datatables.net-bs5";
+import "datatables.net-buttons-bs5";
+import "datatables.net-buttons/js/buttons.html5.js";
+import "jszip";
+import "pdfmake/build/pdfmake";
+import "pdfmake/build/vfs_fonts";
+
 
 const api = new APIClient();
 
@@ -29,6 +37,8 @@ const CareerFair: React.FC = () => {
     const [editId, setEditId] = useState<string | null>(null);
     const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+     const tableRef = useRef<HTMLTableElement>(null);
+       const fileRef = useRef<HTMLInputElement | null>(null);
 
     const fetchCareerFair = async () => {
         try {
@@ -165,7 +175,14 @@ const CareerFair: React.FC = () => {
                     });
 
                 toast.success(response.message || "Research Guide record saved successfully!");
-                // Refresh the page data to show the uploaded file
+              resetForm();
+        if (fileRef.current) {
+          fileRef.current.value = "";
+        }
+        setIsEditMode(false); // Reset edit mode
+        setEditId(null); // Clear the edit ID
+        setIsFileUploadDisabled(false);
+       // handleListAuditoriumClick();
                 fetchCareerFair();
             } catch (error) {
                 toast.error("Failed to save Research Guide. Please try again.");

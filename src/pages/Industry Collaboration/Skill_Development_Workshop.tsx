@@ -1,14 +1,10 @@
 import Breadcrumb from "Components/Common/Breadcrumb";
 import AcademicYearDropdown from "Components/DropDowns/AcademicYearDropdown";
-import DegreeDropdown from "Components/DropDowns/DegreeDropdown";
 import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
-import ProgramDropdown from "Components/DropDowns/ProgramDropdown";
-import ProgramTypeDropdown from "Components/DropDowns/ProgramTypeDropdown";
-import SemesterDropdowns from "Components/DropDowns/SemesterDropdowns";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { ToastContainer } from "react-toastify";
 import { useFormik } from "formik";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Select from "react-select";
 import {
   Button,
@@ -31,6 +27,13 @@ import { APIClient } from "../../helpers/api_helper";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
+import $ from "jquery";
+import "datatables.net-bs5";
+import "datatables.net-buttons-bs5";
+import "datatables.net-buttons/js/buttons.html5.js";
+import "jszip";
+import "pdfmake/build/pdfmake";
+import "pdfmake/build/vfs_fonts";
 
 const api = new APIClient();
 
@@ -41,70 +44,15 @@ const Skill_Development_Workshop: React.FC = () => {
   const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
   const [editId, setEditId] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 10;
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
   const [filteredData, setFilteredData] = useState(skillDevelopmentData);
-  const [filters, setFilters] = useState({
-    academicYear: "",
-    stream: "",
-    department: "",
-    facultyName: "",
-    staffEnhancementProgramType: "",
-    title: "",
-    organizedBy: "",
-    fromDate: "",
-    toDate: "",
-    skillDevelopmentDoc: null as string | null,
-  });
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toLowerCase();
-    setSearchTerm(value);
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  const tableRef = useRef<HTMLTableElement>(null);
 
-    const filtered = skillDevelopmentData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-  // Handle column-specific filters
-  const handleFilterChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    column: string
-  ) => {
-    const value = e.target.value.toLowerCase();
-    const updatedFilters = { ...filters, [column]: value };
-    setFilters(updatedFilters);
-
-    const filtered = skillDevelopmentData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-  // Calculate the paginated data
-  const indexOfLastRow = currentPage * rowsPerPage;
-  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
-  const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
-
-  // Handle page change
-  const handlePageChange = (pageNumber: number) => {
-    setCurrentPage(pageNumber);
-  };
-
-  // Calculate total pages
-  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };
@@ -424,6 +372,9 @@ const Skill_Development_Workshop: React.FC = () => {
         }
         // Reset the form fields
         resetForm();
+        if (fileRef.current) {
+          fileRef.current.value = "";
+        }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         setIsFileUploadDisabled(false); // Enable the file upload button
@@ -437,6 +388,46 @@ const Skill_Development_Workshop: React.FC = () => {
       }
     },
   });
+  useEffect(() => {
+    if (skillDevelopmentData.length === 0) return; // wait until data is loaded
+
+    const table = $("#id").DataTable({
+      destroy: true, // destroy existing instance if re-rendered
+      scrollX: true,
+      autoWidth: false,
+      dom: "Bfrtip",
+      buttons: [
+        {
+          extend: "copy",
+          exportOptions: {
+            columns: ":not(:last-child)", // skip Actions column
+          },
+        },
+        {
+          extend: "csv",
+          exportOptions: {
+            columns: ":not(:last-child)",
+          },
+        },
+      ],
+    });
+    $(".dt-buttons").addClass("mb-3 gap-2");
+    $(".buttons-copy").addClass("btn btn-success");
+    $(".buttons-csv").addClass("btn btn-info");
+
+    $("#id").on(
+      "buttons-action.dt",
+      function (e, buttonApi, dataTable, node, config) {
+        if (buttonApi.text() === "Copy") {
+          toast.success("Copied to clipboard!");
+        }
+      }
+    );
+
+    return () => {
+      table.destroy(); // clean up
+    };
+  }, [skillDevelopmentData]);
 
   return (
     <React.Fragment>
@@ -710,6 +701,7 @@ const Skill_Development_Workshop: React.FC = () => {
                         }`}
                         type="file"
                         id="formFile"
+                        innerRef={fileRef}
                         onChange={(event) => {
                           validation.setFieldValue(
                             "skillDevelopmentDoc",
@@ -798,108 +790,30 @@ const Skill_Development_Workshop: React.FC = () => {
             List Skill Development Workshop
           </ModalHeader>
           <ModalBody>
-            {/* Global Search */}
-            <div className="mb-3">
-              <Input
-                type="text"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={handleSearch}
-              />
-            </div>
-            <Table bordered>
+            <Table 
+             striped
+              bordered
+              hover
+              id="skillDevelopmentDataId"
+              innerRef={tableRef}>
               <thead>
                 <tr>
                   <th>#</th>
-                  <th>
-                    Academic Year
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.academicYear}
-                      onChange={(e) => handleFilterChange(e, "academicYear")}
-                    />
-                  </th>
-                  <th>
-                    Schools
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.stream}
-                      onChange={(e) => handleFilterChange(e, "stream")}
-                    />
-                  </th>
-                  <th>
-                    Department
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.department}
-                      onChange={(e) => handleFilterChange(e, "department")}
-                    />
-                  </th>
-                  <th>
-                    Faculty Name
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.facultyName}
-                      onChange={(e) => handleFilterChange(e, "facultyName")}
-                    />
-                  </th>
-                  <th>
-                    Staff Enhancement ProgramType
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.staffEnhancementProgramType}
-                      onChange={(e) =>
-                        handleFilterChange(e, "staffEnhancementProgramType")
-                      }
-                    />
-                  </th>
-                  <th>
-                    Title
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.title}
-                      onChange={(e) => handleFilterChange(e, "title")}
-                    />
-                  </th>
-                  <th>
-                    Organization By
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.organizedBy}
-                      onChange={(e) => handleFilterChange(e, "organizedBy")}
-                    />
-                  </th>
-                  <th>
-                    From Date
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.fromDate}
-                      onChange={(e) => handleFilterChange(e, "fromDate")}
-                    />
-                  </th>
-                  <th>
-                    To Date
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.toDate}
-                      onChange={(e) => handleFilterChange(e, "toDate")}
-                    />
-                  </th>
+                  <th>Academic Year</th>
+                  <th>Schools</th>
+                  <th>Department</th>
+                  <th>Faculty Name</th>
+                  <th>Staff Enhancement ProgramType</th>
+                  <th>Title</th>
+                  <th>Organization By</th>
+                  <th>From Date</th>
+                  <th>To Date</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((skillDevelopment, index) => (
+                {skillDevelopmentData.length > 0 ? (
+                  skillDevelopmentData.map((skillDevelopment, index) => (
                     <tr key={skillDevelopment.skillDevelopmentDataId}>
                       <td>{index + 1}</td>
                       <td>{skillDevelopment.academicYear}</td>
@@ -936,26 +850,6 @@ const Skill_Development_Workshop: React.FC = () => {
                 )}
               </tbody>
             </Table>
-            {/* Pagination Controls */}
-            <div className="d-flex justify-content-between align-items-center mt-3">
-              <Button
-                color="primary"
-                disabled={currentPage === 1}
-                onClick={() => handlePageChange(currentPage - 1)}
-              >
-                Previous
-              </Button>
-              <div>
-                Page {currentPage} of {totalPages}
-              </div>
-              <Button
-                color="primary"
-                disabled={currentPage === totalPages}
-                onClick={() => handlePageChange(currentPage + 1)}
-              >
-                Next
-              </Button>
-            </div>
           </ModalBody>
         </Modal>
         {/* Confirmation Modal */}

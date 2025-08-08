@@ -23,6 +23,13 @@ import { APIClient } from "../../helpers/api_helper";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
+import $ from "jquery";
+import "datatables.net-bs5";
+import "datatables.net-buttons-bs5";
+import "datatables.net-buttons/js/buttons.html5.js";
+import "jszip";
+import "pdfmake/build/pdfmake";
+import "pdfmake/build/vfs_fonts";
 
 const api = new APIClient();
 
@@ -33,69 +40,14 @@ const ComputerLabs_SimulationLab: React.FC = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [classroomData, setClassroomData] = useState<any[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 10;
-  const [filters, setFilters] = useState({
-    blockName: "",
-    noOfComputerLabs: "",
-    noOfComputers: "",
-  });
-  const [filteredData, setFilteredData] = useState(classroomData);
-
-    const fileRef = useRef<HTMLInputElement | null>(null);
-   const [tooltipOpen, setTooltipOpen] = useState(false);
-      const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
+  const [computerLabsData, setComputerLabsData] = useState<any[]>([]);
+  const [filteredData, setFilteredData] = useState(computerLabsData);
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  const [tooltipOpen, setTooltipOpen] = useState(false);
+  const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
        
-      const tableRef = useRef<HTMLTableElement>(null);
+  const tableRef = useRef<HTMLTableElement>(null);
 
-  // Handle global search
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toLowerCase();
-    setSearchTerm(value);
-
-    const filtered = classroomData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-
-  // Handle column-specific filters
-  const handleFilterChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    column: string
-  ) => {
-    const value = e.target.value.toLowerCase();
-    const updatedFilters = { ...filters, [column]: value };
-    setFilters(updatedFilters);
-
-    const filtered = classroomData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-
-  // Calculate the paginated data
-  const indexOfLastRow = currentPage * rowsPerPage;
-  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
-  const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
-
-  // Handle page change
-  const handlePageChange = (pageNumber: number) => {
-    setCurrentPage(pageNumber);
-  };
-
-  // Calculate total pages
-  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
   // Toggle the modal for listing ComputerLabs_SimulationLab data
   const toggleModal = () => {
@@ -109,7 +61,7 @@ const ComputerLabs_SimulationLab: React.FC = () => {
         "/infrastructureComputerLabs/getAllComputerLabs",
         ""
       );
-      setClassroomData(response);
+      setComputerLabsData(response);
       setFilteredData(response);
     } catch (error) {
       console.error(
@@ -355,7 +307,46 @@ const ComputerLabs_SimulationLab: React.FC = () => {
       }
     },
   });
+    useEffect(() => {
+    if (computerLabsData.length === 0) return; // wait until data is loaded
 
+    const table = $("#computerLabsId").DataTable({
+      destroy: true, // destroy existing instance if re-rendered
+      scrollX: true, 
+       autoWidth: false, 
+      dom: "Bfrtip",
+      buttons: [
+        {
+          extend: "copy",
+          exportOptions: {
+            columns: ":not(:last-child)", // skip Actions column
+          },
+        },
+        {
+          extend: "csv",
+          exportOptions: {
+            columns: ":not(:last-child)",
+          },
+        },
+      ],
+    });
+    $(".dt-buttons").addClass("mb-3 gap-2");
+    $(".buttons-copy").addClass("btn btn-success");
+    $(".buttons-csv").addClass("btn btn-info");
+
+    $("#computerLabsId").on(
+      "buttons-action.dt",
+      function (e, buttonApi, dataTable, node, config) {
+        if (buttonApi.text() === "Copy") {
+          toast.success("Copied to clipboard!");
+        }
+      }
+    );
+
+    return () => {
+      table.destroy(); // clean up
+    };
+  }, [computerLabsData]);
   return (
     <React.Fragment>
       <div className="page-content">
@@ -586,23 +577,12 @@ const ComputerLabs_SimulationLab: React.FC = () => {
             List Computer Labs and Simulation Labs data
           </ModalHeader>
           <ModalBody>
-            {/* Global Search */}
-            <div className="mb-3">
-              <Input
-                type="text"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={handleSearch}
-              />
-            </div>
-
-            {/* Table with Pagination */}
             <Table
               striped
               bordered
               hover
-              responsive
-              className="align-middle text-center"
+              id="computerLabsId"
+              innerRef={tableRef}
             >
               <thead className="table-dark">
                 <tr>
@@ -610,17 +590,19 @@ const ComputerLabs_SimulationLab: React.FC = () => {
                   <th>Block Name</th>
                   <th>No. of Computer Labs</th>
                   <th>No. of Computers</th>
+                  <th className="d-none">File Path</th> {/* Hidden */}
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((campus, index) => (
+                {computerLabsData.length > 0 ? (
+                  computerLabsData.map((campus, index) => (
                     <tr key={campus.computerLabsId}>
-                      <td>{indexOfFirstRow + index + 1}</td>
+                      <td>{index + 1}</td>
                       <td>{campus.blockName}</td>
                       <td>{campus.noOfComputerLabs}</td>
                       <td>{campus.noOfComputers}</td>
+                       <td className="d-none">{campus?.filePath?.computerLabs || "N/A"}</td> {/* Hidden */}
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
@@ -648,26 +630,6 @@ const ComputerLabs_SimulationLab: React.FC = () => {
                 )}
               </tbody>
             </Table>
-            {/* Pagination Controls */}
-            <div className="d-flex justify-content-between align-items-center mt-3">
-              <Button
-                color="primary"
-                disabled={currentPage === 1}
-                onClick={() => handlePageChange(currentPage - 1)}
-              >
-                Previous
-              </Button>
-              <div>
-                Page {currentPage} of {totalPages}
-              </div>
-              <Button
-                color="primary"
-                disabled={currentPage === totalPages}
-                onClick={() => handlePageChange(currentPage + 1)}
-              >
-                Next
-              </Button>
-            </div>
           </ModalBody>
         </Modal>
         {/* Confirmation Modal */}

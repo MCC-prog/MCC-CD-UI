@@ -56,7 +56,6 @@ const Cdp_Activites: React.FC = () => {
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };
-
   // Fetch CDP data from the backend
   const fetchCdpData = async () => {
     try {
@@ -128,7 +127,6 @@ const Cdp_Activites: React.FC = () => {
             }
           : null,
       });
-
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       setIsFileUploadDisabled(!!response.documents?.CDP);

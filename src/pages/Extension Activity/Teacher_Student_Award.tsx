@@ -1,7 +1,7 @@
 import Breadcrumb from "Components/Common/Breadcrumb";
 import { ToastContainer } from "react-toastify";
 import { useFormik } from "formik";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -24,83 +24,35 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import GetAllDepartmentDropdown from "Components/DropDowns/GetAllDepartmentDropdown";
 import axios from "axios";
+import moment from "moment";
+import $ from "jquery";
+import "datatables.net-bs5";
+import "datatables.net-buttons-bs5";
+import "datatables.net-buttons/js/buttons.html5.js";
+import "jszip";
+import "pdfmake/build/pdfmake";
+import "pdfmake/build/vfs_fonts";
 
 const api = new APIClient();
 
 const Teacher_Student_Award: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [teacherStudentAwardData, setTeacherStudentAwardData] = useState<any[]>(
-    []
-  );
+ const [teacherStudentAwardData, setTeacherStudentAwardData] = useState<any[]>([]);
   const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
   const [editId, setEditId] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 10;
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
   const [filteredData, setFilteredData] = useState(teacherStudentAwardData);
-  const [filters, setFilters] = useState({
-    name: "",
-    department: "",
-    organisation: "",
-    awardReceivedYear: "",
-    file: null as string | null,
-  });
-
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
-
-  // Handle global search
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toLowerCase();
-    setSearchTerm(value);
-
-    const filtered = teacherStudentAwardData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-  // Handle column-specific filters
-  const handleFilterChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    column: string
-  ) => {
-    const value = e.target.value.toLowerCase();
-    const updatedFilters = { ...filters, [column]: value };
-    setFilters(updatedFilters);
-
-    const filtered = teacherStudentAwardData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-  // Calculate the paginated data
-  const indexOfLastRow = currentPage * rowsPerPage;
-  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
-  const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
-
-  // Handle page change
-  const handlePageChange = (pageNumber: number) => {
-    setCurrentPage(pageNumber);
-  };
-
-  // Calculate total pages
-  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
-
+ const tableRef = useRef<HTMLTableElement>(null);
+  const fileRef = useRef<HTMLInputElement | null>(null);
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };
+
 
   // Fetch teacherStudentAward data from the backend
   const fetchTeacherStudentAwardData = async () => {
@@ -109,7 +61,7 @@ const Teacher_Student_Award: React.FC = () => {
         "/studentAwardExtensionActivity/getAllStudentAwardExtensionActivity",
         ""
       );
-      setTeacherStudentAwardData(response.data);
+      setTeacherStudentAwardData(response);
       setFilteredData(response);
     } catch (error) {
       console.error("Error fetching Teacher Student Award:", error);
@@ -342,6 +294,47 @@ const Teacher_Student_Award: React.FC = () => {
     },
   });
 
+   useEffect(() => {
+    if (teacherStudentAwardData.length === 0) return; // wait until data is loaded
+
+    const table = $("#awardId").DataTable({
+      destroy: true, 
+       scrollX: true, 
+       autoWidth: false, 
+     dom: "Bfrtip",
+      buttons: [
+        {
+          extend: "copy",
+          exportOptions: {
+            columns: ":not(:last-child)", // skip Actions column
+          },
+        },
+        {
+          extend: "csv",
+          exportOptions: {
+            columns: ":not(:last-child)",
+          },
+        },
+      ],
+    });
+    $(".dt-buttons").addClass("mb-3 gap-2");
+    $(".buttons-copy").addClass("btn btn-success");
+    $(".buttons-csv").addClass("btn btn-info");
+
+    $("#awardId").on(
+      "buttons-action.dt",
+      function (e, buttonApi, dataTable, node, config) {
+        if (buttonApi.text() === "Copy") {
+          toast.success("Copied to clipboard!");
+        }
+      }
+    );
+
+    return () => {
+      table.destroy(); // clean up
+    };
+  }, [teacherStudentAwardData]);
+
   return (
     <React.Fragment>
       <div className="page-content">
@@ -485,6 +478,7 @@ const Teacher_Student_Award: React.FC = () => {
                         }`}
                         type="file"
                         id="formFile"
+                        innerRef={fileRef}
                         onChange={(event) => {
                           validation.setFieldValue(
                             "file",
@@ -571,40 +565,34 @@ const Teacher_Student_Award: React.FC = () => {
             List Teacher Student Award
           </ModalHeader>
           <ModalBody>
-            <div className="mb-3">
-              <Input
-                type="text"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={handleSearch}
-              />
-            </div>
             <Table
               striped
               bordered
               hover
-              responsive
-              className="align-middle text-center"
+              id="awardId"
+              innerRef={tableRef}
             >
-              <thead className="table-dark">
+              <thead >
                 <tr>
                   <th>Sl.No</th>
                   <th>Presenter Name</th>
                   <th>Department</th>
                   <th>Organization</th>
                   <th>Year Of Receiving Award</th>
+                  <th className="d-none">FilePath</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((award, index) => (
+                {teacherStudentAwardData.length > 0 ? (
+                  teacherStudentAwardData.map((award, index) => (
                     <tr key={award.awardId}>
                       <td>{index + 1}</td>
                       <td>{award.name}</td>
                       <td>{award.departmentName}</td>
                       <td>{award.organisation}</td>
                       <td>{award.awardReceivedYear}</td>
+                      <td className="d-none">{award?.filePath?.recognitionCertificate || "N/A"}</td>
                       <td>
                         <button
                           className="btn btn-sm btn-warning me-2"
@@ -634,26 +622,6 @@ const Teacher_Student_Award: React.FC = () => {
                 )}
               </tbody>
             </Table>
-            {/* Pagination Controls */}
-            <div className="d-flex justify-content-between align-items-center mt-3">
-              <Button
-                color="primary"
-                disabled={currentPage === 1}
-                onClick={() => handlePageChange(currentPage - 1)}
-              >
-                Previous
-              </Button>
-              <div>
-                Page {currentPage} of {totalPages}
-              </div>
-              <Button
-                color="primary"
-                disabled={currentPage === totalPages}
-                onClick={() => handlePageChange(currentPage + 1)}
-              >
-                Next
-              </Button>
-            </div>
           </ModalBody>
         </Modal>
         {/* Confirmation Modal */}

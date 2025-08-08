@@ -30,6 +30,13 @@ import "react-toastify/dist/ReactToastify.css";
 import { SEMESTER_NO_OPTIONS } from "../../Components/constants/layout";
 import axios from "axios";
 import moment from "moment";
+import $ from "jquery";
+import "datatables.net-bs5";
+import "datatables.net-buttons-bs5";
+import "datatables.net-buttons/js/buttons.html5.js";
+import "jszip";
+import "pdfmake/build/pdfmake";
+import "pdfmake/build/vfs_fonts";
 
 const api = new APIClient();
 
@@ -57,71 +64,11 @@ const OffCampus: React.FC = () => {
     { value: string; label: string }[]
   >([]);
   // State variable for managing search term and pagination
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 10;
-  // State variable for managing filters
-  const [filters, setFilters] = useState({
-    academicYear: "",
-    semesterType: "",
-    semesterNo: "",
-    stream: "",
-    department: "",
-    programType: "",
-    program: "",
-    yearOfIntroduction: "",
-    percentage: "",
-  });
+ 
   const [filteredData, setFilteredData] = useState(campusData);
+  const tableRef = useRef<HTMLTableElement>(null);
 
   const fileRef = useRef<HTMLInputElement | null>(null);
-
-  // Handle global search
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toLowerCase();
-    setSearchTerm(value);
-
-    const filtered = campusData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-
-  // Handle column-specific filters
-  const handleFilterChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    column: string
-  ) => {
-    const value = e.target.value.toLowerCase();
-    const updatedFilters = { ...filters, [column]: value };
-    setFilters(updatedFilters);
-
-    const filtered = campusData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-
-  // Calculate the paginated data
-  const indexOfLastRow = currentPage * rowsPerPage;
-  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
-  const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
-
-  // Handle page change
-  const handlePageChange = (pageNumber: number) => {
-    setCurrentPage(pageNumber);
-  };
-
-  // Calculate total pages
-  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
   // Toggle the modal for listing Off-Campus placement
   const toggleModal = () => {
@@ -476,6 +423,47 @@ const OffCampus: React.FC = () => {
     fetchPrograms();
   }, [validation.values.programType]);
 
+      useEffect(() => {
+    if (campusData.length === 0) return; // wait until data is loaded
+
+    const table = $("#id").DataTable({
+      destroy: true, // destroy existing instance if re-rendered
+      scrollX: true, 
+       autoWidth: false, 
+      dom: "Bfrtip",
+      buttons: [
+        {
+          extend: "copy",
+          exportOptions: {
+            columns: ":not(:last-child)", // skip Actions column
+          },
+        },
+        {
+          extend: "csv",
+          exportOptions: {
+            columns: ":not(:last-child)",
+          },
+        },
+      ],
+    });
+    $(".dt-buttons").addClass("mb-3 gap-2");
+    $(".buttons-copy").addClass("btn btn-success");
+    $(".buttons-csv").addClass("btn btn-info");
+
+    $("#id").on(
+      "buttons-action.dt",
+      function (e, buttonApi, dataTable, node, config) {
+        if (buttonApi.text() === "Copy") {
+          toast.success("Copied to clipboard!");
+        }
+      }
+    );
+
+    return () => {
+      table.destroy(); // clean up
+    };
+  }, [campusData]);
+
   return (
     <React.Fragment>
       <div className="page-content">
@@ -783,25 +771,14 @@ const OffCampus: React.FC = () => {
             List Off-Campus placement
           </ModalHeader>
           <ModalBody>
-            {/* Global Search */}
-            <div className="mb-3">
-              <Input
-                type="text"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={handleSearch}
-              />
-            </div>
-
-            {/* Table with Pagination */}
             <Table
               striped
               bordered
               hover
-              responsive
-              className="align-middle text-center"
+              id="id"
+              innerRef={tableRef}
             >
-              <thead className="table-dark">
+              <thead>
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
@@ -809,20 +786,21 @@ const OffCampus: React.FC = () => {
                   <th>Department</th>
                   <th>Program Type</th>
                   <th>Program</th>
+                  <th className="d-none">File Path</th> {/* Hidden */}
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((campus, index) => (
+                {campusData.length > 0 ? (
+                  campusData.map((campus, index) => (
                     <tr key={campus.id}>
-                      <td>{indexOfFirstRow + index + 1}</td>
+                      <td>{index + 1}</td>
                       <td>{campus.academicYear}</td>
                       <td>{campus.streamName}</td>
                       <td>{campus.departmentName}</td>
                       <td>{campus.programTypeName}</td>
                       <td>{campus.programName}</td>
-
+                       <td className="d-none">{campus?.filePath?.file || "N/A"}</td> {/* Hidden */}
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
@@ -850,26 +828,6 @@ const OffCampus: React.FC = () => {
                 )}
               </tbody>
             </Table>
-            {/* Pagination Controls */}
-            <div className="d-flex justify-content-between align-items-center mt-3">
-              <Button
-                color="primary"
-                disabled={currentPage === 1}
-                onClick={() => handlePageChange(currentPage - 1)}
-              >
-                Previous
-              </Button>
-              <div>
-                Page {currentPage} of {totalPages}
-              </div>
-              <Button
-                color="primary"
-                disabled={currentPage === totalPages}
-                onClick={() => handlePageChange(currentPage + 1)}
-              >
-                Next
-              </Button>
-            </div>
           </ModalBody>
         </Modal>
         {/* Confirmation Modal */}

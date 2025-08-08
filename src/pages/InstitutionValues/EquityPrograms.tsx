@@ -27,6 +27,13 @@ import "react-toastify/dist/ReactToastify.css";
 import { SEMESTER_NO_OPTIONS } from "../../Components/constants/layout";
 import axios from "axios";
 import moment from "moment";
+import $ from "jquery";
+import "datatables.net-bs5";
+import "datatables.net-buttons-bs5";
+import "datatables.net-buttons/js/buttons.html5.js";
+import "jszip";
+import "pdfmake/build/pdfmake";
+import "pdfmake/build/vfs_fonts";
 
 const api = new APIClient();
 
@@ -49,18 +56,7 @@ const EquityPrograms: React.FC = () => {
   const [selectedProgramType, setSelectedProgramType] = useState<any>(null);
   const [selectedDegree, setSelectedDegree] = useState<any>(null);
   // State variable for managing search term and pagination
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 10;
-  // State variable for managing filters
-  const [filters, setFilters] = useState({
-    academicYear: "",
-    semesterNo: "",
-    stream: "",
-    department: "",
-    association: "",
-    objective: null as { value: string; label: string } | null,
-  });
+ const tableRef = useRef<HTMLTableElement>(null);  
   const [filteredData, setFilteredData] = useState(activityData);
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [associationOptions, setAssociationOptions] = useState<
@@ -81,53 +77,6 @@ const EquityPrograms: React.FC = () => {
     };
     fetchAssociations();
   }, []);
-
-  // Handle global search
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toLowerCase();
-    setSearchTerm(value);
-
-    const filtered = activityData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-
-  // Handle column-specific filters
-  const handleFilterChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    column: string
-  ) => {
-    const value = e.target.value.toLowerCase();
-    const updatedFilters = { ...filters, [column]: value };
-    setFilters(updatedFilters);
-
-    const filtered = activityData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-
-  // Calculate the paginated data
-  const indexOfLastRow = currentPage * rowsPerPage;
-  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
-  const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
-
-  // Handle page change
-  const handlePageChange = (pageNumber: number) => {
-    setCurrentPage(pageNumber);
-  };
-
-  // Calculate total pages
-  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
   // Toggle the modal for listing Equity Program
   const toggleModal = () => {
@@ -453,6 +402,47 @@ const EquityPrograms: React.FC = () => {
       }
     },
   });
+
+      useEffect(() => {
+    if (activityData.length === 0) return; // wait until data is loaded
+
+    const table = $("#id").DataTable({
+      destroy: true, // destroy existing instance if re-rendered
+      scrollX: true, 
+       autoWidth: false, 
+      dom: "Bfrtip",
+      buttons: [
+        {
+          extend: "copy",
+          exportOptions: {
+            columns: ":not(:last-child)", // skip Actions column
+          },
+        },
+        {
+          extend: "csv",
+          exportOptions: {
+            columns: ":not(:last-child)",
+          },
+        },
+      ],
+    });
+    $(".dt-buttons").addClass("mb-3 gap-2");
+    $(".buttons-copy").addClass("btn btn-success");
+    $(".buttons-csv").addClass("btn btn-info");
+
+    $("#id").on(
+      "buttons-action.dt",
+      function (e, buttonApi, dataTable, node, config) {
+        if (buttonApi.text() === "Copy") {
+          toast.success("Copied to clipboard!");
+        }
+      }
+    );
+
+    return () => {
+      table.destroy(); // clean up
+    };
+  }, [activityData]); 
 
   return (
     <React.Fragment>
@@ -813,23 +803,12 @@ const EquityPrograms: React.FC = () => {
         >
           <ModalHeader toggle={toggleModal}>List Equity Program</ModalHeader>
           <ModalBody>
-            {/* Global Search */}
-            <div className="mb-3">
-              <Input
-                type="text"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={handleSearch}
-              />
-            </div>
-
-            {/* Table with Pagination */}
             <Table
               striped
               bordered
               hover
-              responsive
-              className="align-middle text-center"
+             id="id"
+              innerRef={tableRef}
             >
               <thead className="table-dark">
                 <tr>
@@ -840,20 +819,22 @@ const EquityPrograms: React.FC = () => {
                   <th>Department</th>
                   <th>Association</th>
                   <th>Objective</th>
+                  <th className="d-none">File Path</th> {/* Hidden */}
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((activity, index) => (
+                {activityData.length > 0 ? (
+                  activityData.map((activity, index) => (
                     <tr key={activity.id}>
-                      <td>{indexOfFirstRow + index + 1}</td>
+                      <td>{index + 1}</td>
                       <td>{activity.academicYear}</td>
                       <td>{activity.semester}</td>
                       <td>{activity.streamName}</td>
                       <td>{activity.departmentName}</td>
                       <td>{activity.associationName}</td>
                       <td>{activity.eventObjective}</td>
+                       <td className="d-none">{activity?.filePath?.Institutional || "N/A"}</td> {/* Hidden */}
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
@@ -881,26 +862,6 @@ const EquityPrograms: React.FC = () => {
                 )}
               </tbody>
             </Table>
-            {/* Pagination Controls */}
-            <div className="d-flex justify-content-between align-items-center mt-3">
-              <Button
-                color="primary"
-                disabled={currentPage === 1}
-                onClick={() => handlePageChange(currentPage - 1)}
-              >
-                Previous
-              </Button>
-              <div>
-                Page {currentPage} of {totalPages}
-              </div>
-              <Button
-                color="primary"
-                disabled={currentPage === totalPages}
-                onClick={() => handlePageChange(currentPage + 1)}
-              >
-                Next
-              </Button>
-            </div>
           </ModalBody>
         </Modal>
         {/* Confirmation Modal */}

@@ -7,7 +7,7 @@ import ProgramTypeDropdown from "Components/DropDowns/ProgramTypeDropdown";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { ToastContainer } from "react-toastify";
 import { useFormik } from "formik";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -29,6 +29,13 @@ import { APIClient } from "../../helpers/api_helper";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
+import $ from "jquery";
+import "datatables.net-bs5";
+import "datatables.net-buttons-bs5";
+import "datatables.net-buttons/js/buttons.html5.js";
+import "jszip";
+import "pdfmake/build/pdfmake";
+import "pdfmake/build/vfs_fonts";
 
 const api = new APIClient();
 
@@ -43,70 +50,14 @@ const Details_of_Programs_offered: React.FC = () => {
   const [selectedDegree, setSelectedDegree] = useState<any>(null);
   const [editId, setEditId] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 10;
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
   const [filteredData, setFilteredData] = useState(detailsProgramOfferedData);
-  const [filters, setFilters] = useState({
-    academicYear: "",
-    stream: "",
-    department: "",
-    programType: "",
-    degree: "",
-    program: "",
-    agencyName: "",
-    numberOfStudent: "",
-    duration: "",
-    file: null as string | null,
-  });
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toLowerCase();
-    setSearchTerm(value);
-
-    const filtered = detailsProgramOfferedData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-  // Handle column-specific filters
-  const handleFilterChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    column: string
-  ) => {
-    const value = e.target.value.toLowerCase();
-    const updatedFilters = { ...filters, [column]: value };
-    setFilters(updatedFilters);
-
-    const filtered = detailsProgramOfferedData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-  // Calculate the paginated data
-  const indexOfLastRow = currentPage * rowsPerPage;
-  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
-  const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
-
-  // Handle page change
-  const handlePageChange = (pageNumber: number) => {
-    setCurrentPage(pageNumber);
-  };
-
-  // Calculate total pages
-  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+  const fileRef = useRef<HTMLInputElement | null>(null);
+   const tableRef = useRef<HTMLTableElement>(null);
 
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
@@ -409,6 +360,9 @@ const Details_of_Programs_offered: React.FC = () => {
         }
         // Reset the form fields
         resetForm();
+            if (fileRef.current) {
+          fileRef.current.value = "";
+        }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         setIsFileUploadDisabled(false); // Enable the file upload button
@@ -422,6 +376,47 @@ const Details_of_Programs_offered: React.FC = () => {
       }
     },
   });
+
+  useEffect(() => {
+    if (detailsProgramOfferedData.length === 0) return; // wait until data is loaded
+
+    const table = $("#id").DataTable({
+      destroy: true, // destroy existing instance if re-rendered
+      scrollX: true,
+      autoWidth: false,
+      dom: "Bfrtip",
+      buttons: [
+        {
+          extend: "copy",
+          exportOptions: {
+            columns: ":not(:last-child)", // skip Actions column
+          },
+        },
+        {
+          extend: "csv",
+          exportOptions: {
+            columns: ":not(:last-child)",
+          },
+        },
+      ],
+    });
+    $(".dt-buttons").addClass("mb-3 gap-2");
+    $(".buttons-copy").addClass("btn btn-success");
+    $(".buttons-csv").addClass("btn btn-info");
+
+    $("#id").on(
+      "buttons-action.dt",
+      function (e, buttonApi, dataTable, node, config) {
+        if (buttonApi.text() === "Copy") {
+          toast.success("Copied to clipboard!");
+        }
+      }
+    );
+
+    return () => {
+      table.destroy(); // clean up
+    };
+  }, [detailsProgramOfferedData]);
 
   return (
     <React.Fragment>
@@ -701,6 +696,7 @@ const Details_of_Programs_offered: React.FC = () => {
                         }`}
                         type="file"
                         id="formFile"
+                        innerRef={fileRef}
                         onChange={(event) => {
                           validation.setFieldValue(
                             "file",
@@ -788,106 +784,31 @@ const Details_of_Programs_offered: React.FC = () => {
             with Industry
           </ModalHeader>
           <ModalBody>
-            {/* Global Search */}
-            <div className="mb-3">
-              <Input
-                type="text"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={handleSearch}
-              />
-            </div>
-            <Table bordered>
+            <Table
+             striped
+              bordered
+              hover
+              id="detailsProgramOfferedDataId"
+              innerRef={tableRef}>
               <thead>
                 <tr>
                   <th>Sl.No</th>
-                  <th>
-                    Academic Year
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.academicYear}
-                      onChange={(e) => handleFilterChange(e, "academicYear")}
-                    />
-                  </th>
-                  <th>
-                    Schools
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.stream}
-                      onChange={(e) => handleFilterChange(e, "stream")}
-                    />
-                  </th>
-                  <th>
-                    Department
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.department}
-                      onChange={(e) => handleFilterChange(e, "department")}
-                    />
-                  </th>
-                  <th>
-                    Program Type
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.programType}
-                      onChange={(e) => handleFilterChange(e, "programType")}
-                    />
-                  </th>
-                  <th>
-                    Program
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.degree}
-                      onChange={(e) => handleFilterChange(e, "degree")}
-                    />
-                  </th>
-                  <th>
-                    Course
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.program}
-                      onChange={(e) => handleFilterChange(e, "program")}
-                    />
-                  </th>
-                  <th>
-                    Agency Name
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.agencyName}
-                      onChange={(e) => handleFilterChange(e, "agencyName")}
-                    />
-                  </th>
-                  <th>
-                    Number Of Student
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.numberOfStudent}
-                      onChange={(e) => handleFilterChange(e, "numberOfStudent")}
-                    />
-                  </th>
-                  <th>
-                    Durationt
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.duration}
-                      onChange={(e) => handleFilterChange(e, "duration")}
-                    />
-                  </th>
+                  <th>Academic Year</th>
+                  <th>Schools</th>
+                  <th>Department</th>
+                  <th>Program Type</th>
+                  <th>Program</th>
+                  <th>Course</th>
+                  <th>Agency Name</th>
+                  <th>Number Of Student</th>
+                  <th>Durationt</th>
+                  <th className="d-none">File Path</th> {/* Hidden */}
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((detailsProgramOffered, index) => (
+                {detailsProgramOfferedData.length > 0 ? (
+                  detailsProgramOfferedData.map((detailsProgramOffered, index) => (
                     <tr key={detailsProgramOffered.detailsProgramOfferedDataId}>
                       <td>{index + 1}</td>
                       <td>{detailsProgramOffered.academicYear}</td>
@@ -909,6 +830,7 @@ const Details_of_Programs_offered: React.FC = () => {
                       <td>{detailsProgramOffered.agencyName}</td>
                       <td>{detailsProgramOffered.noOfStudent}</td>
                       <td>{detailsProgramOffered.duration}</td>
+                       <td className="d-none">{detailsProgramOffered?.filePath?.mou || "N/A"}</td> {/* Hidden */}
                       <td>
                         <button
                           className="btn btn-sm btn-warning me-2"
@@ -942,29 +864,8 @@ const Details_of_Programs_offered: React.FC = () => {
                 )}
               </tbody>
             </Table>
-            {/* Pagination Controls */}
-            <div className="d-flex justify-content-between align-items-center mt-3">
-              <Button
-                color="primary"
-                disabled={currentPage === 1}
-                onClick={() => handlePageChange(currentPage - 1)}
-              >
-                Previous
-              </Button>
-              <div>
-                Page {currentPage} of {totalPages}
-              </div>
-              <Button
-                color="primary"
-                disabled={currentPage === totalPages}
-                onClick={() => handlePageChange(currentPage + 1)}
-              >
-                Next
-              </Button>
-            </div>
-          </ModalBody>
-        </Modal>
-        {/* Confirmation Modal */}
+             </ModalBody>
+             </Modal>
         <Modal
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}

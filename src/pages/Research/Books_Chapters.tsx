@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import {
@@ -29,102 +29,47 @@ import { toast, ToastContainer } from "react-toastify";
 import { APIClient } from "helpers/api_helper";
 import moment from "moment";
 import axios from "axios";
+import $ from "jquery";
+import "datatables.net-bs5";
+import "datatables.net-buttons-bs5";
+import "datatables.net-buttons/js/buttons.html5.js";
+import "jszip";
+import "pdfmake/build/pdfmake";
+import "pdfmake/build/vfs_fonts";
 
 const api = new APIClient();
 
 const Books_Chapters = () => {
-  // State variables for managing modal, edit mode, and delete confirmation
   const [isEditMode, setIsEditMode] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
-  // State variable for managing delete confirmation modal
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  // State variable for managing file upload status
   const [isFrontPageFileUploadDisabled, setIsFrontPageFileUploadDisabled] =
     useState(false);
-  // State variable for managing book chapters data
   const [bookChaptersData, setBookChaptersData] = useState<any[]>([]);
-  // State variables for managing selected options in dropdowns
   const [selectedStream, setSelectedStream] = useState<any>(null);
   const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
   const [selectedProgramType, setSelectedProgramType] = useState<any>(null);
   const [selectedDegree, setSelectedDegree] = useState<any>(null);
-  // State variable for managing the modal for listing BOS
   const [isModalOpen, setIsModalOpen] = useState(false);
-  // State variable for managing search term and pagination
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 10;
-  // State variable for managing filters
-  const [filters, setFilters] = useState({
-    academicYear: "",
-    stream: "",
-    department: "",
-    facultyName: "",
-    coAuthors: "",
-    bookTitle: "",
-    editor: "",
-    publisher: "",
-    isbxl: "",
-    dateOfPublication: "",
-  });
   const [filteredData, setFilteredData] = useState(bookChaptersData);
-
-  // Handle global search
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toLowerCase();
-    setSearchTerm(value);
-
-    const filtered = bookChaptersData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-
-  // Handle column-specific filters
-  const handleFilterChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    column: string
-  ) => {
-    const value = e.target.value.toLowerCase();
-    const updatedFilters = { ...filters, [column]: value };
-    setFilters(updatedFilters);
-
-    const filtered = bookChaptersData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-
-  // Calculate the paginated data
-  const indexOfLastRow = currentPage * rowsPerPage;
-  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
-  const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
-
-  // Handle page change
-  const handlePageChange = (pageNumber: number) => {
-    setCurrentPage(pageNumber);
-  };
-
-  // Calculate total pages
-  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+  const tableRef = useRef<HTMLTableElement>(null);
+  const fileRef = useRef<HTMLInputElement | null>(null);
 
   // Toggle the modal for listing BOS
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };
 
-  // Formik validation and submission
-  // Initialize Formik with validation schema and initial values
-  const [selectedType, setSelectedType] = useState<string>("Research Article");
+  const fetchBooksChaptersData = async () => {
+    try {
+      const response = await api.get("/bookChapter/getAll", "");
+      setBookChaptersData(response);
+      setFilteredData(response);
+    } catch (error) {
+      console.error("Error fetching Book Chapter data:", error);
+    }
+  };
 
   const validation = useFormik({
     initialValues: {
@@ -213,7 +158,10 @@ const Books_Chapters = () => {
       // Append the file
       if (typeof values.bookChapter === "string") {
         // If the file is just a name, send null
-        formData.append("bookChapter", new Blob([], { type: "application/pdf" }));
+        formData.append(
+          "bookChapter",
+          new Blob([], { type: "application/pdf" })
+        );
       } else if (values.bookChapter instanceof File) {
         // If the file is a File object, send the file
         formData.append("bookChapter", values.bookChapter);
@@ -235,6 +183,10 @@ const Books_Chapters = () => {
         }
         // Reset the form fields
         resetForm();
+        if (fileRef.current) {
+          fileRef.current.value = "";
+        }
+        setIsFrontPageFileUploadDisabled(false);
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         // Display the Book Chapter List
@@ -246,16 +198,6 @@ const Books_Chapters = () => {
       }
     },
   });
-
-  const fetchBooksChaptersData = async () => {
-    try {
-      const response = await api.get("/bookChapter/getAll", "");
-      setBookChaptersData(response);
-      setFilteredData(response);
-    } catch (error) {
-      console.error("Error fetching Book Chapter data:", error);
-    }
-  };
 
   // Open the modal and fetch data
   const handleListBooksChaptersClick = () => {
@@ -432,6 +374,46 @@ const Books_Chapters = () => {
       console.error("Error deleting file:", error);
     }
   };
+  useEffect(() => {
+    if (bookChaptersData.length === 0) return; // wait until data is loaded
+
+    const table = $("#bookChapterId").DataTable({
+      destroy: true, // destroy existing instance if re-rendered
+      scrollX: true,
+      autoWidth: false,
+      dom: "Bfrtip",
+      buttons: [
+        {
+          extend: "copy",
+          exportOptions: {
+            columns: ":not(:last-child)", // skip Actions column
+          },
+        },
+        {
+          extend: "csv",
+          exportOptions: {
+            columns: ":not(:last-child)",
+          },
+        },
+      ],
+    });
+    $(".dt-buttons").addClass("mb-3 gap-2");
+    $(".buttons-copy").addClass("btn btn-success");
+    $(".buttons-csv").addClass("btn btn-info");
+
+    $("#bookChapterId").on(
+      "buttons-action.dt",
+      function (e, buttonApi, dataTable, node, config) {
+        if (buttonApi.text() === "Copy") {
+          toast.success("Copied to clipboard!");
+        }
+      }
+    );
+
+    return () => {
+      table.destroy(); // clean up
+    };
+  }, [bookChaptersData]);
 
   return (
     <React.Fragment>
@@ -758,6 +740,7 @@ const Books_Chapters = () => {
                       <Label>Front Page Upload</Label>
                       <Input
                         type="file"
+                        innerRef={fileRef}
                         onChange={(e) =>
                           validation.setFieldValue(
                             "bookChapter",
@@ -850,24 +833,14 @@ const Books_Chapters = () => {
           size="lg"
           style={{ maxWidth: "100%", width: "auto" }}
         >
-          <ModalHeader toggle={toggleModal}>List BOS</ModalHeader>
+          <ModalHeader toggle={toggleModal}>List Books/Chapters</ModalHeader>
           <ModalBody>
-            {/* Global Search */}
-            <div className="mb-3">
-              <Input
-                type="text"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={handleSearch}
-              />
-            </div>
-
             <Table
               striped
               bordered
               hover
-              responsive
-              className="align-middle text-center"
+              id="bookChapterId"
+              innerRef={tableRef}
             >
               <thead className="table-dark">
                 <tr>
@@ -882,14 +855,15 @@ const Books_Chapters = () => {
                   <th>Publisher</th>
                   <th>ISBXL</th>
                   <th>Date of Publication</th>
+                  <th className="d-none">File Path</th> {/* Hidden */}
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((books, index) => (
+                {bookChaptersData.length > 0 ? (
+                  bookChaptersData.map((books, index) => (
                     <tr key={books.bookChapterId}>
-                      <td>{indexOfFirstRow + index + 1}</td>
+                      <td>{index + 1}</td>
                       <td>{books.academicYear}</td>
                       <td>{books.streamName}</td>
                       <td>{books.departmentName}</td>
@@ -900,6 +874,10 @@ const Books_Chapters = () => {
                       <td>{books.publisher}</td>
                       <td>{books.isbn}</td>
                       <td>{books.publicationDate}</td>
+                      <td className="d-none">
+                        {books?.filePath?.bookChapter || "N/A"}
+                      </td>{" "}
+                      {/* Hidden */}
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
@@ -927,26 +905,6 @@ const Books_Chapters = () => {
                 )}
               </tbody>
             </Table>
-            {/* Pagination Controls */}
-            <div className="d-flex justify-content-between align-items-center mt-3">
-              <Button
-                color="primary"
-                disabled={currentPage === 1}
-                onClick={() => handlePageChange(currentPage - 1)}
-              >
-                Previous
-              </Button>
-              <div>
-                Page {currentPage} of {totalPages}
-              </div>
-              <Button
-                color="primary"
-                disabled={currentPage === totalPages}
-                onClick={() => handlePageChange(currentPage + 1)}
-              >
-                Next
-              </Button>
-            </div>
           </ModalBody>
         </Modal>
         {/* Confirmation Modal */}

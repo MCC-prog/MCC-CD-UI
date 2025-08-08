@@ -3,7 +3,7 @@ import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -24,99 +24,33 @@ import { APIClient } from "helpers/api_helper";
 import { toast, ToastContainer } from "react-toastify";
 import moment from "moment";
 import axios from "axios";
+import $ from "jquery";
+import "datatables.net-bs5";
+import "datatables.net-buttons-bs5";
+import "datatables.net-buttons/js/buttons.html5.js";
+import "jszip";
+import "pdfmake/build/pdfmake";
+import "pdfmake/build/vfs_fonts";
 
 const api = new APIClient();
 
 const FP_And_Presentation_Research_Papers = () => {
-  // State variables for managing modal, edit mode, and delete confirmation
   const [isEditMode, setIsEditMode] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
-  // State variable for managing delete confirmation modal
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  // State variables for managing selected options in dropdowns
   const [selectedStream, setSelectedStream] = useState<any>(null);
   const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
   const [selectedProgramType, setSelectedProgramType] = useState<any>(null);
   const [selectedDegree, setSelectedDegree] = useState<any>(null);
-  // State variable for managing file upload status
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
-  // State variable for managing faculty participationData data
   const [facultyParticipationData, setFacultyParticipationData] = useState<
     any[]
   >([]);
-  // State variable for managing the modal for listing Faculty Participation
   const [isModalOpen, setIsModalOpen] = useState(false);
-  // State variable for managing search term and pagination
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 10;
-  // State variable for managing filters
-  const [filters, setFilters] = useState({
-    academicYear: "",
-    stream: "",
-    department: "",
-    facultyName: "",
-    type: "",
-    mode: "",
-    level: "",
-    role: "",
-    paperTitle: "",
-    organisingInstitute: "",
-    fromDate: "",
-    toDate: "",
-  });
-
   const [filteredData, setFilteredData] = useState(facultyParticipationData);
-
-  // Handle global search
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toLowerCase();
-    setSearchTerm(value);
-
-    const filtered = facultyParticipationData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-
-  // Handle column-specific filters
-  const handleFilterChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    column: string
-  ) => {
-    const value = e.target.value.toLowerCase();
-    const updatedFilters = { ...filters, [column]: value };
-    setFilters(updatedFilters);
-
-    const filtered = facultyParticipationData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-
-  // Calculate the paginated data
-  const indexOfLastRow = currentPage * rowsPerPage;
-  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
-  const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
-
-  // Handle page change
-  const handlePageChange = (pageNumber: number) => {
-    setCurrentPage(pageNumber);
-  };
-
-  // Calculate total pages
-  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
-
-  // Toggle the modal for listing Faculty Participation
+  const tableRef = useRef<HTMLTableElement>(null);
+  const fileRef = useRef<HTMLInputElement | null>(null);
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };
@@ -227,6 +161,9 @@ const FP_And_Presentation_Research_Papers = () => {
         }
         // Reset the form fields
         resetForm();
+         if (fileRef.current) {
+          fileRef.current.value = "";
+        }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         // Display the Faculty Participation List
@@ -448,6 +385,47 @@ const FP_And_Presentation_Research_Papers = () => {
       }
     }
   };
+
+      useEffect(() => {
+    if (facultyParticipationData.length === 0) return; // wait until data is loaded
+
+    const table = $("#facultyParticipationId").DataTable({
+      destroy: true, // destroy existing instance if re-rendered
+      scrollX: true, 
+       autoWidth: false, 
+      dom: "Bfrtip",
+      buttons: [
+        {
+          extend: "copy",
+          exportOptions: {
+            columns: ":not(:last-child)", // skip Actions column
+          },
+        },
+        {
+          extend: "csv",
+          exportOptions: {
+            columns: ":not(:last-child)",
+          },
+        },
+      ],
+    });
+    $(".dt-buttons").addClass("mb-3 gap-2");
+    $(".buttons-copy").addClass("btn btn-success");
+    $(".buttons-csv").addClass("btn btn-info");
+
+    $("#facultyParticipationId").on(
+      "buttons-action.dt",
+      function (e, buttonApi, dataTable, node, config) {
+        if (buttonApi.text() === "Copy") {
+          toast.success("Copied to clipboard!");
+        }
+      }
+    );
+
+    return () => {
+      table.destroy(); // clean up
+    };
+  }, [facultyParticipationData]);
 
   return (
     <React.Fragment>
@@ -881,6 +859,7 @@ const FP_And_Presentation_Research_Papers = () => {
                       <Label>Upload Certificate</Label>
                       <Input
                         type="file"
+                        innerRef={fileRef}
                         onChange={(e) =>
                           validation.setFieldValue(
                             "facultyCertificate",
@@ -975,27 +954,17 @@ const FP_And_Presentation_Research_Papers = () => {
           style={{ maxWidth: "100%", width: "auto" }}
         >
           <ModalHeader toggle={toggleModal}>
-            List FP and Presentation Reserach Papers
+            List FP and Presentation Research Papers
           </ModalHeader>
           <ModalBody>
-            {/* Global Search */}
-            <div className="mb-3">
-              <Input
-                type="text"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={handleSearch}
-              />
-            </div>
-
             <Table
               striped
               bordered
               hover
-              responsive
-              className="align-middle text-center"
+              id="facultyParticipationId"
+              innerRef={tableRef}
             >
-              <thead className="table-dark">
+              <thead >
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
@@ -1010,14 +979,15 @@ const FP_And_Presentation_Research_Papers = () => {
                   <th>Organizing Institute</th>
                   <th>From Date</th>
                   <th>To Date</th>
+                  <th className="d-none">File Path</th> {/* Hidden */}
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((fp, index) => (
+                {facultyParticipationData.length > 0 ? (
+                  facultyParticipationData.map((fp, index) => (
                     <tr key={fp.facultyParticipationId}>
-                      <td>{indexOfFirstRow + index + 1}</td>
+                      <td>{index + 1}</td>
                       <td>{fp.academicYear}</td>
                       <td>{fp.streamName}</td>
                       <td>{fp.departmentName}</td>
@@ -1030,6 +1000,7 @@ const FP_And_Presentation_Research_Papers = () => {
                       <td>{fp.organisingInstitute}</td>
                       <td>{fp.fromDate}</td>
                       <td>{fp.toDate}</td>
+                      <td className="d-none">{fp?.filePath?.facultyCertificate || "N/A"}</td> {/* Hidden */}
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
@@ -1061,26 +1032,6 @@ const FP_And_Presentation_Research_Papers = () => {
                 )}
               </tbody>
             </Table>
-            {/* Pagination Controls */}
-            <div className="d-flex justify-content-between align-items-center mt-3">
-              <Button
-                color="primary"
-                disabled={currentPage === 1}
-                onClick={() => handlePageChange(currentPage - 1)}
-              >
-                Previous
-              </Button>
-              <div>
-                Page {currentPage} of {totalPages}
-              </div>
-              <Button
-                color="primary"
-                disabled={currentPage === totalPages}
-                onClick={() => handlePageChange(currentPage + 1)}
-              >
-                Next
-              </Button>
-            </div>
           </ModalBody>
         </Modal>
         {/* Confirmation Modal */}

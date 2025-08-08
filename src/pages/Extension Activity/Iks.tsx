@@ -4,7 +4,7 @@ import SemesterTypeDropdown from "Components/DropDowns/SemesterTypeDropdown";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { ToastContainer } from "react-toastify";
 import { useFormik } from "formik";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -27,6 +27,13 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import GetAllProgramDropdown from "Components/DropDowns/GetAllProgramDropdown";
 import axios from "axios";
+import $ from "jquery";
+import "datatables.net-bs5";
+import "datatables.net-buttons-bs5";
+import "datatables.net-buttons/js/buttons.html5.js";
+import "jszip";
+import "pdfmake/build/pdfmake";
+import "pdfmake/build/vfs_fonts";
 import moment from "moment";
 
 const api = new APIClient();
@@ -37,71 +44,14 @@ const Iks: React.FC = () => {
   const [selectedStream, setSelectedStream] = useState<any>(null);
   const [editId, setEditId] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 10;
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
-  const [filteredData, setFilteredData] = useState(iksData);
-  const [filters, setFilters] = useState({
-    academicYear: "",
-    semester: "",
-    stream: "",
-    program: "",
-    noOfParticipants: "",
-    organisation: "",
-    location: "",
-    date: "",
-    file: null as string | null,
-  });
+  const [filteredData, setFilteredData] = useState<any[]>([]);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const tableRef = useRef<HTMLTableElement>(null);
+  const fileRef = useRef<HTMLInputElement | null>(null);
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
-
-  // Handle global search
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toLowerCase();
-    setSearchTerm(value);
-
-    const filtered = iksData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-  // Handle column-specific filters
-  const handleFilterChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    column: string
-  ) => {
-    const value = e.target.value.toLowerCase();
-    const updatedFilters = { ...filters, [column]: value };
-    setFilters(updatedFilters);
-
-    const filtered = iksData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-  // Calculate the paginated data
-  const indexOfLastRow = currentPage * rowsPerPage;
-  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
-  const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
-
-  // Handle page change
-  const handlePageChange = (pageNumber: number) => {
-    setCurrentPage(pageNumber);
-  };
-
-  // Calculate total pages
-  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
@@ -178,7 +128,6 @@ const Iks: React.FC = () => {
             }
           : null,
       });
-
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       setIsFileUploadDisabled(!!response.documents?.IKS);
@@ -317,7 +266,9 @@ const Iks: React.FC = () => {
         .required("Please enter number of No Of Participants"),
       organisation: Yup.string().required("Please select Organization"),
       location: Yup.string().required("Please select Location"),
-      date: Yup.date().required("Please select Date"),
+      date: Yup.date()
+        .typeError("Please select a valid date")
+        .required("Please select Date"),
     }),
     onSubmit: async (values, { resetForm }) => {
       // Create FormData object
@@ -334,7 +285,7 @@ const Iks: React.FC = () => {
       formData.append("noOfParticipants", values.noOfParticipants || "");
       formData.append("organisation", values.organisation || "");
       formData.append("location", values.location || "");
-      formData.append("date", formatDate(values.date) || "");
+      formData.append("date", moment(values.date).format("DD/MM/YYYY") || "");
 
       if (isEditMode && typeof values.file === "string") {
         // Pass an empty Blob instead of null
@@ -362,6 +313,9 @@ const Iks: React.FC = () => {
         }
         // Reset the form fields
         resetForm();
+        if (fileRef.current) {
+          fileRef.current.value = "";
+        }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         setIsFileUploadDisabled(false); // Enable the file upload button
@@ -373,6 +327,47 @@ const Iks: React.FC = () => {
       }
     },
   });
+
+  useEffect(() => {
+    if (iksData.length === 0) return; // wait until data is loaded
+
+    const table = $("#id").DataTable({
+      destroy: true, 
+       scrollX: true, 
+       autoWidth: false, 
+     dom: "Bfrtip",
+      buttons: [
+        {
+          extend: "copy",
+          exportOptions: {
+            columns: ":not(:last-child)", // skip Actions column
+          },
+        },
+        {
+          extend: "csv",
+          exportOptions: {
+            columns: ":not(:last-child)",
+          },
+        },
+      ],
+    });
+    $(".dt-buttons").addClass("mb-3 gap-2");
+    $(".buttons-copy").addClass("btn btn-success");
+    $(".buttons-csv").addClass("btn btn-info");
+
+    $("#id").on(
+      "buttons-action.dt",
+      function (e, buttonApi, dataTable, node, config) {
+        if (buttonApi.text() === "Copy") {
+          toast.success("Copied to clipboard!");
+        }
+      }
+    );
+
+    return () => {
+      table.destroy(); // clean up
+    };
+  }, [iksData]);
 
   return (
     <React.Fragment>
@@ -479,7 +474,7 @@ const Iks: React.FC = () => {
                     <div className="mb-3">
                       <Label>Date</Label>
                       <Input
-                        type="date" // Use native date input
+                        type="date"
                         className={`form-control ${
                           validation.touched.date && validation.errors.date
                             ? "is-invalid"
@@ -487,21 +482,26 @@ const Iks: React.FC = () => {
                         }`}
                         value={
                           validation.values.date
-                            ? moment(
-                                validation.values.date,
-                                "DD/MM/YYYY"
-                              ).format("YYYY-MM-DD") // Convert to yyyy-mm-dd for the input
+                            ? moment(validation.values.date).format(
+                                "YYYY-MM-DD"
+                              )
                             : ""
                         }
                         onChange={(e) => {
-                          const formattedDate = moment(
-                            e.target.value,
-                            "YYYY-MM-DD"
-                          ).format("DD/MM/YYYY"); // Convert to dd/mm/yyyy
-                          validation.setFieldValue("date", formattedDate);
+                          const isoDate = e.target.value; // e.g., "2025-08-21"
+                          if (isoDate) {
+                            const dateObj = moment(
+                              isoDate,
+                              "YYYY-MM-DD"
+                            ).toDate();
+                            validation.setFieldValue("date", dateObj);
+                          } else {
+                            validation.setFieldValue("date", "");
+                          }
                         }}
                         placeholder="dd/mm/yyyy"
                       />
+
                       {validation.touched.date && validation.errors.date && (
                         <div className="text-danger">
                           {validation.errors.date}
@@ -714,23 +714,14 @@ const Iks: React.FC = () => {
         >
           <ModalHeader toggle={toggleModal}>List IKS</ModalHeader>
           <ModalBody>
-            {/* Global Search */}
-            <div className="mb-3">
-              <Input
-                type="text"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={handleSearch}
-              />
-            </div>
             <Table
               striped
               bordered
               hover
-              responsive
-              className="align-middle text-center"
+              id="id"
+              innerRef={tableRef}
             >
-              <thead className="table-dark">
+              <thead>
                 <tr>
                   <th>Sl.No</th>
                   <th>Academic Year</th>
@@ -741,12 +732,13 @@ const Iks: React.FC = () => {
                   <th>Organization</th>
                   <th>Location</th>
                   <th>Date</th>
+                  <th className="d-none">FilePath</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((iks, index) => (
+                {iksData.length > 0 ? (
+                  iksData.map((iks, index) => (
                     <tr key={iks.id}>
                       <td>{index + 1}</td>
                       <td>{iks.academicYear}</td>
@@ -765,6 +757,7 @@ const Iks: React.FC = () => {
                       <td>{iks.organisation}</td>
                       <td>{iks.location}</td>
                       <td>{iks.date}</td>
+                      <td className="d-none">{iks?.filePath.IKS || "N/A"}</td>
                       <td>
                         <button
                           className="btn btn-sm btn-warning me-2"
@@ -790,26 +783,6 @@ const Iks: React.FC = () => {
                 )}
               </tbody>
             </Table>
-            {/* Pagination Controls */}
-            <div className="d-flex justify-content-between align-items-center mt-3">
-              <Button
-                color="primary"
-                disabled={currentPage === 1}
-                onClick={() => handlePageChange(currentPage - 1)}
-              >
-                Previous
-              </Button>
-              <div>
-                Page {currentPage} of {totalPages}
-              </div>
-              <Button
-                color="primary"
-                disabled={currentPage === totalPages}
-                onClick={() => handlePageChange(currentPage + 1)}
-              >
-                Next
-              </Button>
-            </div>
           </ModalBody>
         </Modal>
         {/* Confirmation Modal */}

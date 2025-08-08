@@ -4,7 +4,7 @@ import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { ToastContainer } from "react-toastify";
 import { useFormik } from "formik";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -26,7 +26,13 @@ import { APIClient } from "../../helpers/api_helper";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
-
+import $ from "jquery";
+import "datatables.net-bs5";
+import "datatables.net-buttons-bs5";
+import "datatables.net-buttons/js/buttons.html5.js";
+import "jszip";
+import "pdfmake/build/pdfmake";
+import "pdfmake/build/vfs_fonts";
 const api = new APIClient();
 
 const Consultancy_Undertaken_by_Staff: React.FC = () => {
@@ -38,70 +44,15 @@ const Consultancy_Undertaken_by_Staff: React.FC = () => {
   const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
   const [editId, setEditId] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 10;
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
   const [filteredData, setFilteredData] = useState(consultancyUndertakenData);
-  const [filters, setFilters] = useState({
-    academicYear: "",
-    stream: "",
-    department: "",
-    facultyName: "",
-    agencyName: "",
-    titleProject: "",
-    numberTrainees: "",
-    addressAgency: "",
-    revenueGenerated: "",
-    file: null as string | null,
-  });
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toLowerCase();
-    setSearchTerm(value);
+  const fileRef = useRef<HTMLInputElement | null>(null);
 
-    const filtered = consultancyUndertakenData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-  // Handle column-specific filters
-  const handleFilterChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    column: string
-  ) => {
-    const value = e.target.value.toLowerCase();
-    const updatedFilters = { ...filters, [column]: value };
-    setFilters(updatedFilters);
-
-    const filtered = consultancyUndertakenData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-  // Calculate the paginated data
-  const indexOfLastRow = currentPage * rowsPerPage;
-  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
-  const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
-
-  // Handle page change
-  const handlePageChange = (pageNumber: number) => {
-    setCurrentPage(pageNumber);
-  };
-
-  // Calculate total pages
-  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+  const tableRef = useRef<HTMLTableElement>(null);
 
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
@@ -114,7 +65,7 @@ const Consultancy_Undertaken_by_Staff: React.FC = () => {
         "/consultancyUdertakenByStaff/getAllConsultancyUdertakenByStaff",
         ""
       );
-      setConsultancyUndertakenData(response.data);
+      setConsultancyUndertakenData(response);
       setFilteredData(response);
     } catch (error) {
       console.error(
@@ -376,7 +327,7 @@ const Consultancy_Undertaken_by_Staff: React.FC = () => {
 
       try {
         if (isEditMode && editId) {
-          // Call the update API 
+          // Call the update API
           const response = await api.put(
             `/consultancyUdertakenByStaff`,
             formData
@@ -411,6 +362,47 @@ const Consultancy_Undertaken_by_Staff: React.FC = () => {
       }
     },
   });
+
+  useEffect(() => {
+    if (consultancyUndertakenData.length === 0) return; // wait until data is loaded
+
+    const table = $("#consultancyUndertakenByStaffId").DataTable({
+      destroy: true, // destroy existing instance if re-rendered
+      scrollX: true,
+      autoWidth: false,
+      dom: "Bfrtip",
+      buttons: [
+        {
+          extend: "copy",
+          exportOptions: {
+            columns: ":not(:last-child)", // skip Actions column
+          },
+        },
+        {
+          extend: "csv",
+          exportOptions: {
+            columns: ":not(:last-child)",
+          },
+        },
+      ],
+    });
+    $(".dt-buttons").addClass("mb-3 gap-2");
+    $(".buttons-copy").addClass("btn btn-success");
+    $(".buttons-csv").addClass("btn btn-info");
+
+    $("#consultancyUndertakenByStaffId").on(
+      "buttons-action.dt",
+      function (e, buttonApi, dataTable, node, config) {
+        if (buttonApi.text() === "Copy") {
+          toast.success("Copied to clipboard!");
+        }
+      }
+    );
+
+    return () => {
+      table.destroy(); // clean up
+    };
+  }, [consultancyUndertakenData]);
 
   return (
     <React.Fragment>
@@ -779,108 +771,31 @@ const Consultancy_Undertaken_by_Staff: React.FC = () => {
             List Consultancy Undertaken By Staff
           </ModalHeader>
           <ModalBody>
-            {/* Global Search */}
-            <div className="mb-3">
-              <Input
-                type="text"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={handleSearch}
-              />
-            </div>
-            <Table bordered>
+            <Table
+              striped
+              bordered
+              hover
+              id="consultancyUndertakenByStaffId"
+              innerRef={tableRef}
+            >
               <thead>
                 <tr>
                   <th>Sl.No</th>
-                  <th>
-                    Academic Year
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.academicYear}
-                      onChange={(e) => handleFilterChange(e, "academicYear")}
-                    />
-                  </th>
-                  <th>
-                    Schools
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.stream}
-                      onChange={(e) => handleFilterChange(e, "stream")}
-                    />
-                  </th>
-                  <th>
-                    Department
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.department}
-                      onChange={(e) => handleFilterChange(e, "department")}
-                    />
-                  </th>
-                  <th>
-                    Faculty Name
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.facultyName}
-                      onChange={(e) => handleFilterChange(e, "facultyName")}
-                    />
-                  </th>
-                  <th>
-                    Agency Name
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.agencyName}
-                      onChange={(e) => handleFilterChange(e, "agencyName")}
-                    />
-                  </th>
-                  <th>
-                    Title Project
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.titleProject}
-                      onChange={(e) => handleFilterChange(e, "titleProject")}
-                    />
-                  </th>
-                  <th>
-                    Number Trainees
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.numberTrainees}
-                      onChange={(e) => handleFilterChange(e, "numberTrainees")}
-                    />
-                  </th>
-                  <th>
-                    Address Agency
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.addressAgency}
-                      onChange={(e) => handleFilterChange(e, "addressAgency")}
-                    />
-                  </th>
-                  <th>
-                    Revenue Generated
-                    <Input
-                      type="text"
-                      placeholder="Filter"
-                      value={filters.revenueGenerated}
-                      onChange={(e) =>
-                        handleFilterChange(e, "revenueGenerated")
-                      }
-                    />
-                  </th>
+                  <th>Academic Year</th>
+                  <th>Schools</th>
+                  <th>Department</th>
+                  <th>Faculty Name</th>
+                  <th>Agency Name</th>
+                  <th>Title Project</th>
+                  <th>Number Trainees</th>
+                  <th>Address Agency</th>
+                  <th>Revenue Generated</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((consultancyUndertaken, index) => (
+                {consultancyUndertakenData.length > 0 ? (
+                  consultancyUndertakenData.map((consultancyUndertaken, index) => (
                     <tr key={consultancyUndertaken.consultancyUndertakenDataId}>
                       <td>{index + 1}</td>
                       <td>{consultancyUndertaken.academicYear}</td>
@@ -917,26 +832,6 @@ const Consultancy_Undertaken_by_Staff: React.FC = () => {
                 )}
               </tbody>
             </Table>
-            {/* Pagination Controls */}
-            <div className="d-flex justify-content-between align-items-center mt-3">
-              <Button
-                color="primary"
-                disabled={currentPage === 1}
-                onClick={() => handlePageChange(currentPage - 1)}
-              >
-                Previous
-              </Button>
-              <div>
-                Page {currentPage} of {totalPages}
-              </div>
-              <Button
-                color="primary"
-                disabled={currentPage === totalPages}
-                onClick={() => handlePageChange(currentPage + 1)}
-              >
-                Next
-              </Button>
-            </div>
           </ModalBody>
         </Modal>
         {/* Confirmation Modal */}
