@@ -82,20 +82,6 @@ const Skill_Development_Work: React.FC = () => {
     { value: "International", label: "International" },
   ];
 
-  // Handle global search
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toLowerCase();
-    setSearchTerm(value);
-
-    const filtered = swdData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
 
   // Calculate the paginated data
   const indexOfLastRow = currentPage * rowsPerPage;

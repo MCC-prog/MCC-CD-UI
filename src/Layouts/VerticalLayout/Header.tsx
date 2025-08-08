@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 
 import { Link } from "react-router-dom";
 
@@ -22,7 +22,6 @@ import { withTranslation } from "react-i18next";
 const Header = (props: any) => {
   const [search, setsearch] = useState(false);
   const [megaMenu, setmegaMenu] = useState(false);
-  const toggleRef = useRef<HTMLButtonElement>(null);
 
   const toggleFullscreen = () => {
     let document: any = window.document;
@@ -63,47 +62,15 @@ const Header = (props: any) => {
     document.addEventListener("mozfullscreenchange", exitHandler);
   };
 
-  const tToggle = () => {
-    const body = document.body;
-
-    // Only toggle on mobile width
-    if (window.innerWidth <= 998) {
-      body.classList.add("sidebar-enable");
-
-      // Automatically close after a short delay to allow the sidebar to open
-      setTimeout(() => {
-        const handleClick = () => {
-          body.classList.remove("sidebar-enable");
-          document.removeEventListener("click", handleClick);
-        };
-
-        document.addEventListener("click", handleClick);
-      }, 0); // SetTimeout ensures the toggle click doesn't immediately trigger the close
+  function tToggle() {
+    var body = document.body;
+    if (window.screen.width <= 998) {
+      body.classList.toggle("sidebar-enable");
     } else {
       body.classList.toggle("vertical-collpsed");
       body.classList.toggle("sidebar-enable");
     }
-  };
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const body = document.body;
-      if (!body.classList.contains("sidebar-enable")) return;
-
-      const target = event.target as Node;
-      const isClickInsideToggle = toggleRef.current?.contains(target);
-      const sidebar = document.querySelector(".vertical-menu");
-
-      const isClickInsideSidebar = sidebar?.contains(target) ?? false;
-
-      if (!isClickInsideToggle && !isClickInsideSidebar) {
-        body.classList.remove("sidebar-enable");
-        body.classList.remove("vertical-collpsed");
-      }
-    };
-
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
-  }, []);
+  }
 
   return (
     <React.Fragment>
@@ -126,10 +93,9 @@ const Header = (props: any) => {
 
             <button
               type="button"
-              onClick={tToggle}
+              onClick={() => tToggle()}
               className="btn btn-sm px-3 font-size-16 header-item d-block d-md-none"
               id="vertical-menu-btn"
-              ref={toggleRef}
             >
               <i className="fa fa-fw fa-bars" />
             </button>

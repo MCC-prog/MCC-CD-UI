@@ -5,7 +5,7 @@ import SimpleBar from "simplebar-react";
 // MetisMenu
 import MetisMenu from "metismenujs";
 
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 //i18n
 import { withTranslation } from "react-i18next";
@@ -14,6 +14,18 @@ import withRouter from "../../Components/Common/withRouter";
 const SidebarContent = (props: any) => {
   const ref = useRef<any>();
   const [searchQuery, setSearchQuery] = useState("");
+const location = useLocation();
+
+useEffect(() => {
+  if (window.innerWidth <= 998) {
+   const dummyPaths = ["/#", "#", "/"];
+
+if (!dummyPaths.includes(location.pathname)) {
+  document.body.classList.remove("sidebar-enable");
+}
+
+  }
+}, [location.pathname]);
 
   const activateParentDropdown = useCallback((item: any) => {
     item.classList.add("active");

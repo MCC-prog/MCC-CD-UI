@@ -284,7 +284,7 @@ const RightSidebar = ({ toggleCanvas, show }: sidebar) => {
                             }
                           }}
                         />
-                        <label htmlFor="leftsidebarThemedark" className="bg-dark rounded-circle wh-30 me-1"></label>
+                        <label htmlFor="leftsidebarThemedark" className="bg-colored rounded-circle wh-30 me-1"></label>
                         <input
                           type="radio"
                           id="leftsidebarThemecolored"
@@ -297,7 +297,7 @@ const RightSidebar = ({ toggleCanvas, show }: sidebar) => {
                             }
                           }}
                         />
-                        <label htmlFor="leftsidebarThemecolored" className="bg-colored rounded-circle wh-30 me-1"></label>
+                        <label htmlFor="leftsidebarThemecolored" className="bg-dark rounded-circle wh-30 me-1"></label>
                       </div>
                     </div>
                     <div className="row">
