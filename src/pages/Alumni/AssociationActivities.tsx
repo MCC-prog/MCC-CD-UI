@@ -57,10 +57,11 @@ const AssociationActivites: React.FC = () => {
   // State variable for managing search term and pagination
   const [filteredData, setFilteredData] = useState(bosData);
   const fileRef = useRef<HTMLInputElement | null>(null);
-  const tableRef = useRef<HTMLTableElement>(null);  
+  const tableRef = useRef<HTMLTableElement>(null);
   const [programOptions, setProgramOptions] = useState<
     { value: string; label: string }[]
   >([]);
+  
   useEffect(() => {
     const fetchPrograms = async () => {
       try {
@@ -148,9 +149,9 @@ const AssociationActivites: React.FC = () => {
           : null,
         program: response.programId
           ? {
-              value: response.programId.toString(),
-              label: response.programName,
-            }
+            value: response.programId.toString(),
+            label: response.programName,
+          }
           : null,
         file: response.file?.Activity || null,
         activityDate: response.activityDate
@@ -165,9 +166,9 @@ const AssociationActivites: React.FC = () => {
         ...mappedValues,
         academicYear: mappedValues.academicYear
           ? {
-              ...mappedValues.academicYear,
-              value: String(mappedValues.academicYear.value),
-            }
+            ...mappedValues.academicYear,
+            value: String(mappedValues.academicYear.value),
+          }
           : null,
         stream: mappedValues.stream
           ? { ...mappedValues.stream, value: String(mappedValues.stream.value) }
@@ -350,15 +351,15 @@ const AssociationActivites: React.FC = () => {
         const response =
           isEditMode && editId
             ? await api.put(`/associationActivitie`, formData, {
-                headers: {
-                  "Content-Type": "multipart/form-data",
-                },
-              })
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            })
             : await api.create(`/associationActivitie`, formData, {
-                headers: {
-                  "Content-Type": "multipart/form-data",
-                },
-              });
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            });
 
         toast.success(response.message || "Alumini updated successfully!");
 
@@ -379,13 +380,14 @@ const AssociationActivites: React.FC = () => {
       }
     },
   });
-    useEffect(() => {
+  
+  useEffect(() => {
     if (bosData.length === 0) return; // wait until data is loaded
 
     const table = $("#id").DataTable({
       destroy: true, // destroy existing instance if re-rendered
-      scrollX: true, 
-       autoWidth: false, 
+      scrollX: true,
+      autoWidth: false,
       dom: "Bfrtip",
       buttons: [
         {
@@ -474,7 +476,7 @@ const AssociationActivites: React.FC = () => {
                         }}
                         className={
                           validation.touched.semester &&
-                          validation.errors.semester
+                            validation.errors.semester
                             ? "is-invalid"
                             : ""
                         }
@@ -536,7 +538,7 @@ const AssociationActivites: React.FC = () => {
                         }}
                         className={
                           validation.touched.program &&
-                          validation.errors.program
+                            validation.errors.program
                             ? "is-invalid"
                             : ""
                         }
@@ -570,7 +572,7 @@ const AssociationActivites: React.FC = () => {
                         onBlur={validation.handleBlur}
                         className={
                           validation.touched.activityName &&
-                          validation.errors.activityName
+                            validation.errors.activityName
                             ? "is-invalid"
                             : ""
                         }
@@ -588,18 +590,17 @@ const AssociationActivites: React.FC = () => {
                       <Label>Date of Activity</Label>
                       <Input
                         type="date" // Use native date input
-                        className={`form-control ${
-                          validation.touched.activityDate &&
-                          validation.errors.activityDate
+                        className={`form-control ${validation.touched.activityDate &&
+                            validation.errors.activityDate
                             ? "is-invalid"
                             : ""
-                        }`}
+                          }`}
                         value={
                           validation.values.activityDate
                             ? moment(
-                                validation.values.activityDate,
-                                "DD/MM/YYYY"
-                              ).format("YYYY-MM-DD") // Convert to yyyy-mm-dd for the input
+                              validation.values.activityDate,
+                              "DD/MM/YYYY"
+                            ).format("YYYY-MM-DD") // Convert to yyyy-mm-dd for the input
                             : ""
                         }
                         onChange={(e) => {
@@ -628,11 +629,10 @@ const AssociationActivites: React.FC = () => {
                         Upload Report Activity
                       </Label>
                       <Input
-                        className={`form-control ${
-                          validation.touched.file && validation.errors.file
+                        className={`form-control ${validation.touched.file && validation.errors.file
                             ? "is-invalid"
                             : ""
-                        }`}
+                          }`}
                         type="file"
                         id="formFile"
                         innerRef={fileRef}
@@ -752,7 +752,7 @@ const AssociationActivites: React.FC = () => {
                   <th>Program</th>
                   <th>Activity Name</th>
                   <th>Date of Activity</th>
-                   <th className="d-none">File Path</th> {/* Hidden */}
+                  <th className="d-none">File Path</th> {/* Hidden */}
                   <th>Actions</th>
                 </tr>
               </thead>
