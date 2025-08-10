@@ -301,18 +301,6 @@ const FinancialContribution: React.FC = () => {
       )
     }),
     onSubmit: async (values, { resetForm }) => {
-      // Check for duplicate academic year before saving
-      if (!isEditMode) {
-        const duplicate = bosData.find(
-          (item) => String(item.academicYear) === String(values.academicYear?.value)
-        );
-        if (duplicate) {
-          toast.error(
-            "Financial contribution file is present with selected academic year and you can only update it."
-          );
-          return;
-        }
-      }
       // Create FormData object
       const formData = new FormData();
 

@@ -296,18 +296,6 @@ const Scholarships: React.FC = () => {
       )
     }),
     onSubmit: async (values, { resetForm }) => {
-      // Check for duplicate academic year before saving
-      if (!isEditMode) {
-        const duplicate = bosData.find(
-          (item) => String(item.academicYear) === String(values.academicYear?.value)
-        );
-        if (duplicate) {
-          toast.error(
-            "Scholarship file is present with selected academic year and you can only update it."
-          );
-          return;
-        }
-      }
       // Create FormData object
       const formData = new FormData();
       formData.append("id", editId || "");
@@ -450,7 +438,7 @@ const Scholarships: React.FC = () => {
         </Container>
       </div>
       <ToastContainer />
-      {/* Modal for Listing Association */}
+      {/* Modal for Listing Scholarships */}
       <Modal
         isOpen={isModalOpen}
         toggle={toggleModal}

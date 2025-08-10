@@ -13,7 +13,9 @@ import {
     Modal,
     ModalBody,
     ModalFooter,
+    ModalHeader,
     Row,
+    Table,
 } from "reactstrap";
 import * as Yup from "yup";
 import { APIClient } from "../../helpers/api_helper";
@@ -27,6 +29,7 @@ import "datatables.net-buttons/js/buttons.html5.js";
 import "jszip";
 import "pdfmake/build/pdfmake";
 import "pdfmake/build/vfs_fonts";
+import AcademicYearDropdown from "Components/DropDowns/AcademicYearDropdown";
 
 const api = new APIClient();
 
@@ -34,60 +37,36 @@ const Internships: React.FC = () => {
     // State variables for managing modal, edit mode, and delete confirmation
     const [isEditMode, setIsEditMode] = useState(false);
     const [editId, setEditId] = useState<string | null>(null);
-
+    const [bosData, setAssoData] = useState<any[]>([]);
+    const [filteredData, setFilteredData] = useState(bosData);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const fileRef = useRef<HTMLInputElement | null>(null);
+    // State variable for managing delete confirmation modal
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [deleteId, setDeleteId] = useState<string | null>(null);
     const [isFileUploadDisabled, setIsFileUploadDisabled] = useState({
         placementFile: false,
         departmentFile: false,
         personalFile: false,
     });
-
     const [showDeleteModal, setShowDeleteModal] = useState<null | "placementFile" | "departmentFile" | "personalFile">(null);
-
     const fileRefs = {
         placementFile: useRef<HTMLInputElement | null>(null),
         departmentFile: useRef<HTMLInputElement | null>(null),
         personalFile: useRef<HTMLInputElement | null>(null),
     };
-
     const tableRef = useRef<HTMLTableElement>(null);
 
     // Fetch internships on initial load
     const fetchInternships = async () => {
         try {
             const response = await api.get("/internship/getAllInternship", "");
-            if (response && Array.isArray(response) && response.length > 0) {
-                const data = response[response.length - 1]; // latest
-                setEditId(data.id?.toString() || null);
-                setIsEditMode(true);
-
-                // Map API keys to Formik fields
-                validation.setFieldValue("placementFile", data.file?.PlacementCell || null, false);
-                validation.setFieldValue("departmentFile", data.file?.Department || null, false);
-                validation.setFieldValue("personalFile", data.file?.Pepartment || null, false);
-
-                setIsFileUploadDisabled({
-                    placementFile: !!data.file?.PlacementCell,
-                    departmentFile: !!data.file?.Department,
-                    personalFile: !!data.file?.Pepartment,
-                });
-            } else {
-                setIsEditMode(false);
-                setEditId(null);
-                setIsFileUploadDisabled({
-                    placementFile: false,
-                    departmentFile: false,
-                    personalFile: false,
-                });
-            }
+            setAssoData(response);
+            setFilteredData(response);
         } catch (error) {
             toast.error("Failed to fetch Internship data.");
-            setIsEditMode(false);
         }
     };
-
-    useEffect(() => {
-        fetchInternships();
-    }, []);
 
     // Download file
     // Handle file download actions
@@ -150,9 +129,166 @@ const Internships: React.FC = () => {
         }
     };
 
+    // Open the modal and fetch data
+    const handleListAssoClick = async () => {
+        if ($.fn.DataTable.isDataTable("#id")) {
+            $("#id").DataTable().destroy();
+        }
+        await fetchInternships();
+        setIsModalOpen(true);
+    };
+
+    // Handle edit action
+    // Fetch the data for the selected Association ID and populate the form fields
+    const handleEdit = async (id: string) => {
+        try {
+            const response = await api.get(
+                `/internship?internshipId=${id}`,
+                ""
+            );
+            const academicYearOptions = await api.get("/getAllAcademicYear", "");
+            const filteredAcademicYearList = academicYearOptions.filter(
+                (year: any) => year.isCurrent || year.isCurrentForAdmission
+            );
+            const academicYearList = filteredAcademicYearList.map((year: any) => ({
+                value: String(year.year),
+                label: year.display,
+            }));
+
+            // Map API response to Formik values
+            const mappedValues = {
+                academicYear: mapValueToLabel(response.academicYear, academicYearList),
+                placementFile: response.file?.PlacementCell || null,
+                departmentFile: response.file?.Department || null,
+                personalFile: response.file?.Pepartment || null,
+            };
+
+            // Update Formik values
+            validation.setValues({
+                ...validation.values,
+                ...mappedValues,
+            });
+
+            // Disable upload if file exists
+            setIsFileUploadDisabled({
+                placementFile: !!response.file?.PlacementCell,
+                departmentFile: !!response.file?.Department,
+                personalFile: !!response.file?.Pepartment,
+            });
+
+            setIsEditMode(true);
+            setEditId(id);
+            toggleModal();
+        } catch (error) {
+            console.error("Error fetching Internship data by ID:", error);
+        }
+    };
+
+    // Map value to label for dropdowns
+    const mapValueToLabel = (
+        value: string | null,
+        options: { value: string; label: string }[]
+    ): { value: string; label: string } | null => {
+        if (!value) return null;
+        const matchedOption = options.find((option) => option.value === value);
+        return matchedOption ? matchedOption : { value, label: String(value) };
+    };
+
+    // Handle delete action
+    // Set the ID of the record to be deleted and open the confirmation modal
+    const handleDelete = (id: string) => {
+        setDeleteId(id);
+        setIsDeleteModalOpen(true);
+    };
+
+    // Confirm deletion of the record
+    // Call the delete API and refresh the Association data
+    const confirmDelete = async (id: string) => {
+        if (deleteId) {
+            try {
+                const response = await api.delete(
+                    `/internship/deleteInternship?internshipId=${id}`,
+                    ""
+                );
+                toast.success(
+                    response.message || "Scholarship Data removed successfully!"
+                );
+                if ($.fn.DataTable.isDataTable("#id")) {
+                    $("#id").DataTable().destroy();
+                }
+                await fetchInternships();
+            } catch (error) {
+                toast.error("Failed to remove Scholarship Activity. Please try again.");
+                console.error("Error deleting Association:", error);
+            } finally {
+                setIsDeleteModalOpen(false);
+                setDeleteId(null);
+            }
+        }
+    };
+
+    const toggleModal = () => {
+        setIsModalOpen((prev) => {
+            if (prev && $.fn.DataTable.isDataTable("#id")) {
+                $("#id").DataTable().destroy();
+            }
+            return !prev;
+        });
+    };
+
+    useEffect(() => {
+        if (!isModalOpen || filteredData.length === 0) return;
+
+        // Destroy any existing DataTable instance
+        if ($.fn.DataTable.isDataTable("#id")) {
+            $("#id").DataTable().destroy();
+        }
+
+        // Use setTimeout to ensure the table is visible in the DOM
+        setTimeout(() => {
+            const table = $("#id").DataTable({
+                destroy: true,
+                scrollX: true,
+                autoWidth: false,
+                dom: "Bfrtip",
+                buttons: [
+                    {
+                        extend: "copy",
+                        exportOptions: {
+                            columns: ":not(:last-child)",
+                        },
+                    },
+                    {
+                        extend: "csv",
+                        exportOptions: {
+                            columns: ":not(:last-child)",
+                        },
+                    },
+                ],
+            });
+
+            $(".dt-buttons").addClass("mb-3 gap-2");
+            $(".buttons-copy").addClass("btn btn-success");
+            $(".buttons-csv").addClass("btn btn-info");
+
+            $("#id").on("buttons-action.dt", function (e, buttonApi) {
+                if (buttonApi.text() === "Copy") {
+                    toast.success("Copied to clipboard!");
+                }
+            });
+        }, 0);
+
+        return () => {
+            if ($.fn.DataTable.isDataTable("#id")) {
+                $("#id").DataTable().destroy();
+            }
+        };
+    }, [isModalOpen, filteredData]);
+
     // Formik validation and submission
     const validation = useFormik({
         initialValues: {
+            academicYear: null as { value: string; label: string } | null,
             placementFile: null as File | string | null,
             departmentFile: null as File | string | null,
             personalFile: null as File | string | null,
@@ -209,6 +345,8 @@ const Internships: React.FC = () => {
         }),
         onSubmit: async (values, { resetForm }) => {
             const formData = new FormData();
+            formData.append("id", editId || "");
+            formData.append("academicYear", values.academicYear?.value || "");
             if (values.placementFile && values.placementFile instanceof File) {
                 formData.append("placementCell", values.placementFile);
             }
@@ -218,9 +356,7 @@ const Internships: React.FC = () => {
             if (values.personalFile && values.personalFile instanceof File) {
                 formData.append("personal", values.personalFile);
             }
-            if (isEditMode && editId) {
-                formData.append("id", editId);
-            }
+
             try {
                 if (isEditMode && editId) {
                     await api.put("/internship", formData, {
@@ -233,7 +369,15 @@ const Internships: React.FC = () => {
                     });
                     toast.success("Internship added successfully!");
                 }
-                fetchInternships();
+                handleListAssoClick();
+                resetForm();
+                setIsEditMode(false);
+                setEditId(null);
+                setIsFileUploadDisabled({
+                    placementFile: false,
+                    departmentFile: false,
+                    personalFile: false,
+                });
             } catch (error) {
                 toast.error("Failed to save Internship. Please try again.");
                 console.error("Error saving Internship:", error);
@@ -250,6 +394,31 @@ const Internships: React.FC = () => {
                         <CardBody>
                             <form onSubmit={validation.handleSubmit}>
                                 <Row>
+                                    {/* Academic Year Dropdown */}
+                                    <Col lg={4}>
+                                        <div className="mb-3">
+                                            <Label>Academic Year</Label>
+                                            <AcademicYearDropdown
+                                                value={validation.values.academicYear}
+                                                onChange={(selectedOption) =>
+                                                    validation.setFieldValue(
+                                                        "academicYear",
+                                                        selectedOption
+                                                    )
+                                                }
+                                                isInvalid={
+                                                    validation.touched.academicYear &&
+                                                    !!validation.errors.academicYear
+                                                }
+                                            />
+                                            {validation.touched.academicYear &&
+                                                validation.errors.academicYear && (
+                                                    <div className="text-danger">
+                                                        {validation.errors.academicYear}
+                                                    </div>
+                                                )}
+                                        </div>
+                                    </Col>
                                     {/* Placement File */}
                                     <Col sm={4}>
                                         <div className="mb-3">
@@ -452,13 +621,16 @@ const Internships: React.FC = () => {
                                 <Row>
                                     <Col lg={12}>
                                         <div className="mt-3 d-flex justify-content-between">
-                                            {(!isFileUploadDisabled.placementFile ||
-                                                !isFileUploadDisabled.departmentFile ||
-                                                !isFileUploadDisabled.personalFile) && (
-                                                    <button className="btn btn-primary" type="submit">
-                                                        {isEditMode ? "Update" : "Save"}
-                                                    </button>
-                                                )}
+                                            <button className="btn btn-primary" type="submit">
+                                                {isEditMode ? "Update" : "Save"}
+                                            </button>
+                                            <button
+                                                className="btn btn-secondary"
+                                                type="button"
+                                                onClick={handleListAssoClick}
+                                            >
+                                                List Internships
+                                            </button>
                                         </div>
                                     </Col>
                                 </Row>
@@ -467,7 +639,100 @@ const Internships: React.FC = () => {
                     </Card>
                 </Container>
             </div>
-            {/* Confirmation Modal */}
+            <Modal
+                isOpen={isModalOpen}
+                toggle={toggleModal}
+                size="lg"
+                style={{ maxWidth: "100%", width: "auto" }}
+            >
+                <ModalHeader toggle={toggleModal}>List Activites</ModalHeader>
+                <ModalBody>
+                    <Table
+                        striped
+                        bordered
+                        hover
+                        id="id"
+                        innerRef={tableRef}
+                    >
+                        <thead className="table-dark">
+                            <tr>
+                                <th>#</th>
+                                <th>Academic Year</th>
+                                <th>Placement File</th>
+                                <th className="d-none">Placement File Path</th> {/* Hidden */}
+                                <th>Department File</th>
+                                <th className="d-none">Department File Path</th> {/* Hidden */}
+                                <th>Personal File</th>
+                                <th className="d-none">PlacementCell File Path</th> {/* Hidden */}
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filteredData.length > 0 ? (
+                                filteredData.map((internship, index) => (
+                                    <tr key={internship.id}>
+                                        <td>{index + 1}</td>
+                                        <td>{internship.academicYear}</td>
+                                        <td>{internship.file?.PlacementCell}</td>
+                                        <td className="d-none">{internship?.filePath?.PlacementCell || "N/A"}</td> {/* Hidden */}
+                                        <td>{internship.file?.Department}</td>
+                                        <td className="d-none">{internship?.filePath?.Department || "N/A"}</td> {/* Hidden */}
+                                        <td>{internship.file?.Pepartment}</td>
+                                        <td className="d-none">{internship?.filePath?.Personal || "N/A"}</td> {/* Hidden */}
+                                        <td>
+                                            <div className="d-flex justify-content-center gap-2">
+                                                <button
+                                                    className="btn btn-sm btn-warning"
+                                                    onClick={() => handleEdit(internship.id)}
+                                                >
+                                                    Edit
+                                                </button>
+                                                <button
+                                                    className="btn btn-sm btn-danger"
+                                                    onClick={() => handleDelete(internship.id)}
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={11} className="text-center">
+                                        No Activity data available.
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </Table>
+                </ModalBody>
+            </Modal>
+            {/* Confirmation Modal for record */}
+            <Modal
+                isOpen={isDeleteModalOpen}
+                toggle={() => setIsDeleteModalOpen(false)}
+            >
+                <ModalHeader toggle={() => setIsDeleteModalOpen(false)}>
+                    Confirm Deletion
+                </ModalHeader>
+                <ModalBody>
+                    Are you sure you want to delete this record? This action cannot be
+                    undone.
+                </ModalBody>
+                <ModalFooter>
+                    <Button color="danger" onClick={() => confirmDelete(deleteId!)}>
+                        Delete
+                    </Button>
+                    <Button
+                        color="secondary"
+                        onClick={() => setIsDeleteModalOpen(false)}
+                    >
+                        Cancel
+                    </Button>
+                </ModalFooter>
+            </Modal>
+            {/* Confirmation Modal fro file */}
             <Modal isOpen={!!showDeleteModal} toggle={() => setShowDeleteModal(null)}>
                 <ModalBody>
                     Are you sure you want to delete this file?
