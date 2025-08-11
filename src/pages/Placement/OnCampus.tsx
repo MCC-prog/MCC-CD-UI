@@ -63,7 +63,7 @@ const OnCampus: React.FC = () => {
   >([]);
   // State variable for managing search term and pagination
   const [filteredData, setFilteredData] = useState(campusData);
-const tableRef = useRef<HTMLTableElement>(null); 
+  const tableRef = useRef<HTMLTableElement>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   // Toggle the modal for listing On-Campus placement
@@ -128,15 +128,15 @@ const tableRef = useRef<HTMLTableElement>(null);
           : null,
         department: response.departmentId
           ? {
-              value: response.departmentId.toString(),
-              label: response.departmentName,
-            }
+            value: response.departmentId.toString(),
+            label: response.departmentName,
+          }
           : null,
         programType: response.programTypeId
           ? {
-              value: response.programTypeId.toString(),
-              label: response.programTypeName,
-            }
+            value: response.programTypeId.toString(),
+            label: response.programTypeName,
+          }
           : null,
 
         otherDepartment: "",
@@ -148,15 +148,15 @@ const tableRef = useRef<HTMLTableElement>(null);
         file: response.documents?.file || null,
         academicYear: mappedValues.academicYear
           ? {
-              ...mappedValues.academicYear,
-              value: String(mappedValues.academicYear.value),
-            }
+            ...mappedValues.academicYear,
+            value: String(mappedValues.academicYear.value),
+          }
           : null,
         program: response.programId
           ? {
-              value: response.programId.toString(),
-              label: response.programName,
-            }
+            value: response.programId.toString(),
+            label: response.programName,
+          }
           : null,
       });
       // In your handleEdit, after setting Formik values:
@@ -303,30 +303,47 @@ const tableRef = useRef<HTMLTableElement>(null);
             : schema;
         }
       ),
-      file: Yup.mixed().test(
-        "fileValidation",
-        "Please upload a valid file",
-        function (value) {
-          // Skip validation if the file upload is disabled (file exists)
-          if (isFileUploadDisabled) {
+      file: Yup.mixed()
+        .required("Please upload a file")
+        .test(
+          "fileType",
+          "Only Excel files (.xls, .xlsx) or CSV files (.csv) are allowed",
+          function (value) {
+            if (isFileUploadDisabled) {
+              return true;
+            }
+            if (!value) {
+              return this.createError({ message: "Please upload a file" });
+            }
+            if (typeof value === "string") {
+              return true;
+            }
+            if (value instanceof File && value.size > 2 * 1024 * 1024) {
+              return this.createError({ message: "File size is too large" });
+            }
+            const allowedTypes = [
+              "application/vnd.ms-excel",
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+              "text/csv",
+              "application/csv"
+            ];
+            const allowedExtensions = [".xls", ".xlsx", ".csv"];
+            const fileName = value instanceof File ? value.name : "";
+            const hasValidExtension = allowedExtensions.some(ext =>
+              fileName.toLowerCase().endsWith(ext)
+            );
+            if (
+              value instanceof File &&
+              !allowedTypes.includes(value.type) &&
+              !hasValidExtension
+            ) {
+              return this.createError({
+                message: "Only Excel files (.xls, .xlsx) or CSV files (.csv) are allowed"
+              });
+            }
             return true;
           }
-          // Perform validation if the file upload is enabled (file doesn't exist)
-          if (!value) {
-            return this.createError({ message: "Please upload a file" });
-          }
-          // Check file size (2MB limit)
-          if (value instanceof File && value.size > 2 * 1024 * 1024) {
-            return this.createError({ message: "File size is too large" });
-          }
-          // Check file type
-          const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
-          if (value instanceof File && !allowedTypes.includes(value.type)) {
-            return this.createError({ message: "Unsupported file format" });
-          }
-          return true;
-        }
-      ),
+        )
     }),
     onSubmit: async (values, { resetForm }) => {
       // Create FormData object
@@ -419,13 +436,13 @@ const tableRef = useRef<HTMLTableElement>(null);
     fetchPrograms();
   }, [validation.values.programType]);
 
-    useEffect(() => {
+  useEffect(() => {
     if (campusData.length === 0) return; // wait until data is loaded
 
     const table = $("#id").DataTable({
       destroy: true, // destroy existing instance if re-rendered
-      scrollX: true, 
-       autoWidth: false, 
+      scrollX: true,
+      autoWidth: false,
       dom: "Bfrtip",
       buttons: [
         {
@@ -458,7 +475,7 @@ const tableRef = useRef<HTMLTableElement>(null);
     return () => {
       table.destroy(); // clean up
     };
-  }, [campusData]); 
+  }, [campusData]);
 
   return (
     <React.Fragment>
@@ -559,12 +576,11 @@ const tableRef = useRef<HTMLTableElement>(null);
                         <Label>Specify Department</Label>
                         <Input
                           type="text"
-                          className={`form-control ${
-                            validation.touched.otherDepartment &&
+                          className={`form-control ${validation.touched.otherDepartment &&
                             validation.errors.otherDepartment
-                              ? "is-invalid"
-                              : ""
-                          }`}
+                            ? "is-invalid"
+                            : ""
+                            }`}
                           value={validation.values.otherDepartment}
                           onChange={(e) =>
                             validation.setFieldValue(
@@ -626,7 +642,7 @@ const tableRef = useRef<HTMLTableElement>(null);
                         }}
                         className={
                           validation.touched.program &&
-                          validation.errors.program
+                            validation.errors.program
                             ? "is-invalid"
                             : ""
                         }
@@ -654,22 +670,22 @@ const tableRef = useRef<HTMLTableElement>(null);
                         Upload Placement Details
                       </Label>
                       <Input
-                        className={`form-control ${
-                          validation.touched.file && validation.errors.file
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                        className={`form-control ${validation.touched.file && validation.errors.file ? "is-invalid" : ""}`}
                         type="file"
                         id="formFile"
                         innerRef={fileRef}
                         onChange={(event) => {
-                          validation.setFieldValue(
-                            "file",
-                            event.currentTarget.files
-                              ? event.currentTarget.files[0]
-                              : null
-                          );
+                          const file = event.currentTarget.files ? event.currentTarget.files[0] : null;
                           validation.setFieldTouched("file", true, true);
+                          validation.setFieldValue("file", file, true);
+
+                          // Reset file input if invalid file is selected
+                          if (
+                            file &&
+                            ![".xls", ".xlsx", ".csv"].some(ext => file.name.toLowerCase().endsWith(ext))
+                          ) {
+                            event.target.value = "";
+                          }
                         }}
                         disabled={isFileUploadDisabled}
                       />
