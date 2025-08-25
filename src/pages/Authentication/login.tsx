@@ -97,7 +97,7 @@ const Login = (props: any) => {
                       <div>
                         <h5 className="text-primary">Welcome Back !</h5>
                         <p className="text-muted">
-                          Sign in to continue to CND.
+                          Sign in to continue to Centralized Data.
                         </p>
                       </div>
 

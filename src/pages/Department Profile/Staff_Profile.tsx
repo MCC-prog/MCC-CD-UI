@@ -571,7 +571,7 @@ const Staff_Profile: React.FC = () => {
                 ) : (
                   <tr>
                     <td colSpan={4} className="text-center">
-                      No BOS data available.
+                      No Staff Profile data available.
                     </td>
                   </tr>
                 )}

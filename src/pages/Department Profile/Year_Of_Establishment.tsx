@@ -452,7 +452,7 @@ const Year_Of_Establishment: React.FC = () => {
                 ) : (
                   <tr>
                     <td colSpan={4} className="text-center">
-                      No BOS data available.
+                      No Year of Establishment data available.
                     </td>
                   </tr>
                 )}

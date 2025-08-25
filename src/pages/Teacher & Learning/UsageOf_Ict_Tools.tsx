@@ -489,7 +489,7 @@ const UsageOf_Ict_Tools: React.FC = () => {
                 ) : (
                   <tr>
                     <td colSpan={11} className="text-center">
-                      No BOS data available.
+                      No Usage Of ICT Tools data available.
                     </td>
                   </tr>
                 )}
@@ -541,7 +541,7 @@ const UsageOf_Ict_Tools: React.FC = () => {
                 ) : (
                   <tr>
                     <td colSpan={11} className="text-center">
-                      No BOS data available.
+                      No Usage of Ict Tools data available.
                     </td>
                   </tr>
                 )}

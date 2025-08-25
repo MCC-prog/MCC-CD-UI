@@ -727,7 +727,7 @@ const Innovation: React.FC = () => {
                 ) : (
                   <tr>
                     <td colSpan={11} className="text-center">
-                      No BOS data available.
+                      No Innovation data available.
                     </td>
                   </tr>
                 )}
