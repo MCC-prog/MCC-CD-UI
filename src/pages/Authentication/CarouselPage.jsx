@@ -2,7 +2,7 @@ import React from "react";
 import { Carousel } from "react-responsive-carousel";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import { Col } from "reactstrap";
-import bgImage from "../../assets/images/new.png";
+import bgImage from "../../assets/images/logoNew.jpeg";
 
 const CarouselPage = () => {
   return (
