@@ -23,6 +23,7 @@ import {
   Table,
   TabPane,
   Toast,
+  Tooltip,
 } from "reactstrap";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
@@ -74,18 +75,6 @@ const Experiential_Learning: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
-  const [filters, setFilters] = useState({
-    academicYear: "",
-    semType: "",
-    semNumber: "",
-    stream: "",
-    department: "",
-    programType: "",
-    program: "",
-    courseTitle: "",
-    programTitle: "",
-    degree: "",
-  });
   const [filteredData, setFilteredData] = useState(experientialLearningData);
 
   const fellowshipFileRef = useRef<HTMLInputElement>(null);
@@ -97,6 +86,11 @@ const Experiential_Learning: React.FC = () => {
   const fieldStudentExcelRef = useRef<HTMLInputElement>(null);
 
   const tableRef = useRef<HTMLTableElement>(null);
+
+  const fileRef = useRef<HTMLInputElement | null>(null);
+
+  const [tooltipOpen, setTooltipOpen] = useState(false);
+  const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
 
   // Search/filter logic
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -111,6 +105,13 @@ const Experiential_Learning: React.FC = () => {
     );
     setFilteredData(filtered);
   };
+  const dropdownStyles = {
+    menu: (provided: any) => ({
+      ...provided,
+      overflowY: "auto", // Enable scrolling for additional options
+    }),
+    menuPortal: (base: any) => ({ ...base, zIndex: 9999 }), // Ensure the menu is above other elements
+  };
 
   // Pagination
   const indexOfLastRow = currentPage * rowsPerPage;
@@ -124,6 +125,12 @@ const Experiential_Learning: React.FC = () => {
 
   // Modal logic
   const toggleModal = () => setIsModalOpen(!isModalOpen);
+
+  const courseType = [
+    { value: "Core", label: "Core" },
+    { value: "Allied", label: "Allied" },
+    { value: "Elective", label: "Elective" },
+  ];
 
   // Fetch data
   const fetchExperientialLearningData = async () => {
@@ -310,6 +317,10 @@ const Experiential_Learning: React.FC = () => {
           : [],
         programTitle: response.programTitle || "",
         courseTitle: response.courseTitle || "",
+        courseType: mapValueToLabel(
+          response.courseType,
+          courseType // Assuming you have a courseType options array
+        ),
         pedagogy: {
           pedagogyFile: null,
           pedagogyFileName: "",
@@ -404,6 +415,7 @@ const Experiential_Learning: React.FC = () => {
         program: Array.isArray(mappedValues.program)
           ? mappedValues.program
           : [],
+        courseType: mapValueToLabel(response.courseType, courseType),
 
         pedagogy: {
           pedagogyFile: null,
@@ -814,6 +826,7 @@ const Experiential_Learning: React.FC = () => {
     programType: Yup.object().nullable().required("Please select program type"),
     courseTitle: Yup.string().required("Please enter Course Title"),
     programTitle: Yup.string().required("Please enter Program Title"),
+    courseType: Yup.object().nullable().required("Please select Course Type"),
   });
 
   // Add similar ones for Field Project, Dissertation, Fellowship, Bootcamp
@@ -915,6 +928,7 @@ const Experiential_Learning: React.FC = () => {
       programType: null as { value: string; label: string } | null,
       programTitle: "",
       courseTitle: "",
+      courseType: null as { value: string | number; label: string } | null,
       file: null,
       pedagogy: {
         pedagogyFile: null,
@@ -981,6 +995,8 @@ const Experiential_Learning: React.FC = () => {
         programId: values.degree?.value || "",
         programName: values.degree?.label || "",
         courseTitle: values.courseTitle,
+        programTitle: values.programTitle,
+        courseType: values.courseType?.value || "",
         pedagogy: values.pedagogy?.pedagogyFile
           ? {
               addOnFieldId: null, // set default or any value you need here
@@ -1070,7 +1086,7 @@ const Experiential_Learning: React.FC = () => {
         "b_studentExcelSheet",
         values.bootcamp?.studentExcelSheet || new Blob()
       );
-
+      console.log("Form Data to be submitted:", dtoPayload);
       try {
         const response =
           isEditMode && editId
@@ -1090,6 +1106,9 @@ const Experiential_Learning: React.FC = () => {
         );
         // Reset the form fields
         resetForm();
+        if (fileRef.current) {
+          fileRef.current.value = "";
+        }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         // handleListExperiential LearningClick(); // Refresh the list
@@ -1362,6 +1381,36 @@ const Experiential_Learning: React.FC = () => {
                   </Col>
                   <Col lg={4}>
                     <div className="mb-3">
+                      <Label>Course Type</Label>
+                      <Select
+                        options={courseType}
+                        value={validation.values.courseType}
+                        onChange={(selectedOptions) =>
+                          validation.setFieldValue(
+                            "courseType",
+                            selectedOptions
+                          )
+                        }
+                        placeholder="Select Type"
+                        styles={dropdownStyles}
+                        menuPortalTarget={document.body}
+                        className={
+                          validation.touched.courseType &&
+                          validation.errors.courseType
+                            ? "select-error"
+                            : ""
+                        }
+                      />
+                      {validation.touched.courseType &&
+                        validation.errors.courseType && (
+                          <div className="text-danger">
+                            {validation.errors.courseType}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+                  <Col lg={4}>
+                    <div className="mb-3">
                       <Label>Course Title</Label>
                       <Input
                         type="text"
@@ -1384,6 +1433,7 @@ const Experiential_Learning: React.FC = () => {
                         )}
                     </div>
                   </Col>
+
                   <div className="mb-3 mt-3 d-grid">
                     <Button
                       className="btn btn-tabs toggle-wizard-button"
@@ -1415,7 +1465,7 @@ const Experiential_Learning: React.FC = () => {
                             {tab === 1
                               ? "Pedagogy"
                               : tab === 2
-                              ? "Internship"
+                              ? "Interning"
                               : tab === 3
                               ? "Field Visit"
                               : tab === 4
@@ -1436,16 +1486,71 @@ const Experiential_Learning: React.FC = () => {
                                     htmlFor="pedagogyFile"
                                     className="form-label"
                                   >
-                                    Upload file
+                                    Upload pedagogy File
+                                    <i
+                                      id="infoIcon"
+                                      className="bi bi-info-circle ms-2"
+                                      style={{
+                                        cursor: "pointer",
+                                        color: "#0d6efd",
+                                      }}
+                                    ></i>
                                   </Label>
-                                  {validation.values.pedagogy
-                                    .pedagogyFileName ? (
-                                    <div className="d-flex align-items-center gap-2">
-                                      <span>
-                                        {
-                                          validation.values.pedagogy
-                                            .pedagogyFileName
-                                        }
+                                  <Tooltip
+                                    placement="right"
+                                    isOpen={tooltipOpen}
+                                    target="infoIcon"
+                                    toggle={toggleTooltip}
+                                  >
+                                    Upload an PDF file. Max size 10MB.
+                                  </Tooltip>
+                                  <Input
+                                    className={`form-control ${
+                                     validation.touched.pedagogy
+                                          ?.pedagogyFile &&
+                                        validation.errors.pedagogy?.pedagogyFile
+                                          ? "is-invalid"
+                                          : ""
+                                    }`}
+                                    type="file"
+                                    id="pedagogyFile"
+                                    innerRef={fileRef}
+                                    onChange={(event) => {
+                                        const file =
+                                          event.currentTarget.files?.[0] ||
+                                          null;
+                                        validation.setFieldValue(
+                                          "pedagogy.pedagogyFile",
+                                          file
+                                        );
+                                    }}
+                                    disabled={isFileUploadDisabled} // Disable the button if a file exists
+                                  />
+                                  {validation.touched.pedagogy?.pedagogyFile &&
+                                     validation.errors.pedagogy?.pedagogyFile && (
+                                      <div className="text-danger">
+                                        { validation.errors.pedagogy?.pedagogyFile}
+                                      </div>
+                                    )}
+                                  {/* Show a message if the file upload button is disabled */}
+                                  {isFileUploadDisabled && (
+                                    <div className="text-warning mt-2">
+                                      Please remove the existing file to upload
+                                      a new one.
+                                    </div>
+                                  )}
+                                  {/* Only show the file name if it is a string (from the edit API) */}
+                                  {typeof validation.values.file ===
+                                    "string" && (
+                                    <div className="mt-2 d-flex align-items-center">
+                                      <span
+                                        className="me-2"
+                                        style={{
+                                          fontWeight: "bold",
+                                          color: "green",
+                                        }}
+                                      >
+                                        {validation.values.file}
                                       </span>
                                       <Button
                                         color="link"
@@ -1478,50 +1583,7 @@ const Experiential_Learning: React.FC = () => {
                                         <i className="bi bi-trash"></i>
                                       </Button>
                                     </div>
-                                  ) : (
-                                    <Input
-                                      className={`form-control ${
-                                        validation.touched.pedagogy
-                                          ?.pedagogyFile &&
-                                        validation.errors.pedagogy?.pedagogyFile
-                                          ? "is-invalid"
-                                          : ""
-                                      }`}
-                                      type="file"
-                                      id="pedagogyFile"
-                                      disabled={
-                                        !!validation.values.pedagogy
-                                          .pedagogyFileName
-                                      }
-                                      onChange={(event) => {
-                                        const file =
-                                          event.currentTarget.files?.[0] ||
-                                          null;
-                                        validation.setFieldValue(
-                                          "pedagogy.pedagogyFile",
-                                          file
-                                        );
-                                        validation.setFieldValue(
-                                          "pedagogy.pedagogyFileName",
-                                          file ? file.name : ""
-                                        );
-                                        validation.setFieldValue(
-                                          "pedagogy.pedagogyFileKey",
-                                          undefined
-                                        );
-                                      }}
-                                    />
                                   )}
-                                  {validation.touched.pedagogy?.pedagogyFile &&
-                                    validation.errors.pedagogy
-                                      ?.pedagogyFile && (
-                                      <div className="text-danger">
-                                        {
-                                          validation.errors.pedagogy
-                                            .pedagogyFile
-                                        }
-                                      </div>
-                                    )}
                                 </div>
                               </Col>
                             </Row>
@@ -2600,7 +2662,7 @@ const Experiential_Learning: React.FC = () => {
                   <th>Degree</th>
                   <th>Program Title</th>
                   <th>Course Title</th>
-
+                  <th>Course Type</th>
                   <th>File Path (Pedagogy)</th>
 
                   <th>Total number of Interning student(Internship)</th>
@@ -2642,7 +2704,7 @@ const Experiential_Learning: React.FC = () => {
                       <td>{el.programName}</td>
                       <td>{el.programTitle}</td>
                       <td>{el.courseTitle}</td>
-
+                      <td>{el.courseType}</td>
                       <td>{el.pedagogy.filePath?.Pedagogy || "N/A"}</td>
                       <td>{el.internship?.totalInterningStudents || "N/A"}</td>
                       <td>{el.internship?.internOrgName || "N/A"}</td>
@@ -2717,6 +2779,7 @@ const Experiential_Learning: React.FC = () => {
                   <th>Degree</th>
                   <th>Program Title</th>
                   <th>Course Title</th>
+                  <th>Course Type</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -2734,6 +2797,7 @@ const Experiential_Learning: React.FC = () => {
                       <td>{el.programName}</td>
                       <td>{el.programTitle}</td>
                       <td>{el.courseTitle}</td>
+                      <td>{el.courseType}</td>
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
