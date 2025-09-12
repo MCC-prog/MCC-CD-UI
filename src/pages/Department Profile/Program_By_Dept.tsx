@@ -462,7 +462,7 @@ const Program_By_Dept: React.FC = () => {
           style={{ maxWidth: "100%", width: "auto" }}
         >
           <ModalHeader toggle={toggleModal}>
-            List of Program By Dept
+            List of Program offered by the dept
           </ModalHeader>
           <ModalBody>
             <Table striped bordered hover id="id" innerRef={tableRef}>
@@ -505,7 +505,7 @@ const Program_By_Dept: React.FC = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={4} className="text-center">
+                    <td colSpan={7} className="text-center">
                       No Program offered by the dept available.
                     </td>
                   </tr>

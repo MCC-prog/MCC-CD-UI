@@ -1108,7 +1108,7 @@ const Guest_Lectures: React.FC = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={4} className="text-center">
+                    <td colSpan={12} className="text-center">
                       No Guest Lectures available.
                     </td>
                   </tr>

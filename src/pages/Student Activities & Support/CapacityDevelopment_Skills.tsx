@@ -814,7 +814,7 @@ const CapacityDevelopment_Skills: React.FC = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={4} className="text-center">
+                    <td colSpan={10} className="text-center">
                       No Capacity development & Skills enhancement data
                       available.
                     </td>

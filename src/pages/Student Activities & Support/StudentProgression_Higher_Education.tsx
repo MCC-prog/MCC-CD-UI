@@ -946,7 +946,7 @@ const StudentProgression_Higher_Education: React.FC = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={4} className="text-center">
+                    <td colSpan={13} className="text-center">
                       No Student Progression - Higher Education available.
                     </td>
                   </tr>

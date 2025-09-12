@@ -1051,7 +1051,7 @@ const WorkshopsOrSeminars: React.FC = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={11} className="text-center">
+                    <td colSpan={13} className="text-center">
                       No Workshops Or Seminars Conducted data available.
                     </td>
                   </tr>
