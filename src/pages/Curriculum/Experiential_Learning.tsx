@@ -358,10 +358,13 @@ const Experiential_Learning: React.FC = () => {
           addOnFieldId: response.dissertations?.addOnFieldId || "",
           totalParticipatingStudentsdissertation:
             response.dissertations?.totalDissertationsStudents || "",
-          dissertationStartDate:
-            response.dissertations?.dissertationsStartDate || "",
-          dissertationEndDate:
-            response.dissertations?.dissertationsEndDate || "",
+          // convert backend date -> DD-MM-YYYY for Formik storage
+          dissertationsStartDate: response.dissertations?.dissertationsStartDate
+            ? moment(response.dissertations.dissertationsStartDate).format("DD-MM-YYYY")
+            : "",
+          dissertationsEndDate: response.dissertations?.dissertationsEndDate
+            ? moment(response.dissertations.dissertationsEndDate).format("DD-MM-YYYY")
+            : "",
         },
         fellowship: {
           addOnFieldId: response.fellowship?.addOnFieldId || "",
@@ -467,10 +470,10 @@ const Experiential_Learning: React.FC = () => {
           totalParticipatingStudentsdissertation:
             mappedValues.dissertation?.totalParticipatingStudentsdissertation ||
             "",
-          dissertationStartDate:
-            mappedValues.dissertation?.dissertationStartDate || "",
-          dissertationEndDate:
-            mappedValues.dissertation?.dissertationEndDate || "",
+          dissertationsStartDate:
+            mappedValues.dissertation?.dissertationsStartDate || null,
+          dissertationsEndDate:
+            mappedValues.dissertation?.dissertationsEndDate || null,
           addOnFieldId: response.dissertations?.addOnFieldId || "",
         },
 
@@ -705,13 +708,13 @@ const Experiential_Learning: React.FC = () => {
     totalParticipatingStudentsdissertation: Yup.string().required(
       "Enter total number of participating students"
     ),
-    dissertationStartDate: Yup.string().nullable(),
-    dissertationEndDate: Yup.string()
+    dissertationsStartDate: Yup.string().nullable(),
+    dissertationsEndDate: Yup.string()
       .nullable()
       .test("end-after-start", "End date cannot be before start date", function (value) {
-        const { dissertationStartDate } = this.parent || {};
-        if (!value || !dissertationStartDate) return true;
-        const start = moment(dissertationStartDate, "DD-MM-YYYY", true);
+        const { dissertationsStartDate } = this.parent || {};
+        if (!value || !dissertationsStartDate) return true;
+        const start = moment(dissertationsStartDate, "DD-MM-YYYY", true);
         const end = moment(value, "DD-MM-YYYY", true);
         if (!start.isValid() || !end.isValid()) return true;
         return end.isSameOrAfter(start);
@@ -790,8 +793,8 @@ const Experiential_Learning: React.FC = () => {
       values?.fieldProject?.communicationLetter ||
       values?.fieldProject?.studentExcelSheet ||
       values?.dissertation?.totalParticipatingStudentsdissertation ||
-      values?.dissertation?.dissertationStartDate ||
-      values?.dissertation?.dissertationEndDate ||
+      values?.dissertation?.dissertationsStartDate ||
+      values?.dissertation?.dissertationsStartDate ||
       values?.fellowship?.studentExcelSheet ||
       values?.fellowship?.fellowshipFile ||
       values?.bootcamp?.studentExcelSheet ||
@@ -922,8 +925,8 @@ const Experiential_Learning: React.FC = () => {
       },
       dissertation: {
         totalParticipatingStudentsdissertation: "",
-        dissertationStartDate: null,
-        dissertationEndDate: null,
+        dissertationsEndDate: null,
+        dissertationsStartDate: null,
         addOnFieldId: "",
       },
       fellowship: {
@@ -998,11 +1001,11 @@ const Experiential_Learning: React.FC = () => {
       if (activeTab1 === "dissertation" && isFilled(values.dissertation)) {
         dtoPayload.dissertations = {
           totalDissertationsStudents: values.dissertation.totalParticipatingStudentsdissertation || null,
-          dissertationsStartDate: values.dissertation.dissertationStartDate
-            ? moment(values.dissertation.dissertationStartDate, "DD-MM-YYYY").format("YYYY-MM-DD")
+          dissertationsStartDate: values.dissertation.dissertationsStartDate
+            ? moment(values.dissertation.dissertationsStartDate, "DD-MM-YYYY").format("YYYY-MM-DD")
             : null,
-          dissertationsEndDate: values.dissertation.dissertationEndDate
-            ? moment(values.dissertation.dissertationEndDate, "DD-MM-YYYY").format("YYYY-MM-DD")
+          dissertationsEndDate: values.dissertation.dissertationsEndDate
+            ? moment(values.dissertation.dissertationsEndDate, "DD-MM-YYYY").format("YYYY-MM-DD")
             : null,
           addOnFieldId: values.dissertation.addOnFieldId || null
         };
@@ -2053,16 +2056,16 @@ const Experiential_Learning: React.FC = () => {
                                     type="date"
                                     placeholder="Enter Duration of field project start date"
                                     value={
-                                      validation.values.dissertation?.dissertationStartDate
-                                        ? moment(validation.values.dissertation.dissertationStartDate, "DD-MM-YYYY").format("YYYY-MM-DD")
+                                      validation.values.dissertation?.dissertationsStartDate
+                                        ? moment(validation.values.dissertation.dissertationsStartDate, "DD-MM-YYYY").format("YYYY-MM-DD")
                                         : ""
                                     }
                                     onChange={(e) => {
                                       const formattedDate = moment(e.target.value, "YYYY-MM-DD").format("DD-MM-YYYY");
-                                      validation.setFieldValue("dissertation.dissertationStartDate", formattedDate);
+                                      validation.setFieldValue("dissertation.dissertationsStartDate", formattedDate);
                                     }}
-                                    className={`form-control ${validation.touched.dissertation?.dissertationStartDate &&
-                                      validation.errors.dissertation?.dissertationStartDate
+                                    className={`form-control ${validation.touched.dissertation?.dissertationsStartDate &&
+                                      validation.errors.dissertation?.dissertationsStartDate
                                       ? "is-invalid"
                                       : ""
                                       }`}
@@ -2077,16 +2080,16 @@ const Experiential_Learning: React.FC = () => {
                                     type="date"
                                     placeholder="Enter Duration of field project end date"
                                     value={
-                                      validation.values.dissertation?.dissertationEndDate
-                                        ? moment(validation.values.dissertation.dissertationEndDate, "DD-MM-YYYY").format("YYYY-MM-DD")
+                                      validation.values.dissertation?.dissertationsEndDate
+                                        ? moment(validation.values.dissertation.dissertationsEndDate, "DD-MM-YYYY").format("YYYY-MM-DD")
                                         : ""
                                     }
                                     onChange={(e) => {
                                       const formattedDate = moment(e.target.value, "YYYY-MM-DD").format("DD-MM-YYYY");
-                                      validation.setFieldValue("dissertation.dissertationEndDate", formattedDate);
+                                      validation.setFieldValue("dissertation.dissertationsEndDate", formattedDate);
                                     }}
-                                    className={`form-control ${validation.touched.dissertation?.dissertationEndDate &&
-                                      validation.errors.dissertation?.dissertationEndDate
+                                    className={`form-control ${validation.touched.dissertation?.dissertationsEndDate &&
+                                      validation.errors.dissertation?.dissertationsEndDate
                                       ? "is-invalid"
                                       : ""
                                       }`}
@@ -2103,8 +2106,8 @@ const Experiential_Learning: React.FC = () => {
                                     validation.setFieldValue("dissertation", {
                                       totalParticipatingStudentsdissertation:
                                         "",
-                                      dissertationStartDate: "",
-                                      dissertationEndDate: "",
+                                      dissertationsStartDate: "",
+                                      dissertationsEndDate: "",
                                     })
                                   }
                                 >
@@ -2688,8 +2691,8 @@ const Experiential_Learning: React.FC = () => {
                         {el.dissertation
                           ?.totalParticipatingStudentsdissertation || "N/A"}
                       </td>
-                      <td>{el.dissertation?.dissertationStartDate || "N/A"}</td>
-                      <td>{el.dissertation?.dissertationEndDate || "N/A"}</td>
+                      <td>{el.dissertation?.dissertationsStartDate || "N/A"}</td>
+                      <td>{el.dissertation?.dissertationsEndDate || "N/A"}</td>
 
                       <td>
                         {el.fellowship?.filePath?.studentExcelSheetFileName ||
