@@ -565,7 +565,7 @@ const StudentStrengthProgram: React.FC = () => {
                 ) : (
                   <tr>
                     <td colSpan={4} className="text-center">
-                      No BOS data available.
+                      No Student Strength Program-wise data available.
                     </td>
                   </tr>
                 )}

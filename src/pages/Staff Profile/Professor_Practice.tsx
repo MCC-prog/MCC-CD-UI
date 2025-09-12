@@ -731,7 +731,7 @@ const Professor_Practice: React.FC = () => {
                 ) : (
                   <tr>
                     <td colSpan={4} className="text-center">
-                      No BOS data available.
+                      No Professor Practice data available.
                     </td>
                   </tr>
                 )}

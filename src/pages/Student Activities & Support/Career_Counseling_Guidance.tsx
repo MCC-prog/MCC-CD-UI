@@ -939,7 +939,7 @@ const Career_Counseling_Guidance: React.FC = () => {
                 ) : (
                   <tr>
                     <td colSpan={4} className="text-center">
-                      No BOS data available.
+                      No Career Counseling Guidance data available.
                     </td>
                   </tr>
                 )}

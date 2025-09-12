@@ -1105,7 +1105,7 @@ const Value_Added_Program: React.FC = () => {
                 ) : (
                   <tr>
                     <td colSpan={15} className="text-center">
-                      No BOS data available.
+                      No Value Added Program data available.
                     </td>
                   </tr>
                 )}
@@ -1165,7 +1165,7 @@ const Value_Added_Program: React.FC = () => {
                 ) : (
                   <tr>
                     <td colSpan={4} className="text-center">
-                      No BOS data available.
+                      No Value Added Program data available.
                     </td>
                   </tr>
                 )}

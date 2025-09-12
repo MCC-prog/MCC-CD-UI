@@ -966,7 +966,7 @@ const Moocs: React.FC = () => {
                 ) : (
                   <tr>
                     <td colSpan={11} className="text-center">
-                      No BOS data available.
+                      No MOOCS data available.
                     </td>
                   </tr>
                 )}
