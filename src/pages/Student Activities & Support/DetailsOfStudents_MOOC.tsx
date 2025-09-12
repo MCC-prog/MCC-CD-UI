@@ -883,7 +883,7 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={4} className="text-center">
+                    <td colSpan={13} className="text-center">
                       No Details of Students Enrolled for MOOC available.
                     </td>
                   </tr>

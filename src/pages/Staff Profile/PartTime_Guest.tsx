@@ -763,7 +763,7 @@ const PartTime_Guest: React.FC = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={4} className="text-center">
+                    <td colSpan={9} className="text-center">
                       No Part Time Guest data available.
                     </td>
                   </tr>

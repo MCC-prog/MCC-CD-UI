@@ -681,7 +681,7 @@ const Books: React.FC = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={4} className="text-center">
+                    <td colSpan={8} className="text-center">
                       No Books data available.
                     </td>
                   </tr>

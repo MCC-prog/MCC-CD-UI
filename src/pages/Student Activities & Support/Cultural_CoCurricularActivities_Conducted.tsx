@@ -1040,7 +1040,7 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={4} className="text-center">
+                    <td colSpan={14} className="text-center">
                       No Cultural & Co-Curricular activities conducted in the
                       college data available.
                     </td>

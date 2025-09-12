@@ -922,7 +922,7 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={4} className="text-center">
+                    <td colSpan={13} className="text-center">
                       No Student Progression - Competitive Exams available.
                     </td>
                   </tr>

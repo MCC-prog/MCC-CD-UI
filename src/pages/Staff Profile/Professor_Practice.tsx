@@ -730,7 +730,7 @@ const Professor_Practice: React.FC = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={4} className="text-center">
+                    <td colSpan={9} className="text-center">
                       No Professor Practice data available.
                     </td>
                   </tr>

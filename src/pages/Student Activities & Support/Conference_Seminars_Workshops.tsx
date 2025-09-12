@@ -1187,7 +1187,7 @@ const Conference_Seminars_Workshops: React.FC = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={4} className="text-center">
+                    <td colSpan={13} className="text-center">
                       No Conference, Seminars & Workshops data available.
                     </td>
                   </tr>

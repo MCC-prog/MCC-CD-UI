@@ -721,7 +721,7 @@ const AC_GB_MoM: React.FC = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={4} className="text-center">
+                    <td colSpan={5} className="text-center">
                       No Ac & Gb Mom data available.
                     </td>
                   </tr>
