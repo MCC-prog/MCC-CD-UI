@@ -525,7 +525,7 @@ const TotalStudentsStrength: React.FC = () => {
           style={{ maxWidth: "100%", width: "auto" }}
         >
           <ModalHeader toggle={toggleModal}>
-            List of Student Strength Program-wise
+            List of Total Student Strength
           </ModalHeader>
           <ModalBody>
             <Table striped bordered hover id="id" innerRef={tableRef}>

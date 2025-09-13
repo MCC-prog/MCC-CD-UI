@@ -41,6 +41,9 @@ axios.interceptors.response.use(
       case 404:
         message = "Sorry! The data you are looking for could not be found";
         break;
+        case 403:
+        message = "You are not authorized to perform this action";
+        break;
       default:
         message = error.message || error;
     }

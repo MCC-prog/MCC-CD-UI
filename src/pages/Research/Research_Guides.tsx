@@ -1039,7 +1039,7 @@ const Research_Guides = () => {
           size="lg"
           style={{ maxWidth: "100%", width: "auto" }}
         >
-          <ModalHeader toggle={toggleModal}>List BOS</ModalHeader>
+          <ModalHeader toggle={toggleModal}>List Research Guides</ModalHeader>
           <ModalBody>
             {/* Table with Pagination */}
             <Table

@@ -456,7 +456,7 @@ const NumberOfStudents: React.FC = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={4} className="text-center">
+                    <td colSpan={5} className="text-center">
                       No Number of Students Enrolled data available.
                     </td>
                   </tr>

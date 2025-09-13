@@ -196,10 +196,6 @@ const CalendarComponent: React.FC = () => {
 
       // Revert the event back to original position
       info.revert();
-    } finally {
-      setTimeout(() => {
-        toast.dismiss();
-      }, 4000);
     }
   };
 
@@ -273,15 +269,11 @@ const CalendarComponent: React.FC = () => {
         endDate: new Date(),
       });
       fetchEvents();
-       setTimeout(() => {
-        toast.dismiss();
-      }, 4000);
     }
   };
 
   return (
     <React.Fragment>
-      <>
         <FullCalendar
           plugins={[dayGridPlugin, interactionPlugin, bootstrapPlugin]}
           initialView="dayGridMonth"
@@ -379,10 +371,8 @@ const CalendarComponent: React.FC = () => {
               Cancel
             </Button>
           </ModalFooter>
-        </Modal>
-        <ToastContainer />
-      </>
-      {/* <ToastContainer /> */}
+        </Modal>  
+       <ToastContainer />
     </React.Fragment>
   );
 };

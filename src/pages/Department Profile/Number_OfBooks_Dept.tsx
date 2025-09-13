@@ -402,7 +402,7 @@ const Number_OfBooks_Dept: React.FC = () => {
           style={{ maxWidth: "100%", width: "auto" }}
         >
           <ModalHeader toggle={toggleModal}>
-            List of Program By Dept
+            List of Number of books in the department library
           </ModalHeader>
           <ModalBody>
             <Table striped bordered hover id="id" innerRef={tableRef}>
@@ -441,7 +441,7 @@ const Number_OfBooks_Dept: React.FC = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={4} className="text-center">
+                    <td colSpan={5} className="text-center">
                       No Number of books in the department library available.
                     </td>
                   </tr>

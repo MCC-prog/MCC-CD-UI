@@ -735,7 +735,7 @@ const SportsEvents_Conducted_College: React.FC = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={4} className="text-center">
+                    <td colSpan={9} className="text-center">
                       No Sports Events conducted in the college data available.
                     </td>
                   </tr>

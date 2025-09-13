@@ -337,7 +337,7 @@ const megaMenuContents = [
       { label: "5. Board rooms", path: "/infrastructure/boardRooms" },
       { label: "6. Amphitheatre", path: "/infrastructure/amphitheatre" },
       { label: "7. Seminar halls - infrastructure", path: "/infrastructure/seminarHalls" },
-      { label: "8. Software", path: "/infrastructure/software" },
+      { label: "8. Software", path: "/infrastructure/softwares" },
 
     ],
   },

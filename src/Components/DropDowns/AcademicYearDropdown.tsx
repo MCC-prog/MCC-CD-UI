@@ -27,9 +27,9 @@ const AcademicYearDropdown: React.FC<AcademicYearDropdownProps> = ({
                 // Fetch data from API
                 const response = await api.get("/getAllAcademicYear", "");
 
-                // Filter the response where isCurrent or isCurrentForAdmission is true
+                // Filter the response where isActive or isCurrentForAdmission is true
                 const filteredAcademicYearList = response.filter(
-                    (year: any) => year.isCurrent || year.isCurrentForAdmission
+                    (year: any) => year.isActive
                 );
 
                 // Map the filtered data to the required format

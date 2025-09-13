@@ -1079,7 +1079,7 @@ const Databases: React.FC = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={4} className="text-center">
+                    <td colSpan={5} className="text-center">
                       No Databases which are Subscribed data available.
                     </td>
                   </tr>

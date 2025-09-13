@@ -2122,7 +2122,7 @@ const Student_Centric_Teaching: React.FC = () => {
           size="lg"
           style={{ maxWidth: "100%", width: "auto" }}
         >
-          <ModalHeader toggle={toggleModal}>List Advanced Learners</ModalHeader>
+          <ModalHeader toggle={toggleModal}>List Student Centric Methodology</ModalHeader>
           <ModalBody>
             {/* Global Search */}
             <div className="mb-3">
@@ -2249,7 +2249,7 @@ const Student_Centric_Teaching: React.FC = () => {
                 ) : (
                   <tr>
                     <td colSpan={27} className="text-center">
-                      No Advanced Learners data available.
+                      No Student Centric Methodology.
                     </td>
                   </tr>
                 )}
@@ -2326,7 +2326,7 @@ const Student_Centric_Teaching: React.FC = () => {
                 ) : (
                   <tr>
                     <td colSpan={11} className="text-center">
-                      No Advanced Learners data available.
+                      No Student Centric Methodology.
                     </td>
                   </tr>
                 )}
