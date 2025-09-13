@@ -239,6 +239,16 @@ const Experiential_Learning: React.FC = () => {
       }));
 
       const semesterNoOptions = SEMESTER_NO_OPTIONS;
+
+      // For pedagogy file mapping:
+      let pedagogyFileName = "";
+      let pedagogyFileKey = "";
+      if (response.pedagogy?.file && typeof response.pedagogy.file === "object") {
+        const [key, path] = Object.entries(response.pedagogy.file)[0];
+        pedagogyFileName = typeof path === "string" ? path.split("/").pop() || "" : "";
+        pedagogyFileKey = key;
+      }
+
       // fellowship file
       const fellowshipFileInfo = getFileInfoByFolder(
         response.fellowship?.file,
@@ -313,8 +323,9 @@ const Experiential_Learning: React.FC = () => {
         courseTitle: response.courseTitle || "",
         pedagogy: {
           pedagogyFile: null,
-          pedagogyFileName: "",
-          pedagogyFileKey: "",
+          pedagogyFileName: pedagogyFileName,
+          pedagogyFileKey: pedagogyFileKey,
+          addOnFieldId: response.pedagogy?.addOnFieldId || "",
         },
         internship: {
           totalJoiningStudentsOfIntern:
@@ -413,19 +424,12 @@ const Experiential_Learning: React.FC = () => {
         program: Array.isArray(mappedValues.program)
           ? mappedValues.program
           : [],
-
         pedagogy: {
           pedagogyFile: null,
-          pedagogyFileName:
-            (response.pedagogy?.file &&
-              Object.values(response.pedagogy.file)[0]) ||
-            "",
-          pedagogyFileKey: response.pedagogy?.file
-            ? Object.keys(response.pedagogy.file)[0]
-            : "",
+          pedagogyFileName: pedagogyFileName,
+          pedagogyFileKey: pedagogyFileKey,
           addOnFieldId: response.pedagogy?.addOnFieldId || "",
         },
-
         internship: {
           totalJoiningStudentsOfIntern:
             mappedValues.internship?.totalJoiningStudentsOfIntern || "",
@@ -433,7 +437,6 @@ const Experiential_Learning: React.FC = () => {
           locationOfIntern: mappedValues.internship?.locationOfIntern || "",
           addOnFieldId: response.internship?.addOnFieldId || "",
         },
-
         fieldProject: {
           totalParticipatingStudents:
             mappedValues.fieldProject?.totalParticipatingStudents || "",
@@ -465,7 +468,6 @@ const Experiential_Learning: React.FC = () => {
             fieldProjectstudentExcelFileInfo.fileKey || "",
           addOnFieldId: response.fieldProject?.addOnFieldId || "",
         },
-
         dissertation: {
           totalParticipatingStudentsdissertation:
             mappedValues.dissertation?.totalParticipatingStudentsdissertation ||
@@ -476,7 +478,6 @@ const Experiential_Learning: React.FC = () => {
             mappedValues.dissertation?.dissertationsEndDate || null,
           addOnFieldId: response.dissertations?.addOnFieldId || "",
         },
-
         fellowship: {
           studentExcelSheet: null,
           studentExcelSheetFileName: studentExcelFileInfo.fileName || "",
@@ -486,7 +487,6 @@ const Experiential_Learning: React.FC = () => {
           fellowshipFileKey: fellowshipFileInfo.fileKey || "",
           addOnFieldId: response.fellowship?.addOnFieldId || "",
         },
-
         bootcamp: {
           studentExcelSheet: null,
           studentExcelSheetFileName:
@@ -626,11 +626,18 @@ const Experiential_Learning: React.FC = () => {
   const pedagogySchema = Yup.object({
     pedagogyFile: Yup.mixed().test(
       "fileValidation",
-      "Please upload a valid file",
+      "Please upload a file",
       function (value) {
-        if (isFileUploadDisabled) return true;
-        // SKIP validation in edit mode if backend file is present
-        if (isEditMode && (this.parent?.pedagogyFileName || this.parent?.pedagogyFileKey)) return true;
+        // In edit mode, skip validation if fileName or fileKey is present
+        if (
+          isEditMode &&
+          (
+            (this.parent?.pedagogyFileName && this.parent?.pedagogyFileName !== "") ||
+            (this.parent?.pedagogyFileKey && this.parent?.pedagogyFileKey !== "")
+          )
+        ) {
+          return true;
+        }
         if (!value) {
           return this.createError({ message: "Please upload a file" });
         }
@@ -648,8 +655,9 @@ const Experiential_Learning: React.FC = () => {
         }
         return true;
       }
-    ),
+    )
   });
+
 
   const internshipSchema = Yup.object({
     totalJoiningStudentsOfIntern: Yup.string().required(
@@ -781,7 +789,7 @@ const Experiential_Learning: React.FC = () => {
   // Removed duplicate combinedSchema declaration to avoid redeclaration error.
   const isAnyTabFilled = (values: typeof validation.values) => {
     const tabs =
-      (values?.pedagogy && values.pedagogy.pedagogyFile) ||
+      (values?.pedagogy && (values.pedagogy.pedagogyFile || (isEditMode && (values.pedagogy.pedagogyFileName || values.pedagogy.pedagogyFileKey)))) ||
       values?.internship?.totalJoiningStudentsOfIntern ||
       values?.internship?.orgNameOfIntern ||
       values?.internship?.locationOfIntern ||
@@ -864,15 +872,6 @@ const Experiential_Learning: React.FC = () => {
     });
   };
 
-  const subformKeys = [
-    "pedagogy",
-    "internship",
-    "fieldProject",
-    "dissertation",
-    "fellowship",
-    "bootcamp",
-  ];
-
   // Helper to check if a sub-form is filled
   const isFilled = (obj: any) =>
     obj && Object.values(obj).some(
@@ -883,6 +882,32 @@ const Experiential_Learning: React.FC = () => {
     );
 
   const combinedSchema = getCombinedSchema(activeTab1);
+
+  const handleUpdateClick = async (e: React.FormEvent) => {
+    e.preventDefault();
+    // Mark all main fields as touched
+    validation.setTouched({
+      academicYear: true,
+      semType: true,
+      semNumber: true,
+      stream: true,
+      department: true,
+      degree: true,
+      programType: true,
+      programTitle: true,
+      courseTitle: true,
+      [activeTab1 ?? ""]: Object.keys(validation.values[activeTab1 ?? ""] || {}).reduce((acc, key) => {
+        acc[key] = true;
+        return acc;
+      }, {} as any)
+    });
+    // Validate and log errors
+    const errors = await validation.validateForm();
+    console.log("Validation errors before submit:", errors);
+    validation.handleSubmit();
+  };
+
+
   const validation = useFormik({
     initialValues: {
       academicYear: null as { value: string; label: string } | null,
@@ -894,7 +919,6 @@ const Experiential_Learning: React.FC = () => {
       programType: null as { value: string; label: string } | null,
       programTitle: "",
       courseTitle: "",
-      file: null,
       pedagogy: {
         pedagogyFile: null,
         pedagogyFileName: "",
@@ -1040,6 +1064,7 @@ const Experiential_Learning: React.FC = () => {
       if (activeTab1 === "pedagogy") {
         if (values.pedagogy?.pedagogyFile) formData.append("pedagogy", values.pedagogy.pedagogyFile);
       }
+      console.log("PedagogyFile--->",values.pedagogy.pedagogyFile)
       if (activeTab1 === "fieldProject") {
         if (values.fieldProject?.fieldProjectFile) formData.append("fP_fieldProject", values.fieldProject.fieldProjectFile);
         if (values.fieldProject?.communicationLetter) formData.append("fP_communicationLetter", values.fieldProject.communicationLetter);
@@ -1147,7 +1172,7 @@ const Experiential_Learning: React.FC = () => {
           />
           <Card>
             <CardBody>
-              <form onSubmit={validation.handleSubmit}>
+              <form onSubmit={handleUpdateClick}>
                 <Row>
                   {/* Academic Year Dropdown */}
                   <Col lg={4}>
@@ -1487,12 +1512,16 @@ const Experiential_Learning: React.FC = () => {
                                         const file = event.currentTarget.files?.[0] || null;
                                         validation.setFieldValue("pedagogy.pedagogyFile", file);
                                         validation.setFieldValue("pedagogy.pedagogyFileName", file ? file.name : "");
-                                        validation.setFieldValue("pedagogy.pedagogyFileKey", undefined);
+                                        validation.setFieldValue("pedagogy.pedagogyFileKey", file ? file.name : "");
                                       }}
                                     />
                                   )}
                                   {validation.touched.pedagogy?.pedagogyFile &&
-                                    validation.errors.pedagogy?.pedagogyFile && (
+                                    validation.errors.pedagogy?.pedagogyFile &&
+                                    // don't show the error if there's an actual File OR a backend fileName/fileKey present
+                                    !(validation.values.pedagogy?.pedagogyFile ||
+                                      validation.values.pedagogy?.pedagogyFileName ||
+                                      validation.values.pedagogy?.pedagogyFileKey) && (
                                       <div className="text-danger">
                                         {validation.errors.pedagogy.pedagogyFile}
                                       </div>
