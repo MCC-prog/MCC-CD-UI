@@ -322,10 +322,10 @@ const Experiential_Learning: React.FC = () => {
         programTitle: response.programTitle || "",
         courseTitle: response.courseTitle || "",
         pedagogy: {
-          pedagogyFile: null,
           pedagogyFileName: pedagogyFileName,
           pedagogyFileKey: pedagogyFileKey,
           addOnFieldId: response.pedagogy?.addOnFieldId || "",
+
         },
         internship: {
           totalJoiningStudentsOfIntern:
@@ -425,10 +425,10 @@ const Experiential_Learning: React.FC = () => {
           ? mappedValues.program
           : [],
         pedagogy: {
-          pedagogyFile: null,
           pedagogyFileName: pedagogyFileName,
           pedagogyFileKey: pedagogyFileKey,
           addOnFieldId: response.pedagogy?.addOnFieldId || "",
+          pedagogyFile: null,
         },
         internship: {
           totalJoiningStudentsOfIntern:
@@ -623,8 +623,8 @@ const Experiential_Learning: React.FC = () => {
     }
   };
 
-  const pedagogySchema = Yup.object({
-    pedagogyFile: Yup.mixed().test(
+  const pedagogySchema = Yup.object().shape({
+    pedagogyFile: Yup.mixed().nullable().test(
       "fileValidation",
       "Please upload a file",
       function (value) {
@@ -685,8 +685,7 @@ const Experiential_Learning: React.FC = () => {
     locationOfOrganisation: Yup.string().required(
       "Enter location of the organisation"
     ),
-    fieldProjectFile: Yup.mixed().test("fileValidation", "Please upload a valid file", function (value) {
-      // skip if backend file present in edit mode
+    fieldProjectFile: Yup.mixed().nullable().test("fileValidation", "Please upload a valid file", function (value) {
       if (isEditMode && (this.parent?.fieldProjectFileName || this.parent?.fieldProjectFileKey)) return true;
       if (!value) return this.createError({ message: "Please upload a file" });
       if (value instanceof File && value.size > 3 * 1024 * 1024) return this.createError({ message: "File size is too large" });
@@ -694,7 +693,7 @@ const Experiential_Learning: React.FC = () => {
       if (value instanceof File && !allowed.includes(value.type)) return this.createError({ message: "Unsupported file format" });
       return true;
     }),
-    communicationLetter: Yup.mixed().test("fileValidation", "Please upload a valid file", function (value) {
+    communicationLetter: Yup.mixed().nullable().test("fileValidation", "Please upload a valid file", function (value) {
       if (isEditMode && (this.parent?.communicationLetterFileName || this.parent?.communicationLetterFileKey)) return true;
       if (!value) return this.createError({ message: "Please upload a file" });
       if (value instanceof File && value.size > 3 * 1024 * 1024) return this.createError({ message: "File size is too large" });
@@ -702,7 +701,7 @@ const Experiential_Learning: React.FC = () => {
       if (value instanceof File && !allowedTypes.includes(value.type)) return this.createError({ message: "Unsupported file format" });
       return true;
     }),
-    studentExcelSheet: Yup.mixed().test("fileValidation", "Please upload a valid file", function (value) {
+    studentExcelSheet: Yup.mixed().nullable().test("fileValidation", "Please upload a valid file", function (value) {
       if (isEditMode && (this.parent?.studentExcelSheetFileName || this.parent?.studentExcelSheetFileKey)) return true;
       if (!value) return this.createError({ message: "Please upload a file" });
       if (value instanceof File && value.size > 3 * 1024 * 1024) return this.createError({ message: "File size is too large" });
@@ -730,7 +729,7 @@ const Experiential_Learning: React.FC = () => {
   });
 
   const fellowshipSchema = Yup.object({
-    studentExcelSheet: Yup.mixed().test("fileValidation", "Please upload a valid file", function (value) {
+    studentExcelSheet: Yup.mixed().nullable().test("fileValidation", "Please upload a valid file", function (value) {
       if (isEditMode && (this.parent?.studentExcelSheetFileName || this.parent?.studentExcelSheetFileKey)) return true;
       if (!value) return this.createError({ message: "Please upload a file" });
       if (value instanceof File && value.size > 3 * 1024 * 1024) return this.createError({ message: "File size is too large" });
@@ -738,7 +737,7 @@ const Experiential_Learning: React.FC = () => {
       if (value instanceof File && !allowedTypes.includes(value.type)) return this.createError({ message: "Unsupported file format" });
       return true;
     }),
-    fellowshipFile: Yup.mixed().test("fileValidation", "Please upload a valid file", function (value) {
+    fellowshipFile: Yup.mixed().nullable().test("fileValidation", "Please upload a valid file", function (value) {
       if (isEditMode && (this.parent?.fellowshipFileName || this.parent?.fellowshipFileKey)) return true;
       if (!value) return this.createError({ message: "Please upload a file" });
       if (value instanceof File && value.size > 3 * 1024 * 1024) return this.createError({ message: "File size is too large" });
@@ -749,7 +748,7 @@ const Experiential_Learning: React.FC = () => {
   });
 
   const bootcampSchema = Yup.object({
-    studentExcelSheet: Yup.mixed().test("fileValidation", "Please upload a valid file", function (value) {
+    studentExcelSheet: Yup.mixed().nullable().test("fileValidation", "Please upload a valid file", function (value) {
       if (isEditMode && (this.parent?.studentExcelSheetFileName || this.parent?.studentExcelSheetFileKey)) return true;
       if (!value) return this.createError({ message: "Please upload a file" });
       if (value instanceof File && value.size > 3 * 1024 * 1024) return this.createError({ message: "File size is too large" });
@@ -757,7 +756,7 @@ const Experiential_Learning: React.FC = () => {
       if (value instanceof File && !allowedTypes.includes(value.type)) return this.createError({ message: "Unsupported file format" });
       return true;
     }),
-    bootcampFile: Yup.mixed().test("fileValidation", "Please upload a valid file", function (value) {
+    bootcampFile: Yup.mixed().nullable().test("fileValidation", "Please upload a valid file", function (value) {
       if (isEditMode && (this.parent?.bootcampFileName || this.parent?.bootcampFileKey)) return true;
       if (!value) return this.createError({ message: "Please upload a file" });
       if (value instanceof File && value.size > 3 * 1024 * 1024) return this.createError({ message: "File size is too large" });
@@ -788,27 +787,44 @@ const Experiential_Learning: React.FC = () => {
   // Add similar ones for Field Project, Dissertation, Fellowship, Bootcamp
   // Removed duplicate combinedSchema declaration to avoid redeclaration error.
   const isAnyTabFilled = (values: typeof validation.values) => {
-    const tabs =
-      (values?.pedagogy && (values.pedagogy.pedagogyFile || (isEditMode && (values.pedagogy.pedagogyFileName || values.pedagogy.pedagogyFileKey)))) ||
+    return (
+      // Pedagogy
+      (values?.pedagogy &&
+        (
+          values.pedagogy.pedagogyFile ||
+          (isEditMode && (values.pedagogy.pedagogyFileName || values.pedagogy.pedagogyFileKey))
+        )
+      ) ||
+      // Internship
       values?.internship?.totalJoiningStudentsOfIntern ||
       values?.internship?.orgNameOfIntern ||
       values?.internship?.locationOfIntern ||
+      // Field Project
       values?.fieldProject?.totalParticipatingStudents ||
       values?.fieldProject?.fieldProjectStartDate ||
       values?.fieldProject?.fieldProjectEndDate ||
       values?.fieldProject?.locationOfOrganisation ||
       values?.fieldProject?.fieldProjectFile ||
+      (isEditMode && (values?.fieldProject?.fieldProjectFileName || values?.fieldProject?.fieldProjectFileKey)) ||
       values?.fieldProject?.communicationLetter ||
+      (isEditMode && (values?.fieldProject?.communicationLetterFileName || values?.fieldProject?.communicationLetterFileKey)) ||
       values?.fieldProject?.studentExcelSheet ||
+      (isEditMode && (values?.fieldProject?.studentExcelSheetFileName || values?.fieldProject?.studentExcelSheetFileKey)) ||
+      // Dissertation
       values?.dissertation?.totalParticipatingStudentsdissertation ||
       values?.dissertation?.dissertationsStartDate ||
-      values?.dissertation?.dissertationsStartDate ||
+      values?.dissertation?.dissertationsEndDate ||
+      // Fellowship
       values?.fellowship?.studentExcelSheet ||
+      (isEditMode && (values?.fellowship?.studentExcelSheetFileName || values?.fellowship?.studentExcelSheetFileKey)) ||
       values?.fellowship?.fellowshipFile ||
+      (isEditMode && (values?.fellowship?.fellowshipFileName || values?.fellowship?.fellowshipFileKey)) ||
+      // Bootcamp
       values?.bootcamp?.studentExcelSheet ||
-      values?.bootcamp?.bootcampFile;
-
-    return !!tabs;
+      (isEditMode && (values?.bootcamp?.studentExcelSheetFileName || values?.bootcamp?.studentExcelSheetFileKey)) ||
+      values?.bootcamp?.bootcampFile ||
+      (isEditMode && (values?.bootcamp?.bootcampFileName || values?.bootcamp?.bootcampFileKey))
+    );
   };
 
   const handleTabChange = (newTabIndex: number) => {
@@ -973,14 +989,9 @@ const Experiential_Learning: React.FC = () => {
       },
     },
     validationSchema: combinedSchema,
+    validateOnBlur: true,
+    validateOnChange: true,
     onSubmit: async (values, { resetForm }) => {
-      await validation.validateForm();
-      console.log("Formik validation errors:", validation.errors);
-      if (Object.keys(validation.errors).length) {
-        toast.error("Fix validation errors (see console)");
-        return;
-      }
-
       if (!isAnyTabFilled(values)) {
         toast.warning("You must fill at least one experiential tab.");
         return;
@@ -1062,9 +1073,10 @@ const Experiential_Learning: React.FC = () => {
 
       // Append only the files for the selected tab (as before)
       if (activeTab1 === "pedagogy") {
-        if (values.pedagogy?.pedagogyFile) formData.append("pedagogy", values.pedagogy.pedagogyFile);
+        if (values.pedagogy?.pedagogyFile) {
+          formData.append("pedagogy", values.pedagogy.pedagogyFile);
+        }
       }
-      console.log("PedagogyFile--->",values.pedagogy.pedagogyFile)
       if (activeTab1 === "fieldProject") {
         if (values.fieldProject?.fieldProjectFile) formData.append("fP_fieldProject", values.fieldProject.fieldProjectFile);
         if (values.fieldProject?.communicationLetter) formData.append("fP_communicationLetter", values.fieldProject.communicationLetter);
