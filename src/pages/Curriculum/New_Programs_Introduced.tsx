@@ -515,6 +515,8 @@ const New_Programs_Introduced: React.FC = () => {
 
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
+        setIsMomUploadDisabled(false); // Enable file upload for new entries
+        setIsSyllabusUploadDisabled(false); // Enable syllabus upload for new entries
         // display the BOS List
         handleListNPIClick();
       } catch (error) {

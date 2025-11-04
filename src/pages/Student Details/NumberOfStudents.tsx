@@ -377,6 +377,8 @@ const NumberOfStudents: React.FC = () => {
         }
         // Reset the form fields
         resetForm();
+        
+
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         // display the BOS List
@@ -440,7 +442,7 @@ const NumberOfStudents: React.FC = () => {
             title="Student Details"
             breadcrumbItem="Number of Students Enrolled(Categories - wise)"
           />
-          <Card>
+          <Card style={{ height: "500px" }}>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
                 <Row>

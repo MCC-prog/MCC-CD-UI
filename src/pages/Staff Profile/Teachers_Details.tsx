@@ -268,6 +268,7 @@ const Teachers_Details: React.FC = () => {
         joiningDate: values.dateOfJoining || "",
         academicExperience: values.academicExp || 0,
         industrialExperience: values.industryExp || 0,
+        industrialExperienceNonMcc: values.industryExpNonMcc || 0,
         vidwanId: values.vidwaanId,
       };
 

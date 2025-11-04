@@ -401,6 +401,7 @@ const Innovative_Teaching_Methodologies: React.FC = () => {
         }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
+        setIsFileUploadDisabled(false); // Enable file upload for new entries
         // display the Innovative Teaching Methodologies List
         handleListBosClick();
       } catch (error) {

@@ -824,11 +824,12 @@ const Advanced_Learners: React.FC = () => {
         departmentId: Number(values.department?.value || 0),
         programTypeId: Number(values.programType?.value || 0),
         programId: values.degree ? Number(values.degree.value) : null,
-        advanceLearnerType: isResearchProjectFilled
-          ? "ResearchProject"
-          : isPeerTeachingFilled
-          ? "PeerTeaching"
-          : null,
+        advanceLearnerType:
+          activeTab === 1
+            ? "ResearchProject"
+            : activeTab === 2
+            ? "PeerTeaching"
+            : null,
         researchProjectDto:
           activeTab === 1
             ? {

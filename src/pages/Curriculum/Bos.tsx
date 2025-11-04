@@ -42,6 +42,7 @@ import "datatables.net-buttons/js/buttons.print.js";
 import "jszip";
 import "pdfmake/build/pdfmake";
 import "pdfmake/build/vfs_fonts";
+import { set } from "lodash";
 
 const api = new APIClient();
 
@@ -454,6 +455,7 @@ const Bos: React.FC = () => {
         }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
+        setIsFileUploadDisabled(false); // Enable file upload for new entries
         // display the BOS List
         handleListBosClick();
       } catch (error) {

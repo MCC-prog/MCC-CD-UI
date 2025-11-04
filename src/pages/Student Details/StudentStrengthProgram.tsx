@@ -34,6 +34,7 @@ import "datatables.net-buttons-bs5";
 import "datatables.net-buttons/js/buttons.html5.js";
 import "jszip";
 import "pdfmake/build/pdfmake";
+import Select from "react-select";
 import "pdfmake/build/vfs_fonts";
 const api = new APIClient();
 
@@ -91,6 +92,19 @@ const StudentStrengthProgram: React.FC = () => {
     fetchBosData();
   };
 
+    const typeOption = [
+    { value: "UG", label: "UG" },
+    { value: "PG", label: "PG" },
+  ];
+
+   const dropdownStyles = {
+    menu: (provided: any) => ({
+      ...provided,
+      overflowY: "auto", // Enable scrolling for additional options
+    }),
+    menuPortal: (base: any) => ({ ...base, zIndex: 9999 }), // Ensure the menu is above other elements
+  };
+
   const mapValueToLabel = (
     value: string | number | null,
     options: { value: string | number; label: string }[]
@@ -122,8 +136,17 @@ const StudentStrengthProgram: React.FC = () => {
       // Map API response to Formik values
       const mappedValues = {
         academicYear: mapValueToLabel(response.academicYear, academicYearList),
+        stream: response.streamId
+          ? { value: response.streamId.toString(), label: response.streamName }
+          : null,
+        programType: response.programType
+          ? {
+              value: String(response.programType),
+              label: String(response.programType),
+            }
+          : null,
+      
         file: response.document?.excel || null,
-        stream: validation.values.stream, // Preserve current stream value or set as needed
       };
 
       // Update Formik values
@@ -135,7 +158,9 @@ const StudentStrengthProgram: React.FC = () => {
               value: String(mappedValues.academicYear.value),
             }
           : null,
-        stream: mappedValues.stream, // Ensure stream is included
+        stream: response.streamId
+          ? { value: response.streamId.toString(), label: response.streamName }
+          : null,
       });
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
@@ -247,6 +272,7 @@ const StudentStrengthProgram: React.FC = () => {
       academicYear: null as AcademicYearOption,
       file: null as File | string | null,
       stream: null as { value: string; label: string } | null,
+      programType: null as { value: string; label: string } | null,
     },
     validationSchema: Yup.object({
       academicYear: Yup.object({
@@ -255,6 +281,7 @@ const StudentStrengthProgram: React.FC = () => {
       })
         .nullable()
         .required("Please select academic year"),
+      programType: Yup.string().required("Please select program type"),
       file: Yup.mixed()
         .required("Please upload a file")
         .test("fileSize", "File size is too large", (value: any) => {
@@ -284,6 +311,8 @@ const StudentStrengthProgram: React.FC = () => {
       const formData = new FormData();
 
       formData.append("academicYear", values.academicYear?.value || "");
+      formData.append("streamId", values.stream?.value || "");
+      formData.append("programType", values.programType?.value || "");
 
       // Handle the file conditionally
       if (isEditMode && typeof values.file === "string") {
@@ -389,7 +418,7 @@ const StudentStrengthProgram: React.FC = () => {
             title="Student Details"
             breadcrumbItem="Student Strength Program-wise"
           />
-          <Card>
+          <Card style={{ height: "400px" }}>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
                 <Row>
@@ -437,6 +466,33 @@ const StudentStrengthProgram: React.FC = () => {
                             {validation.errors.stream}
                           </div>
                         )}
+                    </div>
+                  </Col>
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Program Type</Label>
+                      <Select
+                        options={typeOption}
+                        value={validation.values.programType}
+                        onChange={(selectedOption) =>
+                          validation.setFieldValue("programType", selectedOption)
+                        }
+                        placeholder="Select Program Type"
+                        styles={dropdownStyles}
+                        menuPortalTarget={document.body}
+                        className={
+                          validation.touched.programType && validation.errors.programType
+                            ? "select-error"
+                            : ""
+                        }
+                      />
+                      {validation.touched.programType && validation.errors.programType && (
+                        <div className="text-danger">
+                          {typeof validation.errors.programType === "string"
+                            ? validation.errors.programType
+                            : ""}
+                        </div>
+                      )}
                     </div>
                   </Col>
                   <Col sm={4}>
@@ -572,6 +628,8 @@ const StudentStrengthProgram: React.FC = () => {
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
+                  <th>School</th>
+                  <th>ProgramType</th>
                   <th>Documents</th>
                   <th>Actions</th>
                 </tr>
@@ -582,6 +640,8 @@ const StudentStrengthProgram: React.FC = () => {
                     <tr key={bos.totalStudentStrengthId}>
                       <td>{index + 1}</td>
                       <td>{bos.academicYear}</td>
+                      <td>{bos.streamName}</td>
+                      <td>{bos.programType}</td>
                       <td>{bos.document?.excel || "No file uploaded"}</td>
                       <td>
                         <button

@@ -484,7 +484,7 @@ const AC_GB_MoM: React.FC = () => {
       <div className="page-content">
         <Container fluid>
           <Breadcrumb title="Curriculum" breadcrumbItem="Ac & GB MoM" />
-          <Card style={{ height: "300px" }}>
+          <Card style={{ height: "350px" }}>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
                 <Row>

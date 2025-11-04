@@ -384,7 +384,7 @@ const TotalStudentsStrength: React.FC = () => {
             title="Student Details"
             breadcrumbItem="Total Students Strength"
           />
-          <Card>
+          <Card style={{ height: "300px" }}>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
                 <Row>

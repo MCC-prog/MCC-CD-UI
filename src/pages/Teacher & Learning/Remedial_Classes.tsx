@@ -514,8 +514,8 @@ const Remedial_Classes: React.FC = () => {
         }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
-        setIsAttendanceEntryFileUploadDisabled(true); // Disable attendance entry file upload
-        setIsRemidialClassNoticeFileUploadDisabled(true); // Disable remedial class notice file upload
+        setIsAttendanceEntryFileUploadDisabled(false); // Disable attendance entry file upload
+        setIsRemidialClassNoticeFileUploadDisabled(false); // Disable remedial class notice file upload
         // display the Remedial Classes List
         handleRemedialClick();
       } catch (error) {

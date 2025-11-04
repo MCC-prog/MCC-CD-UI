@@ -541,6 +541,8 @@ const Value_Added_Program: React.FC = () => {
         }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
+        setIsValueAddedCourseUploadDisabled(false); // Enable file upload for new entries
+        setIsCourseBrochureUploadDisabled(false); // Enable file upload for new entries
         // display the BOS List
         handleListVAPClick();
       } catch (error) {
@@ -1092,7 +1094,7 @@ const Value_Added_Program: React.FC = () => {
                         </div>
                       )}
                       {/* Show a message if the file upload button is disabled */}
-                      {isValueAddedCourseUploadDisabled && (
+                      {isValueAddedCourseUploadDisabled && typeof validation.values.file === "string" && (
                         <div className="text-warning mt-2">
                           Please remove the existing file to upload a new one.
                         </div>
@@ -1173,7 +1175,7 @@ const Value_Added_Program: React.FC = () => {
                         </div>
                       )}
                       {/* Show a message if the file upload button is disabled */}
-                      {isCourseBrochureUploadDisabled && (
+                      {isCourseBrochureUploadDisabled && typeof validation.values.file1 === "string" && (
                         <div className="text-warning mt-2">
                           Please remove the existing file to upload a new one.
                         </div>
