@@ -260,6 +260,16 @@ const Experiential_Learning: React.FC = () => {
       }));
 
       const semesterNoOptions = SEMESTER_NO_OPTIONS;
+
+      // For pedagogy file mapping:
+      let pedagogyFileName = "";
+      let pedagogyFileKey = "";
+      if (response.pedagogy?.file && typeof response.pedagogy.file === "object") {
+        const [key, path] = Object.entries(response.pedagogy.file)[0];
+        pedagogyFileName = typeof path === "string" ? path.split("/").pop() || "" : "";
+        pedagogyFileKey = key;
+      }
+
       // fellowship file
       const fellowshipFileInfo = getFileInfoByFolder(
         response.fellowship?.file,
@@ -340,6 +350,7 @@ const Experiential_Learning: React.FC = () => {
           : [],
         programTitle: response.programTitle || "",
         courseTitle: response.courseTitle || "",
+<<<<<<< HEAD
 
         courseType: response.courseType
           ? {
@@ -352,6 +363,14 @@ const Experiential_Learning: React.FC = () => {
         //   pedagogyFileName: "",
         //   pedagogyFileKey: "",
         // },
+=======
+        pedagogy: {
+          pedagogyFileName: pedagogyFileName,
+          pedagogyFileKey: pedagogyFileKey,
+          addOnFieldId: response.pedagogy?.addOnFieldId || "",
+
+        },
+>>>>>>> 52bbc6d13578b608e170ce0c362d18c240784238
         internship: {
           totalJoiningStudentsOfIntern:
             response.internship?.totalInternStudents || "",
@@ -460,6 +479,7 @@ const Experiential_Learning: React.FC = () => {
         program: Array.isArray(mappedValues.program)
           ? mappedValues.program
           : [],
+<<<<<<< HEAD
         programTitle: mappedValues.programTitle || "",
         courseTitle: mappedValues.courseTitle || "",
 
@@ -482,6 +502,14 @@ const Experiential_Learning: React.FC = () => {
         //   addOnFieldId: response.pedagogy?.addOnFieldId || "",
         // },
 
+=======
+        pedagogy: {
+          pedagogyFileName: pedagogyFileName,
+          pedagogyFileKey: pedagogyFileKey,
+          addOnFieldId: response.pedagogy?.addOnFieldId || "",
+          pedagogyFile: null,
+        },
+>>>>>>> 52bbc6d13578b608e170ce0c362d18c240784238
         internship: {
           totalJoiningStudentsOfIntern:
             mappedValues.internship?.totalJoiningStudentsOfIntern || "",
@@ -492,7 +520,6 @@ const Experiential_Learning: React.FC = () => {
           internshipFileKey: internshipFileInfo.fileKey || "",
           addOnFieldId: response.internship?.addOnFieldId || "",
         },
-
         fieldProject: {
           totalParticipatingStudents:
             mappedValues.fieldProject?.totalParticipatingStudents || "",
@@ -524,7 +551,6 @@ const Experiential_Learning: React.FC = () => {
           //   fieldProjectstudentExcelFileInfo.fileKey || "",
           addOnFieldId: response.fieldProject?.addOnFieldId || "",
         },
-
         dissertation: {
           totalParticipatingStudentsdissertation:
             mappedValues.dissertation?.totalParticipatingStudentsdissertation ||
@@ -539,7 +565,6 @@ const Experiential_Learning: React.FC = () => {
           dissertationFileKey: dissertationFileInfo.fileKey || "",
           dissertationTitleOfTheProject: response.dissertations?.dissertationTitleOfTheProject || "",
         },
-
         fellowship: {
           studentExcelSheet: null,
           studentExcelSheetFileName: studentExcelFileInfo.fileName || "",
@@ -549,7 +574,6 @@ const Experiential_Learning: React.FC = () => {
           fellowshipFileKey: fellowshipFileInfo.fileKey || "",
           addOnFieldId: response.fellowship?.addOnFieldId || "",
         },
-
         bootcamp: {
           studentExcelSheet: null,
           studentExcelSheetFileName:
@@ -685,6 +709,7 @@ const Experiential_Learning: React.FC = () => {
     }
   };
 
+<<<<<<< HEAD
   // const pedagogySchema = Yup.object({
   //   pedagogyFile: Yup.mixed().test(
   //     "fileValidation",
@@ -712,6 +737,43 @@ const Experiential_Learning: React.FC = () => {
   //     }
   //   ),
   // });
+=======
+  const pedagogySchema = Yup.object().shape({
+    pedagogyFile: Yup.mixed().nullable().test(
+      "fileValidation",
+      "Please upload a file",
+      function (value) {
+        // In edit mode, skip validation if fileName or fileKey is present
+        if (
+          isEditMode &&
+          (
+            (this.parent?.pedagogyFileName && this.parent?.pedagogyFileName !== "") ||
+            (this.parent?.pedagogyFileKey && this.parent?.pedagogyFileKey !== "")
+          )
+        ) {
+          return true;
+        }
+        if (!value) {
+          return this.createError({ message: "Please upload a file" });
+        }
+        if (value instanceof File && value.size > 3 * 1024 * 1024) {
+          return this.createError({ message: "File size is too large" });
+        }
+        const allowedTypes = [
+          "application/pdf",
+          "application/vnd.ms-excel",
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "text/csv",
+        ];
+        if (value instanceof File && !allowedTypes.includes(value.type)) {
+          return this.createError({ message: "Unsupported file format" });
+        }
+        return true;
+      }
+    )
+  });
+>>>>>>> 52bbc6d13578b608e170ce0c362d18c240784238
+
 
   const internshipSchema = Yup.object({
     totalJoiningStudentsOfIntern: Yup.string().required(
@@ -768,6 +830,7 @@ const Experiential_Learning: React.FC = () => {
     locationOfOrganisation: Yup.string().required(
       "Enter location of the organisation"
     ),
+<<<<<<< HEAD
     fieldProjectFile: Yup.mixed().test(
       "fileValidation",
       "Please upload a valid file",
@@ -844,6 +907,32 @@ const Experiential_Learning: React.FC = () => {
     //     return true;
     //   }
     // ),
+=======
+    fieldProjectFile: Yup.mixed().nullable().test("fileValidation", "Please upload a valid file", function (value) {
+      if (isEditMode && (this.parent?.fieldProjectFileName || this.parent?.fieldProjectFileKey)) return true;
+      if (!value) return this.createError({ message: "Please upload a file" });
+      if (value instanceof File && value.size > 3 * 1024 * 1024) return this.createError({ message: "File size is too large" });
+      const allowed = ["application/pdf", "application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "text/csv"];
+      if (value instanceof File && !allowed.includes(value.type)) return this.createError({ message: "Unsupported file format" });
+      return true;
+    }),
+    communicationLetter: Yup.mixed().nullable().test("fileValidation", "Please upload a valid file", function (value) {
+      if (isEditMode && (this.parent?.communicationLetterFileName || this.parent?.communicationLetterFileKey)) return true;
+      if (!value) return this.createError({ message: "Please upload a file" });
+      if (value instanceof File && value.size > 3 * 1024 * 1024) return this.createError({ message: "File size is too large" });
+      const allowedTypes = ["application/pdf", "application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "text/csv"];
+      if (value instanceof File && !allowedTypes.includes(value.type)) return this.createError({ message: "Unsupported file format" });
+      return true;
+    }),
+    studentExcelSheet: Yup.mixed().nullable().test("fileValidation", "Please upload a valid file", function (value) {
+      if (isEditMode && (this.parent?.studentExcelSheetFileName || this.parent?.studentExcelSheetFileKey)) return true;
+      if (!value) return this.createError({ message: "Please upload a file" });
+      if (value instanceof File && value.size > 3 * 1024 * 1024) return this.createError({ message: "File size is too large" });
+      const allowedTypes = ["application/pdf", "application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "text/csv"];
+      if (value instanceof File && !allowedTypes.includes(value.type)) return this.createError({ message: "Unsupported file format" });
+      return true;
+    }),
+>>>>>>> 52bbc6d13578b608e170ce0c362d18c240784238
   });
 
   const dissertationSchema = Yup.object({
@@ -895,6 +984,7 @@ const Experiential_Learning: React.FC = () => {
   });
 
   const fellowshipSchema = Yup.object({
+<<<<<<< HEAD
     studentExcelSheet: Yup.mixed().test(
       "fileValidation",
       "Please upload a valid file",
@@ -996,6 +1086,43 @@ const Experiential_Learning: React.FC = () => {
         return true;
       }
     ),
+=======
+    studentExcelSheet: Yup.mixed().nullable().test("fileValidation", "Please upload a valid file", function (value) {
+      if (isEditMode && (this.parent?.studentExcelSheetFileName || this.parent?.studentExcelSheetFileKey)) return true;
+      if (!value) return this.createError({ message: "Please upload a file" });
+      if (value instanceof File && value.size > 3 * 1024 * 1024) return this.createError({ message: "File size is too large" });
+      const allowedTypes = ["application/pdf", "application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "text/csv"];
+      if (value instanceof File && !allowedTypes.includes(value.type)) return this.createError({ message: "Unsupported file format" });
+      return true;
+    }),
+    fellowshipFile: Yup.mixed().nullable().test("fileValidation", "Please upload a valid file", function (value) {
+      if (isEditMode && (this.parent?.fellowshipFileName || this.parent?.fellowshipFileKey)) return true;
+      if (!value) return this.createError({ message: "Please upload a file" });
+      if (value instanceof File && value.size > 3 * 1024 * 1024) return this.createError({ message: "File size is too large" });
+      const allowedTypes = ["application/pdf", "application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "text/csv"];
+      if (value instanceof File && !allowedTypes.includes(value.type)) return this.createError({ message: "Unsupported file format" });
+      return true;
+    }),
+  });
+
+  const bootcampSchema = Yup.object({
+    studentExcelSheet: Yup.mixed().nullable().test("fileValidation", "Please upload a valid file", function (value) {
+      if (isEditMode && (this.parent?.studentExcelSheetFileName || this.parent?.studentExcelSheetFileKey)) return true;
+      if (!value) return this.createError({ message: "Please upload a file" });
+      if (value instanceof File && value.size > 3 * 1024 * 1024) return this.createError({ message: "File size is too large" });
+      const allowedTypes = ["application/pdf", "application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "text/csv"];
+      if (value instanceof File && !allowedTypes.includes(value.type)) return this.createError({ message: "Unsupported file format" });
+      return true;
+    }),
+    bootcampFile: Yup.mixed().nullable().test("fileValidation", "Please upload a valid file", function (value) {
+      if (isEditMode && (this.parent?.bootcampFileName || this.parent?.bootcampFileKey)) return true;
+      if (!value) return this.createError({ message: "Please upload a file" });
+      if (value instanceof File && value.size > 3 * 1024 * 1024) return this.createError({ message: "File size is too large" });
+      const allowedTypes = ["application/pdf", "application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "text/csv"];
+      if (value instanceof File && !allowedTypes.includes(value.type)) return this.createError({ message: "Unsupported file format" });
+      return true;
+    }),
+>>>>>>> 52bbc6d13578b608e170ce0c362d18c240784238
   });
 
   const mainSchema = Yup.object({
@@ -1020,30 +1147,62 @@ const Experiential_Learning: React.FC = () => {
   // Add similar ones for Field Project, Dissertation, Fellowship, Bootcamp
   // Removed duplicate combinedSchema declaration to avoid redeclaration error.
   const isAnyTabFilled = (values: typeof validation.values) => {
+<<<<<<< HEAD
     const tabs =
       // (values?.pedagogy && values.pedagogy.pedagogyFile) ||
       values?.internship?.totalJoiningStudentsOfIntern ||
       values?.internship?.orgNameOfIntern ||
       values?.internship?.locationOfIntern ||
       values?.internship?.internshipFile ||
+=======
+    return (
+      // Pedagogy
+      (values?.pedagogy &&
+        (
+          values.pedagogy.pedagogyFile ||
+          (isEditMode && (values.pedagogy.pedagogyFileName || values.pedagogy.pedagogyFileKey))
+        )
+      ) ||
+      // Internship
+      values?.internship?.totalJoiningStudentsOfIntern ||
+      values?.internship?.orgNameOfIntern ||
+      values?.internship?.locationOfIntern ||
+      // Field Project
+>>>>>>> 52bbc6d13578b608e170ce0c362d18c240784238
       values?.fieldProject?.totalParticipatingStudents ||
       values?.fieldProject?.fieldProjectStartDate ||
       values?.fieldProject?.fieldProjectEndDate ||
       values?.fieldProject?.locationOfOrganisation ||
       values?.fieldProject?.fieldProjectFile ||
+      (isEditMode && (values?.fieldProject?.fieldProjectFileName || values?.fieldProject?.fieldProjectFileKey)) ||
       values?.fieldProject?.communicationLetter ||
+<<<<<<< HEAD
       //values?.fieldProject?.studentExcelSheet ||
       values?.dissertation?.totalParticipatingStudentsdissertation ||
       values?.dissertation?.dissertationsStartDate ||
       values?.dissertation?.dissertationsStartDate ||
       values?.dissertation?.dissertationFile ||
       values?.dissertation?.dissertationTitleOfTheProject ||
+=======
+      (isEditMode && (values?.fieldProject?.communicationLetterFileName || values?.fieldProject?.communicationLetterFileKey)) ||
+      values?.fieldProject?.studentExcelSheet ||
+      (isEditMode && (values?.fieldProject?.studentExcelSheetFileName || values?.fieldProject?.studentExcelSheetFileKey)) ||
+      // Dissertation
+      values?.dissertation?.totalParticipatingStudentsdissertation ||
+      values?.dissertation?.dissertationsStartDate ||
+      values?.dissertation?.dissertationsEndDate ||
+      // Fellowship
+>>>>>>> 52bbc6d13578b608e170ce0c362d18c240784238
       values?.fellowship?.studentExcelSheet ||
+      (isEditMode && (values?.fellowship?.studentExcelSheetFileName || values?.fellowship?.studentExcelSheetFileKey)) ||
       values?.fellowship?.fellowshipFile ||
+      (isEditMode && (values?.fellowship?.fellowshipFileName || values?.fellowship?.fellowshipFileKey)) ||
+      // Bootcamp
       values?.bootcamp?.studentExcelSheet ||
-      values?.bootcamp?.bootcampFile;
-
-    return !!tabs;
+      (isEditMode && (values?.bootcamp?.studentExcelSheetFileName || values?.bootcamp?.studentExcelSheetFileKey)) ||
+      values?.bootcamp?.bootcampFile ||
+      (isEditMode && (values?.bootcamp?.bootcampFileName || values?.bootcamp?.bootcampFileKey))
+    );
   };
 
   const handleTabChange = (newTabIndex: number) => {
@@ -1107,6 +1266,7 @@ const Experiential_Learning: React.FC = () => {
     });
   };
 
+<<<<<<< HEAD
   const subformKeys = [
     // "pedagogy",
     "internship",
@@ -1116,6 +1276,8 @@ const Experiential_Learning: React.FC = () => {
     "bootcamp",
   ];
 
+=======
+>>>>>>> 52bbc6d13578b608e170ce0c362d18c240784238
   // Helper to check if a sub-form is filled
   const isFilled = (obj: any) =>
     obj &&
@@ -1127,6 +1289,32 @@ const Experiential_Learning: React.FC = () => {
     );
 
   const combinedSchema = getCombinedSchema(activeTab1);
+
+  const handleUpdateClick = async (e: React.FormEvent) => {
+    e.preventDefault();
+    // Mark all main fields as touched
+    validation.setTouched({
+      academicYear: true,
+      semType: true,
+      semNumber: true,
+      stream: true,
+      department: true,
+      degree: true,
+      programType: true,
+      programTitle: true,
+      courseTitle: true,
+      [activeTab1 ?? ""]: Object.keys(validation.values[activeTab1 ?? ""] || {}).reduce((acc, key) => {
+        acc[key] = true;
+        return acc;
+      }, {} as any)
+    });
+    // Validate and log errors
+    const errors = await validation.validateForm();
+    console.log("Validation errors before submit:", errors);
+    validation.handleSubmit();
+  };
+
+
   const validation = useFormik({
     initialValues: {
       academicYear: null as { value: string; label: string } | null,
@@ -1138,6 +1326,7 @@ const Experiential_Learning: React.FC = () => {
       programType: null as { value: string; label: string } | null,
       programTitle: "",
       courseTitle: "",
+<<<<<<< HEAD
       courseType: null as { value: string; label: string } | null,
       file: null,
       // pedagogy: {
@@ -1146,6 +1335,14 @@ const Experiential_Learning: React.FC = () => {
       //   pedagogyFileKey: "",
       //   addOnFieldId: "",
       // },
+=======
+      pedagogy: {
+        pedagogyFile: null,
+        pedagogyFileName: "",
+        pedagogyFileKey: "",
+        addOnFieldId: "",
+      },
+>>>>>>> 52bbc6d13578b608e170ce0c362d18c240784238
       internship: {
         totalJoiningStudentsOfIntern: "",
         orgNameOfIntern: "",
@@ -1201,14 +1398,9 @@ const Experiential_Learning: React.FC = () => {
       },
     },
     validationSchema: combinedSchema,
+    validateOnBlur: true,
+    validateOnChange: true,
     onSubmit: async (values, { resetForm }) => {
-      await validation.validateForm();
-      console.log("Formik validation errors:", validation.errors);
-      if (Object.keys(validation.errors).length) {
-        toast.error("Fix validation errors (see console)");
-        return;
-      }
-
       if (!isAnyTabFilled(values)) {
         toast.warning("You must fill at least one experiential tab.");
         return;
@@ -1307,9 +1499,17 @@ const Experiential_Learning: React.FC = () => {
       );
 
       // Append only the files for the selected tab (as before)
+<<<<<<< HEAD
       // if (activeTab1 === "pedagogy") {
       //   if (values.pedagogy?.pedagogyFile) formData.append("pedagogy", values.pedagogy.pedagogyFile);
       // }
+=======
+      if (activeTab1 === "pedagogy") {
+        if (values.pedagogy?.pedagogyFile) {
+          formData.append("pedagogy", values.pedagogy.pedagogyFile);
+        }
+      }
+>>>>>>> 52bbc6d13578b608e170ce0c362d18c240784238
       if (activeTab1 === "fieldProject") {
         if (values.fieldProject?.fieldProjectFile)
           formData.append(
@@ -1448,7 +1648,7 @@ const Experiential_Learning: React.FC = () => {
           />
           <Card>
             <CardBody>
-              <form onSubmit={validation.handleSubmit}>
+              <form onSubmit={handleUpdateClick}>
                 <Row>
                   {/* Academic Year Dropdown */}
                   <Col lg={4}>
@@ -1821,12 +2021,16 @@ const Experiential_Learning: React.FC = () => {
                                         const file = event.currentTarget.files?.[0] || null;
                                         validation.setFieldValue("pedagogy.pedagogyFile", file);
                                         validation.setFieldValue("pedagogy.pedagogyFileName", file ? file.name : "");
-                                        validation.setFieldValue("pedagogy.pedagogyFileKey", undefined);
+                                        validation.setFieldValue("pedagogy.pedagogyFileKey", file ? file.name : "");
                                       }}
                                     />
                                   )}
                                   {validation.touched.pedagogy?.pedagogyFile &&
-                                    validation.errors.pedagogy?.pedagogyFile && (
+                                    validation.errors.pedagogy?.pedagogyFile &&
+                                    // don't show the error if there's an actual File OR a backend fileName/fileKey present
+                                    !(validation.values.pedagogy?.pedagogyFile ||
+                                      validation.values.pedagogy?.pedagogyFileName ||
+                                      validation.values.pedagogy?.pedagogyFileKey) && (
                                       <div className="text-danger">
                                         {validation.errors.pedagogy.pedagogyFile}
                                       </div>
