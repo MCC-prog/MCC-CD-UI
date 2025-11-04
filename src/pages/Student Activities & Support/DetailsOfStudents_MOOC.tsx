@@ -43,6 +43,7 @@ const DetailsOfStudents_MOOC: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [dosmData, setDOSMData] = useState<any[]>([]);
   const [selectedStream, setSelectedStream] = useState<any>(null);
+  const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
@@ -136,6 +137,15 @@ const DetailsOfStudents_MOOC: React.FC = () => {
       // Map API response to Formik values
       const mappedValues = {
         academicYear: mapValueToLabel(response.academicYear, academicYearList),
+          stream: response.streamId
+          ? { value: response.streamId.toString(), label: response.streamName }
+          : null,
+        department: response.departmentId
+          ? {
+              value: response.departmentId.toString(),
+              label: response.departmentName,
+            }
+          : null,
         courses: response.courses
           ? Object.entries(response.courses).map(([key, value]) => ({
               value: key,
@@ -159,6 +169,15 @@ const DetailsOfStudents_MOOC: React.FC = () => {
           ? {
               ...mappedValues.academicYear,
               value: String(mappedValues.academicYear.value),
+            }
+          : null,
+          stream: mappedValues.stream
+          ? { ...mappedValues.stream, value: String(mappedValues.stream.value) }
+          : null,
+        department: mappedValues.department
+          ? {
+              ...mappedValues.department,
+              value: String(mappedValues.department.value),
             }
           : null,
         noOfStaff: response.noOfStaff || "",
@@ -276,6 +295,8 @@ const DetailsOfStudents_MOOC: React.FC = () => {
   const validation = useFormik({
     initialValues: {
       academicYear: null as { value: string; label: string } | null,
+      stream: null as { value: string; label: string } | null,
+      department: null as { value: string; label: string } | null,
       noOfStaff: "",
       mccRegNo: "",
       studentName: "",
@@ -291,9 +312,15 @@ const DetailsOfStudents_MOOC: React.FC = () => {
       academicYear: Yup.object()
         .nullable()
         .required("Please select academic year"),
+      stream: Yup.object()
+        .nullable()
+        .required("Please select school"),
+      department: Yup.object()
+        .nullable()
+        .required("Please select department"),
       mccRegNo: Yup.string().required("Please enter MCC Register number"),
       studentName: Yup.string().required("Please enter student name"),
-      offeredBy: Yup.string().required("Please enter offered by"),
+      offeredBy: Yup.string().required("Please enter Mooc Offering Institute"),
       moocCourseRegId: Yup.string().required(
         "Please enter Mooc Course Id/Registration Number"
       ),
@@ -316,7 +343,7 @@ const DetailsOfStudents_MOOC: React.FC = () => {
           );
         }),
       moocCoursePursued: Yup.string().required(
-        "Please enter Mooc Course Pursued"
+        "Please enter Mooc Course Title"
       ),
       duration: Yup.string().required("Please enter Duration"),
       courses: Yup.array()
@@ -333,6 +360,8 @@ const DetailsOfStudents_MOOC: React.FC = () => {
       try {
         const formData = new FormData();
         formData.append("academicYear", values.academicYear?.value || "");
+        formData.append("stream", values.stream?.value || "");
+        formData.append("department", values.department?.value || "");
         formData.append("studentName", values.studentName);
         formData.append("mccRegisterNo", values.mccRegNo);
         formData.append("offeredBy", values.offeredBy);
@@ -489,6 +518,56 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                         )}
                     </div>
                   </Col>
+                   <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>School</Label>
+                      <StreamDropdown
+                        value={validation.values.stream}
+                        onChange={(selectedOption) => {
+                          validation.setFieldValue("stream", selectedOption);
+                          setSelectedStream(selectedOption);
+                        }}
+                        isInvalid={
+                          validation.touched.stream &&
+                          !!validation.errors.stream
+                        }
+                      />
+                      {validation.touched.stream &&
+                        validation.errors.stream && (
+                          <div className="text-danger">
+                            {validation.errors.stream}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+
+                  {/* Department Dropdown */}
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Department</Label>
+                      <DepartmentDropdown
+                        streamId={selectedStream?.value}
+                        value={validation.values.department}
+                        onChange={(selectedOption) => {
+                          validation.setFieldValue(
+                            "department",
+                            selectedOption
+                          );
+                          setSelectedDepartment(selectedOption);
+                        }}
+                        isInvalid={
+                          validation.touched.department &&
+                          !!validation.errors.department
+                        }
+                      />
+                      {validation.touched.department &&
+                        validation.errors.department && (
+                          <div className="text-danger">
+                            {validation.errors.department}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
 
                   <Col sm={4}>
                     <div className="mb-3">
@@ -578,7 +657,7 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
-                        Offered By
+                        Mooc Offering Institute
                       </Label>
                       <Input
                         className={`form-control ${
@@ -592,7 +671,7 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                         onChange={(e) =>
                           validation.setFieldValue("offeredBy", e.target.value)
                         }
-                        placeholder="Enter offered by"
+                        placeholder="Enter Mooc Offering Institute"
                         value={validation.values.offeredBy}
                       />
                       {validation.touched.offeredBy &&
@@ -639,7 +718,7 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
-                        Mooc Course Pursued
+                        Mooc Course Title
                       </Label>
                       <Input
                         className={`form-control ${
@@ -656,7 +735,7 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                             e.target.value
                           )
                         }
-                        placeholder="Enter Mooc Course Pursued"
+                        placeholder="Enter Mooc Course Title"
                         value={validation.values.moocCoursePursued}
                       />
                       {validation.touched.moocCoursePursued &&
@@ -821,12 +900,14 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
+                  <th>School</th>
+                  <th>Department</th>
                   <th>MCC Register number</th>
                   <th>Student Name</th>
                   <th>Program</th>
-                  <th>Offered By</th>
+                  <th>Mooc Offering Institute</th>
                   <th>Mooc Course Id/Registration Number</th>
-                  <th>Mooc Course Pursued</th>
+                  <th>Mooc Course Title</th>
                   <th>Duration</th>
                   <th className="d-none">File Path</th>
                   <th>Actions</th>
@@ -838,6 +919,8 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                     <tr key={dosm.studentsEnrolledForMoocId}>
                       <td>{index + 1}</td>
                       <td>{dosm.academicYear}</td>
+                      <td>{dosm.streamName}</td>
+                      <td>{dosm.departmentName}</td>
                       <td>{dosm.mccRegisterNo}</td>
                       <td>{dosm.studentName}</td>
                       <td>

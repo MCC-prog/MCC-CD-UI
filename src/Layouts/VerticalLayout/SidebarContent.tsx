@@ -276,11 +276,11 @@ if (!dummyPaths.includes(location.pathname)) {
                     {props.t("3. Student Centric Teaching Methodology")}
                   </Link>
                 </li>
-                <li>
+                {/* <li>
                   <Link to="/UsageOf_ICT_Tools">
                     {props.t("4. Usage of ICT tools in classroom")}
                   </Link>
-                </li>
+                </li> */}
               </ul>
             </li>
 
@@ -311,7 +311,7 @@ if (!dummyPaths.includes(location.pathname)) {
             <li>
               <Link to="/#" className="has-arrow">
                 <i className="bx bx-group"></i>
-                <span>{props.t("FACULTY PROFILE")}</span>
+                <span>{props.t("FACULTY DETAILS")}</span>
               </Link>
               <ul className="sub-menu">
                 <li>
@@ -319,7 +319,7 @@ if (!dummyPaths.includes(location.pathname)) {
                     {props.t("1. Teachers' details")}
                   </Link>
                 </li>
-                <li>
+                {/* <li>
                   <Link to="/PartTime_Guest">
                     {props.t("2. Part-time/Guest faculty")}
                   </Link>
@@ -328,7 +328,7 @@ if (!dummyPaths.includes(location.pathname)) {
                   <Link to="/Professor_Practice">
                     {props.t("3. Professor of Practice")}
                   </Link>
-                </li>
+                </li> */}
               </ul>
             </li>
 
@@ -391,40 +391,40 @@ if (!dummyPaths.includes(location.pathname)) {
               <ul className="sub-menu">
                 <li>
                   <Link to="/Management_Funded_Project">
-                    {props.t("1. Management funded Project")}
+                    {props.t("1. Research projects")}
                   </Link>
                 </li>
-                <li>
+                {/* <li>
                   <Link to="/Government_Or_NGO_Funded_Projects">
                     {props.t("2. Government/ NGO funded projects")}
                   </Link>
-                </li>
+                </li> */}
                 <li>
                   <Link to="/Felloships_Awarded">
                     {props.t(
-                      "3. Fellowships awarded for advanced learning & research"
+                      "2. Fellowships awarded for advanced learning & research"
                     )}
                   </Link>
                 </li>
                 <li>
                   <Link to="/Research_Guides">
-                    {props.t("4. Research Guides")}
+                    {props.t("3. Research Guides")}
                   </Link>
                 </li>
                 <li>
                   <Link to="/Research_Publications">
-                    {props.t("5. Research Publications")}
+                    {props.t("4. Research Publications")}
                   </Link>
                 </li>
                 <li>
                   <Link to="/Books_Chapters">
-                    {props.t("6. Books/Chapters")}
+                    {props.t("5. Books/Chapters")}
                   </Link>
                 </li>
                 <li>
                   <Link to="/FP_And_Presentation_Research_Papers">
                     {props.t(
-                      "7. Faculty participation & presentation of Research Papers in Conference/Seminars and going as Resource Persons"
+                      "6. Faculty participation & presentation of Research Papers in Conference/Seminars and going as Resource Persons"
                     )}
                   </Link>
                 </li>
@@ -483,7 +483,7 @@ if (!dummyPaths.includes(location.pathname)) {
                 </li>
                 <li>
                   <Link to="/enterpreneurship/activitiesConducted">
-                    {props.t("4. Activities conducted by MCCIE")}
+                    {props.t("4. Activities conducted by MCCIIE")}
                   </Link>
                 </li>
               </ul>
@@ -513,7 +513,7 @@ if (!dummyPaths.includes(location.pathname)) {
                 <li>
                   <Link to="/Teacher_Student_Award">
                     {props.t(
-                      "6. Teacher/Student Award for Extension Activities"
+                      "6. Teacher/Student Awards for Extension Activities"
                     )}
                   </Link>
                 </li>
@@ -644,14 +644,14 @@ if (!dummyPaths.includes(location.pathname)) {
               </Link>
               <ul className="sub-menu">
                 <li>
-                  <Link to="/Fdps">{props.t("1. FDPs")}</Link>
+                  <Link to="/Fdps">{props.t("1. FDP")}</Link>
                 </li>
                 <li>
-                  <Link to="/Moocs">{props.t("2. MOOCs")}</Link>
+                  <Link to="/Moocs">{props.t("2. MOOC")}</Link>
                 </li>
                 <li>
                   <Link to="/Skill_Development_Workshops">
-                    {props.t("3. Skill Development Workshops")}
+                    {props.t("3. Skill Development Workshop")}
                   </Link>
                 </li>
               </ul>

@@ -109,7 +109,7 @@ const Activities_Conducted_MCCIE: React.FC = () => {
       setACMData(response);
       setFilteredData(response);
     } catch (error) {
-      console.error("Error fetching Activities Conducted MCCIE data:", error);
+      console.error("Error fetching Activities Conducted MCCIIE data:", error);
     }
   };
 
@@ -150,18 +150,18 @@ const Activities_Conducted_MCCIE: React.FC = () => {
 
       const mappedValues = {
         academicYear: mapValueToLabel(response.academicYear, academicYearList),
-        stream: response.streamId
-          ? { value: response.streamId.toString(), label: response.streamName }
-          : null,
-        department: response.departmentId
-          ? {
-              value: response.departmentId.toString(),
-              label: response.departmentName,
-            }
-          : null,
+        // stream: response.streamId
+        //   ? { value: response.streamId.toString(), label: response.streamName }
+        //   : null,
+        // department: response.departmentId
+        //   ? {
+        //       value: response.departmentId.toString(),
+        //       label: response.departmentName,
+        //     }
+        //   : null,
       };
-      const streamOption = mapValueToLabel(response.streamId, []); // Replace [] with stream options array if available
-      const departmentOption = mapValueToLabel(response.departmentId, []); // Replace [] with department options array if available
+      // const streamOption = mapValueToLabel(response.streamId, []); // Replace [] with stream options array if available
+      // const departmentOption = mapValueToLabel(response.departmentId, []); // Replace [] with department options array if available
 
       validation.setValues({
         academicYear: mappedValues.academicYear
@@ -171,29 +171,34 @@ const Activities_Conducted_MCCIE: React.FC = () => {
             }
           : null,
 
-        stream: mappedValues.stream,
-        department: mappedValues.department,
+        // stream: mappedValues.stream,
+        // department: mappedValues.department,
 
-        otherDepartment: "", // unless provided by response
+        // otherDepartment: "", // unless provided by response
 
         agencyName: response.agencyName || "",
         activityName: response.activityName || "",
         noOfStudents: response.noOfStudents || "",
         financialSupportSource: response.sourceFinancialSupport || "",
-        duration: response.duration || "",
-
+        // duration: response.duration || "",
+        startDate: response.startDate
+          ? moment(response.startDate).format("DD/MM/YYYY")
+          : "",
+        endDate: response.endDate
+          ? moment(response.endDate).format("DD/MM/YYYY")
+          : "",
         activityPhoto: response.files?.Photograph || null,
         activityLetter: response.files?.Letter || null,
       });
-      setSelectedStream(streamOption);
-      setSelectedDepartment(departmentOption);
+      // setSelectedStream(streamOption);
+      // setSelectedDepartment(departmentOption);
 
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();
     } catch (error) {
       console.error(
-        "Error fetching Activities Conducted MCCIE data by ID:",
+        "Error fetching Activities Conducted MCCIIE data by ID:",
         error
       );
     }
@@ -216,14 +221,15 @@ const Activities_Conducted_MCCIE: React.FC = () => {
           ""
         );
         toast.success(
-          response.message || "Activities Conducted MCCIE removed successfully!"
+          response.message ||
+            "Activities Conducted MCCIIE removed successfully!"
         );
         fetchACMData();
       } catch (error) {
         toast.error(
           "Failed to remove Activities Conducted MCCIE. Please try again."
         );
-        console.error("Error deleting Activities Conducted MCCIE:", error);
+        console.error("Error deleting Activities Conducted MCCIIE:", error);
       } finally {
         setIsDeleteModalOpen(false);
         setDeleteId(null);
@@ -302,14 +308,16 @@ const Activities_Conducted_MCCIE: React.FC = () => {
   const validation = useFormik({
     initialValues: {
       academicYear: null as { value: string; label: string } | null,
-      stream: null as { value: string; label: string } | null,
-      department: null as { value: string; label: string } | null,
-      otherDepartment: "",
+      // stream: null as { value: string; label: string } | null,
+      // department: null as { value: string; label: string } | null,
+      // otherDepartment: "",
       agencyName: "",
       activityName: "",
       noOfStudents: "",
       financialSupportSource: "",
-      duration: "",
+      startDate: "",
+      endDate: "",
+      // duration: "",
       activityPhoto: null as File | string | null,
       activityLetter: null as File | string | null,
     },
@@ -317,31 +325,33 @@ const Activities_Conducted_MCCIE: React.FC = () => {
       academicYear: Yup.object<{ value: string; label: string }>()
         .nullable()
         .required("Please select academic year"),
-      stream: Yup.object<{ value: string; label: string }>()
-        .nullable()
-        .required("Please select school"),
-      department: Yup.object<{ value: string; label: string }>()
-        .nullable()
-        .required("Please select department"),
-      otherDepartment: Yup.string().when(
-        "department",
-        (department: any, schema) => {
-          return department?.value === "Others"
-            ? schema.required("Please specify the department")
-            : schema;
-        }
-      ),
-      agencyName: Yup.string().required("Please enter agency name"),
-      activityName: Yup.string().required("Please enter activity name"),
+      // stream: Yup.object<{ value: string; label: string }>()
+      //   .nullable()
+      //   .required("Please select school"),
+      // department: Yup.object<{ value: string; label: string }>()
+      //   .nullable()
+      //   .required("Please select department"),
+      // otherDepartment: Yup.string().when(
+      //   "department",
+      //   (department: any, schema) => {
+      //     return department?.value === "Others"
+      //       ? schema.required("Please specify the department")
+      //       : schema;
+      //   }
+      // ),
+      agencyName: Yup.string().required("Please enter Collaborating Organisation"),
+      activityName: Yup.string().required("Please enter Activity Title"),
       noOfStudents: Yup.number()
         .typeError("Enter a valid number")
         .required("Please enter number of students"),
       financialSupportSource: Yup.string().required(
         "Please enter source of financial support"
       ),
-      duration: Yup.number()
-        .typeError("Enter a valid number")
-        .required("Please enter duration"),
+      // duration: Yup.number()
+      //   .typeError("Enter a valid number")
+      //   .required("Please enter duration"),
+       startDate: Yup.date().required("Please select conducted date"),
+      endDate: Yup.date().required("Please select conducted date"),
       activityPhoto: Yup.mixed()
         .required("Please upload a photograph")
         .test("fileType", "Only image files allowed", (value) => {
@@ -366,17 +376,22 @@ const Activities_Conducted_MCCIE: React.FC = () => {
 
       // Append fields to FormData
       formData.append("academicYear", values.academicYear?.value || "");
-      formData.append("departmentId", values.department?.value || "");
-      formData.append("otherDepartment", values.otherDepartment || "");
-      formData.append("streamId", values.stream?.value || "");
+      // formData.append("departmentId", values.department?.value || "");
+      // formData.append("otherDepartment", values.otherDepartment || "");
+      // formData.append("streamId", values.stream?.value || "");
       formData.append("agencyName", values.agencyName || "");
       formData.append("activityName", values.activityName || "");
       formData.append("noOfStudents", values.noOfStudents || "");
+      formData.append("startDate", moment(values.startDate).format("DD/MM/YYYY") || "");
+      formData.append("endDate", moment(values.endDate).format("DD/MM/YYYY") || "");
+   
+     
+
       formData.append(
         "sourceFinancialSupport",
         values.financialSupportSource || ""
       );
-      formData.append("duration", values.duration || "");
+      // formData.append("duration", values.duration || "");
       formData.append("id", editId || "");
 
       if (isEditMode && typeof values.activityPhoto === "string") {
@@ -419,7 +434,7 @@ const Activities_Conducted_MCCIE: React.FC = () => {
           );
           toast.success(
             response.message ||
-              "Activities Conducted MCCIE updated successfully!"
+              "Activities Conducted MCCIIE updated successfully!"
           );
         } else {
           // Call the save API
@@ -428,7 +443,8 @@ const Activities_Conducted_MCCIE: React.FC = () => {
             formData
           );
           toast.success(
-            response.message || "Activities Conducted MCCIE added successfully!"
+            response.message ||
+              "Activities Conducted MCCIIE added successfully!"
           );
         }
         // Reset the form fields
@@ -446,9 +462,9 @@ const Activities_Conducted_MCCIE: React.FC = () => {
       } catch (error) {
         // Display error message
         toast.error(
-          "Failed to save Activities Conducted MCCIE. Please try again."
+          "Failed to save Activities Conducted MCCIIE. Please try again."
         );
-        console.error("Error creating Activities Conducted MCCIE:", error);
+        console.error("Error creating Activities Conducted MCCIIE:", error);
       }
     },
   });
@@ -500,7 +516,7 @@ const Activities_Conducted_MCCIE: React.FC = () => {
         <Container fluid>
           <Breadcrumb
             title="INNOVATION & ENTREPRENUERSHIP"
-            breadcrumbItem="Activities Conducted MCCIE"
+            breadcrumbItem="Activities Conducted MCCIIE"
           />
           <Card>
             <CardBody>
@@ -531,8 +547,8 @@ const Activities_Conducted_MCCIE: React.FC = () => {
                         )}
                     </div>
                   </Col>
-                  {/* Stream Dropdown */}
-                  <Col lg={4}>
+
+                  {/* <Col lg={4}>
                     <div className="mb-3">
                       <Label>School</Label>
                       <StreamDropdown
@@ -555,9 +571,9 @@ const Activities_Conducted_MCCIE: React.FC = () => {
                           </div>
                         )}
                     </div>
-                  </Col>
-                  {/* Department Dropdown */}
-                  <Col lg={4}>
+                  </Col> */}
+
+                  {/* <Col lg={4}>
                     <div className="mb-3">
                       <Label>Department</Label>
                       <DepartmentDropdown
@@ -584,8 +600,8 @@ const Activities_Conducted_MCCIE: React.FC = () => {
                           </div>
                         )}
                     </div>
-                  </Col>
-                  {validation.values.department?.value === "Others" && (
+                  </Col> */}
+                  {/* {validation.values.department?.value === "Others" && (
                     <Col lg={4}>
                       <div className="mb-3">
                         <Label>Specify Department</Label>
@@ -614,10 +630,10 @@ const Activities_Conducted_MCCIE: React.FC = () => {
                           )}
                       </div>
                     </Col>
-                  )}
+                  )}  */}
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>Agency Name</Label>
+                      <Label>Collaborating Organisation</Label>
                       <Input
                         type="text"
                         value={validation.values.agencyName}
@@ -630,7 +646,7 @@ const Activities_Conducted_MCCIE: React.FC = () => {
                             ? "is-invalid"
                             : ""
                         }
-                        placeholder="Enter Agency Name"
+                        placeholder="Enter Collaborating Organisation"
                       />
                       {validation.touched.agencyName &&
                         validation.errors.agencyName && (
@@ -642,7 +658,7 @@ const Activities_Conducted_MCCIE: React.FC = () => {
                   </Col>
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>Activity Name</Label>
+                      <Label>Activity Title</Label>
                       <Input
                         type="text"
                         value={validation.values.activityName}
@@ -658,7 +674,7 @@ const Activities_Conducted_MCCIE: React.FC = () => {
                             ? "is-invalid"
                             : ""
                         }
-                        placeholder="Enter Activity Name"
+                        placeholder="Enter Activity Title"
                       />
                       {validation.touched.activityName &&
                         validation.errors.activityName && (
@@ -724,7 +740,7 @@ const Activities_Conducted_MCCIE: React.FC = () => {
                         )}
                     </div>
                   </Col>
-                  <Col lg={4}>
+                  {/* <Col lg={4}>
                     <div className="mb-3">
                       <Label>Duration (in month)</Label>
                       <Input
@@ -748,10 +764,79 @@ const Activities_Conducted_MCCIE: React.FC = () => {
                           </div>
                         )}
                     </div>
+                  </Col> */}
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>start Date</Label>
+                      <Input
+                        type="date"
+                        value={
+                          validation.values.startDate
+                            ? moment(
+                                validation.values.startDate,
+                                "DD/MM/YYYY"
+                              ).format("YYYY-MM-DD")
+                            : ""
+                        }
+                        onChange={(e) => {
+                          const formattedDate = moment(
+                            e.target.value,
+                            "YYYY-MM-DD"
+                          ).format("DD/MM/YYYY");
+                          validation.setFieldValue("startDate", formattedDate);
+                        }}
+                        className={
+                          validation.touched.startDate &&
+                          validation.errors.startDate
+                            ? "is-invalid"
+                            : ""
+                        }
+                      />
+                      {validation.touched.startDate &&
+                        validation.errors.startDate && (
+                          <div className="text-danger">
+                            {validation.errors.startDate}
+                          </div>
+                        )}
+                    </div>
                   </Col>
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>Upload Photograph of the Activity</Label>
+                      <Label>End Date</Label>
+                      <Input
+                        type="date"
+                        value={
+                          validation.values.endDate
+                            ? moment(
+                                validation.values.endDate,
+                                "DD/MM/YYYY"
+                              ).format("YYYY-MM-DD")
+                            : ""
+                        }
+                        onChange={(e) => {
+                          const formattedDate = moment(
+                            e.target.value,
+                            "YYYY-MM-DD"
+                          ).format("DD/MM/YYYY");
+                          validation.setFieldValue("endDate", formattedDate);
+                        }}
+                        className={
+                          validation.touched.endDate && validation.errors.endDate
+                            ? "is-invalid"
+                            : ""
+                        }
+                      />
+                      {validation.touched.endDate &&
+                        validation.errors.endDate && (
+                          <div className="text-danger">
+                            {validation.errors.endDate}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Upload Report of the Activity</Label>
                       <Input
                         type="file"
                         innerRef={fileRef}
@@ -901,7 +986,7 @@ const Activities_Conducted_MCCIE: React.FC = () => {
                         type="button"
                         onClick={handleListACMClick}
                       >
-                        List Activities By MCCIE
+                        List Activities By MCCIIE
                       </button>
                     </div>
                   </Col>
@@ -918,7 +1003,7 @@ const Activities_Conducted_MCCIE: React.FC = () => {
           style={{ maxWidth: "100%", width: "auto" }}
         >
           <ModalHeader toggle={toggleModal}>
-            List Activities By MCCIE
+            List Activities By MCCIIE
           </ModalHeader>
           <ModalBody>
             <Table striped bordered hover id="id" innerRef={tableRef}>
@@ -926,14 +1011,16 @@ const Activities_Conducted_MCCIE: React.FC = () => {
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
-                  <th>Stream</th>
-                  <th>Department</th>
-                  <th>Agency Name</th>
-                  <th>Activity Name</th>
+                  {/* <th>Stream</th>
+                  <th>Department</th> */}
+                  <th>Collaborating Organisation</th>
+                  <th>Activity Title</th>
                   <th>No. of Students</th>
                   <th>Financial Support Source</th>
-                  <th>Duration (in month)</th>
-                  <th className="d-none">Photograph of the Activity</th>
+                  {/* <th>Duration (in month)</th> */}
+                  <th>Start Date</th>
+                  <th>End Date</th>
+                  <th className="d-none">Report of the Activity</th>
                   <th className="d-none">Letter/MOU</th>
                   <th>Actions</th>
                 </tr>
@@ -944,13 +1031,15 @@ const Activities_Conducted_MCCIE: React.FC = () => {
                     <tr key={acm.id}>
                       <td>{indexOfFirstRow + index + 1}</td>
                       <td>{acm.academicYear}</td>
-                      <td>{acm.streamName}</td>
-                      <td>{acm.departmentName}</td>
+                      {/* <td>{acm.streamName}</td>
+                      <td>{acm.departmentName}</td> */}
                       <td>{acm.agencyName}</td>
                       <td>{acm.activityName}</td>
                       <td>{acm.noOfStudents}</td>
                       <td>{acm.sourceFinancialSupport}</td>
-                      <td>{acm.duration}</td>
+                      {/* <td>{acm.duration}</td> */}
+                      <td>{acm.startDate}</td>
+                      <td>{acm.endDate}</td>
                       <td className="d-none">
                         {acm?.filePath.Photograph || "N/A"}
                       </td>
@@ -978,7 +1067,7 @@ const Activities_Conducted_MCCIE: React.FC = () => {
                 ) : (
                   <tr>
                     <td colSpan={11} className="text-center">
-                      No Activities By MCCIE data available.
+                      No Activities By MCCIIE data available.
                     </td>
                   </tr>
                 )}

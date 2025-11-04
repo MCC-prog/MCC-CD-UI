@@ -369,7 +369,7 @@ const Program_By_Dept: React.FC = () => {
                         onChange={(e) =>
                           validation.setFieldValue("ug", e.target.value)
                         }
-                        placeholder="Enter UG"
+                        placeholder="Enter number of UG"
                         value={validation.values.ug}
                       />
                       {validation.touched.ug && validation.errors.ug && (
@@ -396,7 +396,7 @@ const Program_By_Dept: React.FC = () => {
                         onChange={(e) =>
                           validation.setFieldValue("pg", e.target.value)
                         }
-                        placeholder="Enter PG"
+                        placeholder="Enter number of PG"
                         value={validation.values.pg}
                       />
                       {validation.touched.pg && validation.errors.pg && (
@@ -423,7 +423,7 @@ const Program_By_Dept: React.FC = () => {
                         onChange={(e) =>
                           validation.setFieldValue("phd", e.target.value)
                         }
-                        placeholder="Enter Ph.D"
+                        placeholder="Enter number of Ph.D"
                         value={validation.values.phd}
                       />
                       {validation.touched.phd && validation.errors.phd && (
@@ -470,10 +470,10 @@ const Program_By_Dept: React.FC = () => {
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
-                  <th>Stream</th>
-                  <th>UG</th>
-                  <th>PG</th>
-                  <th>Phd</th>
+                  <th>School</th>
+                  <th>No.UG</th>
+                  <th>No.PG</th>
+                  <th>No.Phd</th>
                   <th>Actions</th>
                 </tr>
               </thead>

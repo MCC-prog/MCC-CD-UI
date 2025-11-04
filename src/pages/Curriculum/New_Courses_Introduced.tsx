@@ -31,6 +31,7 @@ import "datatables.net-buttons/js/buttons.print.js";
 import "jszip";
 import "pdfmake/build/pdfmake";
 import "pdfmake/build/vfs_fonts";
+import { Tooltip } from "reactstrap";
 
 const api = new APIClient();
 
@@ -47,25 +48,18 @@ const New_Courses_Introduced: React.FC = () => {
   const [filteredData, setFilteredData] = useState(courseData);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
-  const [filters, setFilters] = useState({
-    academicYear: "",
-    semesterType: "",
-    semesterNo: "",
-    stream: "",
-    department: "",
-    programType: "",
-    program: "",
-    programName: "",
-    courseTitle: "",
-    file: null as string | null,
-    syllabusFile: null as File | string | null,
-  });
+  const [isMomUploadDisabled, setIsMomUploadDisabled] = useState(false);
+  const [isSyllabusUploadDisabled, setIsSyllabusUploadDisabled] =
+    useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
+  const [tooltipOpen, setTooltipOpen] = useState(false);
+  const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
 
   const tableRef = useRef<HTMLTableElement>(null);
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  const sylRef = useRef<HTMLInputElement | null>(null);
 
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -217,8 +211,8 @@ const New_Courses_Introduced: React.FC = () => {
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       // Disable the file upload button if a file exists
-      setIsFileUploadDisabled(!!response.documents?.Mom);
-      setIsFileUploadDisabled(!!response.documents?.Syllabus);
+      setIsMomUploadDisabled(!!response.documents?.Mom);
+      setIsSyllabusUploadDisabled(!!response.documents?.Syllabus);
       toggleModal();
     } catch (error) {
       console.error("Error fetching New Courses Introduced data by ID:", error);
@@ -298,18 +292,24 @@ const New_Courses_Introduced: React.FC = () => {
 
   // Handle file deletion
   // Clear the file from the form and show success message
-  const handleDeleteFile = async (fieldName: "file" | "syllabusFile") => {
+  const handleDeleteFile = async (p0: string, docType: string) => {
     try {
       // Call the delete API
       const response = await api.delete(
-        `/newCoursesIntroduced/deleteNewCoursesIntroducedDocument?newCoursesIntroducedDocumentId=${editId}`,
+        `/newCoursesIntroduced/deleteNewCoursesIntroducedDocument?newCoursesIntroducedDocumentId=${editId}&docType=${docType}`,
         ""
       );
       // Show success message
       toast.success(response.message || "File deleted successfully!");
-      // Remove the file from the form
-      validation.setFieldValue(fieldName, null); // Clear the file from Formik state
-      setIsFileUploadDisabled(false); // Enable the file upload button
+      if (docType === "Mom") {
+        validation.setFieldValue("file", null);
+        setIsMomUploadDisabled(false); // Re-enable only MOM upload
+        if (fileRef.current) fileRef.current.value = "";
+      } else if (docType === "Syllabus") {
+        validation.setFieldValue("syllabusFile", null);
+        setIsSyllabusUploadDisabled(false); // Re-enable only Syllabus upload
+        if (sylRef.current) sylRef.current.value = "";
+      }
     } catch (error) {
       // Show error message
       toast.error("Failed to delete the file. Please try again.");
@@ -357,7 +357,7 @@ const New_Courses_Introduced: React.FC = () => {
         "Please upload a valid file",
         function (value) {
           // Skip validation if the file upload is disabled (file exists)
-          if (isFileUploadDisabled) {
+          if (isMomUploadDisabled) {
             return true;
           }
           // Perform validation if the file upload is enabled (file doesn't exist)
@@ -381,7 +381,7 @@ const New_Courses_Introduced: React.FC = () => {
         "Please upload a valid file",
         function (value) {
           // Skip validation if the file upload is disabled (file exists)
-          if (isFileUploadDisabled) {
+          if (isSyllabusUploadDisabled) {
             return true;
           }
           // Perform validation if the file upload is enabled (file doesn't exist)
@@ -418,22 +418,36 @@ const New_Courses_Introduced: React.FC = () => {
       formData.append("nciProgramName", values.programName || "");
 
       if (isEditMode && typeof values.file === "string") {
-        // Pass an empty Blob instead of null
-        formData.append("file", new Blob([]), "empty.pdf");
+        formData.append(
+          "Mom",
+          new Blob([], { type: "application/pdf" }),
+          "empty.pdf"
+        );
       } else if (isEditMode && values.file === null) {
-        formData.append("file", new Blob([]), "empty.pdf");
+        formData.append(
+          "Mom",
+          new Blob([], { type: "application/pdf" }),
+          "empty.pdf"
+        );
       } else if (values.file) {
-        formData.append("file", values.file);
-      }
-      if (isEditMode && typeof values.syllabusFile === "string") {
-        // Pass an empty Blob instead of null
-        formData.append("syllabusFile", new Blob([]), "empty.pdf");
-      } else if (isEditMode && values.syllabusFile === null) {
-        formData.append("syllabusFile", new Blob([]), "empty.pdf");
-      } else if (values.syllabusFile) {
-        formData.append("syllabusFile", values.syllabusFile);
+        formData.append("Mom", values.file);
       }
 
+      if (isEditMode && typeof values.syllabusFile === "string") {
+        formData.append(
+          "Syllabus",
+          new Blob([], { type: "application/pdf" }),
+          "empty.pdf"
+        );
+      } else if (isEditMode && values.syllabusFile === null) {
+        formData.append(
+          "Syllabus",
+          new Blob([], { type: "application/pdf" }),
+          "empty.pdf"
+        );
+      } else if (values.syllabusFile) {
+        formData.append("Syllabus", values.syllabusFile);
+      }
       // If editing, include ID
       if (isEditMode && editId) {
         formData.append("newCoursesIntroducedId", editId);
@@ -455,9 +469,16 @@ const New_Courses_Introduced: React.FC = () => {
         }
         // Reset the form fields
         resetForm();
+        if (fileRef.current) {
+          fileRef.current.value = ""; // Clear the file input
+        }
+        if (sylRef.current) {
+          sylRef.current.value = ""; // Clear the syllabus file input
+        }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
-        setIsFileUploadDisabled(false);
+        setIsMomUploadDisabled(false);
+        setIsSyllabusUploadDisabled(false);
         // display the New Courses Introduced List
         handleListNewCoursesIntroducedClick();
       } catch (error) {
@@ -683,6 +704,7 @@ const New_Courses_Introduced: React.FC = () => {
                       <Label>Degree</Label>
                       <DegreeDropdown
                         programTypeId={selectedProgramType?.value}
+                        deptId={selectedDepartment?.value || null}
                         value={validation.values.degree}
                         onChange={(selectedOption) => {
                           validation.setFieldValue("degree", selectedOption);
@@ -750,41 +772,62 @@ const New_Courses_Introduced: React.FC = () => {
                         )}
                     </div>
                   </Col>
-
                   <Col sm={4}>
                     <div className="mb-3">
-                      <Label htmlFor="formFile" className="form-label">
+                      <Label htmlFor="momFile" className="form-label">
                         Upload MOM
+                        <i
+                          id="infoIconMom"
+                          className="bi bi-info-circle ms-2"
+                          style={{ cursor: "pointer", color: "#0d6efd" }}
+                        ></i>
                       </Label>
+
+                      <Tooltip
+                        placement="right"
+                        isOpen={tooltipOpen}
+                        target="infoIconMom"
+                        toggle={toggleTooltip}
+                      >
+                        Upload a PDF file. Max size 10MB.
+                      </Tooltip>
+
                       <Input
+                        type="file"
+                        id="momFile"
+                        innerRef={fileRef}
                         className={`form-control ${
                           validation.touched.file && validation.errors.file
                             ? "is-invalid"
                             : ""
                         }`}
-                        type="file"
-                        id="Mom"
+                        disabled={isMomUploadDisabled}
                         onChange={(event) => {
-                          validation.setFieldValue(
-                            "file",
-                            event.currentTarget.files
-                              ? event.currentTarget.files[0]
-                              : null
-                          );
+                          const file = event.currentTarget.files
+                            ? event.currentTarget.files[0]
+                            : null;
+                          validation.setFieldValue("file", file);
+                          if (typeof validation.values.file === "string") {
+                            setIsMomUploadDisabled(true);
+                          } else {
+                            setIsMomUploadDisabled(false);
+                          }
                         }}
                       />
+
                       {validation.touched.file && validation.errors.file && (
                         <div className="text-danger">
                           {validation.errors.file}
                         </div>
                       )}
-                      {/* Show a message if the file upload button is disabled */}
-                      {isFileUploadDisabled && (
-                        <div className="text-warning mt-2">
-                          Please remove the existing file to upload a new one.
-                        </div>
-                      )}
-                      {/* Only show the file name if it is a string (from the edit API) */}
+
+                      {isMomUploadDisabled &&
+                        typeof validation.values.file === "string" && (
+                          <div className="text-warning mt-2">
+                            Please remove the existing file to upload a new one.
+                          </div>
+                        )}
+
                       {typeof validation.values.file === "string" && (
                         <div className="mt-2 d-flex align-items-center">
                           <span
@@ -798,9 +841,7 @@ const New_Courses_Introduced: React.FC = () => {
                             className="text-primary"
                             onClick={() =>
                               handleDownloadFile(
-                                validation.values.file
-                                  ? (validation.values.file as string)
-                                  : ""
+                                validation.values.file as string
                               )
                             }
                             title="Download File"
@@ -810,7 +851,12 @@ const New_Courses_Introduced: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
-                            onClick={() => handleDeleteFile("file")}
+                            onClick={() =>
+                              handleDeleteFile(
+                                validation.values.file as string,
+                                "Mom"
+                              )
+                            }
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>
@@ -821,40 +867,66 @@ const New_Courses_Introduced: React.FC = () => {
                   </Col>
                   <Col sm={4}>
                     <div className="mb-3">
-                      <Label htmlFor="formFile" className="form-label">
+                      <Label htmlFor="syllabusFile" className="form-label">
                         Upload Syllabus
+                        <i
+                          id="infoIconSyllabus"
+                          className="bi bi-info-circle ms-2"
+                          style={{ cursor: "pointer", color: "#0d6efd" }}
+                        ></i>
                       </Label>
+
+                      <Tooltip
+                        placement="right"
+                        isOpen={tooltipOpen}
+                        target="infoIconSyllabus"
+                        toggle={toggleTooltip}
+                      >
+                        Upload a PDF file. Max size 10MB.
+                      </Tooltip>
+
                       <Input
+                        type="file"
+                        id="syllabusFile"
+                        innerRef={sylRef}
                         className={`form-control ${
                           validation.touched.syllabusFile &&
                           validation.errors.syllabusFile
                             ? "is-invalid"
                             : ""
                         }`}
-                        type="file"
-                        id="syllabusFile"
+                        disabled={isSyllabusUploadDisabled}
                         onChange={(event) => {
-                          validation.setFieldValue(
-                            "syllabusFile",
-                            event.currentTarget.files
-                              ? event.currentTarget.files[0]
-                              : null
-                          );
+                          const file = event.currentTarget.files
+                            ? event.currentTarget.files[0]
+                            : null;
+                          validation.setFieldValue("syllabusFile", file);
+                          if (file) {
+                            if (
+                              typeof validation.values.syllabusFile === "string"
+                            ) {
+                              setIsSyllabusUploadDisabled(true);
+                            } else {
+                              setIsSyllabusUploadDisabled(false);
+                            }
+                          }
                         }}
                       />
+
                       {validation.touched.syllabusFile &&
                         validation.errors.syllabusFile && (
                           <div className="text-danger">
                             {validation.errors.syllabusFile}
                           </div>
                         )}
-                      {/* Show a message if the file upload button is disabled */}
-                      {isFileUploadDisabled && (
-                        <div className="text-warning mt-2">
-                          Please remove the existing file to upload a new one.
-                        </div>
-                      )}
-                      {/* Only show the file name if it is a string (from the edit API) */}
+
+                      {isSyllabusUploadDisabled &&
+                        typeof validation.values.syllabusFile === "string" && (
+                          <div className="text-warning mt-2">
+                            Please remove the existing file to upload a new one.
+                          </div>
+                        )}
+
                       {typeof validation.values.syllabusFile === "string" && (
                         <div className="mt-2 d-flex align-items-center">
                           <span
@@ -868,9 +940,7 @@ const New_Courses_Introduced: React.FC = () => {
                             className="text-primary"
                             onClick={() =>
                               handleDownloadFile(
-                                validation.values.syllabusFile
-                                  ? (validation.values.syllabusFile as string)
-                                  : ""
+                                validation.values.syllabusFile as string
                               )
                             }
                             title="Download File"
@@ -880,7 +950,12 @@ const New_Courses_Introduced: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
-                            onClick={() => handleDeleteFile("syllabusFile")}
+                            onClick={() =>
+                              handleDeleteFile(
+                                validation.values.syllabusFile as string,
+                                "Syllabus"
+                              )
+                            }
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>
@@ -889,6 +964,7 @@ const New_Courses_Introduced: React.FC = () => {
                       )}
                     </div>
                   </Col>
+
                   <Col lg={4}>
                     <div className="mb-3">
                       <Label>Download Template</Label>
@@ -966,7 +1042,8 @@ const New_Courses_Introduced: React.FC = () => {
                   <th>Degree</th>
                   <th>Program Name</th>
                   <th>Course Title</th>
-                  <th>File Path</th>
+                  <th>File Path(Mom)</th>
+                  <th>File Path(Syllabus)</th>
                 </tr>
               </thead>
               <tbody>
@@ -983,6 +1060,7 @@ const New_Courses_Introduced: React.FC = () => {
                       <td>{nci.programName}</td>
                       <td>{nci.nciProgramName}</td>
                       <td>{nci.courseTitle}</td>
+                      <td>{nci.filePath?.Mom || "N/A"}</td>
                       <td>{nci.filePath?.Syllabus || "N/A"}</td>
                     </tr>
                   ))

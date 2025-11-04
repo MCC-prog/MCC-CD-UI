@@ -409,8 +409,8 @@ const Consultancy_Undertaken_by_Staff: React.FC = () => {
       <div className="page-content">
         <Container fluid>
           <Breadcrumb
-            title="CONSULTANCY UNDERTAKEN BY STAFF"
-            breadcrumbItem="Industry Collaboration"
+            title="Industry Collaboration"
+            breadcrumbItem="CONSULTANCY UNDERTAKEN BY STAFF"
           />
           <Card>
             <CardBody>
@@ -523,7 +523,7 @@ const Consultancy_Undertaken_by_Staff: React.FC = () => {
                   </Col>
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>Agency Name</Label>
+                      <Label>Agency/Institute/Organization Name</Label>
                       <Input
                         type="text"
                         className={`form-control ${
@@ -662,7 +662,7 @@ const Consultancy_Undertaken_by_Staff: React.FC = () => {
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
-                        Upload Certificate
+                        Upload Proof of Consultancy
                         <i
                           id="infoIcon"
                           className="bi bi-info-circle ms-2"
@@ -739,6 +739,20 @@ const Consultancy_Undertaken_by_Staff: React.FC = () => {
                       )}
                     </div>
                   </Col>
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Report Template</Label>
+                      <div>
+                        <a
+                          href={`${process.env.PUBLIC_URL}/templateFiles/BOS_MoM_DeptName_Aug24.docx`}
+                          download
+                          className="btn btn-primary btn-sm"
+                        >
+                          Report Template
+                        </a>
+                      </div>
+                    </div>
+                  </Col>
                 </Row>
                 <Row>
                   <Col lg={12}>
@@ -785,7 +799,7 @@ const Consultancy_Undertaken_by_Staff: React.FC = () => {
                   <th>Schools</th>
                   <th>Department</th>
                   <th>Faculty Name</th>
-                  <th>Agency Name</th>
+                  <th>Agency/Institute/Organization Name</th>
                   <th>Title Project</th>
                   <th>Number Trainees</th>
                   <th>Address Agency</th>
@@ -795,34 +809,40 @@ const Consultancy_Undertaken_by_Staff: React.FC = () => {
               </thead>
               <tbody>
                 {consultancyUndertakenData.length > 0 ? (
-                  consultancyUndertakenData.map((consultancyUndertaken, index) => (
-                    <tr key={consultancyUndertaken.consultancyUndertakenDataId}>
-                      <td>{index + 1}</td>
-                      <td>{consultancyUndertaken.academicYear}</td>
-                      <td>{consultancyUndertaken.empStringName}</td>
-                      <td>{consultancyUndertaken.departmentName}</td>
-                      <td>{consultancyUndertaken.facultyName}</td>
-                      <td>{consultancyUndertaken.agencyName}</td>
-                      <td>{consultancyUndertaken.titleOfProject}</td>
-                      <td>{consultancyUndertaken.noOfTrainees}</td>
-                      <td>{consultancyUndertaken.addressOfAgency}</td>
-                      <td>{consultancyUndertaken.revenueGenerated}</td>
-                      <td>
-                        <button
-                          className="btn btn-sm btn-warning me-2"
-                          onClick={() => handleEdit(consultancyUndertaken.id)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="btn btn-sm btn-danger"
-                          onClick={() => handleDelete(consultancyUndertaken.id)}
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))
+                  consultancyUndertakenData.map(
+                    (consultancyUndertaken, index) => (
+                      <tr
+                        key={consultancyUndertaken.consultancyUndertakenDataId}
+                      >
+                        <td>{index + 1}</td>
+                        <td>{consultancyUndertaken.academicYear}</td>
+                        <td>{consultancyUndertaken.empStringName}</td>
+                        <td>{consultancyUndertaken.departmentName}</td>
+                        <td>{consultancyUndertaken.facultyName}</td>
+                        <td>{consultancyUndertaken.agencyName}</td>
+                        <td>{consultancyUndertaken.titleOfProject}</td>
+                        <td>{consultancyUndertaken.noOfTrainees}</td>
+                        <td>{consultancyUndertaken.addressOfAgency}</td>
+                        <td>{consultancyUndertaken.revenueGenerated}</td>
+                        <td>
+                          <button
+                            className="btn btn-sm btn-warning me-2"
+                            onClick={() => handleEdit(consultancyUndertaken.id)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="btn btn-sm btn-danger"
+                            onClick={() =>
+                              handleDelete(consultancyUndertaken.id)
+                            }
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  )
                 ) : (
                   <tr>
                     <td colSpan={11} className="text-center">

@@ -64,7 +64,7 @@ const Databases: React.FC = () => {
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
 
   const fileRef = useRef<HTMLInputElement | null>(null);
-  const excelRef = useRef<HTMLInputElement | null>(null);
+  // const excelRef = useRef<HTMLInputElement | null>(null);
   const tableRef = useRef<HTMLTableElement>(null);
 
   // Calculate the paginated data
@@ -124,6 +124,7 @@ const Databases: React.FC = () => {
       const subscriptionFileKeys = Object.keys(response.file || {}).filter(
         (key) =>
           [
+            "Daily",
             "Weekly",
             "Fortnightly",
             "Bimonthly",
@@ -145,7 +146,7 @@ const Databases: React.FC = () => {
         noOfTeachers: response.noOfTeachersUsingLibPerDay || "",
         noOfStudents: response.noOfStudentsUsingLibPerDay || "",
         file: files.DayRegister || null,
-        excel: files.Subscription || null,
+        // excel: files.Subscription || null,
         subscriptionDetails: subscriptionFileKeys,
         subscriptionFileNames: files, // ✅ Add this (NEW KEY!)
         subscriptionFiles: {}, // This is for newly uploaded filesre
@@ -266,6 +267,7 @@ const Databases: React.FC = () => {
       }
       if (
         [
+          "Daily",
           "Weekly",
           "Fortnightly",
           "Bimonthly",
@@ -292,7 +294,7 @@ const Databases: React.FC = () => {
       noOfTeachers: "",
       noOfStudents: "",
       file: null as File | string | null,
-      excel: null as File | string | null,
+      // excel: null as File | string | null,
       subscriptionDetails: [] as string[], // Checkbox values
       subscriptionFiles: {} as Record<string, File | null>, // For uploading new files
       subscriptionFileNames: {} as Record<string, string>,
@@ -372,6 +374,7 @@ const Databases: React.FC = () => {
     onSubmit: async (values, { resetForm }) => {
       console.log("Submitting values:", values);
       const allSubscriptionTypes = [
+        "Daily",
         "Weekly",
         "Fortnightly",
         "Bimonthly",
@@ -420,22 +423,22 @@ const Databases: React.FC = () => {
         } else if (values.file) {
           formData.append("dayRegister", values.file);
         }
-        if (isEditMode && typeof values.excel === "string") {
-          // Pass an empty PDF instead of null
-          formData.append(
-            "subscription",
-            new Blob([], { type: "application/pdf" }),
-            "empty.pdf"
-          );
-        } else if (isEditMode && values.excel === null) {
-          formData.append(
-            "subscription",
-            new Blob([], { type: "application/pdf" }),
-            "empty.pdf"
-          );
-        } else if (values.excel) {
-          formData.append("subscription", values.excel);
-        }
+        // if (isEditMode && typeof values.excel === "string") {
+        //   // Pass an empty PDF instead of null
+        //   formData.append(
+        //     "subscription",
+        //     new Blob([], { type: "application/pdf" }),
+        //     "empty.pdf"
+        //   );
+        // } else if (isEditMode && values.excel === null) {
+        //   formData.append(
+        //     "subscription",
+        //     new Blob([], { type: "application/pdf" }),
+        //     "empty.pdf"
+        //   );
+        // } else if (values.excel) {
+        //   formData.append("subscription", values.excel);
+       // }
         // If in edit mode, append the edit ID
         if (isEditMode && editId) {
           formData.append("id", editId);
@@ -461,9 +464,9 @@ const Databases: React.FC = () => {
         if (fileRef.current) {
           fileRef.current.value = "";
         }
-        if (excelRef.current) {
-          excelRef.current.value = "";
-        }
+        // if (excelRef.current) {
+        //   excelRef.current.value = "";
+        // }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         handleListCSWClick();
@@ -729,6 +732,7 @@ const Databases: React.FC = () => {
                       </Label>
                       <div className="d-flex flex-wrap gap-2">
                         {[
+                          "Daily",
                           "Weekly",
                           "Fortnightly",
                           "Bimonthly",
@@ -788,7 +792,7 @@ const Databases: React.FC = () => {
                     </div>
                   </Col>
 
-                  <Col sm={4}>
+                  {/* <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
                         Upload Excel sheets of Details of Subscription
@@ -824,20 +828,20 @@ const Databases: React.FC = () => {
                               : null
                           );
                         }}
-                        disabled={isFileUploadDisabled} // Disable the button if a file exists
+                        disabled={isFileUploadDisabled} 
                       />
                       {validation.touched.excel && validation.errors.excel && (
                         <div className="text-danger">
                           {validation.errors.excel}
                         </div>
                       )}
-                      {/* Show a message if the file upload button is disabled */}
+                  
                       {isFileUploadDisabled && (
                         <div className="text-warning mt-2">
                           Please remove the existing file to upload a new one.
                         </div>
                       )}
-                      {/* Only show the file name if it is a string (from the edit API) */}
+                     
                       {typeof validation.values.excel === "string" && (
                         <div className="mt-2 d-flex align-items-center">
                           <span
@@ -874,8 +878,8 @@ const Databases: React.FC = () => {
                         </div>
                       )}
                     </div>
-                  </Col>
-                  {/* Upload fields for selected types - one per column */}
+                  </Col> */}
+                
                   <Row>
                     {validation.values.subscriptionDetails.map((type) => (
                       <Col sm={4} key={type}>
@@ -1048,6 +1052,9 @@ const Databases: React.FC = () => {
                       </td>
                       <td className="d-none">
                         {cds.filePath?.Weekly || "N/A"}
+                      </td>
+                       <td className="d-none">
+                        {cds.filePath?.Daily || "N/A"}
                       </td>
                       <td className="d-none">
                         {cds.filePath?.Halfyearly || "N/A"}

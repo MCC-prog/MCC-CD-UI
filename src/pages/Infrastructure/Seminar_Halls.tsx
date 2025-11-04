@@ -412,7 +412,7 @@ const Seminar_Halls: React.FC = () => {
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
-                        Upload Seminar Hall Documents
+                        Upload Photos
                         <i
                           id="infoIcon"
                           className="bi bi-info-circle ms-2"
@@ -425,7 +425,7 @@ const Seminar_Halls: React.FC = () => {
                         target="infoIcon"
                         toggle={toggleTooltip}
                       >
-                        Upload an PDF file. Max size 10MB.
+                        Current Year geo-tagged Photos Only.
                       </Tooltip>
                       <Input
                         className={`form-control ${

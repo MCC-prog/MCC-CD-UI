@@ -185,6 +185,9 @@ const Innovative_Teaching_Methodologies: React.FC = () => {
       });
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
+       if (response.documents?.innovativePedagogy) {
+        setIsFileUploadDisabled(true);
+      }
       toggleModal();
     } catch (error) {
       console.error("Error fetching BOS data by ID:", error);
@@ -590,7 +593,7 @@ const Innovative_Teaching_Methodologies: React.FC = () => {
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
-                        Innovative Pedagogy
+                        Innovative Pedagogy Report
                       </Label>
                       <Input
                         className={`form-control ${

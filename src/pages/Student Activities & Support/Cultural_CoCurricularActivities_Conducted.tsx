@@ -761,7 +761,7 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
-                        Upload Participation/Winning
+                         Student Data Upload in Excel
                       </Label>
                       <Tooltip
                         placement="right"
@@ -849,7 +849,7 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
-                        Upload Image of Students
+                        Upload Report
                       </Label>
                       <Tooltip
                         placement="right"
@@ -945,7 +945,7 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
                           download
                           className="btn btn-primary btn-sm"
                         >
-                          Student Progression - Higher Education Template
+                          Report of Cultural & Co-Curricular activities
                         </a>
                       </div>
                     </div>

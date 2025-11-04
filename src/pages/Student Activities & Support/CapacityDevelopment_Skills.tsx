@@ -46,6 +46,8 @@ const CapacityDevelopment_Skills: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
+   const [selectedStream, setSelectedStream] = useState<any>(null);
+    const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
   const [filteredData, setFilteredData] = useState(cdsData);
   const [filters, setFilters] = useState({
     academicYear: "",
@@ -154,7 +156,17 @@ const CapacityDevelopment_Skills: React.FC = () => {
         academicYear: response.academicYear
           ? { value: response.academicYear, label: response.academicYear }
           : null,
+           stream: response.streamId
+          ? { value: response.streamId.toString(), label: response.streamName }
+          : null,
+        department: response.departmentId
+          ? {
+              value: response.departmentId.toString(),
+              label: response.departmentName,
+            }
+          : null,
         softSkills: response.softSkills || "",
+        activityName: response.activityName || "",
         capacityDevelopmentId: response.capacityDevelopmentId || "",
       };
 
@@ -294,7 +306,10 @@ const CapacityDevelopment_Skills: React.FC = () => {
   const validation = useFormik({
     initialValues: {
       academicYear: null as { value: string; label: string } | null,
+      stream: null as { value: string; label: string } | null,
+      department: null as { value: string; label: string } | null,
       lifeSkills: null as { value: string | number; label: string } | null,
+      activityName: "",
       type: null as { value: string | number; label: string } | null,
       LanguageAndCommunication: "",
       awarenessOfTrends: "",
@@ -305,6 +320,13 @@ const CapacityDevelopment_Skills: React.FC = () => {
       academicYear: Yup.object()
         .nullable()
         .required("Please select an academic year"),
+        stream: Yup.object<{ value: string; label: string }>()
+                .nullable()
+                .required("Please select school"),
+              department: Yup.object<{ value: string; label: string }>()
+                .nullable()
+                .required("Please select department"),
+                activityName: Yup.string().required("Please enter Activity name"),
       lifeSkills: Yup.object()
         .nullable()
         .required("Please select faculty type"),
@@ -346,7 +368,10 @@ const CapacityDevelopment_Skills: React.FC = () => {
         const formData = new FormData();
 
         formData.append("academicYear", values.academicYear?.value || "");
+        formData.append("streamId", values.stream?.value || "");
+        formData.append("departmentId", values.department?.value || "");
         formData.append("softSkills", values.qualification || "");
+        formData.append("activityName", values.activityName || "");
         formData.append(
           "languageAndCommunicationSkills",
           values.LanguageAndCommunication || ""
@@ -491,6 +516,58 @@ const CapacityDevelopment_Skills: React.FC = () => {
                         )}
                     </div>
                   </Col>
+                    {/* Stream Dropdown */}
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>School</Label>
+                      <StreamDropdown
+                        value={validation.values.stream}
+                        onChange={(selectedOption) => {
+                          validation.setFieldValue("stream", selectedOption);
+                          setSelectedStream(selectedOption);
+                          validation.setFieldValue("department", null);
+                          setSelectedDepartment(null);
+                        }}
+                        isInvalid={
+                          validation.touched.stream &&
+                          !!validation.errors.stream
+                        }
+                      />
+                      {validation.touched.stream &&
+                        validation.errors.stream && (
+                          <div className="text-danger">
+                            {validation.errors.stream}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+
+                  {/* Department Dropdown */}
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Department</Label>
+                      <DepartmentDropdown
+                        streamId={selectedStream?.value}
+                        value={validation.values.department}
+                        onChange={(selectedOption) => {
+                          validation.setFieldValue(
+                            "department",
+                            selectedOption
+                          );
+                        }}
+                        isInvalid={
+                          validation.touched.department &&
+                          !!validation.errors.department
+                        }
+                      />
+                      {validation.touched.department &&
+                        validation.errors.department && (
+                          <div className="text-danger">
+                            {validation.errors.department}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
 
                   <Col lg={4}>
                     <div className="mb-3">
@@ -520,6 +597,35 @@ const CapacityDevelopment_Skills: React.FC = () => {
                         )}
                     </div>
                   </Col>
+                    <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Activity Name</Label>
+                      <Input
+                        type="text"
+                        className={`form-control ${
+                          validation.touched.activityName &&
+                          validation.errors.activityName
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        value={validation.values.activityName}
+                        onChange={(e) =>
+                          validation.setFieldValue(
+                            "activityName",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Enter Activity name"
+                      />
+                      {validation.touched.activityName &&
+                        validation.errors.activityName && (
+                          <div className="text-danger">
+                            {validation.errors.activityName}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+
 
                   <Col lg={4}>
                     <div className="mb-3">

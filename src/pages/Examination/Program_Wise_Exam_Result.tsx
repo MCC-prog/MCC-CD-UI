@@ -680,6 +680,7 @@ const Program_Wise_Exam_Result: React.FC = () => {
                       <Label>Degree</Label>
                       <DegreeDropdown
                         programTypeId={selectedProgramType?.value}
+                        deptId={selectedDepartment?.value}
                         value={validation.values.degree}
                         onChange={(selectedOption) => {
                           validation.setFieldValue("degree", selectedOption);

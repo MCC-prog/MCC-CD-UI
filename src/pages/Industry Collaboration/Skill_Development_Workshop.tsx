@@ -51,11 +51,19 @@ const Skill_Development_Workshop: React.FC = () => {
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const fileRef1 = useRef<HTMLInputElement | null>(null);
   const tableRef = useRef<HTMLTableElement>(null);
 
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };
+
+
+      const ModeType = [
+    { value: "ONLINE", label: "ONLINE" },
+    { value: "OFFLINE", label: "OFFLINE" },
+    { value: "HYBRID", label: "HYBRID" },
+  ];
 
   // Fetch Skill Development data from the backend
   const fetchSkillDevelopmentData = async () => {
@@ -120,6 +128,7 @@ const Skill_Development_Workshop: React.FC = () => {
               label: response.departmentName,
             }
           : null,
+          
       };
       const streamOption = mapValueToLabel(response.streamId, []); // Replace [] with stream options array if available
       const departmentOption = mapValueToLabel(response.departmentId, []); // Replace [] with department options array if available
@@ -144,7 +153,15 @@ const Skill_Development_Workshop: React.FC = () => {
         organizedBy: response.organizedBy || "",
         fromDate: response.fromDate || "",
         toDate: response.toDate || "",
+        mode: response.mode
+          ? {
+              value: response.mode,
+              label: response.mode,
+            }
+          : null,
         skillDevelopmentDoc: response.documents?.skillDevelopmentDoc || null,
+        skillDevelopmentDetails:
+          response.documents?.skillDevelopmentDetails || null,
       });
       setSelectedStream(streamOption);
       setSelectedDepartment(departmentOption);
@@ -287,7 +304,9 @@ const Skill_Development_Workshop: React.FC = () => {
       organizedBy: "",
       fromDate: "",
       toDate: "",
+      mode: null as { value: string; label: string } | null,
       skillDevelopmentDoc: null as string | null,
+      skillDevelopmentDetails: null as string | null,
     },
     validationSchema: Yup.object({
       academicYear: Yup.object<{ value: string; label: string }>()
@@ -310,6 +329,9 @@ const Skill_Development_Workshop: React.FC = () => {
       organizedBy: Yup.string().required("Please select Organized By"),
       fromDate: Yup.date().required("Please select From Date"),
       toDate: Yup.date().required("Please select To Date"),
+       mode: Yup.object<{ value: string; label: string }>()
+              .nullable()
+              .required("Please select Mode"),
       skillDevelopmentDoc: Yup.mixed()
         .required("Please upload a file")
         .test("fileSize", "File size is too large", (value: any) => {
@@ -321,7 +343,19 @@ const Skill_Development_Workshop: React.FC = () => {
             ["application/pdf", "image/jpeg", "image/png"].includes(value.type)
           );
         }),
+      skillDevelopmentDetails: Yup.mixed()
+        .required("Please upload a file")
+        .test("fileSize", "File size is too large", (value: any) => {
+          return value && value.size <= 2 * 1024 * 1024; // 2MB limit
+        })
+        .test("fileType", "Unsupported file format", (value: any) => {
+          return (
+            value &&
+            ["application/pdf", "image/jpeg", "image/png"].includes(value.type)
+          );
+        }),
     }),
+
     onSubmit: async (values, { resetForm }) => {
       // Create FormData object
       const formData = new FormData();
@@ -339,6 +373,7 @@ const Skill_Development_Workshop: React.FC = () => {
       formData.append("title", values.title || "");
       formData.append("fromDate", formatDate(values.fromDate) || "");
       formData.append("toDate", formatDate(values.toDate) || "");
+      formData.append("mode", values.mode?.value || "");
       // Append the file
       if (isEditMode && typeof values.skillDevelopmentDoc === "string") {
         // Pass an empty Blob instead of null
@@ -347,6 +382,16 @@ const Skill_Development_Workshop: React.FC = () => {
         formData.append("skillDevelopmentDoc", new Blob([]), "empty.pdf");
       } else if (values.skillDevelopmentDoc) {
         formData.append("skillDevelopmentDoc", values.skillDevelopmentDoc);
+      }
+      if (isEditMode && typeof values.skillDevelopmentDetails === "string") {
+        formData.append("skillDevelopmentDetails", new Blob([]), "empty.pdf");
+      } else if (isEditMode && values.skillDevelopmentDetails === null) {
+        formData.append("skillDevelopmentDetails", new Blob([]), "empty.pdf");
+      } else if (values.skillDevelopmentDetails) {
+        formData.append(
+          "skillDevelopmentDetails",
+          values.skillDevelopmentDetails
+        );
       }
 
       if (isEditMode && editId) {
@@ -434,8 +479,8 @@ const Skill_Development_Workshop: React.FC = () => {
       <div className="page-content">
         <Container fluid>
           <Breadcrumb
-            title="Skill Development Workshop"
-            breadcrumbItem="Industry Collaboration"
+            title="Industry Collaboration"
+            breadcrumbItem="Skill Development Program(conducted by college/Department)"
           />
           <Card>
             <CardBody>
@@ -548,7 +593,7 @@ const Skill_Development_Workshop: React.FC = () => {
                   </Col>
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>Staff Enhancement ProgramType</Label>
+                      <Label>Staff Enhancement Activity Type</Label>
                       <Select
                         options={StaffEnhancementProgramType}
                         value={validation.values.staffEnhancementProgramType}
@@ -558,7 +603,7 @@ const Skill_Development_Workshop: React.FC = () => {
                             selectedOption
                           )
                         }
-                        placeholder="Select Staff Enhancement ProgramType"
+                        placeholder="Select Staff Enhancement Activity Type"
                         styles={dropdownStyles}
                         menuPortalTarget={document.body}
                         className={
@@ -601,7 +646,7 @@ const Skill_Development_Workshop: React.FC = () => {
                   </Col>
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>Organization By</Label>
+                      <Label>Collaborating Organization / Department</Label>
                       <Input
                         type="text"
                         className={`form-control ${
@@ -617,7 +662,7 @@ const Skill_Development_Workshop: React.FC = () => {
                             e.target.value
                           )
                         }
-                        placeholder="Enter Organization By"
+                        placeholder="Enter Collaborating Organization / Department"
                       />
                       {validation.touched.organizedBy &&
                         validation.errors.organizedBy && (
@@ -670,6 +715,36 @@ const Skill_Development_Workshop: React.FC = () => {
                         validation.errors.toDate && (
                           <div className="text-danger">
                             {validation.errors.toDate}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+                    <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Mode Type</Label>
+                      <Select
+                        options={ModeType}
+                        value={validation.values.mode}
+                        onChange={(selectedOption) =>
+                          validation.setFieldValue(
+                            "mode",
+                            selectedOption
+                          )
+                        }
+                        placeholder="Select Staff Mode Type"
+                        styles={dropdownStyles}
+                        menuPortalTarget={document.body}
+                        className={
+                          validation.touched.mode &&
+                          validation.errors.mode
+                            ? "select-error"
+                            : ""
+                        }
+                      />
+                      {validation.touched.mode &&
+                        validation.errors.mode && (
+                          <div className="text-danger">
+                            {validation.errors.mode}
                           </div>
                         )}
                     </div>
@@ -758,6 +833,105 @@ const Skill_Development_Workshop: React.FC = () => {
                       )}
                     </div>
                   </Col>
+                  <Col sm={4}>
+                    <div className="mb-3">
+                      <Label htmlFor="formFile" className="form-label">
+                        Upload Details
+                        <i
+                          id="infoIcon"
+                          className="bi bi-info-circle ms-2"
+                          style={{ cursor: "pointer", color: "#0d6efd" }}
+                        ></i>
+                      </Label>
+                      <Tooltip
+                        placement="right"
+                        isOpen={tooltipOpen}
+                        target="infoIcon"
+                        toggle={toggleTooltip}
+                      >
+                        Upload an Excel or PDF file. Max size 10MB.
+                      </Tooltip>
+                      <Input
+                        className={`form-control ${
+                          validation.touched.skillDevelopmentDetails &&
+                          validation.errors.skillDevelopmentDetails
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        type="file"
+                        id="formFile"
+                        innerRef={fileRef1}
+                        onChange={(event) => {
+                          validation.setFieldValue(
+                            "skillDevelopmentDetails",
+                            event.currentTarget.files
+                              ? event.currentTarget.files[0]
+                              : null
+                          );
+                        }}
+                        disabled={isFileUploadDisabled} // Disable the button if a file exists
+                      />
+                      {validation.touched.skillDevelopmentDetails &&
+                        validation.errors.skillDevelopmentDetails && (
+                          <div className="text-danger">
+                            {validation.errors.skillDevelopmentDetails}
+                          </div>
+                        )}
+                      {/* Show a message if the file upload button is disabled */}
+                      {isFileUploadDisabled && (
+                        <div className="text-warning mt-2">
+                          Please remove the existing file to upload a new one.
+                        </div>
+                      )}
+                      {/* Only show the file name if it is a string (from the edit API) */}
+                      {typeof validation.values.skillDevelopmentDoc ===
+                        "string" && (
+                        <div className="mt-2 d-flex align-items-center">
+                          <span
+                            className="me-2"
+                            style={{ fontWeight: "bold", color: "green" }}
+                          >
+                            {validation.values.skillDevelopmentDetails}
+                          </span>
+                          <Button
+                            color="link"
+                            className="text-primary"
+                            onClick={() =>
+                              handleDownloadFile(
+                                validation.values
+                                  .skillDevelopmentDetails as string
+                              )
+                            }
+                            title="Download File"
+                          >
+                            <i className="bi bi-download"></i>
+                          </Button>
+                          <Button
+                            color="link"
+                            className="text-danger"
+                            onClick={() => handleDeleteFile()}
+                            title="Delete File"
+                          >
+                            <i className="bi bi-trash"></i>
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </Col>
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Report Template</Label>
+                      <div>
+                        <a
+                          href={`${process.env.PUBLIC_URL}/templateFiles/BOS_MoM_DeptName_Aug24.docx`}
+                          download
+                          className="btn btn-primary btn-sm"
+                        >
+                          Report Template
+                        </a>
+                      </div>
+                    </div>
+                  </Col>
                 </Row>
                 <Row>
                   <Col lg={12}>
@@ -790,12 +964,13 @@ const Skill_Development_Workshop: React.FC = () => {
             List Skill Development Workshop
           </ModalHeader>
           <ModalBody>
-            <Table 
-             striped
+            <Table
+              striped
               bordered
               hover
               id="skillDevelopmentDataId"
-              innerRef={tableRef}>
+              innerRef={tableRef}
+            >
               <thead>
                 <tr>
                   <th>#</th>
@@ -803,9 +978,9 @@ const Skill_Development_Workshop: React.FC = () => {
                   <th>Schools</th>
                   <th>Department</th>
                   <th>Faculty Name</th>
-                  <th>Staff Enhancement ProgramType</th>
+                  <th>Staff Enhancement Activity Type</th>
                   <th>Title</th>
-                  <th>Organization By</th>
+                  <th>Collaborating Organization / Department</th>
                   <th>From Date</th>
                   <th>To Date</th>
                   <th>Actions</th>

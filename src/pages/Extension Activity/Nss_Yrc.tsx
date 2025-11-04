@@ -35,6 +35,7 @@ import "datatables.net-buttons/js/buttons.html5.js";
 import "jszip";
 import "pdfmake/build/pdfmake";
 import "pdfmake/build/vfs_fonts";
+import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
 
 const api = new APIClient();
 
@@ -106,6 +107,12 @@ const Nss_Yrc: React.FC = () => {
         stream: response.streamId
           ? { value: response.streamId.toString(), label: response.streamName }
           : null,
+        department: response.departmentId
+          ? {
+              value: response.departmentId.toString(),
+              label: response.departmentName,
+            }
+          : null,
         program: response.courses
           ? Object.entries(response.courses).map(([key, value]) => ({
               value: key,
@@ -113,7 +120,8 @@ const Nss_Yrc: React.FC = () => {
             }))
           : [],
         noOfParticipants: response.noOfParticipants || "",
-        date: response.date ? response.date : "",
+        startDate: response.startDate ? response.startDate : "",
+        endDate: response.endDate ? response.endDate : "",
         organisation: response.organisation || "",
         location: response.location || "",
         file: response.documents?.NSS || null,
@@ -229,11 +237,13 @@ const Nss_Yrc: React.FC = () => {
       academicYear: null as { value: string; label: string } | null,
       semester: null as { value: string; label: string } | null,
       stream: null as { value: string; label: string } | null,
+      department: null as { value: string; label: string } | null,
       program: [] as { value: string; label: string }[],
       noOfParticipants: "",
       organisation: "",
       location: "",
-      date: "",
+      startDate: "",
+      endDate: "",
       file: null as File | string | null,
     },
     validationSchema: Yup.object({
@@ -246,6 +256,9 @@ const Nss_Yrc: React.FC = () => {
       stream: Yup.object<{ value: string; label: string }>()
         .nullable()
         .required("Please select school"),
+      department: Yup.object<{ value: string; label: string }>()
+        .nullable()
+        .required("Please select department"),
       file: Yup.mixed()
         .required("Please upload a file")
         .test("fileSize", "File size is too large", (value: any) => {
@@ -268,9 +281,8 @@ const Nss_Yrc: React.FC = () => {
         .required("Please enter number of No Of Participants"),
       organisation: Yup.string().required("Please select Organization"),
       location: Yup.string().required("Please select Location"),
-      date: Yup.date()
-        .typeError("Please select a valid date")
-        .required("Please select Date"),
+      startDate: Yup.date().required("Please select conducted date"),
+      endDate: Yup.date().required("Please select conducted date"),
     }),
     onSubmit: async (values, { resetForm }) => {
       // Create FormData object
@@ -279,6 +291,7 @@ const Nss_Yrc: React.FC = () => {
       // Append fields to FormData
       formData.append("academicYear", values.academicYear?.value || "");
       formData.append("streamId", values.stream?.value || "");
+      formData.append("departmentId", values.department?.value || "");
       formData.append(
         "courseIds",
         values.program.map((option) => option.value).join(",") || ""
@@ -287,7 +300,14 @@ const Nss_Yrc: React.FC = () => {
       formData.append("noOfParticipants", values.noOfParticipants || "");
       formData.append("organisation", values.organisation || "");
       formData.append("location", values.location || "");
-      formData.append("date", moment(values.date).format("DD/MM/YYYY") || "");
+      formData.append(
+        "startDate",
+        moment(values.startDate).format("DD/MM/YYYY") || ""
+      );
+      formData.append(
+        "endDate",
+        moment(values.endDate).format("DD/MM/YYYY") || ""
+      );
 
       if (isEditMode && typeof values.file === "string") {
         // Pass an empty Blob instead of null
@@ -374,7 +394,7 @@ const Nss_Yrc: React.FC = () => {
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <Breadcrumb title="NSS/YRC" breadcrumbItem="Extension Activity" />
+          <Breadcrumb title="Extension Activity" breadcrumbItem="NSS/YRC" />
           <Card>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
@@ -426,6 +446,31 @@ const Nss_Yrc: React.FC = () => {
                         )}
                     </div>
                   </Col>
+                   <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Department</Label>
+                      <DepartmentDropdown
+                        streamId={selectedStream?.value}
+                        value={validation.values.department}
+                        onChange={(selectedOption) => {
+                          validation.setFieldValue(
+                            "department",
+                            selectedOption
+                          );
+                        }}
+                        isInvalid={
+                          validation.touched.department &&
+                          !!validation.errors.department
+                        }
+                      />
+                      {validation.touched.department &&
+                        validation.errors.department && (
+                          <div className="text-danger">
+                            {validation.errors.department}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
                   <Col lg={4}>
                     <div className="mb-3">
                       <Label>Program</Label>
@@ -471,7 +516,7 @@ const Nss_Yrc: React.FC = () => {
                         )}
                     </div>
                   </Col>
-                  <Col lg={4}>
+                  {/* <Col lg={4}>
                     <div className="mb-3">
                       <Label>Date</Label>
                       <Input
@@ -508,6 +553,76 @@ const Nss_Yrc: React.FC = () => {
                           {validation.errors.date}
                         </div>
                       )}
+                    </div>
+                  </Col> */}
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>start Date</Label>
+                      <Input
+                        type="date"
+                        value={
+                          validation.values.startDate
+                            ? moment(
+                                validation.values.startDate,
+                                "DD/MM/YYYY"
+                              ).format("YYYY-MM-DD")
+                            : ""
+                        }
+                        onChange={(e) => {
+                          const formattedDate = moment(
+                            e.target.value,
+                            "YYYY-MM-DD"
+                          ).format("DD/MM/YYYY");
+                          validation.setFieldValue("startDate", formattedDate);
+                        }}
+                        className={
+                          validation.touched.startDate &&
+                          validation.errors.startDate
+                            ? "is-invalid"
+                            : ""
+                        }
+                      />
+                      {validation.touched.startDate &&
+                        validation.errors.startDate && (
+                          <div className="text-danger">
+                            {validation.errors.startDate}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>End Date</Label>
+                      <Input
+                        type="date"
+                        value={
+                          validation.values.endDate
+                            ? moment(
+                                validation.values.endDate,
+                                "DD/MM/YYYY"
+                              ).format("YYYY-MM-DD")
+                            : ""
+                        }
+                        onChange={(e) => {
+                          const formattedDate = moment(
+                            e.target.value,
+                            "YYYY-MM-DD"
+                          ).format("DD/MM/YYYY");
+                          validation.setFieldValue("endDate", formattedDate);
+                        }}
+                        className={
+                          validation.touched.endDate &&
+                          validation.errors.endDate
+                            ? "is-invalid"
+                            : ""
+                        }
+                      />
+                      {validation.touched.endDate &&
+                        validation.errors.endDate && (
+                          <div className="text-danger">
+                            {validation.errors.endDate}
+                          </div>
+                        )}
                     </div>
                   </Col>
                   <Col lg={4}>
@@ -716,24 +831,20 @@ const Nss_Yrc: React.FC = () => {
         >
           <ModalHeader toggle={toggleModal}>List NSS/YRC</ModalHeader>
           <ModalBody>
-            <Table
-              striped
-              bordered
-              hover
-              id="id"
-              innerRef={tableRef}
-            >
+            <Table striped bordered hover id="id" innerRef={tableRef}>
               <thead className="table-dark">
                 <tr>
                   <th>Sl.No</th>
                   <th>Academic Year</th>
                   <th>School</th>
+                  <th>Department</th>
                   <th>Program</th>
                   <th>Semester Type</th>
                   <th>No Of Participants</th>
                   <th>Organization</th>
                   <th>Location</th>
-                  <th>Date</th>
+                  <th>startDate</th>
+                  <th>endDate</th>
                   <th className="d-none">FilePath</th>
                   <th>Actions</th>
                 </tr>
@@ -745,6 +856,7 @@ const Nss_Yrc: React.FC = () => {
                       <td>{index + 1}</td>
                       <td>{nss.academicYear}</td>
                       <td>{nss.streamName}</td>
+                      <td>{nss.departmentName}</td>
                       <td>
                         <ul>
                           {(Object.values(nss.courses) as string[]).map(
@@ -758,7 +870,8 @@ const Nss_Yrc: React.FC = () => {
                       <td>{nss.noOfParticipants}</td>
                       <td>{nss.organisation}</td>
                       <td>{nss.location}</td>
-                      <td>{nss.date}</td>
+                      <td>{nss.startDate}</td>
+                      <td>{nss.endDate}</td>
                       <td className="d-none">{nss?.filePath.NSS || "N/A"}</td>
                       <td>
                         <button

@@ -394,7 +394,7 @@ const Staff_Profile: React.FC = () => {
                         onChange={(e) =>
                           validation.setFieldValue("fullTime", e.target.value)
                         }
-                        placeholder="Enter full time"
+                        placeholder="Enter number of full time"
                         value={validation.values.fullTime}
                       />
                       {validation.touched.fullTime &&
@@ -423,7 +423,7 @@ const Staff_Profile: React.FC = () => {
                         onChange={(e) =>
                           validation.setFieldValue("partTime", e.target.value)
                         }
-                        placeholder="Enter part time"
+                        placeholder="Enter Number of part time"
                         value={validation.values.partTime}
                       />
                       {validation.touched.partTime &&
@@ -455,7 +455,7 @@ const Staff_Profile: React.FC = () => {
                             e.target.value
                           )
                         }
-                        placeholder="Enter guest faculty"
+                        placeholder="Enter number of guest faculty"
                         value={validation.values.guestFaculty}
                       />
                       {validation.touched.guestFaculty &&

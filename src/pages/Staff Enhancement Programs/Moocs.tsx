@@ -518,40 +518,13 @@ const Moocs: React.FC = () => {
         <Container fluid>
           <Breadcrumb
             title="Staff Enhancement Programs"
-            breadcrumbItem="Moocs"
+            breadcrumbItem="Mooc"
           />
           <Card>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
                 <Row>
-                  <Col lg={4}>
-                    <div className="mb-3">
-                      <Label>Faculty name</Label>
-                      <Input
-                        type="text"
-                        className={`form-control ${
-                          validation.touched.facultyName &&
-                          validation.errors.facultyName
-                            ? "is-invalid"
-                            : ""
-                        }`}
-                        value={validation.values.facultyName}
-                        onChange={(e) =>
-                          validation.setFieldValue(
-                            "facultyName",
-                            e.target.value
-                          )
-                        }
-                        placeholder="Enter Student name"
-                      />
-                      {validation.touched.facultyName &&
-                        validation.errors.facultyName && (
-                          <div className="text-danger">
-                            {validation.errors.facultyName}
-                          </div>
-                        )}
-                    </div>
-                  </Col>
+                  
                   {/* Academic Year Dropdown */}
                   <Col lg={4}>
                     <div className="mb-3">
@@ -662,6 +635,34 @@ const Moocs: React.FC = () => {
                       </div>
                     </Col>
                   )}
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Faculty name</Label>
+                      <Input
+                        type="text"
+                        className={`form-control ${
+                          validation.touched.facultyName &&
+                          validation.errors.facultyName
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        value={validation.values.facultyName}
+                        onChange={(e) =>
+                          validation.setFieldValue(
+                            "facultyName",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Enter Student name"
+                      />
+                      {validation.touched.facultyName &&
+                        validation.errors.facultyName && (
+                          <div className="text-danger">
+                            {validation.errors.facultyName}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
 
                   <Col lg={4}>
                     <div className="mb-3">
@@ -818,7 +819,7 @@ const Moocs: React.FC = () => {
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
-                        Upload Certificate of Completion/Participation of MOOCS
+                        Upload Certificate of Completion/Participation of MOOC
                       </Label>
                       <Input
                         className={`form-control ${
@@ -917,10 +918,10 @@ const Moocs: React.FC = () => {
               <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>Faculty Name</th>
                   <th>Academic Year</th>
                   <th>School</th>
                   <th>Department</th>
+                   <th>Faculty Name</th>
                   <th>Title of Moocs</th>
                   <th>Start date</th>
                   <th>End date</th>
@@ -935,10 +936,10 @@ const Moocs: React.FC = () => {
                   currentRows.map((bos, index) => (
                     <tr key={bos.id}>
                       <td>{indexOfFirstRow + index + 1}</td>
-                      <td>{bos.facultyName}</td>
                       <td>{bos.year}</td>
                       <td>{bos.streamName}</td>
                       <td>{bos.departmentName}</td>
+                      <td>{bos.facultyName}</td>
                       <td>{bos.title}</td>
                       <td>{bos.startDate}</td>
                       <td>{bos.endDate}</td>

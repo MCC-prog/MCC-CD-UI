@@ -49,10 +49,6 @@ const StudentStrengthProgram: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
   const [filteredData, setFilteredData] = useState(bosData);
-  const [filters, setFilters] = useState({
-    academicYear: "",
-    file: null as string | null,
-  });
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
 
@@ -127,6 +123,7 @@ const StudentStrengthProgram: React.FC = () => {
       const mappedValues = {
         academicYear: mapValueToLabel(response.academicYear, academicYearList),
         file: response.document?.excel || null,
+        stream: validation.values.stream, // Preserve current stream value or set as needed
       };
 
       // Update Formik values
@@ -138,6 +135,7 @@ const StudentStrengthProgram: React.FC = () => {
               value: String(mappedValues.academicYear.value),
             }
           : null,
+        stream: mappedValues.stream, // Ensure stream is included
       });
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
@@ -248,6 +246,7 @@ const StudentStrengthProgram: React.FC = () => {
     initialValues: {
       academicYear: null as AcademicYearOption,
       file: null as File | string | null,
+      stream: null as { value: string; label: string } | null,
     },
     validationSchema: Yup.object({
       academicYear: Yup.object({
@@ -274,6 +273,12 @@ const StudentStrengthProgram: React.FC = () => {
             ].includes(value.type)
           );
         }),
+      stream: Yup.object({
+        value: Yup.string().required(),
+        label: Yup.string().required(),
+      })
+        .nullable()
+        .required("Please select stream"),
     }),
     onSubmit: async (values, { resetForm }) => {
       const formData = new FormData();
@@ -413,7 +418,27 @@ const StudentStrengthProgram: React.FC = () => {
                         )}
                     </div>
                   </Col>
-
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>School</Label>
+                      <StreamDropdown
+                        value={validation.values.stream}
+                        onChange={(selectedOption) => {
+                          validation.setFieldValue("stream", selectedOption);
+                        }}
+                        isInvalid={
+                          validation.touched.stream &&
+                          !!validation.errors.stream
+                        }
+                      />
+                      {validation.touched.stream &&
+                        validation.errors.stream && (
+                          <div className="text-danger">
+                            {validation.errors.stream}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
@@ -493,6 +518,20 @@ const StudentStrengthProgram: React.FC = () => {
                           </Button>
                         </div>
                       )}
+                    </div>
+                  </Col>
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Download Template</Label>
+                      <div>
+                        <a
+                          href={`${process.env.PUBLIC_URL}/templateFiles/BOS_MoM_DeptName_Aug24.docx`}
+                          download
+                          className="btn btn-primary btn-sm"
+                        >
+                          Excel Template
+                        </a>
+                      </div>
                     </div>
                   </Col>
                 </Row>

@@ -980,6 +980,7 @@ const Courses_With_Focus: React.FC = () => {
           );
         }
         resetForm();
+
         setIsEditMode(false);
         setEditId(null);
         handleListCWFClick();
@@ -1232,6 +1233,7 @@ const Courses_With_Focus: React.FC = () => {
                       <Label>Degree</Label>
                       <DegreeDropdown
                         programTypeId={selectedProgramType?.value}
+                        deptId={selectedDepartment?.value}
                         value={validation.values.degree}
                         onChange={(selectedOption) => {
                           validation.setFieldValue("degree", selectedOption);

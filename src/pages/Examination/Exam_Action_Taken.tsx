@@ -579,6 +579,7 @@ const Exam_Action_Taken: React.FC = () => {
                       <Label>Degree</Label>
                       <DegreeDropdown
                         programTypeId={selectedProgramType?.value}
+                        deptId={selectedDepartment?.value}
                         value={validation.values.degree}
                         onChange={(selectedOption) => {
                           validation.setFieldValue("degree", selectedOption);

@@ -926,7 +926,7 @@ const Guest_Lectures: React.FC = () => {
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
-                        Upload description of the activity
+                        Upload Report of the activity
                         <i
                           id="infoIcon"
                           className="bi bi-info-circle ms-2"

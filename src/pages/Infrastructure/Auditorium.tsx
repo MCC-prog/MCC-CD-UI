@@ -347,7 +347,7 @@ const tableRef = useRef<HTMLTableElement>(null);
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <Breadcrumb title="Auditorium" breadcrumbItem="Infrastructure" />
+          <Breadcrumb title="Infrastructure" breadcrumbItem="Auditorium"/>
           <Card>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
@@ -424,7 +424,7 @@ const tableRef = useRef<HTMLTableElement>(null);
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
-                        Upload Pdf
+                        Upload Photos
                         <i
                           id="infoIcon"
                           className="bi bi-info-circle ms-2"
@@ -437,7 +437,7 @@ const tableRef = useRef<HTMLTableElement>(null);
                         target="infoIcon"
                         toggle={toggleTooltip}
                       >
-                        Upload an PDF file. Max size 10MB.
+                        Current Year geo-tagged Photos Only.
                       </Tooltip>
                       <Input
                         className={`form-control ${

@@ -34,12 +34,14 @@ import "datatables.net-buttons/js/buttons.html5.js";
 import "jszip";
 import "pdfmake/build/pdfmake";
 import "pdfmake/build/vfs_fonts";
+import GetAllDepartmentDropdown from "Components/DropDowns/GetAllDepartmentDropdown";
 const api = new APIClient();
 
 const Number_OfBooks_Dept: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [noBooksData, setNoBooksData] = useState<any[]>([]);
   const [selectedStream, setSelectedStream] = useState<any>(null);
+  const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -102,6 +104,12 @@ const Number_OfBooks_Dept: React.FC = () => {
         stream: response.streamId
           ? { value: response.streamId.toString(), label: response.streamName }
           : null,
+        department: response.departmentId
+          ? {
+              value: response.departmentId.toString(),
+              label: response.departmentName || "",
+            }
+          : null,
         NumberOfBooks: response.noOfBooksInDeptLib || "",
       };
 
@@ -118,6 +126,12 @@ const Number_OfBooks_Dept: React.FC = () => {
           ? {
               value: String(mappedValues.stream.value),
               label: mappedValues.stream.label || "",
+            }
+          : null,
+        department: mappedValues.department
+          ? {
+              value: String(mappedValues.department.value),
+              label: mappedValues.department.label || "",
             }
           : null,
       });
@@ -173,12 +187,14 @@ const Number_OfBooks_Dept: React.FC = () => {
       academicYear: null as { value: string; label: string } | null,
       NumberOfBooks: "",
       stream: null as { value: string; label: string } | null,
+      department: null as { value: string; label: string } | null,
     },
     validationSchema: Yup.object({
       academicYear: Yup.object()
         .nullable()
         .required("Please select academic year"),
       stream: Yup.object().nullable().required("Please select stream"),
+      department: Yup.object().nullable().required("Please select department"),
       NumberOfBooks: Yup.number().required(
         "Please enter Number of books in the department library"
       ),
@@ -195,6 +211,10 @@ const Number_OfBooks_Dept: React.FC = () => {
           values.stream?.value ? String(values.stream.value) : ""
         );
         formData.append("noOfBooksInDeptLib", values.NumberOfBooks || "");
+        formData.append(
+          "departmentId",
+          values.department?.value ? String(values.department.value) : ""
+        );
 
         // If editing, include ID
         if (isEditMode && editId) {
@@ -341,6 +361,31 @@ const Number_OfBooks_Dept: React.FC = () => {
                         )}
                     </div>
                   </Col>
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Department</Label>
+                      <GetAllDepartmentDropdown
+                        value={validation.values.department}
+                        onChange={(selectedOption) => {
+                          validation.setFieldValue(
+                            "department",
+                            selectedOption
+                          );
+                          setSelectedDepartment(selectedOption);
+                        }}
+                        isInvalid={
+                          validation.touched.department &&
+                          !!validation.errors.department
+                        }
+                      />
+                      {validation.touched.department &&
+                        validation.errors.department && (
+                          <div className="text-danger">
+                            {validation.errors.department}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
 
                   <Col sm={4}>
                     <div className="mb-3">
@@ -410,7 +455,8 @@ const Number_OfBooks_Dept: React.FC = () => {
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
-                  <th>Stream</th>
+                  <th>School</th>
+                  <th>Department</th>
                   <th>Number of books in the department library</th>
                   <th>Actions</th>
                 </tr>
@@ -422,6 +468,7 @@ const Number_OfBooks_Dept: React.FC = () => {
                       <td>{index + 1}</td>
                       <td>{nob.academicYear}</td>
                       <td>{nob.streamName}</td>
+                      <td>{nob.departmentName}</td>
                       <td>{nob.noOfBooksInDeptLib}</td>
                       <td>
                         <button

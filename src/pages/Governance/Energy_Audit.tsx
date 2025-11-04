@@ -42,6 +42,8 @@ const EnergyAudit: React.FC = () => {
   const [filteredData, setFilteredData] = useState(energyAuditData);
 
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const fileRef1 = useRef<HTMLInputElement | null>(null);
+  const fileRef2 = useRef<HTMLInputElement | null>(null);
 
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
@@ -103,6 +105,8 @@ const EnergyAudit: React.FC = () => {
       const mappedValues = {
         academicYear: mapValueToLabel(response.academicYear, academicYearList),
         file: response.document?.energyAudit || null,
+        geoTaggedPhotos: response.document?.geoTaggedPhotos || null,
+        certificateFile: response.document?.certificateFile || null,
       };
 
       // Update Formik values
@@ -219,6 +223,8 @@ const EnergyAudit: React.FC = () => {
     initialValues: {
       academicYear: null as AcademicYearOption,
       file: null as File | string | null,
+      certificateFile: null as File | string | null,
+      geoTaggedPhotos: null as File | string | null,
     },
     validationSchema: Yup.object({
       academicYear: Yup.object({
@@ -228,6 +234,32 @@ const EnergyAudit: React.FC = () => {
         .nullable()
         .required("Please select academic year"),
       file: Yup.mixed()
+        .required("Please upload a file")
+        .test("fileSize", "File size is too large", (value: any) => {
+          if (typeof value === "string") return true;
+          return value && value.size <= 2 * 1024 * 1024; // 2MB limit
+        })
+        .test("fileType", "Unsupported file format", (value: any) => {
+          if (typeof value === "string") return true;
+          return (
+            value &&
+            ["application/pdf", "image/jpeg", "image/png"].includes(value.type)
+          );
+        }),
+      certificateFile: Yup.mixed()
+        .required("Please upload a file")
+        .test("fileSize", "File size is too large", (value: any) => {
+          if (typeof value === "string") return true;
+          return value && value.size <= 2 * 1024 * 1024; // 2MB limit
+        })
+        .test("fileType", "Unsupported file format", (value: any) => {
+          if (typeof value === "string") return true;
+          return (
+            value &&
+            ["application/pdf", "image/jpeg", "image/png"].includes(value.type)
+          );
+        }),
+      geoTaggedPhotos: Yup.mixed()
         .required("Please upload a file")
         .test("fileSize", "File size is too large", (value: any) => {
           if (typeof value === "string") return true;
@@ -254,6 +286,22 @@ const EnergyAudit: React.FC = () => {
         formData.append("file", new Blob([]), "empty.pdf");
       } else if (values.file) {
         formData.append("file", values.file);
+      }
+      if (isEditMode && typeof values.certificateFile === "string") {
+        // Pass an empty Blob instead of null
+        formData.append("certificateFile", new Blob([]), "empty.pdf");
+      } else if (isEditMode && values.certificateFile === null) {
+        formData.append("certificateFile", new Blob([]), "empty.pdf");
+      } else if (values.certificateFile) {
+        formData.append("file", values.certificateFile);
+      }
+      if (isEditMode && typeof values.geoTaggedPhotos === "string") {
+        // Pass an empty Blob instead of null
+        formData.append("geoTaggedPhotos", new Blob([]), "empty.pdf");
+      } else if (isEditMode && values.geoTaggedPhotos === null) {
+        formData.append("geoTaggedPhotos", new Blob([]), "empty.pdf");
+      } else if (values.geoTaggedPhotos) {
+        formData.append("geoTaggedPhotos", values.geoTaggedPhotos);
       }
 
       // If editing, include ID
@@ -452,6 +500,173 @@ const EnergyAudit: React.FC = () => {
                       )}
                     </div>
                   </Col>
+                  <Col sm={4}>
+                    <div className="mb-3">
+                      <Label htmlFor="formFile" className="form-label">
+                        Upload Green Audit Certificate
+                        <i
+                          id="infoIcon"
+                          className="bi bi-info-circle ms-2"
+                          style={{ cursor: "pointer", color: "#0d6efd" }}
+                        ></i>
+                      </Label>
+                      <Tooltip
+                        placement="right"
+                        isOpen={tooltipOpen}
+                        target="infoIcon"
+                        toggle={toggleTooltip}
+                      >
+                        Upload an PDF file. Max size 10MB.
+                      </Tooltip>
+                      <Input
+                        className={`form-control ${
+                          validation.touched.file && validation.errors.file
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        type="file"
+                        id="formFile"
+                        innerRef={fileRef1}
+                        onChange={(event) => {
+                          validation.setFieldValue(
+                            "certificateFile",
+                            event.currentTarget.files
+                              ? event.currentTarget.files[0]
+                              : null
+                          );
+                        }}
+                        disabled={isFileUploadDisabled} // Disable the button if a file exists
+                      />
+                      {validation.touched.certificateFile &&
+                        validation.errors.certificateFile && (
+                          <div className="text-danger">
+                            {validation.errors.certificateFile}
+                          </div>
+                        )}
+                      {/* Show a message if the file upload button is disabled */}
+                      {isFileUploadDisabled && (
+                        <div className="text-warning mt-2">
+                          Please remove the existing file to upload a new one.
+                        </div>
+                      )}
+                      {/* Only show the file name if it is a string (from the edit API) */}
+                      {typeof validation.values.certificateFile ===
+                        "string" && (
+                        <div className="mt-2 d-flex align-items-center">
+                          <span
+                            className="me-2"
+                            style={{ fontWeight: "bold", color: "green" }}
+                          >
+                            {validation.values.certificateFile}
+                          </span>
+                          <Button
+                            color="link"
+                            className="text-primary"
+                            onClick={() =>
+                              handleDownloadFile(
+                                validation.values.certificateFile as string
+                              )
+                            }
+                            title="Download File"
+                          >
+                            <i className="bi bi-download"></i>
+                          </Button>
+                          <Button
+                            color="link"
+                            className="text-danger"
+                            onClick={() => handleDeleteFile()}
+                            title="Delete File"
+                          >
+                            <i className="bi bi-trash"></i>
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </Col>
+
+                  <Col sm={4}>
+                    <div className="mb-3">
+                      <Label htmlFor="formFile" className="form-label">
+                        Upload Geo-tagged Photos
+                        <i
+                          id="infoIcon"
+                          className="bi bi-info-circle ms-2"
+                          style={{ cursor: "pointer", color: "#0d6efd" }}
+                        ></i>
+                      </Label>
+                      <Tooltip
+                        placement="right"
+                        isOpen={tooltipOpen}
+                        target="infoIcon"
+                        toggle={toggleTooltip}
+                      >
+                        Upload an PDF file. Max size 10MB.
+                      </Tooltip>
+                      <Input
+                        className={`form-control ${
+                          validation.touched.file && validation.errors.file
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        type="file"
+                        id="formFile"
+                        innerRef={fileRef2}
+                        onChange={(event) => {
+                          validation.setFieldValue(
+                            "geoTaggedPhotos",
+                            event.currentTarget.files
+                              ? event.currentTarget.files[0]
+                              : null
+                          );
+                        }}
+                        disabled={isFileUploadDisabled} // Disable the button if a file exists
+                      />
+                      {validation.touched.geoTaggedPhotos &&
+                        validation.errors.geoTaggedPhotos && (
+                          <div className="text-danger">
+                            {validation.errors.geoTaggedPhotos}
+                          </div>
+                        )}
+                      {/* Show a message if the file upload button is disabled */}
+                      {isFileUploadDisabled && (
+                        <div className="text-warning mt-2">
+                          Please remove the existing file to upload a new one.
+                        </div>
+                      )}
+                      {/* Only show the file name if it is a string (from the edit API) */}
+                      {typeof validation.values.geoTaggedPhotos ===
+                        "string" && (
+                        <div className="mt-2 d-flex align-items-center">
+                          <span
+                            className="me-2"
+                            style={{ fontWeight: "bold", color: "green" }}
+                          >
+                            {validation.values.geoTaggedPhotos}
+                          </span>
+                          <Button
+                            color="link"
+                            className="text-primary"
+                            onClick={() =>
+                              handleDownloadFile(
+                                validation.values.geoTaggedPhotos as string
+                              )
+                            }
+                            title="Download File"
+                          >
+                            <i className="bi bi-download"></i>
+                          </Button>
+                          <Button
+                            color="link"
+                            className="text-danger"
+                            onClick={() => handleDeleteFile()}
+                            title="Delete File"
+                          >
+                            <i className="bi bi-trash"></i>
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </Col>
                 </Row>
                 <Row>
                   <Col lg={12}>
@@ -491,8 +706,12 @@ const EnergyAudit: React.FC = () => {
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
-                  <th>Documents</th>
-                  <th className="d-none">FilePath</th> {/* Hidden */}
+                  <th>Energy Audit Report</th>
+                  <th>Geo Tagged Photos</th>
+                  <th>Certificate</th>
+                  <th className="d-none">FilePath(Energy Audit Report)</th> {/* Hidden */}
+                  <th className="d-none">FilePath(Geo Tagged Photos)</th> {/* Hidden */}
+                  <th className="d-none">FilePath(Certificate)</th> {/* Hidden */}
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -506,7 +725,17 @@ const EnergyAudit: React.FC = () => {
                         {energyAudit.document?.energyAudit ||
                           "No file uploaded"}
                       </td>
-                       <td className="d-none">{energyAudit?.filePath?.energyAudit || "N/A"}</td> {/* Hidden */}
+                      <td>
+                        {energyAudit.document?.geoTaggedPhotos ||
+                          "No file uploaded"}
+                      </td>
+                      <td>
+                        {energyAudit.document?.certificate || "No file uploaded"}
+                      </td>
+                      <td className="d-none">
+                        {energyAudit?.filePath?.energyAudit || "N/A"}
+                      </td>{" "}
+                      {/* Hidden */}
                       <td>
                         <button
                           className="btn btn-sm btn-warning me-2"

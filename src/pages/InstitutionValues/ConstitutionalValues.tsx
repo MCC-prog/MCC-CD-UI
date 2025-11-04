@@ -60,7 +60,7 @@ const ConstitutionalValues: React.FC = () => {
   const [associationOptions, setAssociationOptions] = useState<
     { value: string; label: string }[]
   >([]);
-  const tableRef = useRef<HTMLTableElement>(null);  
+  const tableRef = useRef<HTMLTableElement>(null);
   useEffect(() => {
     const fetchAssociations = async () => {
       try {
@@ -401,13 +401,13 @@ const ConstitutionalValues: React.FC = () => {
       }
     },
   });
-      useEffect(() => {
+  useEffect(() => {
     if (activityData.length === 0) return; // wait until data is loaded
 
     const table = $("#id").DataTable({
       destroy: true, // destroy existing instance if re-rendered
-      scrollX: true, 
-       autoWidth: false, 
+      scrollX: true,
+      autoWidth: false,
       dom: "Bfrtip",
       buttons: [
         {
@@ -440,7 +440,7 @@ const ConstitutionalValues: React.FC = () => {
     return () => {
       table.destroy(); // clean up
     };
-  }, [activityData]); 
+  }, [activityData]);
 
   return (
     <React.Fragment>
@@ -695,7 +695,7 @@ const ConstitutionalValues: React.FC = () => {
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
-                        Upload file
+                        Upload Report
                       </Label>
                       <Input
                         className={`form-control ${
@@ -771,6 +771,20 @@ const ConstitutionalValues: React.FC = () => {
                         )}
                     </div>
                   </Col>
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Download Template</Label>
+                      <div>
+                        <a
+                          href={`${process.env.PUBLIC_URL}/templateFiles/BOS_MoM_DeptName_Aug24.docx`}
+                          download
+                          className="btn btn-primary btn-sm"
+                        >
+                         Template
+                        </a>
+                      </div>
+                    </div>
+                  </Col>
                 </Row>
                 <Row>
                   <Col lg={12}>
@@ -803,13 +817,7 @@ const ConstitutionalValues: React.FC = () => {
             List Constitutional Values
           </ModalHeader>
           <ModalBody>
-            <Table
-              striped
-              bordered
-              hover
-              id="id"
-              innerRef={tableRef}
-            >
+            <Table striped bordered hover id="id" innerRef={tableRef}>
               <thead className="table-dark">
                 <tr>
                   <th>#</th>
@@ -834,7 +842,10 @@ const ConstitutionalValues: React.FC = () => {
                       <td>{activity.departmentName}</td>
                       <td>{activity.associationName}</td>
                       <td>{activity.eventObjective}</td>
-                       <td className="d-none">{activity?.filePath?.Institutional || "N/A"}</td> {/* Hidden */}
+                      <td className="d-none">
+                        {activity?.filePath?.Institutional || "N/A"}
+                      </td>{" "}
+                      {/* Hidden */}
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button

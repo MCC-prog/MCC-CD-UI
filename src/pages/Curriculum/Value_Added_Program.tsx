@@ -24,6 +24,7 @@ import {
   ModalHeader,
   Row,
   Table,
+  Tooltip,
 } from "reactstrap";
 import * as Yup from "yup";
 import { APIClient } from "../../helpers/api_helper";
@@ -52,11 +53,16 @@ const Value_Added_Program: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
   const [filteredData, setFilteredData] = useState(vapData);
-  const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
-
+  // const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
+  const [isValueAddedCourseUploadDisabled, setIsValueAddedCourseUploadDisabled] = useState(false);
+  const [isCourseBrochureUploadDisabled, setIsCourseBrochureUploadDisabled] = useState(false);
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const fileRef1 = useRef<HTMLInputElement | null>(null);
 
   const tableRef = useRef<HTMLTableElement>(null);
+
+   const [tooltipOpen, setTooltipOpen] = useState(false);
+    const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
 
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -139,9 +145,18 @@ const Value_Added_Program: React.FC = () => {
         label: year.display,
       }));
 
+      const semesterNoOptions = SEMESTER_NO_OPTIONS;
+
       // Map API response to Formik values
       const mappedValues = {
         academicYear: mapValueToLabel(response.academicYear, academicYearList),
+        semesterType: response.semType
+          ? { value: response.semType, label: response.semType.toUpperCase() }
+          : null,
+        semesterNo: mapValueToLabel(
+          String(response.semesterNo),
+          semesterNoOptions
+        ) as { value: string; label: string } | null,
         stream: response.streamId
           ? { value: response.streamId.toString(), label: response.streamName }
           : null,
@@ -155,14 +170,15 @@ const Value_Added_Program: React.FC = () => {
         noOfCredits: response.noOfCredits || "",
         startDate: response.startDate ? response.startDate : "",
         endDate: response.endDate ? response.endDate : "",
-        studentName: response.studentName || "",
-        registerNumber: response.registerNo || "",
+        // studentName: response.studentName || "",
+        // registerNumber: response.registerNo || "",
         courseTitle: response.courseTitle || "",
         NumberOfStudentsEnrl: response.noOfStudentsEnrolled || "",
         NumberOfStudentsCompleted: response.noOfStudentsCompleted || "",
         resourcePerson: response.resourcePerson || "",
         hostingInstOrg: response.organization || "",
         file: response.documents?.valueAddedCourse || null,
+        file1: response.documents?.courseBrochure || null,
       };
 
       // Update Formik values
@@ -172,6 +188,12 @@ const Value_Added_Program: React.FC = () => {
           ? {
               value: String(mappedValues.academicYear.value),
               label: mappedValues.academicYear.label || "",
+            }
+          : null,
+        semesterNo: mappedValues.semesterNo
+          ? {
+              ...mappedValues.semesterNo,
+              value: String(mappedValues.semesterNo.value),
             }
           : null,
         stream: mappedValues.stream
@@ -188,8 +210,8 @@ const Value_Added_Program: React.FC = () => {
           : null,
         otherDepartment: mappedValues.otherDepartment || "",
         noOfCredits: mappedValues.noOfCredits || "",
-        studentName: mappedValues.studentName || "",
-        registerNumber: mappedValues.registerNumber || "",
+        // studentName: response.studentName || "",
+        // registerNumber: response.registerNo || "",
         courseTitle: mappedValues.courseTitle || "",
         NumberOfStudentsEnrl: mappedValues.NumberOfStudentsEnrl || "",
         NumberOfStudentsCompleted: mappedValues.NumberOfStudentsCompleted || "",
@@ -198,6 +220,8 @@ const Value_Added_Program: React.FC = () => {
       });
       setIsEditMode(true);
       setEditId(id);
+      setIsValueAddedCourseUploadDisabled(!!response.documents?.valueAddedCourse);
+      setIsCourseBrochureUploadDisabled(!!response.documents?.courseBrochure);
       toggleModal();
     } catch (error) {
       console.error("Error fetching BOS data by ID:", error);
@@ -272,18 +296,24 @@ const Value_Added_Program: React.FC = () => {
 
   // Handle file deletion
   // Clear the file from the form and show success message
-  const handleDeleteFile = async () => {
+  const handleDeleteFile = async (p0: string, docType: string) => {
     try {
       // Call the delete API
       const response = await api.delete(
-        `/valueAddedCourse/deleteNewProgramDocument?valueAddedCourseId=${editId}`,
+        `/valueAddedCourse/deleteNewProgramDocument?valueAddedCourseId=${editId}&docType=${docType}`,
         ""
       );
+       toast.success(response.message || "File deleted successfully!");
       // Show success message
-      toast.success(response.message || "File deleted successfully!");
-      // Remove the file from the form
-      validation.setFieldValue("file", null); // Clear the file from Formik state
-      setIsFileUploadDisabled(false); // Enable the file upload button
+      if (docType === "valueAddedCourse") {
+        validation.setFieldValue("file", null);
+        setIsValueAddedCourseUploadDisabled(false); // Re-enable only Value Added Course upload
+        if (fileRef.current) fileRef.current.value = "";
+      } else if (docType === "courseBrochure") {
+        validation.setFieldValue("file1", null);
+        setIsCourseBrochureUploadDisabled(false); // Re-enable only Course Brochure upload
+        if (fileRef1.current) fileRef1.current.value = "";
+      }
     } catch (error) {
       // Show error message
       toast.error("Failed to delete the file. Please try again.");
@@ -299,8 +329,8 @@ const Value_Added_Program: React.FC = () => {
       otherDepartment: "",
       noOfCredits: "",
       startDate: "",
-      studentName: "",
-      registerNumber: "",
+      // studentName: "",
+      // registerNumber: "",
       courseTitle: "",
       NumberOfStudentsEnrl: "",
       NumberOfStudentsCompleted: "",
@@ -308,6 +338,9 @@ const Value_Added_Program: React.FC = () => {
       resourcePerson: "",
       hostingInstOrg: "",
       file: null as File | string | null,
+      file1: null as File | string | null,
+      semesterType: null as { value: string; label: string } | null,
+      semesterNo: null as { value: string; label: string } | null,
     },
     validationSchema: Yup.object({
       academicYear: Yup.object<{ value: string; label: string }>()
@@ -341,9 +374,14 @@ const Value_Added_Program: React.FC = () => {
         .test("is-valid-date", "Invalid end date", (value) =>
           moment(value, "DD/MM/YYYY", true).isValid()
         ),
-
-      studentName: Yup.string().required("Please enter student name"),
-      registerNumber: Yup.string().required("Please enter register number"),
+      semesterType: Yup.object<{ value: string; label: string }>()
+        .nullable()
+        .required("Please select semester type"),
+      semesterNo: Yup.object<{ value: string; label: string }>()
+        .nullable()
+        .required("Please select semester number"),
+      // studentName: Yup.string().required("Please enter student name"),
+      // registerNumber: Yup.string().required("Please enter register number"),
       courseTitle: Yup.string().required("Please enter course title"),
       NumberOfStudentsEnrl: Yup.number()
         .typeError("Please enter a valid number")
@@ -361,7 +399,7 @@ const Value_Added_Program: React.FC = () => {
         "fileValidation",
         "Please upload a valid Excel file",
         function (value) {
-          if (isFileUploadDisabled) return true;
+          if (isValueAddedCourseUploadDisabled) return true;
 
           if (!value) {
             return this.createError({ message: "Please upload a file" });
@@ -373,8 +411,6 @@ const Value_Added_Program: React.FC = () => {
               message: "File size is too large (max 2MB)",
             });
           }
-
-          // ✅ Allowed MIME types for Excel
           const allowedTypes = [
             "application/vnd.ms-excel", // .xls
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
@@ -389,6 +425,30 @@ const Value_Added_Program: React.FC = () => {
           return true;
         }
       ),
+      file1: Yup.mixed().test(
+             "fileValidation",
+             "Please upload a valid file",
+             function (value) {
+               // Skip validation if the file upload is disabled (file exists)
+               if (isCourseBrochureUploadDisabled) {
+                 return true;
+               }
+               // Perform validation if the file upload is enabled (file doesn't exist)
+               if (!value) {
+                 return this.createError({ message: "Please upload a file" });
+               }
+               // Check file size (2MB limit)
+               if (value instanceof File && value.size > 2 * 1024 * 1024) {
+                 return this.createError({ message: "File size is too large" });
+               }
+               // Check file type
+               const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
+               if (value instanceof File && !allowedTypes.includes(value.type)) {
+                 return this.createError({ message: "Unsupported file format" });
+               }
+               return true;
+             }
+           ),
     }),
     onSubmit: async (values, { resetForm }) => {
       // Create FormData object
@@ -400,8 +460,10 @@ const Value_Added_Program: React.FC = () => {
       formData.append("noOfCredits", values.noOfCredits || "");
       formData.append("startDate", values.startDate || "");
       formData.append("endDate", values.endDate || "");
-      formData.append("studentName", values.studentName || "");
-      formData.append("registerNo", values.registerNumber || "");
+      formData.append("semType", values.semesterType?.value || "");
+      formData.append("semesterNo", values.semesterNo?.value || "");
+      // formData.append("studentName", values.studentName || "");
+      // formData.append("registerNo", values.registerNumber || "");
       formData.append("courseTitle", values.courseTitle || "");
       formData.append(
         "noOfStudentsEnrolled",
@@ -420,19 +482,37 @@ const Value_Added_Program: React.FC = () => {
 
       if (isEditMode && typeof values.file === "string") {
         formData.append(
-          "excel",
+          "valueAddedCourse",
           new Blob([], { type: "application/pdf" }),
           "empty.pdf"
         );
       } else if (isEditMode && values.file === null) {
         formData.append(
-          "excel",
+          "valueAddedCourse",
           new Blob([], { type: "application/pdf" }),
           "empty.pdf"
         );
       } else if (values.file) {
-        formData.append("excel", values.file);
+        formData.append("valueAddedCourse", values.file);
       }
+
+
+      if (isEditMode && typeof values.file1 === "string") {
+        formData.append(
+          "courseBrochure",
+          new Blob([], { type: "application/pdf" }),
+          "empty.pdf"
+        );
+      } else if (isEditMode && values.file1 === null) {
+        formData.append(
+          "courseBrochure",
+          new Blob([], { type: "application/pdf" }),
+          "empty.pdf"
+        );
+      } else if (values.file1) {
+        formData.append("courseBrochure", values.file1);
+      }
+      
 
       try {
         if (isEditMode && editId) {
@@ -455,6 +535,9 @@ const Value_Added_Program: React.FC = () => {
         resetForm();
         if (fileRef.current) {
           fileRef.current.value = ""; // Clear the file input
+        }
+         if (fileRef1.current) {
+          fileRef1.current.value = ""; // Clear the file input
         }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
@@ -561,7 +644,7 @@ const Value_Added_Program: React.FC = () => {
 
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>Stream </Label>
+                      <Label>School</Label>
                       <StreamDropdown
                         value={validation.values.stream}
                         onChange={(selectedOption) => {
@@ -640,7 +723,7 @@ const Value_Added_Program: React.FC = () => {
                       </div>
                     </Col>
                   )}
-                  <Col lg={4}>
+                  {/* <Col lg={4}>
                     <div className="mb-3">
                       <Label>Student name</Label>
                       <Input
@@ -696,6 +779,39 @@ const Value_Added_Program: React.FC = () => {
                           </div>
                         )}
                     </div>
+                  </Col> */}
+
+                  <Col lg={8}>
+                    <SemesterDropdowns
+                      semesterTypeValue={validation.values.semesterType}
+                      semesterNoValue={validation.values.semesterNo}
+                      onSemesterTypeChange={(selectedOption) =>
+                        validation.setFieldValue("semesterType", selectedOption)
+                      }
+                      onSemesterNoChange={(selectedOption) =>
+                        validation.setFieldValue("semesterNo", selectedOption)
+                      }
+                      isSemesterTypeInvalid={
+                        validation.touched.semesterType &&
+                        !!validation.errors.semesterType
+                      }
+                      isSemesterNoInvalid={
+                        validation.touched.semesterNo &&
+                        !!validation.errors.semesterNo
+                      }
+                      semesterTypeError={
+                        validation.touched.semesterType
+                          ? validation.errors.semesterType
+                          : null
+                      }
+                      semesterNoError={
+                        validation.touched.semesterNo
+                          ? validation.errors.semesterNo
+                          : null
+                      }
+                      semesterTypeTouched={!!validation.touched.semesterType}
+                      semesterNoTouched={!!validation.touched.semesterNo}
+                    />
                   </Col>
 
                   <Col lg={4}>
@@ -890,7 +1006,7 @@ const Value_Added_Program: React.FC = () => {
 
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>Hosting institution/ organization</Label>
+                      <Label>Collaborating institution/ organization</Label>
                       <Input
                         type="text"
                         className={`form-control ${
@@ -906,7 +1022,7 @@ const Value_Added_Program: React.FC = () => {
                             e.target.value
                           )
                         }
-                        placeholder="Enter Course title"
+                        placeholder="Enter Collaborating organization"
                       />
                       {validation.touched.hostingInstOrg &&
                         validation.errors.hostingInstOrg && (
@@ -948,7 +1064,7 @@ const Value_Added_Program: React.FC = () => {
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
-                        Upload ValueAddedCourse
+                        Upload Value Added Course Details
                       </Label>
                       <Input
                         className={`form-control ${
@@ -968,7 +1084,7 @@ const Value_Added_Program: React.FC = () => {
                               : null
                           );
                         }}
-                        disabled={isFileUploadDisabled} // Disable the button if a file exists
+                        disabled={isValueAddedCourseUploadDisabled} // Disable the button if a file exists
                       />
                       {validation.touched.file && validation.errors.file && (
                         <div className="text-danger">
@@ -976,7 +1092,7 @@ const Value_Added_Program: React.FC = () => {
                         </div>
                       )}
                       {/* Show a message if the file upload button is disabled */}
-                      {isFileUploadDisabled && (
+                      {isValueAddedCourseUploadDisabled && (
                         <div className="text-warning mt-2">
                           Please remove the existing file to upload a new one.
                         </div>
@@ -1005,13 +1121,108 @@ const Value_Added_Program: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
-                            onClick={() => handleDeleteFile()}
+                            onClick={() => handleDeleteFile(validation.values.file as string, "valueAddedCourse")}
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>
                           </Button>
                         </div>
                       )}
+                    </div>
+                  </Col>
+                    <Col sm={4}>
+                    <div className="mb-3">
+                      <Label htmlFor="formFile" className="form-label">
+                        Upload Course Brochure
+                         <i
+                          id="infoIcon"
+                          className="bi bi-info-circle ms-2"
+                          style={{ cursor: "pointer", color: "#0d6efd" }}
+                        ></i>
+                      </Label>
+                          <Tooltip
+                        placement="right"
+                        isOpen={tooltipOpen}
+                        target="infoIcon"
+                        toggle={toggleTooltip}
+                      >
+                        Upload an PDF file. Max size 10MB.
+                      </Tooltip>
+                      <Input
+                        className={`form-control ${
+                          validation.touched.file1 && validation.errors.file1
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        type="file"
+                        id="formFile"
+                        innerRef={fileRef1}
+                        onChange={(event) => {
+                          validation.setFieldValue(
+                            "file1",
+                            event.currentTarget.files
+                              ? event.currentTarget.files[0]
+                              : null
+                          );
+                        }}
+                        disabled={isCourseBrochureUploadDisabled} // Disable the button if a file exists
+                      />
+                      {validation.touched.file1 && validation.errors.file1 && (
+                        <div className="text-danger">
+                          {validation.errors.file1}
+                        </div>
+                      )}
+                      {/* Show a message if the file upload button is disabled */}
+                      {isCourseBrochureUploadDisabled && (
+                        <div className="text-warning mt-2">
+                          Please remove the existing file to upload a new one.
+                        </div>
+                      )}
+                      {/* Only show the file name if it is a string (from the edit API) */}
+                      {typeof validation.values.file1 === "string" && (
+                        <div className="mt-2 d-flex align-items-center">
+                          <span
+                            className="me-2"
+                            style={{ fontWeight: "bold", color: "green" }}
+                          >
+                            {validation.values.file1}
+                          </span>
+                          <Button
+                            color="link"
+                            className="text-primary"
+                            onClick={() =>
+                              handleDownloadFile(
+                                validation.values.file1 as string
+                              )
+                            }
+                            title="Download File"
+                          >
+                            <i className="bi bi-download"></i>
+                          </Button>
+                          <Button
+                            color="link"
+                            className="text-danger"
+                            onClick={() => handleDeleteFile(validation.values.file as string, "courseBrochure")}
+                            title="Delete File"
+                          >
+                            <i className="bi bi-trash"></i>
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </Col>
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Download Template</Label>
+                      <div>
+                        <a
+                          href={`${process.env.PUBLIC_URL}/templateFiles/BOS_MoM_DeptName_Aug24.docx`}
+                          download
+                          className="btn btn-primary btn-sm"
+                        >
+                          Value Added Template
+                        </a>
+                      </div>
                     </div>
                   </Col>
                 </Row>
@@ -1066,10 +1277,10 @@ const Value_Added_Program: React.FC = () => {
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
-                  <th>Stream Name</th>
+                  <th>School Name</th>
                   <th>Department Name</th>
-                  <th>Student Name</th>
-                  <th>Register No</th>
+                  <th>Semester No</th>
+                  <th>Semester Type</th>
                   <th>Course Title</th>
                   <th>No of Students Enrolled</th>
                   <th>No of Students Completed</th>
@@ -1078,7 +1289,8 @@ const Value_Added_Program: React.FC = () => {
                   <th>Resource Person</th>
                   <th>Organization</th>
                   <th>No. of Credits</th>
-                  <th>File Path</th>
+                  <th>File Path of valueAddedCourse</th>
+                  <th>File Path of courseBrochure</th>
                 </tr>
               </thead>
               <tbody>
@@ -1087,10 +1299,10 @@ const Value_Added_Program: React.FC = () => {
                     <tr key={vap.bosDataId}>
                       <td>{index + 1}</td>
                       <td>{vap.academicYear}</td>
-                      <td>{vap.streamName}</td>
+                      <td>{vap.schoolName}</td>
                       <td>{vap.departmentName}</td>
-                      <td>{vap.studentName}</td>
-                      <td>{vap.registerNo}</td>
+                      <td>{vap.semesterNo}</td>
+                      <td>{vap.semesterType}</td>
                       <td>{vap.courseTitle}</td>
                       <td>{vap.noOfStudentsEnrolled}</td>
                       <td>{vap.noOfStudentsCompleted}</td>
@@ -1100,6 +1312,7 @@ const Value_Added_Program: React.FC = () => {
                       <td>{vap.organization}</td>
                       <td>{vap.noOfCredits}</td>
                       <td>{vap.filePath?.valueAddedCourse || "N/A"}</td>
+                      <td>{vap.filePath?.courseBrochure || "N/A"}</td>
                     </tr>
                   ))
                 ) : (
@@ -1124,8 +1337,8 @@ const Value_Added_Program: React.FC = () => {
                   <th>#</th>
                   <th>Academic Year</th>
                   <th>Department Name</th>
-                  <th>Student Name</th>
-                  <th>Register Name</th>
+                  <th>Semester No</th>
+                  <th>Semester Type</th>
                   <th>Course Title</th>
                   <th>No of students enrolled</th>
                   <th>No of students completed</th>
@@ -1139,8 +1352,8 @@ const Value_Added_Program: React.FC = () => {
                       <td>{index + 1}</td>
                       <td>{vap.academicYear}</td>
                       <td>{vap.departmentName}</td>
-                      <td>{vap.studentName}</td>
-                      <td>{vap.registerNo}</td>
+                      <td>{vap.semesterNo}</td>
+                      <td>{vap.semType}</td>
                       <td>{vap.courseTitle}</td>
                       <td>{vap.noOfStudentsEnrolled}</td>
                       <td>{vap.noOfStudentsCompleted}</td>

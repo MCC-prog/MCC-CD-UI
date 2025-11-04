@@ -524,7 +524,7 @@ const Softwares: React.FC = () => {
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
-                        Upload File
+                        Upload Scanned Bills
                       </Label>
                       <Input
                         className={`form-control ${

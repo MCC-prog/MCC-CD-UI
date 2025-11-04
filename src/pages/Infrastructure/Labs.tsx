@@ -316,7 +316,7 @@ const Labs: React.FC = () => {
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <Breadcrumb title="Placement" breadcrumbItem="Class Rooms" />
+          <Breadcrumb title="Infrastructure" breadcrumbItem="Labs" />
           <Card>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
@@ -389,7 +389,7 @@ const Labs: React.FC = () => {
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
-                        Upload Pdf
+                        Upload Photos
                       </Label>
                       <Input
                         className={`form-control ${

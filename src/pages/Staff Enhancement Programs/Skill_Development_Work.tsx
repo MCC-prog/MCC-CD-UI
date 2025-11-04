@@ -492,40 +492,12 @@ const Skill_Development_Work: React.FC = () => {
         <Container fluid>
           <Breadcrumb
             title="Staff Enhancement Programs"
-            breadcrumbItem="Skill Development Workshops"
+            breadcrumbItem="Skill Development Workshop"
           />
           <Card>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
                 <Row>
-                  <Col lg={4}>
-                    <div className="mb-3">
-                      <Label>Faculty name</Label>
-                      <Input
-                        type="text"
-                        className={`form-control ${
-                          validation.touched.facultyName &&
-                          validation.errors.facultyName
-                            ? "is-invalid"
-                            : ""
-                        }`}
-                        value={validation.values.facultyName}
-                        onChange={(e) =>
-                          validation.setFieldValue(
-                            "facultyName",
-                            e.target.value
-                          )
-                        }
-                        placeholder="Enter Faculty name"
-                      />
-                      {validation.touched.facultyName &&
-                        validation.errors.facultyName && (
-                          <div className="text-danger">
-                            {validation.errors.facultyName}
-                          </div>
-                        )}
-                    </div>
-                  </Col>
                   {/* Academic Year Dropdown */}
                   <Col lg={4}>
                     <div className="mb-3">
@@ -636,6 +608,34 @@ const Skill_Development_Work: React.FC = () => {
                       </div>
                     </Col>
                   )}
+                    <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Faculty name</Label>
+                      <Input
+                        type="text"
+                        className={`form-control ${
+                          validation.touched.facultyName &&
+                          validation.errors.facultyName
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        value={validation.values.facultyName}
+                        onChange={(e) =>
+                          validation.setFieldValue(
+                            "facultyName",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Enter Faculty name"
+                      />
+                      {validation.touched.facultyName &&
+                        validation.errors.facultyName && (
+                          <div className="text-danger">
+                            {validation.errors.facultyName}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
 
                   <Col lg={4}>
                     <div className="mb-3">
@@ -793,7 +793,7 @@ const Skill_Development_Work: React.FC = () => {
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
                         Upload Certificate of Completion/Participation of Skill
-                        Development Workshops
+                        Development Workshop
                       </Label>
                       <Input
                         className={`form-control ${
@@ -895,9 +895,9 @@ const Skill_Development_Work: React.FC = () => {
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
-                  <th>Faculty name</th>
                   <th>School</th>
                   <th>Department</th>
+                   <th>Faculty name</th>
                   <th>Title of Skill Development Workshops</th>
                   <th>Start date</th>
                   <th>End date</th>
@@ -912,10 +912,10 @@ const Skill_Development_Work: React.FC = () => {
                   currentRows.map((bos, index) => (
                     <tr key={bos.id}>
                       <td>{indexOfFirstRow + index + 1}</td>
-                      <td>{bos.facultyName}</td>
                       <td>{bos.year}</td>
                       <td>{bos.streamName}</td>
                       <td>{bos.departmentName}</td>
+                      <td>{bos.facultyName}</td>
                       <td>{bos.title}</td>
                       <td>{bos.startDate}</td>
                       <td>{bos.endDate}</td>

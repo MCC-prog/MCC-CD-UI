@@ -52,8 +52,8 @@ const Research_Guides = () => {
   // State variable for managing the modal for listing BOS
   const [isModalOpen, setIsModalOpen] = useState(false);
   // State variable for managing search term and pagination
- const tableRef = useRef<HTMLTableElement>(null);
-    const fileRef = useRef<HTMLInputElement | null>(null);
+  const tableRef = useRef<HTMLTableElement>(null);
+  const fileRef = useRef<HTMLInputElement | null>(null);
   const [filteredData, setFilteredData] = useState(researchGuideData);
 
   // Toggle the modal for listing BOS
@@ -73,6 +73,7 @@ const Research_Guides = () => {
       otherDepartment: "",
       guideName: "",
       guideAffiliation: "",
+      status: null as { value: string; label: string } | null,
       numberOfStudents: "",
       studentDetails: [] as {
         name: string;
@@ -104,6 +105,9 @@ const Research_Guides = () => {
       ),
       guideName: Yup.string().required("Please enter guide name"),
       guideAffiliation: Yup.string().required("Please enter guide affiliation"),
+      status: Yup.object<{ value: string; label: string }>()
+            .nullable()
+            .required("Please select Status"),
       numberOfStudents: Yup.number()
         .typeError("Please enter a valid number")
         .min(1, "Number of students must be at least 1")
@@ -380,6 +384,9 @@ const Research_Guides = () => {
         otherDepartment: "", // Add default value for otherDepartment
         uploadLetter: response.document?.letter || null, // File uploads are not pre-filled
         studentDetails: response.studentList || [], // Map student list
+        status: response.status
+          ? { value: response.status, label: response.status }
+          : null,
       };
 
       // Update Formik values
@@ -398,6 +405,12 @@ const Research_Guides = () => {
           ? {
               ...mappedValues.department,
               value: String(mappedValues.department.value),
+            }
+          : null,
+        status: mappedValues.status
+          ? {
+              ...mappedValues.status,
+              value: String(mappedValues.status.value),
             }
           : null,
       });
@@ -471,13 +484,13 @@ const Research_Guides = () => {
     toggleModal();
     fetchResearchGuidesData();
   };
-    useEffect(() => {
+  useEffect(() => {
     if (researchGuideData.length === 0) return; // wait until data is loaded
 
     const table = $("#researchGuideId").DataTable({
       destroy: true, // destroy existing instance if re-rendered
-      scrollX: true, 
-       autoWidth: false, 
+      scrollX: true,
+      autoWidth: false,
       dom: "Bfrtip",
       buttons: [
         {
@@ -511,7 +524,6 @@ const Research_Guides = () => {
       table.destroy(); // clean up
     };
   }, [researchGuideData]);
-
 
   return (
     <React.Fragment>
@@ -685,6 +697,38 @@ const Research_Guides = () => {
                         validation.errors.guideAffiliation && (
                           <div className="text-danger">
                             {validation.errors.guideAffiliation}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Status</Label>
+                      <Input
+                        type="select"
+                        value={validation.values.status?.value || ""}
+                        onChange={(e) =>
+                          validation.setFieldValue("status", {
+                            value: e.target.value,
+                            label: e.target.value,
+                          })
+                        }
+                        className={`form-control ${
+                          validation.touched.status &&
+                          validation.errors.status
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                      >
+                        <option value="">Select Status</option>
+                        <option value="Awarded">Awarded</option>
+                        <option value="Ongoing">Ongoing</option>
+                      </Input>
+                      {validation.touched.status &&
+                        validation.errors.status && (
+                          <div className="text-danger">
+                            {validation.errors.status}
                           </div>
                         )}
                     </div>
@@ -1073,7 +1117,10 @@ const Research_Guides = () => {
                       <td>{rg.guideName}</td>
                       <td>{rg.guidesAffiliation}</td>
                       <td>{rg.noOfStudents}</td>
-                      <td className="d-none">{rg?.filePath?.letter || "N/A"}</td> {/* Hidden */}
+                      <td className="d-none">
+                        {rg?.filePath?.letter || "N/A"}
+                      </td>{" "}
+                      {/* Hidden */}
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button

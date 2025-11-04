@@ -58,7 +58,7 @@ const Books: React.FC = () => {
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
   // State variables for managing selected options in dropdowns
   const [selectedStream, setSelectedStream] = useState<any>(null);
-  const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
+  // const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
   const tableRef = useRef<HTMLTableElement>(null);
@@ -148,17 +148,17 @@ const Books: React.FC = () => {
         stream: response.streamId
           ? { value: response.streamId.toString(), label: response.streamName }
           : null,
-        department: response.departmentId
-          ? {
-              value: response.departmentId.toString(),
-              label: response.departmentName,
-            }
-          : null,
+        // department: response.departmentId
+        //   ? {
+        //       value: response.departmentId.toString(),
+        //       label: response.departmentName,
+        //     }
+        //   : null,
         noOfBooks: response.noOfBooks || "",
         file: response.file?.Book || null,
       };
       const streamOption = mapValueToLabel(response.streamId, []); // Replace [] with stream options array if available
-      const departmentOption = mapValueToLabel(response.departmentId, []); // Replace [] with department options array if available
+      // const departmentOption = mapValueToLabel(response.departmentId, []); // Replace [] with department options array if available
 
       // Update Formik values
       validation.setValues({
@@ -172,17 +172,17 @@ const Books: React.FC = () => {
         stream: mappedValues.stream
           ? { ...mappedValues.stream, value: String(mappedValues.stream.value) }
           : null,
-        department: mappedValues.department
-          ? {
-              ...mappedValues.department,
-              value: String(mappedValues.department.value),
-            }
-          : null,
+        // department: mappedValues.department
+        //   ? {
+        //       ...mappedValues.department,
+        //       value: String(mappedValues.department.value),
+        //     }
+        //   : null,
         noOfBooks: mappedValues.noOfBooks ? String(mappedValues.noOfBooks) : "",
         file: mappedValues.file || null,
       });
       setSelectedStream(streamOption);
-      setSelectedDepartment(departmentOption);
+      // setSelectedDepartment(departmentOption);
 
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
@@ -280,7 +280,7 @@ const Books: React.FC = () => {
       academicYear: null as { value: string; label: string } | null,
       noOfBooks: "",
       stream: null as { value: string; label: string } | null,
-      department: null as { value: string; label: string } | null,
+      // department: null as { value: string; label: string } | null,
       file: null as File | string | null,
     },
     validationSchema: Yup.object({
@@ -313,14 +313,14 @@ const Books: React.FC = () => {
         .nullable()
         .required("Please select academic year"),
       stream: Yup.object().nullable().required("Please select stream"),
-      department: Yup.object().nullable().required("Please select department"),
+      // department: Yup.object().nullable().required("Please select department"),
     }),
     onSubmit: async (values, { resetForm }) => {
       try {
         const formData = new FormData();
         formData.append("academicYear", values.academicYear?.value || "");
         formData.append("streamId", values.stream?.value || "");
-        formData.append("departmentId", values.department?.value || "");
+        // formData.append("departmentId", values.department?.value || "");
         formData.append("noOfBooks", values.noOfBooks || "");
         if (isEditMode && typeof values.file === "string") {
           // Pass an empty PDF instead of null
@@ -452,8 +452,6 @@ const Books: React.FC = () => {
                         onChange={(selectedOption) => {
                           validation.setFieldValue("stream", selectedOption);
                           setSelectedStream(selectedOption);
-                          validation.setFieldValue("department", null);
-                          setSelectedDepartment(null);
                         }}
                         isInvalid={
                           validation.touched.stream &&
@@ -470,7 +468,7 @@ const Books: React.FC = () => {
                   </Col>
 
                   {/* Department Dropdown */}
-                  <Col lg={4}>
+                  {/* <Col lg={4}>
                     <div className="mb-3">
                       <Label>Department</Label>
                       <DepartmentDropdown
@@ -494,7 +492,7 @@ const Books: React.FC = () => {
                           </div>
                         )}
                     </div>
-                  </Col>
+                  </Col> */}
 
                   <Col lg={4}>
                     <div className="mb-3">
@@ -532,7 +530,7 @@ const Books: React.FC = () => {
                         open={tooltipOpen}
                         onClose={() => setTooltipOpen(false)}
                         onOpen={() => setTooltipOpen(true)}
-                        title={<span>Upload file. Max size 10MB.</span>}
+                        title={<span>Only For Current Academic Year</span>}
                         arrow
                       >
                         <i
@@ -609,6 +607,20 @@ const Books: React.FC = () => {
                       )}
                     </div>
                   </Col>
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Download Template</Label>
+                      <div>
+                        <a
+                          href={`${process.env.PUBLIC_URL}/templateFiles/BOS_MoM_DeptName_Aug24.docx`}
+                          download
+                          className="btn btn-primary btn-sm"
+                        >
+                          Excel Template
+                        </a>
+                      </div>
+                    </div>
+                  </Col>
                 </Row>
                 <Row>
                   <Col lg={12}>
@@ -645,7 +657,7 @@ const Books: React.FC = () => {
                   <th>#</th>
                   <th>Academic Year </th>
                   <th>School </th>
-                  <th>Department</th>
+                  {/* <th>Department</th> */}
                   <th>No. of Books </th>
                   <th className="d-none">FilePath</th>
 
@@ -659,7 +671,7 @@ const Books: React.FC = () => {
                       <td>{index + 1}</td>
                       <td>{cds.academicYear}</td>
                       <td>{cds.streamName}</td>
-                      <td>{cds.departmentName}</td>
+                      {/* <td>{cds.departmentName}</td> */}
                       <td>{cds.noOfBooks}</td>
                       <td className="d-none">{cds.filePath.Book || "N/A"}</td>
 

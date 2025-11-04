@@ -32,6 +32,7 @@ import "datatables.net-buttons/js/buttons.print.js";
 import "jszip";
 import "pdfmake/build/pdfmake";
 import "pdfmake/build/vfs_fonts";
+import { Tooltip } from "reactstrap";
 
 const api = new APIClient();
 
@@ -48,21 +49,13 @@ const New_Programs_Introduced: React.FC = () => {
   const [filteredData, setFilteredData] = useState(bosData);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
-  const [filters, setFilters] = useState({
-    academicYear: "",
-    semesterType: "",
-    semesterNo: "",
-    stream: "",
-    department: "",
-    programType: "",
-    program: "",
-    yearOfIntroduction: "",
-    percentage: "",
-  });
+ const [isMomUploadDisabled, setIsMomUploadDisabled] = useState(false);
+   const [isSyllabusUploadDisabled, setIsSyllabusUploadDisabled] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
+    const [tooltipOpen, setTooltipOpen] = useState(false);
+    const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
 
   const fileRef = useRef<HTMLInputElement | null>(null);
   const sylRef = useRef<HTMLInputElement | null>(null);
@@ -84,24 +77,7 @@ const New_Programs_Introduced: React.FC = () => {
     setFilteredData(filtered);
   };
 
-  // Handle column-specific filters
-  const handleFilterChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    column: string
-  ) => {
-    const value = e.target.value.toLowerCase();
-    const updatedFilters = { ...filters, [column]: value };
-    setFilters(updatedFilters);
 
-    const filtered = bosData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
 
   // Calculate the paginated data
   const indexOfLastRow = currentPage * rowsPerPage;
@@ -273,6 +249,8 @@ const New_Programs_Introduced: React.FC = () => {
       setSelectedDegree(degreeOption);
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
+      setIsMomUploadDisabled(!!response.documents?.mom);
+      setIsSyllabusUploadDisabled(!!response.documents?.syllabus);
       toggleModal();
     } catch (error) {
       console.error("Error fetching New Program Introduced data by ID:", error);
@@ -360,10 +338,13 @@ const New_Programs_Introduced: React.FC = () => {
       toast.success(response.message || "File deleted successfully!");
       if (docType === "mom") {
         validation.setFieldValue("file", null);
+        setIsMomUploadDisabled(false); // Re-enable only MOM upload
+        if (fileRef.current) fileRef.current.value = "";
       } else if (docType === "syllabus") {
         validation.setFieldValue("syllabusFile", null);
+        setIsSyllabusUploadDisabled(false); // Re-enable only Syllabus upload
+        if (sylRef.current) sylRef.current.value = "";
       }
-      setIsFileUploadDisabled(false); // Enable the file upload button
     } catch (error) {
       // Show error message
       toast.error("Failed to delete the file. Please try again.");
@@ -414,7 +395,7 @@ const New_Programs_Introduced: React.FC = () => {
         "Please upload a valid file",
         function (value) {
           // Skip validation if the file upload is disabled (file exists)
-          if (isFileUploadDisabled) {
+          if (isMomUploadDisabled) {
             return true;
           }
           // Perform validation if the file upload is enabled (file doesn't exist)
@@ -438,7 +419,7 @@ const New_Programs_Introduced: React.FC = () => {
         "Please upload a valid file",
         function (value) {
           // Skip validation if the file upload is disabled (file exists)
-          if (isFileUploadDisabled) {
+          if (isSyllabusUploadDisabled) {
             return true;
           }
           // Perform validation if the file upload is enabled (file doesn't exist)
@@ -789,6 +770,7 @@ const New_Programs_Introduced: React.FC = () => {
                       <Label>Degree</Label>
                       <DegreeDropdown
                         programTypeId={selectedProgramType?.value}
+                        deptId={selectedDepartment?.value}
                         value={validation.values.degree}
                         onChange={(selectedOption) => {
                           validation.setFieldValue("degree", selectedOption);
@@ -878,40 +860,60 @@ const New_Programs_Introduced: React.FC = () => {
 
                   <Col sm={4}>
                     <div className="mb-3">
-                      <Label htmlFor="formFile" className="form-label">
+                      <Label htmlFor="momFile" className="form-label">
                         Upload MOM
+                        <i
+                          id="infoIconMom"
+                          className="bi bi-info-circle ms-2"
+                          style={{ cursor: "pointer", color: "#0d6efd" }}
+                        ></i>
                       </Label>
+
+                      <Tooltip
+                        placement="right"
+                        isOpen={tooltipOpen}
+                        target="infoIconMom"
+                        toggle={toggleTooltip}
+                      >
+                        Upload a PDF file. Max size 10MB.
+                      </Tooltip>
+
                       <Input
+                        type="file"
+                        id="momFile"
+                        innerRef={fileRef}
                         className={`form-control ${
                           validation.touched.file && validation.errors.file
                             ? "is-invalid"
                             : ""
                         }`}
-                        type="file"
-                        innerRef={fileRef}
-                        id="formFile"
+                        disabled={isMomUploadDisabled}
                         onChange={(event) => {
-                          validation.setFieldValue(
-                            "file",
-                            event.currentTarget.files
-                              ? event.currentTarget.files[0]
-                              : null
-                          );
+                          const file = event.currentTarget.files
+                            ? event.currentTarget.files[0]
+                            : null;
+                          validation.setFieldValue("file", file);
+                          if (typeof validation.values.file === "string") {
+                            setIsMomUploadDisabled(true);
+                          } else {
+                            setIsMomUploadDisabled(false);
+                          }
                         }}
-                        disabled={isFileUploadDisabled} // Disable the button if a file exists
                       />
+
                       {validation.touched.file && validation.errors.file && (
                         <div className="text-danger">
                           {validation.errors.file}
                         </div>
                       )}
-                      {/* Show a message if the file upload button is disabled */}
-                      {isFileUploadDisabled && (
-                        <div className="text-warning mt-2">
-                          Please remove the existing file to upload a new one.
-                        </div>
-                      )}
-                      {/* Only show the file name if it is a string (from the edit API) */}
+
+                       {isMomUploadDisabled &&
+                        typeof validation.values.file === "string" && (
+                          <div className="text-warning mt-2">
+                            Please remove the existing file to upload a new one.
+                          </div>
+                        )}
+
                       {typeof validation.values.file === "string" && (
                         <div className="mt-2 d-flex align-items-center">
                           <span
@@ -951,42 +953,63 @@ const New_Programs_Introduced: React.FC = () => {
                   </Col>
                   <Col sm={4}>
                     <div className="mb-3">
-                      <Label htmlFor="formFile" className="form-label">
+                      <Label htmlFor="syllabusFile" className="form-label">
                         Upload Syllabus
+                        <i
+                          id="infoIconSyllabus"
+                          className="bi bi-info-circle ms-2"
+                          style={{ cursor: "pointer", color: "#0d6efd" }}
+                        ></i>
                       </Label>
+
+                      <Tooltip
+                        placement="right"
+                        isOpen={tooltipOpen}
+                        target="infoIconSyllabus"
+                        toggle={toggleTooltip}
+                      >
+                        Upload a PDF file. Max size 10MB.
+                      </Tooltip>
+
                       <Input
+                        type="file"
+                        id="syllabusFile"
+                        innerRef={sylRef}
                         className={`form-control ${
                           validation.touched.syllabusFile &&
                           validation.errors.syllabusFile
                             ? "is-invalid"
                             : ""
                         }`}
-                        type="file"
-                        id="formFile"
-                        innerRef={sylRef}
+                        disabled={isSyllabusUploadDisabled}
                         onChange={(event) => {
-                          validation.setFieldValue(
-                            "syllabusFile",
-                            event.currentTarget.files
-                              ? event.currentTarget.files[0]
-                              : null
-                          );
+                          const file = event.currentTarget.files
+                            ? event.currentTarget.files[0]
+                            : null;
+                          validation.setFieldValue("syllabusFile", file);
+                           if (typeof validation.values.syllabusFile === "string") {
+                            setIsSyllabusUploadDisabled(true);
+                          } else {
+                            setIsSyllabusUploadDisabled(false);
+                          }
                         }}
-                        disabled={isFileUploadDisabled} // Disable the button if a file exists
                       />
+
                       {validation.touched.syllabusFile &&
                         validation.errors.syllabusFile && (
                           <div className="text-danger">
                             {validation.errors.syllabusFile}
                           </div>
                         )}
-                      {/* Show a message if the file upload button is disabled */}
-                      {isFileUploadDisabled && (
-                        <div className="text-warning mt-2">
-                          Please remove the existing file to upload a new one.
-                        </div>
-                      )}
-                      {/* Only show the file name if it is a string (from the edit API) */}
+
+                     {isSyllabusUploadDisabled &&
+                        typeof validation.values.syllabusFile === "string" && (
+                          <div className="text-warning mt-2">
+                            Please remove the existing file to upload a new one.
+                          </div>
+                        )}
+
+
                       {typeof validation.values.syllabusFile === "string" && (
                         <div className="mt-2 d-flex align-items-center">
                           <span

@@ -55,7 +55,9 @@ const Career_Counseling_Guidance: React.FC = () => {
   const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
   const [tooltipOpen, setTooltipOpen] = useState(false);
+  const [tooltipOpenGuidance, setTooltipOpenGuidance] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
+  const toggleTooltipGuidance = () => setTooltipOpenGuidance(!tooltipOpenGuidance);
   const [filters, setFilters] = useState({
     academicYear: "",
     stream: "",
@@ -156,7 +158,7 @@ const Career_Counseling_Guidance: React.FC = () => {
           : "",
         noOfParticipants: response.noOfParticipants || "",
         trainerResource: response.resourcePersonDetails || "",
-        outcomes: response.outcomes || "",
+        // outcomes: response.outcomes || "",
       };
       const streamOption = mapValueToLabel(response.streamId, []); // Replace [] with stream options array if available
       const departmentOption = mapValueToLabel(response.departmentId, []); // Replace [] with department options array if available
@@ -185,7 +187,7 @@ const Career_Counseling_Guidance: React.FC = () => {
           : "",
         noOfParticipants: response.noOfParticipants || "",
         trainerResource: response.resourcePersonDetails || "",
-        outcomes: response.outcomes || "",
+        // outcomes: response.outcomes || "",
         careerCounseling: response.documents.careerCounseling || null, // Handle file upload
       });
       setSelectedStream(streamOption);
@@ -293,7 +295,7 @@ const Career_Counseling_Guidance: React.FC = () => {
       date: "",
       noOfParticipants: "",
       trainerResource: "",
-      outcomes: "",
+      // outcomes: "",
       stream: null as { value: string; label: string } | null,
       department: null as { value: string; label: string } | null,
       courses: [] as { value: string; label: string }[],
@@ -312,7 +314,7 @@ const Career_Counseling_Guidance: React.FC = () => {
       trainerResource: Yup.string().required(
         "Please enter trainer/resource person details"
       ),
-      outcomes: Yup.string().required("Please enter outcomes"),
+      // outcomes: Yup.string().required("Please enter outcomes"),
       department: Yup.object().nullable().required("Please select department"),
       courses: Yup.array()
         .of(
@@ -357,7 +359,7 @@ const Career_Counseling_Guidance: React.FC = () => {
         formData.append("departmentId", values.department?.value || "");
         formData.append("areaOfGuidance", values.areaOfGuidance || "");
         formData.append("resourcePersonDetails", values.trainerResource || "");
-        formData.append("outcomes", values.outcomes || "");
+        // formData.append("outcomes", values.outcomes || "");
         const formattedDate = moment(values.date, "YYYY-MM-DD").format(
           "DD/MM/YYYY"
         );
@@ -579,9 +581,22 @@ const Career_Counseling_Guidance: React.FC = () => {
 
                   <Col sm={4}>
                     <div className="mb-3">
-                      <Label htmlFor="formFile" className="form-label">
+                       <Label htmlFor="formFile" className="form-label">
                         Area of Guidance
+                        <i
+                          id="infoIconGuidance"
+                          className="bi bi-info-circle ms-2"
+                          style={{ cursor: "pointer", color: "#0d6efd" }}
+                        ></i>
                       </Label>
+                      <Tooltip
+                        placement="right"
+                        isOpen={tooltipOpenGuidance}
+                        target="infoIconGuidance"
+                        toggle={toggleTooltipGuidance}
+                      >
+                        Professional & Competitive Exams,Career Related,Higher Education
+                      </Tooltip>
                       <Input
                         className={`form-control ${
                           validation.touched.areaOfGuidance &&
@@ -597,7 +612,7 @@ const Career_Counseling_Guidance: React.FC = () => {
                             e.target.value
                           )
                         }
-                        placeholder="Enter full time"
+                        placeholder="Enter Area of guidance"
                         value={validation.values.areaOfGuidance}
                       />
                       {validation.touched.areaOfGuidance &&
@@ -631,7 +646,7 @@ const Career_Counseling_Guidance: React.FC = () => {
                           ).format("DD/MM/YYYY"); // Convert to dd/mm/yyyy
                           validation.setFieldValue("date", formattedDate);
                         }}
-                        placeholder="Enter date"
+                        placeholder="Enter Date"
                         className={
                           validation.touched.date && validation.errors.date
                             ? "is-invalid"
@@ -666,7 +681,7 @@ const Career_Counseling_Guidance: React.FC = () => {
                             e.target.value
                           )
                         }
-                        placeholder="Enter part time"
+                        placeholder="Enter No. of Participants/Attendees"
                         value={validation.values.noOfParticipants}
                       />
                       {validation.touched.noOfParticipants &&
@@ -698,7 +713,7 @@ const Career_Counseling_Guidance: React.FC = () => {
                             e.target.value
                           )
                         }
-                        placeholder="Enter guest faculty"
+                        placeholder="Enter Trainer/Resource Person details"
                         value={validation.values.trainerResource}
                       />
                       {validation.touched.trainerResource &&
@@ -710,7 +725,7 @@ const Career_Counseling_Guidance: React.FC = () => {
                     </div>
                   </Col>
 
-                  <Col sm={4}>
+                  {/* <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
                         Outcomes
@@ -737,7 +752,7 @@ const Career_Counseling_Guidance: React.FC = () => {
                           </div>
                         )}
                     </div>
-                  </Col>
+                  </Col> */}
 
                   <Col sm={4}>
                     <div className="mb-3">
@@ -887,7 +902,7 @@ const Career_Counseling_Guidance: React.FC = () => {
                   <th>Date</th>
                   <th>No. of Participants/Attendees</th>
                   <th>Trainer/Resource Person details</th>
-                  <th>Outcomes</th>
+                  {/* <th>Outcomes</th> */}
                   <th className="d-none">File</th>
                   <th>Actions</th>
                 </tr>
@@ -916,7 +931,7 @@ const Career_Counseling_Guidance: React.FC = () => {
                       <td>{bos.date}</td>
                       <td>{bos.noOfParticipants}</td>
                       <td>{bos.resourcePersonDetails}</td>
-                      <td>{bos.outcomes}</td>
+                      {/* <td>{bos.outcomes}</td> */}
                       <td className="d-none">
                         {bos.filePath.careerCounseling || "N/A"}
                       </td>

@@ -287,6 +287,7 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
     { value: "CEE", label: "CEE" },
     { value: "ALUMNI", label: "ALUMNI" },
     { value: "CLDT", label: "CLDT" },
+    { value: "NA", label: "-NA-" },
   ];
 
   const TargetAudience = [
@@ -518,7 +519,7 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <Breadcrumb title="MOUS" breadcrumbItem="Industry Collaboration" />
+          <Breadcrumb title="Industry Collaboration" breadcrumbItem="MOUS" />
           <Card>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>

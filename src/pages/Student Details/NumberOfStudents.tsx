@@ -54,6 +54,11 @@ const NumberOfStudents: React.FC = () => {
   });
   const tableRef = useRef<HTMLTableElement>(null);
 
+  const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
+
+  const fileRefUg = useRef<HTMLInputElement | null>(null);
+  const fileRefPg = useRef<HTMLInputElement | null>(null);
+
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toLowerCase();
@@ -83,6 +88,63 @@ const NumberOfStudents: React.FC = () => {
 
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
+  };
+
+  const handleDeleteFile = async () => {
+    try {
+      // Call the delete API
+      const response = await api.delete(
+        `/studentsEnrolled/deletestudentsEnrolledDocument?studentEnrolledId=${editId}`,
+        ""
+      );
+      // Show success message
+      toast.success(response.message || "File deleted successfully!");
+      // Remove the file from the form
+      validation.setFieldValue("file", null); // Clear the file from Formik state
+      setIsFileUploadDisabled(false); // Enable the file upload button
+    } catch (error) {
+      // Show error message
+      toast.error("Failed to delete the file. Please try again.");
+      console.error("Error deleting file:", error);
+    }
+  };
+
+  const handleDownloadFile = async (fileName: string) => {
+    if (fileName) {
+      try {
+        // Ensure you set responseType to 'blob' to handle binary data
+        const response = await axios.get(
+          `/studentsEnrolled/download/${fileName}`,
+          {
+            responseType: "blob",
+          }
+        );
+
+        // Create a Blob from the response data
+        const blob = new Blob([response], { type: "*/*" });
+
+        // Create a URL for the Blob
+        const url = window.URL.createObjectURL(blob);
+
+        // Create a temporary anchor element to trigger the download
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = fileName; // Set the file name for the download
+        document.body.appendChild(link);
+        link.click();
+
+        // Clean up the URL and remove the anchor element
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        toast.success("File downloaded successfully!");
+      } catch (error) {
+        toast.error("Failed to download MOM file. Please try again.");
+        console.error("Error downloading file:", error);
+      }
+    } else {
+      toast.error("No file available for download.");
+    }
   };
 
   // Fetch BOS data from the backend
@@ -149,6 +211,8 @@ const NumberOfStudents: React.FC = () => {
               value: String(mappedValues.academicYear.value),
             }
           : null,
+        ugFile: response.ugFile || null,
+        pgFile: response.pgFile || null,
       });
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
@@ -195,6 +259,8 @@ const NumberOfStudents: React.FC = () => {
     academicYear: { value: string; label: string } | null;
     NumberOfPg: string;
     NumberOfUg: string;
+    ugFile: File | string | null;
+    pgFile: File | string | null;
   }
 
   const validation = useFormik<FormValues>({
@@ -202,6 +268,8 @@ const NumberOfStudents: React.FC = () => {
       academicYear: null,
       NumberOfPg: "",
       NumberOfUg: "",
+      ugFile: null as File | string | null,
+      pgFile: null as File | string | null,
     },
     validationSchema: Yup.object({
       academicYear: Yup.object()
@@ -213,6 +281,71 @@ const NumberOfStudents: React.FC = () => {
         .required("Please select academic year"),
       NumberOfPg: Yup.string().required("Please enter PG"),
       NumberOfUg: Yup.string().required("Please enter UG"),
+
+      ugFile: Yup.mixed().test(
+        "fileValidation",
+        "Please upload a valid Excel file",
+        function (value) {
+          if (isFileUploadDisabled) return true;
+
+          if (!value) {
+            return this.createError({ message: "Please upload a file" });
+          }
+
+          // File size check (2MB)
+          if (value instanceof File && value.size > 2 * 1024 * 1024) {
+            return this.createError({
+              message: "File size is too large (max 2MB)",
+            });
+          }
+
+          // ✅ Allowed MIME types for Excel
+          const allowedTypes = [
+            "application/vnd.ms-excel", // .xls
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
+          ];
+
+          if (value instanceof File && !allowedTypes.includes(value.type)) {
+            return this.createError({
+              message: "Only Excel files are allowed",
+            });
+          }
+
+          return true;
+        }
+      ),
+      pgFile: Yup.mixed().test(
+        "fileValidation",
+        "Please upload a valid Excel file",
+        function (value) {
+          if (isFileUploadDisabled) return true;
+
+          if (!value) {
+            return this.createError({ message: "Please upload a file" });
+          }
+
+          // File size check (2MB)
+          if (value instanceof File && value.size > 2 * 1024 * 1024) {
+            return this.createError({
+              message: "File size is too large (max 2MB)",
+            });
+          }
+
+          // ✅ Allowed MIME types for Excel
+          const allowedTypes = [
+            "application/vnd.ms-excel", // .xls
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
+          ];
+
+          if (value instanceof File && !allowedTypes.includes(value.type)) {
+            return this.createError({
+              message: "Only Excel files are allowed",
+            });
+          }
+
+          return true;
+        }
+      ),
     }),
     onSubmit: async (values, { resetForm }) => {
       const payload = {
@@ -305,7 +438,7 @@ const NumberOfStudents: React.FC = () => {
         <Container fluid>
           <Breadcrumb
             title="Student Details"
-            breadcrumbItem="Number of Students Enrolled"
+            breadcrumbItem="Number of Students Enrolled(Categories - wise)"
           />
           <Card>
             <CardBody>
@@ -339,7 +472,7 @@ const NumberOfStudents: React.FC = () => {
 
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>UG</Label>
+                      <Label>Total count of UG</Label>
                       <Input
                         type="text"
                         className={`form-control ${
@@ -363,9 +496,80 @@ const NumberOfStudents: React.FC = () => {
                     </div>
                   </Col>
 
+                  <Col sm={4}>
+                    <div className="mb-3">
+                      <Label htmlFor="formFile" className="form-label">
+                        Upload Report of Ug
+                      </Label>
+                      <Input
+                        className={`form-control ${
+                          validation.touched.ugFile && validation.errors.ugFile
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        type="file"
+                        id="formFile"
+                        innerRef={fileRefUg}
+                        accept=".xls, .xlsx"
+                        onChange={(event) => {
+                          validation.setFieldValue(
+                            "ugFile",
+                            event.currentTarget.files
+                              ? event.currentTarget.files[0]
+                              : null
+                          );
+                        }}
+                        disabled={isFileUploadDisabled} // Disable the button if a file exists
+                      />
+                      {validation.touched.ugFile &&
+                        validation.errors.ugFile && (
+                          <div className="text-danger">
+                            {validation.errors.ugFile}
+                          </div>
+                        )}
+                      {/* Show a message if the file upload button is disabled */}
+                      {isFileUploadDisabled && (
+                        <div className="text-warning mt-2">
+                          Please remove the existing file to upload a new one.
+                        </div>
+                      )}
+                      {/* Only show the file name if it is a string (from the edit API) */}
+                      {typeof validation.values.ugFile === "string" && (
+                        <div className="mt-2 d-flex align-items-center">
+                          <span
+                            className="me-2"
+                            style={{ fontWeight: "bold", color: "green" }}
+                          >
+                            {validation.values.ugFile}
+                          </span>
+                          <Button
+                            color="link"
+                            className="text-primary"
+                            onClick={() =>
+                              handleDownloadFile(
+                                validation.values.ugFile as string
+                              )
+                            }
+                            title="Download File"
+                          >
+                            <i className="bi bi-download"></i>
+                          </Button>
+                          <Button
+                            color="link"
+                            className="text-danger"
+                            onClick={() => handleDeleteFile()}
+                            title="Delete File"
+                          >
+                            <i className="bi bi-trash"></i>
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </Col>
+
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>PG</Label>
+                      <Label>Total count of PG</Label>
                       <Input
                         type="text"
                         className={`form-control ${
@@ -386,6 +590,90 @@ const NumberOfStudents: React.FC = () => {
                             {validation.errors.NumberOfPg}
                           </div>
                         )}
+                    </div>
+                  </Col>
+                  <Col sm={4}>
+                    <div className="mb-3">
+                      <Label htmlFor="formFile" className="form-label">
+                        Upload Report of Pg
+                      </Label>
+                      <Input
+                        className={`form-control ${
+                          validation.touched.pgFile && validation.errors.pgFile
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        type="file"
+                        id="formFile"
+                        innerRef={fileRefPg}
+                        accept=".xls, .xlsx"
+                        onChange={(event) => {
+                          validation.setFieldValue(
+                            "pgFile",
+                            event.currentTarget.files
+                              ? event.currentTarget.files[0]
+                              : null
+                          );
+                        }}
+                        disabled={isFileUploadDisabled} // Disable the button if a file exists
+                      />
+                      {validation.touched.pgFile &&
+                        validation.errors.pgFile && (
+                          <div className="text-danger">
+                            {validation.errors.pgFile}
+                          </div>
+                        )}
+                      {/* Show a message if the file upload button is disabled */}
+                      {isFileUploadDisabled && (
+                        <div className="text-warning mt-2">
+                          Please remove the existing file to upload a new one.
+                        </div>
+                      )}
+                      {/* Only show the file name if it is a string (from the edit API) */}
+                      {typeof validation.values.pgFile === "string" && (
+                        <div className="mt-2 d-flex align-items-center">
+                          <span
+                            className="me-2"
+                            style={{ fontWeight: "bold", color: "green" }}
+                          >
+                            {validation.values.pgFile}
+                          </span>
+                          <Button
+                            color="link"
+                            className="text-primary"
+                            onClick={() =>
+                              handleDownloadFile(
+                                validation.values.pgFile as string
+                              )
+                            }
+                            title="Download File"
+                          >
+                            <i className="bi bi-download"></i>
+                          </Button>
+                          <Button
+                            color="link"
+                            className="text-danger"
+                            onClick={() => handleDeleteFile()}
+                            title="Delete File"
+                          >
+                            <i className="bi bi-trash"></i>
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </Col>
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Download Template</Label>
+                      <div>
+                        <a
+                          href={`${process.env.PUBLIC_URL}/templateFiles/BOS_MoM_DeptName_Aug24.docx`}
+                          download
+                          className="btn btn-primary btn-sm"
+                        >
+                          Excel Template
+                        </a>
+                      </div>
                     </div>
                   </Col>
                 </Row>
@@ -426,7 +714,9 @@ const NumberOfStudents: React.FC = () => {
                   <th>#</th>
                   <th>Academic Year</th>
                   <th>UG</th>
+                  <th>UG(file)</th>
                   <th>PG</th>
+                  <th>PG(file)</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -437,7 +727,9 @@ const NumberOfStudents: React.FC = () => {
                       <td>{index + 1}</td>
                       <td>{bos.academicYear}</td>
                       <td>{bos.ug}</td>
+                      <td>{bos.ugFile}</td>
                       <td>{bos.pg}</td>
+                      <td>{bos.pgFile}</td>
                       <td>
                         <button
                           className="btn btn-sm btn-warning me-2"

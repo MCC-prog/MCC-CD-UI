@@ -51,7 +51,8 @@ const Remedial_Classes: React.FC = () => {
   const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
   const [selectedProgramType, setSelectedProgramType] = useState<any>(null);
   const [selectedDegree, setSelectedDegree] = useState<any>(null);
-  const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
+  const [isAttendanceEntryFileUploadDisabled, setIsAttendanceEntryFileUploadDisabled] = useState(false);
+  const [isRemidialClassNoticeFileUploadDisabled, setIsRemidialClassNoticeFileUploadDisabled] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [remedialData, setRemedialData] = useState<any[]>([]);
   const [filteredData, setFilteredData] = useState(remedialData);
@@ -206,6 +207,7 @@ const Remedial_Classes: React.FC = () => {
         attendanceEntry: response.documents?.attendanceEntry || null,
         remidialClassNotice: response.documents?.remidialClassNotice || null,
         courseTitle: response.courseTitle || "",
+        NumberOfStudents: response.NumberOfStudents ?? "", // Add this line
       };
       const streamOption = mapValueToLabel(response.streamId, []); // Replace [] with stream options array if available
       const departmentOption = mapValueToLabel(response.departmentId, []); // Replace [] with department options array if available
@@ -228,6 +230,7 @@ const Remedial_Classes: React.FC = () => {
               value: String(mappedValues.semesterNo.value),
             }
           : null,
+        numberOfStudents: response.numberOfStudents ?? "", // Add this line
       });
       setSelectedStream(streamOption);
       setSelectedDepartment(departmentOption);
@@ -236,7 +239,8 @@ const Remedial_Classes: React.FC = () => {
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       // Disable the file upload button if a file exists
-      setIsFileUploadDisabled(!!response.documents?.attendanceEntry);
+      setIsAttendanceEntryFileUploadDisabled(!!response.documents?.attendanceEntry);
+      setIsRemidialClassNoticeFileUploadDisabled(!!response.documents?.remidialClassNotice);
       toggleModal();
     } catch (error) {
       console.error("Error fetching Remedial Classes data by ID:", error);
@@ -314,19 +318,27 @@ const Remedial_Classes: React.FC = () => {
   // Handle file deletion
   // Clear the file from the form and show success message
   const handleDeleteFile = async (
-    fieldName: "attendanceEntry" | "remidialClassNotice"
+    docType: "attendanceEntry" | "remidialClassNotice"
   ) => {
     try {
       // Call the delete API
       const response = await api.delete(
-        `/remidialClasses/deleteRemidialClassDocuments?remidialClassesId=${editId}`,
+        `/remidialClasses/deleteRemidialClassDocuments?remidialClassesId=${editId}&docType=${docType}`,
         ""
       );
       // Show success message
       toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
-      validation.setFieldValue(fieldName, null); // Clear the file from Formik state
-      setIsFileUploadDisabled(false); // Enable the file upload button
+      validation.setFieldValue(docType, null); // Clear the file from Formik state
+      if (docType === "attendanceEntry") {
+        validation.setFieldValue("attendanceEntry", null);
+        setIsAttendanceEntryFileUploadDisabled(false); // Re-enable only attendance entry upload
+        if (fileRef.current) fileRef.current.value = "";
+      } else if (docType === "remidialClassNotice") {
+        validation.setFieldValue("remidialClassNotice", null);
+        setIsRemidialClassNoticeFileUploadDisabled(false); // Re-enable only Remedial Class Notice upload
+        if (file2Ref.current) file2Ref.current.value = "";
+      }
     } catch (error) {
       // Show error message
       toast.error("Failed to delete the file. Please try again.");
@@ -345,6 +357,7 @@ const Remedial_Classes: React.FC = () => {
       degree: null as { value: string; label: string } | null,
       program: [] as { value: string; label: string }[],
       courseTitle: "",
+      numberOfStudents: "", // <-- Added field
       attendanceEntry: null as File | string | null,
       remidialClassNotice: null as File | string | null,
     },
@@ -364,16 +377,20 @@ const Remedial_Classes: React.FC = () => {
         .nullable()
         .required("Please select programType"),
       degree: Yup.object().nullable().required("Please select degree"),
+      courseTitle: Yup.string().required("Please select course title"),
       program: Yup.array()
         .min(1, "Please select at least one program")
         .required("Please select program"),
-      courseTitle: Yup.string().required("Please enter Course Titile"),
+      numberOfStudents: Yup.number()
+        .typeError("Please enter a valid number")
+        .required("Please enter number of students")
+        .min(1, "Number of students must be at least 1"),
       attendanceEntry: Yup.mixed().test(
         "fileValidation",
         "Please upload a valid file",
         function (value) {
           // Skip validation if the file upload is disabled (file exists)
-          if (isFileUploadDisabled) {
+          if (isAttendanceEntryFileUploadDisabled) {
             return true;
           }
           // Perform validation if the file upload is enabled (file doesn't exist)
@@ -397,7 +414,7 @@ const Remedial_Classes: React.FC = () => {
         "Please upload a valid file",
         function (value) {
           // Skip validation if the file upload is disabled (file exists)
-          if (isFileUploadDisabled) {
+          if (isRemidialClassNoticeFileUploadDisabled) {
             return true;
           }
           // Perform validation if the file upload is enabled (file doesn't exist)
@@ -435,6 +452,7 @@ const Remedial_Classes: React.FC = () => {
       );
       formData.append("courseTitle", values.courseTitle || "");
       formData.append("remidialClassId", editId || "");
+      formData.append("numberOfStudents", values.numberOfStudents || ""); // <-- Added line
 
       // Append the file
       // if (values.attendanceEntry) {
@@ -496,6 +514,8 @@ const Remedial_Classes: React.FC = () => {
         }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
+        setIsAttendanceEntryFileUploadDisabled(true); // Disable attendance entry file upload
+        setIsRemidialClassNoticeFileUploadDisabled(true); // Disable remedial class notice file upload
         // display the Remedial Classes List
         handleRemedialClick();
       } catch (error) {
@@ -722,6 +742,7 @@ const Remedial_Classes: React.FC = () => {
                       <Label>Degree</Label>
                       <DegreeDropdown
                         programTypeId={selectedProgramType?.value}
+                        deptId={selectedDepartment?.value || null}
                         value={validation.values.degree}
                         onChange={(selectedOption) => {
                           validation.setFieldValue("degree", selectedOption);
@@ -789,6 +810,34 @@ const Remedial_Classes: React.FC = () => {
                         )}
                     </div>
                   </Col>
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>No of students</Label>
+                      <Input
+                        type="number"
+                        className={`form-control ${
+                          validation.touched.numberOfStudents &&
+                          validation.errors.numberOfStudents
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        value={validation.values.numberOfStudents}
+                        onChange={(e) =>
+                          validation.setFieldValue(
+                            "numberOfStudents",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Enter Number Of Students"
+                      />
+                      {validation.touched.numberOfStudents &&
+                        validation.errors.numberOfStudents && (
+                          <div className="text-danger">
+                            {validation.errors.numberOfStudents}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
@@ -801,7 +850,9 @@ const Remedial_Classes: React.FC = () => {
                             ? "is-invalid"
                             : ""
                         }`}
+                         disabled={isAttendanceEntryFileUploadDisabled}
                         type="file"
+                         innerRef={fileRef}
                         id="attendanceEntry"
                         onChange={(event) => {
                           validation.setFieldValue(
@@ -810,8 +861,14 @@ const Remedial_Classes: React.FC = () => {
                               ? event.currentTarget.files[0]
                               : null
                           );
+                            if (typeof validation.values.attendanceEntry === "string") {
+                            setIsAttendanceEntryFileUploadDisabled(true);
+                          } else {
+                            setIsAttendanceEntryFileUploadDisabled(false);
+                          }
                         }}
-                        innerRef={fileRef}
+                        
+                       
                       />
                       {validation.touched.attendanceEntry &&
                         validation.errors.attendanceEntry && (
@@ -820,7 +877,7 @@ const Remedial_Classes: React.FC = () => {
                           </div>
                         )}
                       {/* Show a message if the file upload button is disabled */}
-                      {isFileUploadDisabled && (
+                      {isAttendanceEntryFileUploadDisabled &&  typeof validation.values.attendanceEntry === "string" && (
                         <div className="text-warning mt-2">
                           Please remove the existing file to upload a new one.
                         </div>
@@ -865,7 +922,7 @@ const Remedial_Classes: React.FC = () => {
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
-                        Upload Remedial Class Notice
+                        Upload Remedial Class Notice including TT
                       </Label>
                       <Input
                         className={`form-control ${
@@ -874,8 +931,10 @@ const Remedial_Classes: React.FC = () => {
                             ? "is-invalid"
                             : ""
                         }`}
+                        disabled={isRemidialClassNoticeFileUploadDisabled}
                         type="file"
                         id="remidialClassNotice"
+                        innerRef={file2Ref}
                         onChange={(event) => {
                           validation.setFieldValue(
                             "remidialClassNotice",
@@ -883,8 +942,13 @@ const Remedial_Classes: React.FC = () => {
                               ? event.currentTarget.files[0]
                               : null
                           );
+                          if (typeof validation.values.remidialClassNotice === "string") {
+                            setIsRemidialClassNoticeFileUploadDisabled(true);
+                          } else {
+                            setIsRemidialClassNoticeFileUploadDisabled(false);
+                          }
                         }}
-                        innerRef={file2Ref}
+                        
                       />
                       {validation.touched.remidialClassNotice &&
                         validation.errors.remidialClassNotice && (
@@ -893,7 +957,7 @@ const Remedial_Classes: React.FC = () => {
                           </div>
                         )}
                       {/* Show a message if the file upload button is disabled */}
-                      {isFileUploadDisabled && (
+                      {isRemidialClassNoticeFileUploadDisabled &&  typeof validation.values.remidialClassNotice === "string" && (
                         <div className="text-warning mt-2">
                           Please remove the existing file to upload a new one.
                         </div>
@@ -937,7 +1001,7 @@ const Remedial_Classes: React.FC = () => {
                       )}
                     </div>
                   </Col>
-                  <Col lg={4}>
+                  {/* <Col lg={4}>
                     <div className="mb-3">
                       <Label>Download Template</Label>
                       <div>
@@ -950,7 +1014,7 @@ const Remedial_Classes: React.FC = () => {
                         </a>
                       </div>
                     </div>
-                  </Col>
+                  </Col> */}
                 </Row>
 
                 <Row>

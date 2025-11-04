@@ -36,6 +36,7 @@ import "datatables.net-buttons/js/buttons.html5.js";
 import "jszip";
 import "pdfmake/build/pdfmake";
 import "pdfmake/build/vfs_fonts";
+import Select from "react-select";
 
 const api = new APIClient();
 
@@ -92,6 +93,20 @@ const Details_of_Programs_offered: React.FC = () => {
     return matchedOption ? matchedOption : { value, label: String(value) };
   };
 
+  const dropdownStyles = {
+    menu: (provided: any) => ({
+      ...provided,
+      overflowY: "auto", // Enable scrolling for additional options
+    }),
+    menuPortal: (base: any) => ({ ...base, zIndex: 9999 }), // Ensure the menu is above other elements
+  };
+
+    const ModeType = [
+    { value: "ONLINE", label: "ONLINE" },
+    { value: "OFFLINE", label: "OFFLINE" },
+    { value: "HYBRID", label: "HYBRID" },
+  ];
+
   // Handle edit action
   // Fetch the data for the selected BOS ID and populate the form fields
   const handleEdit = async (id: string) => {
@@ -133,19 +148,15 @@ const Details_of_Programs_offered: React.FC = () => {
             }
           : null,
         program: response.courses
-          ? (() => {
-              const entries = Object.entries(response.courses).map(
-                ([key, value]) => ({
-                  value: key,
-                  label: String(value),
-                })
-              );
-              return entries.length > 0 ? entries[0] : null;
-            })()
-          : null,
+          ? Object.entries(response.courses).map(([key, value]) => ({
+              value: key,
+              label: String(value),
+            }))
+          : [],
         agencyName: response.agencyName || "",
         numberOfStudent: response.noOfStudent || "",
         duration: response.duration || "",
+        mode: response.mode || null,
         file: response.mous?.mou || null,
       };
 
@@ -268,10 +279,11 @@ const Details_of_Programs_offered: React.FC = () => {
       department: null as { value: string; label: string } | null,
       programType: null as { value: string; label: string } | null,
       degree: null as { value: string; label: string } | null,
-      program: null as { value: string; label: string } | null,
+      program: [] as { value: string; label: string }[],
       agencyName: "",
       numberOfStudent: "",
       duration: "",
+      mode: null as { value: string; label: string } | null,
       file: null as string | null,
     },
     validationSchema: Yup.object({
@@ -288,9 +300,9 @@ const Details_of_Programs_offered: React.FC = () => {
         .nullable()
         .required("Please select program type"),
       degree: Yup.object().nullable().required("Please select degree"),
-      program: Yup.object<{ value: string; label: string }>()
-        .nullable()
-        .required("Please select program"),
+     program: Yup.array()
+            .min(1, "Please select at least one program")
+            .required("Please select programs"),
       agencyName: Yup.string().required("Please select Agency Name"),
       numberOfStudent: Yup.number()
         .typeError("Please enter a valid number")
@@ -298,6 +310,9 @@ const Details_of_Programs_offered: React.FC = () => {
         .max(100, "Percentage cannot be more than 100")
         .required("Please enter revision percentage"),
       duration: Yup.string().required("Please select Duration(in Month)"),
+      mode: Yup.object<{ value: string; label: string }>()
+        .nullable()
+        .required("Please select Mode"),
       file: Yup.mixed()
         .required("Please upload a file")
         .test("fileSize", "File size is too large", (value: any) => {
@@ -319,11 +334,12 @@ const Details_of_Programs_offered: React.FC = () => {
       formData.append("streamId", values.stream?.value || "");
       formData.append("departmentId", values.department?.value || "");
       formData.append("programTypeId", values.programType?.value || "");
-      formData.append("programId", values.degree?.value || "");
+       formData.append("programId", values.degree?.value || "");
       formData.append("courseId", "1,2");
       formData.append("agencyName", values.agencyName || "");
       formData.append("noOfStudent", values.numberOfStudent || "");
       formData.append("duration", values.duration || "");
+      formData.append("mode", values.mode?.value || "");
 
       // Append the file
       if (isEditMode && typeof values.file === "string") {
@@ -423,8 +439,8 @@ const Details_of_Programs_offered: React.FC = () => {
       <div className="page-content">
         <Container fluid>
           <Breadcrumb
-            title="Details of Program Offered/Courses Delivered In Collaboration with Industry"
-            breadcrumbItem="Industry Collaboration"
+            title="Industry Collaboration"
+            breadcrumbItem="Details of Program Offered/Courses Delivered In Collaboration with Industry"
           />
           <Card>
             <CardBody>
@@ -542,6 +558,7 @@ const Details_of_Programs_offered: React.FC = () => {
                       <Label>Degree</Label>
                       <DegreeDropdown
                         programTypeId={selectedProgramType?.value}
+                        deptId={selectedDepartment?.value}
                         value={validation.values.degree}
                         onChange={(selectedOption) => {
                           validation.setFieldValue("degree", selectedOption);
@@ -561,23 +578,14 @@ const Details_of_Programs_offered: React.FC = () => {
                         )}
                     </div>
                   </Col>
-                  <Col lg={4}>
+                <Col lg={4}>
                     <div className="mb-3">
                       <Label>Program</Label>
                       <ProgramDropdown
                         degreeId={selectedDegree?.value}
-                        value={
-                          validation.values.program
-                            ? [validation.values.program]
-                            : []
-                        }
+                        value={validation.values.program}
                         onChange={(selectedOptions) =>
-                          validation.setFieldValue(
-                            "program",
-                            selectedOptions.length > 0
-                              ? selectedOptions[0]
-                              : null
-                          )
+                          validation.setFieldValue("program", selectedOptions)
                         }
                         isInvalid={
                           validation.touched.program &&
@@ -587,7 +595,9 @@ const Details_of_Programs_offered: React.FC = () => {
                       {validation.touched.program &&
                         validation.errors.program && (
                           <div className="text-danger">
-                            {validation.errors.program}
+                            {Array.isArray(validation.errors.program)
+                              ? validation.errors.program.join(", ")
+                              : validation.errors.program}
                           </div>
                         )}
                     </div>
@@ -666,6 +676,36 @@ const Details_of_Programs_offered: React.FC = () => {
                         validation.errors.duration && (
                           <div className="text-danger">
                             {validation.errors.duration}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Mode Type</Label>
+                      <Select
+                        options={ModeType}
+                        value={validation.values.mode}
+                        onChange={(selectedOption) =>
+                          validation.setFieldValue(
+                            "mode",
+                            selectedOption
+                          )
+                        }
+                        placeholder="Select Staff Mode Type"
+                        styles={dropdownStyles}
+                        menuPortalTarget={document.body}
+                        className={
+                          validation.touched.mode &&
+                          validation.errors.mode
+                            ? "select-error"
+                            : ""
+                        }
+                      />
+                      {validation.touched.mode &&
+                        validation.errors.mode && (
+                          <div className="text-danger">
+                            {validation.errors.mode}
                           </div>
                         )}
                     </div>

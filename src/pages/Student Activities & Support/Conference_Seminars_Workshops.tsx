@@ -68,11 +68,12 @@ const Conference_Seminars_Workshops: React.FC = () => {
   const [selectedStream, setSelectedStream] = useState<any>(null);
   const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
   const [tooltipOpen, setTooltipOpen] = useState(false);
+  const [tooltipOpenLevel, setTooltipOpenLevel] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
+  const toggleTooltipLevel = () => setTooltipOpenLevel(!tooltipOpenLevel);
   const brochureRef = useRef<HTMLInputElement | null>(null);
   const conferenceRef = useRef<HTMLInputElement | null>(null);
   const tableRef = useRef<HTMLTableElement>(null);
-
 
   // Calculate the paginated data
   const indexOfLastRow = currentPage * rowsPerPage;
@@ -596,8 +597,26 @@ const Conference_Seminars_Workshops: React.FC = () => {
 
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>Level</Label>
+                      <Label htmlFor="formFile" className="form-label">
+                        Level
+                        <i
+                          id="infoIconLevel" // ✅ unique ID
+                          className="bi bi-info-circle ms-2"
+                          style={{ cursor: "pointer", color: "#0d6efd" }}
+                        ></i>
+                      </Label>
+
+                      <Tooltip
+                        placement="right"
+                        isOpen={tooltipOpenLevel}
+                        target="infoIconLevel" // ✅ match unique ID
+                        toggle={toggleTooltipLevel}
+                      >
+                        Institutional only for workshops.
+                      </Tooltip>
+
                       <Select
+                        id="formFile"
                         options={level}
                         value={validation.values.level}
                         onChange={(selectedOptions) =>
@@ -873,7 +892,7 @@ const Conference_Seminars_Workshops: React.FC = () => {
                         onChange={(e) =>
                           validation.setFieldValue("amount", e.target.value)
                         }
-                        placeholder="Enter industry experience"
+                        placeholder="Enter Funding Amount"
                       />
                       {validation.touched.amount &&
                         validation.errors.amount && (
@@ -976,7 +995,7 @@ const Conference_Seminars_Workshops: React.FC = () => {
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
-                        Upload Conference/Seminar/workshop
+                        Upload Report
                         <i
                           id="infoIcon"
                           className="bi bi-info-circle ms-2"
@@ -1064,20 +1083,20 @@ const Conference_Seminars_Workshops: React.FC = () => {
 
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>Download Collaboration/Funding agency</Label>
+                      <Label>Report Template</Label>
                       <div>
                         <a
                           href={`${process.env.PUBLIC_URL}/templateFiles/REPORT_DEPT_YEAR(1).docx`}
                           download
                           className="btn btn-primary btn-sm"
                         >
-                          Collaboration/Funding agency Template
+                           Template
                         </a>
                       </div>
                     </div>
                   </Col>
 
-                  <Col lg={4}>
+                  {/* <Col lg={4}>
                     <div className="mb-3">
                       <Label>Download Feedback Excel</Label>
                       <div>
@@ -1090,7 +1109,7 @@ const Conference_Seminars_Workshops: React.FC = () => {
                         </a>
                       </div>
                     </div>
-                  </Col>
+                  </Col> */}
                 </Row>
                 <Row>
                   <Col lg={12}>
@@ -1139,9 +1158,7 @@ const Conference_Seminars_Workshops: React.FC = () => {
                   <th>Funding</th>
                   <th>Amount</th>
                   <th className="d-none">Brochure (File Path)</th>
-                  <th className="d-none">
-                    Conference/Seminar/Workshop (File Path)
-                  </th>
+                  <th className="d-none">Report (File Path)</th>
                   <th>Actions</th>
                 </tr>
               </thead>

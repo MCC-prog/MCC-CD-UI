@@ -100,6 +100,7 @@ const PolicyDocument: React.FC = () => {
       // Map API response to Formik values
       const mappedValues = {
         academicYear: mapValueToLabel(response.academicYear, academicYearList),
+        policyName: response.policyName || "",
         file: response.document?.policy || null,
       };
 
@@ -221,6 +222,7 @@ const PolicyDocument: React.FC = () => {
   const validation = useFormik({
     initialValues: {
       academicYear: null as AcademicYearOption,
+      policyName: "",
       file: null as File | string | null,
     },
     validationSchema: Yup.object({
@@ -230,6 +232,7 @@ const PolicyDocument: React.FC = () => {
       })
         .nullable()
         .required("Please select academic year"),
+      policyName: Yup.string().required("Please select policy name"),
       file: Yup.mixed()
         .required("Please upload a file")
         .test("fileSize", "File size is too large", (value: any) => {
@@ -248,6 +251,7 @@ const PolicyDocument: React.FC = () => {
       const formData = new FormData();
 
       formData.append("academicYear", values.academicYear?.value || "");
+      formData.append("policyName", values.policyName);
 
       // Handle the file conditionally
       if (isEditMode && typeof values.file === "string") {
@@ -365,6 +369,48 @@ const PolicyDocument: React.FC = () => {
                   </Col>
                   <Col sm={4}>
                     <div className="mb-3">
+                      <Label htmlFor="policyName" className="form-label">
+                        Policy Name
+                      </Label>
+                      <Input
+                        type="select"
+                        name="policyName"
+                        id="policyName"
+                        value={validation.values.policyName || ""}
+                        onChange={(e) =>
+                          validation.setFieldValue("policyName", e.target.value)
+                        }
+                        className={
+                          validation.touched.policyName &&
+                          validation.errors?.policyName
+                            ? "is-invalid"
+                            : ""
+                        }
+                      >
+                        <option value="">Select Policy Name</option>
+                        <option value="Maintenance Policy">Maintenance Policy</option>
+                        <option value="Library Policy">Library Policy</option>
+                        <option value="Examination Policy">Examination Policy</option>
+                        <option value="Promotion Policy">Promotion Policy</option>
+                        <option value="Leave Policy">Leave Policy</option>
+                        <option value="Recruitment Policy">Recruitment Policy</option>
+                        <option value="IT Policy">IT Policy</option>
+                        <option value="Research Policy">Research Policy</option>
+                        <option value="Admission Policy">Admission Policy</option>
+                        <option value="MCCIIE Policy">MCCIIE Policy</option>
+                        <option value="Placement Policy">Placement Policy</option>
+
+                      </Input>
+                      {validation.touched.policyName &&
+                        validation.errors?.policyName && (
+                          <div className="text-danger">
+                            {validation.errors.policyName}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+                  <Col sm={4}>
+                    <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
                         Upload Policy Documents
                         <i
@@ -472,17 +518,12 @@ const PolicyDocument: React.FC = () => {
             List of Policy Documents
           </ModalHeader>
           <ModalBody>
-            <Table
-              striped
-              bordered
-              hover
-              id="policyId"
-              innerRef={tableRef}
-            >
+            <Table striped bordered hover id="policyId" innerRef={tableRef}>
               <thead className="table-dark">
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
+                  <th>Policy Name</th>
                   <th>Documents</th>
                   <th className="d-none">File Path</th> {/* Hidden */}
                   <th>Actions</th>
@@ -494,8 +535,12 @@ const PolicyDocument: React.FC = () => {
                     <tr key={policy.policyId}>
                       <td>{index + 1}</td>
                       <td>{policy.academicYear}</td>
+                      <td>{policy.policyName}</td>
                       <td>{policy.document?.policy || "No file uploaded"}</td>
-                      <td className="d-none">{policy?.filePath?.policy || "N/A"}</td> {/* Hidden */}
+                      <td className="d-none">
+                        {policy?.filePath?.policy || "N/A"}
+                      </td>{" "}
+                      {/* Hidden */}
                       <td>
                         <button
                           className="btn btn-sm btn-warning me-2"

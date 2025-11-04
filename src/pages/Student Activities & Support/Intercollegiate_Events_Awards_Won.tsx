@@ -370,7 +370,7 @@ const Intercollegiate_Events_Awards_Won: React.FC = () => {
         .nullable()
         .required("Please select department"),
       level: Yup.object().nullable().required("Please select level"),
-      actype: Yup.object().nullable().required("Please select academic type"),
+      actype: Yup.object().nullable().required("Please select type of activity"),
       awtype: Yup.object().nullable().required("Please select award type"),
       eventtype: Yup.object().nullable().required("Please select event type"),
       studentName: Yup.string().required("Please enter industry experience"),
@@ -973,14 +973,14 @@ const Intercollegiate_Events_Awards_Won: React.FC = () => {
 
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>Academic Type</Label>
+                      <Label>Type Of Activity</Label>
                       <Select
                         options={academicTypeAll}
                         value={validation.values.actype}
                         onChange={(selectedOptions) =>
                           validation.setFieldValue("actype", selectedOptions)
                         }
-                        placeholder="Select academic type"
+                        placeholder="Select type of activity"
                         styles={dropdownStyles}
                         menuPortalTarget={document.body}
                         className={
@@ -1202,6 +1202,20 @@ const Intercollegiate_Events_Awards_Won: React.FC = () => {
                       )}
                     </div>
                   </Col>
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Download </Label>
+                      <div>
+                        <a
+                          href={`${process.env.PUBLIC_URL}/templateFiles/YEAR_DeptorAssociation_EVENT.docx`}
+                          download
+                          className="btn btn-primary btn-sm"
+                        >
+                          Report Template
+                        </a>
+                      </div>
+                    </div>
+                  </Col>
                 </Row>
                 <Row>
                   <Col lg={12}>
@@ -1251,7 +1265,7 @@ const Intercollegiate_Events_Awards_Won: React.FC = () => {
                   <th>Student Name</th>
                   {/* Hidden fields */}
                   <th className="d-none">Register Number</th>
-                  <th className="d-none">Academic Type</th>
+                  <th className="d-none">Type Of Activity</th>
                   <th className="d-none">Award Type</th>
                   <th className="d-none">Student Image URL</th>
                   <th className="d-none">Participation Certificate URL</th>

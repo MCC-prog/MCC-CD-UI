@@ -8,6 +8,8 @@ import SemesterDropdowns from "Components/DropDowns/SemesterDropdowns";
 import StreamDropdown from "Components/DropDowns/StreamDropdown";
 import { ToastContainer } from "react-toastify";
 import { useFormik } from "formik";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Button,
@@ -23,6 +25,7 @@ import {
   ModalHeader,
   Row,
   Table,
+  Tooltip,
 } from "reactstrap";
 import * as Yup from "yup";
 import { APIClient } from "../../helpers/api_helper";
@@ -69,6 +72,9 @@ const Bos: React.FC = () => {
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   const tableRef = useRef<HTMLTableElement>(null);
+
+  const [tooltipOpen, setTooltipOpen] = useState(false);
+  const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
 
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -189,6 +195,7 @@ const Bos: React.FC = () => {
         conductedDate: response.yearOfIntroduction
           ? response.yearOfIntroduction
           : "",
+        introYear: response.introYear ? response.introYear : "",
         otherDepartment: "", // Add default value for otherDepartment
         file: response.documents?.mom || null,
       };
@@ -213,6 +220,10 @@ const Bos: React.FC = () => {
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();
+      // If a file exists, disable the file upload button
+      if (response.documents?.mom) {
+        setIsFileUploadDisabled(true);
+      }
     } catch (error) {
       console.error("Error fetching BOS data by ID:", error);
     }
@@ -318,6 +329,7 @@ const Bos: React.FC = () => {
       program: [] as { value: string; label: string }[],
       revisionPercentage: "",
       conductedDate: "",
+      introYear: "", // Added introYear field
     },
     validationSchema: Yup.object({
       academicYear: Yup.object<{ value: string; label: string }>()
@@ -379,9 +391,9 @@ const Bos: React.FC = () => {
       revisionPercentage: Yup.number()
         .typeError("Please enter a valid number")
         .min(0, "Percentage cannot be less than 0")
-        .max(100, "Percentage cannot be more than 100")
-        .required("Please enter revision percentage"),
+        .max(100, "Percentage cannot be more than 100"),
       conductedDate: Yup.date().required("Please select conducted date"),
+      introYear: Yup.date().required("Please select year of introduction"),
     }),
     onSubmit: async (values, { resetForm }) => {
       // Create FormData object
@@ -391,6 +403,7 @@ const Bos: React.FC = () => {
       formData.append("academicYear", values.academicYear?.value || "");
       formData.append("departmentId", values.department?.value || "");
       formData.append("yearOfIntroduction", values.conductedDate || "");
+      formData.append("introYear", values.introYear || "");
       formData.append("semType", values.semesterType?.value || "");
       formData.append("semesterNo", String(values.semesterNo?.value || ""));
       formData.append("programTypeId", values.programType?.value || "");
@@ -693,6 +706,7 @@ const Bos: React.FC = () => {
                       <Label>Degree</Label>
                       <DegreeDropdown
                         programTypeId={selectedProgramType?.value}
+                        deptId={selectedDepartment?.value || null}
                         value={validation.values.degree}
                         onChange={(selectedOption) => {
                           validation.setFieldValue("degree", selectedOption);
@@ -738,7 +752,7 @@ const Bos: React.FC = () => {
                   </Col>
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>Conducted Date</Label>
+                      <Label>Bos Conducted Date</Label>
                       <Input
                         type="date" // Use native date input
                         className={`form-control ${
@@ -777,6 +791,39 @@ const Bos: React.FC = () => {
                   </Col>
                   <Col lg={4}>
                     <div className="mb-3">
+                      <Label>Year of Introduction</Label>
+                      <DatePicker
+                        selected={
+                          validation.values.introYear
+                            ? new Date(Number(validation.values.introYear), 0, 1)
+                            : null
+                        }
+                        onChange={(date) => {
+                          const formattedYear = date
+                            ? moment(date).format("YYYY")
+                            : "";
+                          validation.setFieldValue("introYear", formattedYear);
+                        }}
+                        showYearPicker
+                        dateFormat="yyyy"
+                        className={`form-control ${
+                          validation.touched.introYear &&
+                          validation.errors.introYear
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        placeholderText="Select Year"
+                      />
+                      {validation.touched.introYear &&
+                        validation.errors.introYear && (
+                          <div className="text-danger">
+                            {validation.errors.introYear}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+                  <Col lg={4}>
+                    <div className="mb-3">
                       <Label>Revision Percentage</Label>
                       <Input
                         type="number"
@@ -807,7 +854,20 @@ const Bos: React.FC = () => {
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
                         Upload MOM
+                        <i
+                          id="infoIcon"
+                          className="bi bi-info-circle ms-2"
+                          style={{ cursor: "pointer", color: "#0d6efd" }}
+                        ></i>
                       </Label>
+                      <Tooltip
+                        placement="right"
+                        isOpen={tooltipOpen}
+                        target="infoIcon"
+                        toggle={toggleTooltip}
+                      >
+                        Upload an PDF file. Max size 10MB.
+                      </Tooltip>
                       <Input
                         className={`form-control ${
                           validation.touched.file && validation.errors.file
@@ -945,6 +1005,7 @@ const Bos: React.FC = () => {
                   <th>Program Type</th>
                   <th>Program</th>
                   <th>Degree</th>
+                  <th>Bos Conducted Date</th>
                   <th>Year of Introduction</th>
                   <th>Percentage</th>
                   <th>File Path</th>
@@ -964,6 +1025,7 @@ const Bos: React.FC = () => {
                       <td>{bos.programName}</td>
                       <td>{Object.values(bos.courses).join(", ")}</td>
                       <td>{bos.yearOfIntroduction}</td>
+                      <td>{bos.introYear}</td>
                       <td>{bos.percentage}</td>
                       <td>{bos.filePath?.mom || "N/A"}</td>
                     </tr>

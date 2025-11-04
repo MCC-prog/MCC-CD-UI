@@ -81,8 +81,9 @@ const Books_Chapters = () => {
       coAuthors: "",
       bookTitle: "",
       editor: "",
-      isbxl: "",
+      isbn: "",
       publisher: "",
+      indexation: null as { value: string; label: string } | null,
       dateOfPublication: "",
       bookChapter: null as File | null,
     },
@@ -107,7 +108,7 @@ const Books_Chapters = () => {
       coAuthors: Yup.string().required("Please enter co-authors"),
       bookTitle: Yup.string().required("Please enter book title"),
       editor: Yup.string().required("Please enter editor name"),
-      isbxl: Yup.string().required("Please enter ISBXL"),
+      isbn: Yup.string().required("Please enter ISBN"),
       bookChapter: Yup.mixed().test(
         "fileValidation",
         "Please upload a valid file",
@@ -136,6 +137,9 @@ const Books_Chapters = () => {
         "Please select date of publication"
       ),
       publisher: Yup.string().required("Please enter publisher"),
+      indexation: Yup.object<{ value: string; label: string }>()
+              .nullable()
+              .required("Please select indexation"),
     }),
     onSubmit: async (values, { resetForm }) => {
       // Create FormData object
@@ -149,10 +153,11 @@ const Books_Chapters = () => {
       formData.append("coAuthors", values.coAuthors || "");
       formData.append("bookTitle", String(values.bookTitle || ""));
       formData.append("editor", values.editor || "");
-      formData.append("isbn", values.isbxl || "");
+      formData.append("isbn", values.isbn || "");
       formData.append("streamId", values.stream?.value || "");
       formData.append("publicationDate", values.dateOfPublication || "");
       formData.append("publisher", values.publisher || "");
+      formData.append("indexation", values.indexation?.value || "");
       formData.append("otherDepartment", values.otherDepartment || "null");
 
       // Append the file
@@ -242,9 +247,15 @@ const Books_Chapters = () => {
         coAuthors: response.coAuthors || "",
         bookTitle: response.bookTitle || "",
         editor: response.editor || "",
-        isbxl: response.isbn || "",
+        isbn: response.isbn || "",
         dateOfPublication: response.publicationDate || "",
         publisher: response.publisher || "",
+         indexation: response.indexation
+          ? {
+              value: response.indexation.toString(),
+              label: response.indexation,
+            }
+          : null,
         otherDepartment: "", // Add default value for otherDepartment
         bookChapter: response.documents?.bookChapter || null,
       };
@@ -265,6 +276,12 @@ const Books_Chapters = () => {
           ? {
               ...mappedValues.department,
               value: String(mappedValues.department.value),
+            }
+          : null,
+           indexation: mappedValues.indexation
+          ? {
+              ...mappedValues.indexation,
+              value: String(mappedValues.indexation.value),
             }
           : null,
       });
@@ -668,26 +685,61 @@ const Books_Chapters = () => {
                         )}
                     </div>
                   </Col>
-
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>ISBXL</Label>
+                      <Label>Indexation</Label>
                       <Input
-                        type="text"
-                        name="isbxl"
-                        value={validation.values.isbxl}
-                        onChange={validation.handleChange}
+                        type="select"
+                        value={validation.values.indexation?.value || ""}
+                        onChange={(e) =>
+                          validation.setFieldValue("indexation", {
+                            value: e.target.value,
+                            label: e.target.value,
+                          })
+                        }
                         className={`form-control ${
-                          validation.touched.isbxl && validation.errors.isbxl
+                          validation.touched.indexation &&
+                          validation.errors.indexation
                             ? "is-invalid"
                             : ""
                         }`}
-                        placeholder="Enter ISBXL"
+                      >
+                        <option value="">Select Indexation</option>
+                        <option value="Scopus">Scopus</option>
+                        <option value="Web of Science">Web of Science</option>
+                        <option value="ABDC">ABDC</option>
+                        <option value="Research Centre">Research Centre</option>
+                        <option value="NA">-NA-</option>
+                      </Input>
+                      {validation.touched.indexation &&
+                        validation.errors.indexation && (
+                          <div className="text-danger">
+                            {typeof validation.errors.indexation === "string" &&
+                              validation.errors.indexation}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>ISBN</Label>
+                      <Input
+                        type="text"
+                        name="isbn"
+                        value={validation.values.isbn}
+                        onChange={validation.handleChange}
+                        className={`form-control ${
+                          validation.touched.isbn && validation.errors.isbn
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        placeholder="Enter ISBN"
                       />
-                      {validation.touched.isbxl && validation.errors.isbxl && (
+                      {validation.touched.isbn && validation.errors.isbn && (
                         <div className="text-danger">
-                          {typeof validation.errors.isbxl === "string" &&
-                            validation.errors.isbxl}
+                          {typeof validation.errors.isbn === "string" &&
+                            validation.errors.isbn}
                         </div>
                       )}
                     </div>
@@ -853,7 +905,7 @@ const Books_Chapters = () => {
                   <th>Book Title</th>
                   <th>Editor</th>
                   <th>Publisher</th>
-                  <th>ISBXL</th>
+                  <th>ISBN</th>
                   <th>Date of Publication</th>
                   <th className="d-none">File Path</th> {/* Hidden */}
                   <th>Actions</th>

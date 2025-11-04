@@ -77,7 +77,7 @@ const getTabValidationSchema = (tab: number | null) => {
     researchProjectTitle: Yup.string(),
     projectType: Yup.object().nullable(),
     Type: Yup.object().nullable(),
-    researchDuration: Yup.string(),
+    researchDuration: Yup.number(),
     researchGuideName: Yup.string(),
     researchAmount: Yup.number(),
     file: Yup.mixed().nullable(),
@@ -131,9 +131,12 @@ const getTabValidationSchema = (tab: number | null) => {
           .nullable()
           .required("Please select project type"),
         Type: Yup.object().nullable().required("Please select type"),
-        researchDuration: Yup.string()
+        researchDuration: Yup.number()
           .required("Please enter duration")
-          .matches(/^\d+$/, "Duration must be a number"),
+          .test("isNumber", "Duration must be a number", (value) => {
+            if (!value) return true;
+            return /^\d+$/.test(String(value));
+          }),
         researchGuideName: Yup.string()
           .required("Please enter guide name")
           .min(2, "Guide name must be at least 2 characters long"),
@@ -194,7 +197,11 @@ const Advanced_Learners: React.FC = () => {
     null
   );
   const [peerTeachingId, setPeerTeachingId] = useState<number | null>(null);
-  const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
+  const [isFileProjUploadDisabled, setIsFileProjUploadDisabled] =
+    useState(false);
+  const [isFileSynUploadDisabled, setIsFileSynUploadDisabled] = useState(false);
+  const [isFilePeerUploadDisabled, setIsFilePeerUploadDisabled] =
+    useState(false);
   const [editResData, setEditResData] = useState<any>(null);
 
   const tableRef = useRef<HTMLTableElement>(null);
@@ -566,6 +573,9 @@ const Advanced_Learners: React.FC = () => {
       setSelectedDepartment(departmentOption);
       setSelectedProgramType(programTypeOption);
       setSelectedDegree(degreeOption);
+      setIsFileProjUploadDisabled(!!response.documents?.projectSanctionLetter);
+      setIsFileSynUploadDisabled(!!response.documents?.synopsisReport);
+      setIsFilePeerUploadDisabled(!!response.documents?.peerTeaching);
 
       setIsEditMode(true);
       setEditId(id);
@@ -712,12 +722,14 @@ const Advanced_Learners: React.FC = () => {
       toast.success(response.message || "File deleted successfully!");
       if (docType === "projectSanctionLetter") {
         formik.setFieldValue("file", null);
+        setIsFileProjUploadDisabled(false);
       } else if (docType === "synopsisReport") {
         formik.setFieldValue("SynopsisFile", null);
+        setIsFileSynUploadDisabled(false);
       } else if (docType === "peerTeaching") {
         formik.setFieldValue("peerFile", null);
+        setIsFilePeerUploadDisabled(false);
       }
-      setIsFileUploadDisabled(false); // Enable the file upload button
     } catch (error) {
       // Show error message
       toast.error("Failed to delete the file. Please try again.");
@@ -824,6 +836,7 @@ const Advanced_Learners: React.FC = () => {
                 projectTitle: values.researchProjectTitle,
                 duration: Number(values.researchDuration),
                 typeOfProject: values.projectType?.value || "",
+                fundType: values.Type?.value || "",
                 guideName: values.researchGuideName,
                 amount: Number(values.researchAmount),
               }
@@ -1142,6 +1155,7 @@ const Advanced_Learners: React.FC = () => {
                       <Label>Degree</Label>
                       <DegreeDropdown
                         programTypeId={selectedProgramType?.value}
+                        deptId={selectedDepartment?.value}
                         value={formik.values.degree}
                         onChange={(selectedOption) => {
                           formik.setFieldValue("degree", selectedOption);
@@ -1396,8 +1410,9 @@ const Advanced_Learners: React.FC = () => {
                                       ? "is-invalid"
                                       : ""
                                   }`}
+                                  disabled={isFileProjUploadDisabled}
                                   type="file"
-                                  id="syllabus"
+                                  id="fileProj"
                                   innerRef={fileProjRef}
                                   onChange={(event) => {
                                     formik.setFieldValue(
@@ -1406,6 +1421,13 @@ const Advanced_Learners: React.FC = () => {
                                         ? event.currentTarget.files[0]
                                         : null
                                     );
+                                    if (
+                                      typeof formik.values.file === "string"
+                                    ) {
+                                      setIsFileProjUploadDisabled(true);
+                                    } else {
+                                      setIsFileProjUploadDisabled(false);
+                                    }
                                   }}
                                 />
                                 {showTabError(
@@ -1413,12 +1435,13 @@ const Advanced_Learners: React.FC = () => {
                                   formik.touched.file,
                                   formik.errors.file
                                 )}
-                                {isFileUploadDisabled && (
-                                  <div className="text-warning mt-2">
-                                    Please remove the existing file to upload a
-                                    new one.
-                                  </div>
-                                )}
+                                {isFileProjUploadDisabled &&
+                                  typeof formik.values.file === "string" && (
+                                    <div className="text-warning mt-2">
+                                      Please remove the existing file to upload
+                                      a new one.
+                                    </div>
+                                  )}
                                 {/* Only show the file name if it is a string (from the edit API) */}
                                 {typeof formik.values.file === "string" && (
                                   <div className="mt-2 d-flex align-items-center">
@@ -1479,6 +1502,7 @@ const Advanced_Learners: React.FC = () => {
                                       ? "is-invalid"
                                       : ""
                                   }`}
+                                  disabled={isFileSynUploadDisabled}
                                   type="file"
                                   innerRef={fileSynRef}
                                   id="syllabus"
@@ -1489,6 +1513,14 @@ const Advanced_Learners: React.FC = () => {
                                         ? event.currentTarget.files[0]
                                         : null
                                     );
+                                    if (
+                                      typeof formik.values.SynopsisFile ===
+                                      "string"
+                                    ) {
+                                      setIsFileSynUploadDisabled(true);
+                                    } else {
+                                      setIsFileSynUploadDisabled(false);
+                                    }
                                   }}
                                 />
                                 {showTabError(
@@ -1496,12 +1528,14 @@ const Advanced_Learners: React.FC = () => {
                                   formik.touched.SynopsisFile,
                                   formik.errors.SynopsisFile
                                 )}
-                                {isFileUploadDisabled && (
-                                  <div className="text-warning mt-2">
-                                    Please remove the existing file to upload a
-                                    new one.
-                                  </div>
-                                )}
+                                {isFileSynUploadDisabled &&
+                                  typeof formik.values.SynopsisFile ===
+                                    "string" && (
+                                    <div className="text-warning mt-2">
+                                      Please remove the existing file to upload
+                                      a new one.
+                                    </div>
+                                  )}
                                 {/* Only show the file name if it is a string (from the edit API) */}
                                 {typeof formik.values.SynopsisFile ===
                                   "string" && (
@@ -1707,6 +1741,7 @@ const Advanced_Learners: React.FC = () => {
                                       ? "is-invalid"
                                       : ""
                                   }`}
+                                  disabled={isFilePeerUploadDisabled}
                                   type="file"
                                   id="peerFile"
                                   innerRef={filePeerRef}
@@ -1717,6 +1752,13 @@ const Advanced_Learners: React.FC = () => {
                                         ? event.currentTarget.files[0]
                                         : null
                                     );
+                                    if (
+                                      typeof formik.values.peerFile === "string"
+                                    ) {
+                                      setIsFileSynUploadDisabled(true);
+                                    } else {
+                                      setIsFileSynUploadDisabled(false);
+                                    }
                                   }}
                                 />
                                 {showTabError(
@@ -1724,12 +1766,14 @@ const Advanced_Learners: React.FC = () => {
                                   formik.touched.peerFile,
                                   formik.errors.peerFile
                                 )}
-                                {isFileUploadDisabled && (
-                                  <div className="text-warning mt-2">
-                                    Please remove the existing file to upload a
-                                    new one.
-                                  </div>
-                                )}
+                                {isFileSynUploadDisabled &&
+                                  typeof formik.values.peerFile ===
+                                    "string" && (
+                                    <div className="text-warning mt-2">
+                                      Please remove the existing file to upload
+                                      a new one.
+                                    </div>
+                                  )}
                                 {/* Only show the file name if it is a string (from the edit API) */}
                                 {typeof formik.values.peerFile === "string" && (
                                   <div className="mt-2 d-flex align-items-center">

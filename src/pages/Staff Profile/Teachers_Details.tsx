@@ -137,6 +137,7 @@ const Teachers_Details: React.FC = () => {
         otherDepartment: response.otherDepartment || "",
         academicExp: response.academicExperience || "",
         industryExp: response.industrialExperience || "",
+        industryExpNonMcc: response.industryExpNonMcc || "",
         name: response.name || "",
         qualification: response.qualification || "",
         vidwaanId: response.vidwanId || "",
@@ -210,6 +211,7 @@ const Teachers_Details: React.FC = () => {
       otherDepartment: "",
       academicExp: "",
       industryExp: "",
+      industryExpNonMcc: "",
       name: "",
       qualification: "",
       dateOfJoining: "",
@@ -245,6 +247,11 @@ const Teachers_Details: React.FC = () => {
         .min(0, "Percentage cannot be less than 0")
         .max(100, "Percentage cannot be more than 100")
         .required("Please enter academic experience"),
+      industryExpNonMcc: Yup.number()
+        .typeError("Please enter a valid number")
+        .min(0, "Percentage cannot be less than 0")
+        .max(100, "Percentage cannot be more than 100")
+        .required("Academic Experience in NON MCC is required"),
       qualification: Yup.string().required("Please enter qualification"),
       vidwaanId: Yup.string().required("Please enter vidwaanId"),
       dateOfJoining: Yup.string().required("Please select date"),
@@ -601,7 +608,7 @@ const Teachers_Details: React.FC = () => {
                             e.target.value
                           )
                         }
-                        placeholder="Enter academic experience"
+                        placeholder="Enter in Years"
                       />
                       {validation.touched.academicExp &&
                         validation.errors.academicExp && (
@@ -613,7 +620,7 @@ const Teachers_Details: React.FC = () => {
                   </Col>
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>Industry Experience</Label>
+                      <Label>Academic Experience in MCC</Label>
                       <Input
                         type="number"
                         className={`form-control ${
@@ -635,6 +642,34 @@ const Teachers_Details: React.FC = () => {
                         validation.errors.industryExp && (
                           <div className="text-danger">
                             {validation.errors.industryExp}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Academic Experience in NON MCC</Label>
+                      <Input
+                        type="number"
+                        className={`form-control ${
+                          validation.touched.industryExpNonMcc &&
+                          validation.errors.industryExpNonMcc
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        value={validation.values.industryExpNonMcc}
+                        onChange={(e) =>
+                          validation.setFieldValue(
+                            "industryExpNonMcc",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Academic Experience in NON MCC"
+                      />
+                      {validation.touched.industryExpNonMcc &&
+                        validation.errors.industryExpNonMcc && (
+                          <div className="text-danger">
+                            {validation.errors.industryExpNonMcc}
                           </div>
                         )}
                     </div>

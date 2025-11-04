@@ -165,9 +165,9 @@ const tableRef = useRef<HTMLTableElement>(null);
               label: response.batchName,
             }
           : null,
-        jobRole: response.jobRole
-          ? { value: response.jobRole, label: response.jobRole }
-          : null,
+        // jobRole: response.jobRole
+        //   ? { value: response.jobRole, label: response.jobRole }
+        //   : null,
       };
 
       // Update Formik values
@@ -197,12 +197,12 @@ const tableRef = useRef<HTMLTableElement>(null);
         batch: mappedValues.batch
           ? { ...mappedValues.batch, value: String(mappedValues.batch.value) }
           : null,
-        jobRole: mappedValues.jobRole
-          ? {
-              ...mappedValues.jobRole,
-              value: String(mappedValues.jobRole.value),
-            }
-          : null,
+        // jobRole: mappedValues.jobRole
+        //   ? {
+        //       ...mappedValues.jobRole,
+        //       value: String(mappedValues.jobRole.value),
+        //     }
+        //   : null,
       });
 
       setIsEditMode(true); // Set edit mode
@@ -255,7 +255,7 @@ const tableRef = useRef<HTMLTableElement>(null);
       name: "",
       registerNumber: "",
       batch: null as { value: string; label: string } | null,
-      jobRole: null as { value: string; label: string } | null,
+      // jobRole: null as { value: string; label: string } | null,
     },
     validationSchema: Yup.object({
       academicYear: Yup.object<{ value: string; label: string }>()
@@ -275,9 +275,9 @@ const tableRef = useRef<HTMLTableElement>(null);
             : schema;
         }
       ),
-      jobRole: Yup.object<{ value: string; label: string }>()
-        .nullable()
-        .required("Please select job role"),
+      // jobRole: Yup.object<{ value: string; label: string }>()
+      //   .nullable()
+      //   .required("Please select job role"),
       name: Yup.string().required("Please enter name"),
       registerNumber: Yup.string().required("Please enter register number"),
       batch: Yup.object<{ value: string; label: string }>()
@@ -299,7 +299,7 @@ const tableRef = useRef<HTMLTableElement>(null);
       formData.append("name", values.name || "");
       formData.append("registerNumber", values.registerNumber || "");
       formData.append("batchId", values.batch?.value || "");
-      formData.append("jobRole", values.jobRole?.value || "");
+      // formData.append("jobRole", values.jobRole?.value || "");
       formData.append("programId", values.program?.value || "");
 
       try {
@@ -417,95 +417,7 @@ const tableRef = useRef<HTMLTableElement>(null);
                         )}
                     </div>
                   </Col>
-                  <Col lg={4}>
-                    <div className="mb-3">
-                      <Label>Name</Label>
-                      <Input
-                        type="text"
-                        name="name"
-                        value={validation.values.name || ""}
-                        onChange={(e) =>
-                          validation.setFieldValue("name", e.target.value)
-                        }
-                        placeholder="Enter Name"
-                        className={
-                          validation.touched.name && validation.errors.name
-                            ? "is-invalid"
-                            : ""
-                        }
-                      />
-                      {validation.touched.name && validation.errors.name && (
-                        <div className="text-danger">
-                          {validation.errors.name}
-                        </div>
-                      )}
-                    </div>
-                  </Col>
-
-                  <Col lg={4}>
-                    <div className="mb-3">
-                      <Label>Register Number</Label>
-                      <Input
-                        type="text"
-                        name="registerNumber"
-                        value={validation.values.registerNumber || ""}
-                        onChange={(e) =>
-                          validation.setFieldValue(
-                            "registerNumber",
-                            e.target.value
-                          )
-                        }
-                        placeholder="Enter Register Number"
-                        className={
-                          validation.touched.registerNumber &&
-                          validation.errors.registerNumber
-                            ? "is-invalid"
-                            : ""
-                        }
-                      />
-                      {validation.touched.registerNumber &&
-                        validation.errors.registerNumber && (
-                          <div className="text-danger">
-                            {validation.errors.registerNumber}
-                          </div>
-                        )}
-                    </div>
-                  </Col>
-
-                  <Col lg={4}>
-                    <div className="mb-3">
-                      <Label>Batch</Label>
-                      <Input
-                        type="select"
-                        name="batch"
-                        value={validation.values.batch?.value || ""}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          const selected = val
-                            ? { value: val, label: val }
-                            : null;
-                          validation.setFieldValue("batch", selected);
-                        }}
-                        className={
-                          validation.touched.batch && validation.errors.batch
-                            ? "is-invalid"
-                            : ""
-                        }
-                      >
-                        <option value="">Select Batch</option>
-                        <option value="2023">b2</option>
-                        <option value="2024">b1</option>
-                        <option value="2025">b0</option>
-                      </Input>
-                      {validation.touched.batch && validation.errors.batch && (
-                        <div className="text-danger">
-                          {validation.errors.batch}
-                        </div>
-                      )}
-                    </div>
-                  </Col>
-
-                  {/* Stream Dropdown */}
+                                    {/* Stream Dropdown */}
                   <Col lg={4}>
                     <div className="mb-3">
                       <Label>School</Label>
@@ -631,6 +543,95 @@ const tableRef = useRef<HTMLTableElement>(null);
                   </Col>
                   <Col lg={4}>
                     <div className="mb-3">
+                      <Label>Name</Label>
+                      <Input
+                        type="text"
+                        name="name"
+                        value={validation.values.name || ""}
+                        onChange={(e) =>
+                          validation.setFieldValue("name", e.target.value)
+                        }
+                        placeholder="Enter Name"
+                        className={
+                          validation.touched.name && validation.errors.name
+                            ? "is-invalid"
+                            : ""
+                        }
+                      />
+                      {validation.touched.name && validation.errors.name && (
+                        <div className="text-danger">
+                          {validation.errors.name}
+                        </div>
+                      )}
+                    </div>
+                  </Col>
+
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Register Number</Label>
+                      <Input
+                        type="text"
+                        name="registerNumber"
+                        value={validation.values.registerNumber || ""}
+                        onChange={(e) =>
+                          validation.setFieldValue(
+                            "registerNumber",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Enter Register Number"
+                        className={
+                          validation.touched.registerNumber &&
+                          validation.errors.registerNumber
+                            ? "is-invalid"
+                            : ""
+                        }
+                      />
+                      {validation.touched.registerNumber &&
+                        validation.errors.registerNumber && (
+                          <div className="text-danger">
+                            {validation.errors.registerNumber}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Batch</Label>
+                      <Input
+                        type="select"
+                        name="batch"
+                        value={validation.values.batch?.value || ""}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          const selected = val
+                            ? { value: val, label: val }
+                            : null;
+                          validation.setFieldValue("batch", selected);
+                        }}
+                        className={
+                          validation.touched.batch && validation.errors.batch
+                            ? "is-invalid"
+                            : ""
+                        }
+                      >
+                        <option value="">Select Batch</option>
+                        <option value="2023">b2</option>
+                        <option value="2024">b1</option>
+                        <option value="2025">b0</option>
+                      </Input>
+                      {validation.touched.batch && validation.errors.batch && (
+                        <div className="text-danger">
+                          {validation.errors.batch}
+                        </div>
+                      )}
+                    </div>
+                  </Col>
+
+
+                  {/* <Col lg={4}>
+                    <div className="mb-3">
                       <Label>Job Role</Label>
                       <Input
                         type="select"
@@ -663,7 +664,7 @@ const tableRef = useRef<HTMLTableElement>(null);
                           </div>
                         )}
                     </div>
-                  </Col>
+                  </Col> */}
                 </Row>
                 <Row>
                   <Col lg={12}>
@@ -711,7 +712,7 @@ const tableRef = useRef<HTMLTableElement>(null);
                   <th>Stream</th>
                   <th>Department</th>
                   <th>Program</th>
-                  <th>Job Role</th>
+                  {/* <th>Job Role</th> */}
                   <th className="d-none">File Path</th> {/* Hidden */}
                   <th>Actions</th>
                 </tr>
@@ -728,7 +729,7 @@ const tableRef = useRef<HTMLTableElement>(null);
                       <td>{alumini.streamName}</td>
                       <td>{alumini.departmentName}</td>
                       <td>{alumini.programName}</td>
-                      <td>{alumini.jobRole}</td>
+                      {/* <td>{alumini.jobRole}</td> */}
                       <td className="d-none">{alumini?.filePath?.auditorium || "N/A"}</td> {/* Hidden */}
                       <td>
                         <div className="d-flex justify-content-center gap-2">

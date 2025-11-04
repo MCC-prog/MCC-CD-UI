@@ -59,7 +59,7 @@ const BestPractices: React.FC = () => {
   // State variable for managing search term and pagination
   const [filteredData, setFilteredData] = useState(activityData);
   const fileRef = useRef<HTMLInputElement | null>(null);
-  const tableRef = useRef<HTMLTableElement>(null);  
+  const tableRef = useRef<HTMLTableElement>(null);
   const [associationOptions, setAssociationOptions] = useState<
     { value: string; label: string }[]
   >([]);
@@ -285,8 +285,8 @@ const BestPractices: React.FC = () => {
       department: null as { value: string; label: string } | null,
       otherDepartment: "",
       file: null as File | string | null,
-      objective: null as { value: string; label: string } | null,
-      association: null as { value: string; label: string } | null,
+      // objective: null as { value: string; label: string } | null,
+      // association: null as { value: string; label: string } | null,
     },
     validationSchema: Yup.object({
       academicYear: Yup.object<{ value: string; label: string }>()
@@ -309,12 +309,12 @@ const BestPractices: React.FC = () => {
             : schema;
         }
       ),
-      objective: Yup.object<{ value: string; label: string }>()
-        .nullable()
-        .required("Please select objective of the event"),
-      association: Yup.object<{ value: string; label: string }>()
-        .nullable()
-        .required("Please select an association"),
+      // objective: Yup.object<{ value: string; label: string }>()
+      //   .nullable()
+      //   .required("Please select objective of the event"),
+      // association: Yup.object<{ value: string; label: string }>()
+      //   .nullable()
+      //   .required("Please select an association"),
       file: Yup.mixed().test(
         "fileValidation",
         "Please upload a valid file",
@@ -352,8 +352,8 @@ const BestPractices: React.FC = () => {
       formData.append("semester", String(values.semesterNo?.value || ""));
       formData.append("streamId", values.stream?.value || "");
       formData.append("otherDepartment", values.otherDepartment || "");
-      formData.append("eventObjective", values.objective?.value || "");
-      formData.append("associationId", values.association?.value || "");
+      // formData.append("eventObjective", values.objective?.value || "");
+      // formData.append("associationId", values.association?.value || "");
 
       if (isEditMode && typeof values.file === "string") {
         formData.append(
@@ -403,13 +403,13 @@ const BestPractices: React.FC = () => {
     },
   });
 
-    useEffect(() => {
+  useEffect(() => {
     if (activityData.length === 0) return; // wait until data is loaded
 
     const table = $("#id").DataTable({
       destroy: true, // destroy existing instance if re-rendered
-      scrollX: true, 
-       autoWidth: false, 
+      scrollX: true,
+      autoWidth: false,
       dom: "Bfrtip",
       buttons: [
         {
@@ -442,7 +442,7 @@ const BestPractices: React.FC = () => {
     return () => {
       table.destroy(); // clean up
     };
-  }, [activityData]); 
+  }, [activityData]);
 
   return (
     <React.Fragment>
@@ -603,7 +603,7 @@ const BestPractices: React.FC = () => {
                       </div>
                     </Col>
                   )}
-                  <Col lg={4}>
+                  {/* <Col lg={4}>
                     <div className="mb-3">
                       <Label>Association</Label>
                       <Input
@@ -693,11 +693,11 @@ const BestPractices: React.FC = () => {
                           </div>
                         )}
                     </div>
-                  </Col>
+                  </Col> */}
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
-                        Upload file
+                        Upload Report
                       </Label>
                       <Input
                         className={`form-control ${
@@ -773,6 +773,20 @@ const BestPractices: React.FC = () => {
                         )}
                     </div>
                   </Col>
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Download Template</Label>
+                      <div>
+                        <a
+                          href={`${process.env.PUBLIC_URL}/templateFiles/BOS_MoM_DeptName_Aug24.docx`}
+                          download
+                          className="btn btn-primary btn-sm"
+                        >
+                          Template
+                        </a>
+                      </div>
+                    </div>
+                  </Col>
                 </Row>
                 <Row>
                   <Col lg={12}>
@@ -803,13 +817,7 @@ const BestPractices: React.FC = () => {
         >
           <ModalHeader toggle={toggleModal}>List Best Practices</ModalHeader>
           <ModalBody>
-            <Table
-             striped
-              bordered
-              hover
-                id="id"
-              innerRef={tableRef}
-            >
+            <Table striped bordered hover id="id" innerRef={tableRef}>
               <thead className="table-dark">
                 <tr>
                   <th>#</th>
@@ -817,8 +825,8 @@ const BestPractices: React.FC = () => {
                   <th>Semester</th>
                   <th>School</th>
                   <th>Department</th>
-                  <th>Association</th>
-                  <th>Objective</th>
+                  {/* <th>Association</th>
+                  <th>Objective</th> */}
                   <th className="d-none">File Path</th> {/* Hidden */}
                   <th>Actions</th>
                 </tr>
@@ -832,9 +840,12 @@ const BestPractices: React.FC = () => {
                       <td>{activity.semester}</td>
                       <td>{activity.streamName}</td>
                       <td>{activity.departmentName}</td>
-                      <td>{activity.associationName}</td>
-                      <td>{activity.eventObjective}</td>
-                      <td className="d-none">{activity?.filePath?.Institutional || "N/A"}</td> {/* Hidden */}
+                      {/* <td>{activity.associationName}</td>
+                      <td>{activity.eventObjective}</td> */}
+                      <td className="d-none">
+                        {activity?.filePath?.Institutional || "N/A"}
+                      </td>{" "}
+                      {/* Hidden */}
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button

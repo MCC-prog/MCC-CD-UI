@@ -107,6 +107,7 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
       }
     ),
     facultyName: Yup.string().required("Please enter faculty name"),
+    fellowshipName: Yup.string().required("Please enter fellowship name"),
     projectTitle: Yup.string().required("Please enter project title"),
     amount: Yup.number()
       .typeError("Please enter a valid number")
@@ -155,6 +156,7 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
       department: null as { value: string; label: string } | null,
       otherDepartment: "",
       facultyName: "",
+      fellowshipName: "",
       projectTitle: "",
       amount: "",
       monthOfGrant: "",
@@ -188,6 +190,7 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
         streamId: values.stream?.value || null,
         departmentId: values.department?.value || null,
         facultyName: values.facultyName || null,
+        fellowshipName: values.fellowshipName || null,
         projectTitle: values.projectTitle || null,
         amount: values.amount || null,
         monthOfGrant: values.monthOfGrant || null,
@@ -808,6 +811,7 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
           }
           : null,
         facultyName: response.facultyName || "",
+        fellowshipName: response.fellowshipName || "",
         projectTitle: response.projectTitle || "",
         amount: response.amount || "",
         monthOfGrant: response.monthOfGrant || "",
@@ -943,7 +947,7 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <Breadcrumb title="Research" breadcrumbItem="Fellowships Award" />
+          <Breadcrumb title="Research" breadcrumbItem="Fellowships Awarded For Advanced Learning & Research" />
           <Card>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
@@ -1086,7 +1090,33 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
                         )}
                     </div>
                   </Col>
-
+                   <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Name of the Fellowship</Label>
+                      <Input
+                        type="text"
+                        value={validation.values.fellowshipName}
+                        onChange={(e) =>
+                          validation.setFieldValue(
+                            "fellowshipName",
+                            e.target.value
+                          )
+                        }
+                        className={`form-control ${validation.touched.fellowshipName &&
+                          validation.errors.fellowshipName
+                          ? "is-invalid"
+                          : ""
+                          }`}
+                        placeholder="Enter Name of the Fellowship"
+                      />
+                      {validation.touched.fellowshipName &&
+                        validation.errors.fellowshipName && (
+                          <div className="text-danger">
+                            {validation.errors.fellowshipName}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
                   {/* Title of the Project */}
                   <Col lg={4}>
                     <div className="mb-3">
@@ -1191,8 +1221,8 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
                       >
                         <option value="">Select Type of Funding</option>
                         <option value="MGMT">MGMT</option>
-                        <option value="External Funding Agent">
-                          External Funding Agent
+                        <option value="External Funding Agency">
+                          External Funding Agency
                         </option>
                       </Input>
                       {validation.touched.typeOfFunding &&
@@ -1364,6 +1394,7 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
                   <th>School</th>
                   <th>Department</th>
                   <th>Faculty Name</th>
+                  <th>Fellowship Name</th>
                   <th>Project Title</th>
                   <th>Amount</th>
                   <th>Month of Grant</th>
@@ -1383,6 +1414,7 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
                       <td>{fw.streamName}</td>
                       <td>{fw.departmentName}</td>
                       <td>{fw.facultyName}</td>
+                      <td>{fw.fellowshipName}</td>
                       <td>{fw.projectTitle}</td>
                       <td>{fw.amount}</td>
                       <td>{fw.monthOfGrant}</td>

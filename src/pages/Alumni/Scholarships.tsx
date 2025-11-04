@@ -50,7 +50,10 @@ const Scholarships: React.FC = () => {
 
   const fetchScholarshipFileData = async () => {
     try {
-      const response = await api.get("/scholorshipProvidedByAlumni/getAllScholorshipProvidedByAlumni", "");
+      const response = await api.get(
+        "/scholorshipProvidedByAlumni/getAllScholorshipProvidedByAlumni",
+        ""
+      );
       setAssoData(response);
       setFilteredData(response);
     } catch (error) {
@@ -63,15 +66,18 @@ const Scholarships: React.FC = () => {
     if (fileName) {
       try {
         // Ensure you set responseType to 'blob' to handle binary data
-        const response = await axios.get(`/scholorshipProvidedByAlumni/download/${fileName}`, {
-          responseType: 'blob'
-        });
+        const response = await axios.get(
+          `/scholorshipProvidedByAlumni/download/${fileName}`,
+          {
+            responseType: "blob",
+          }
+        );
         // Create a Blob from the response data
         const blob = new Blob([response], { type: "*/*" });
         // Create a URL for the Blob
         const url = window.URL.createObjectURL(blob);
         // Create a temporary anchor element to trigger the download
-        const link = document.createElement('a');
+        const link = document.createElement("a");
         link.href = url;
         link.download = fileName; // Set the file name for the download
         document.body.appendChild(link);
@@ -123,6 +129,7 @@ const Scholarships: React.FC = () => {
       const mappedValues = {
         academicYear: mapValueToLabel(response.academicYear, academicYearList),
         id: response.id || "",
+        totalScholarshipAmount: response.totalScholarshipAmount || "",
         scholarshipFile: response.file?.Scholorship || null,
       };
 
@@ -248,7 +255,7 @@ const Scholarships: React.FC = () => {
       // Call the delete API with the filename
       const response = await api.delete(
         `/scholorshipProvidedByAlumni/deleteScholorshipProvidedByAlumniDocument?fileName=${validation.values.scholarshipFile}`,
-        ''
+        ""
       );
       toast.success(response.message || "File deleted successfully!");
       validation.setFieldValue("scholarshipFile", null);
@@ -264,12 +271,17 @@ const Scholarships: React.FC = () => {
   const validation = useFormik({
     initialValues: {
       academicYear: null as { value: string; label: string } | null,
+      totalScholarshipAmount: "",
       scholarshipFile: null as File | string | null,
     },
     validationSchema: Yup.object({
       academicYear: Yup.object<{ value: string; label: string }>()
         .nullable()
         .required("Please select academic year"),
+      totalScholarshipAmount: Yup.number()
+        .typeError("Total Scholarship Amount must be a number")
+        .min(0, "Total Scholarship Amount cannot be less than 0")
+        .required("Please enter total scholarship amount"),
       scholarshipFile: Yup.mixed().test(
         "fileValidation",
         "Please upload a valid file",
@@ -293,32 +305,39 @@ const Scholarships: React.FC = () => {
           }
           return true;
         }
-      )
+      ),
     }),
     onSubmit: async (values, { resetForm }) => {
       // Create FormData object
       const formData = new FormData();
       formData.append("id", editId || "");
       formData.append("academicYear", values.academicYear?.value || "");
+      formData.append(
+        "totalScholarshipAmount",
+        values.totalScholarshipAmount || ""
+      );
 
       // Append the file with the key `file`
       if (values.scholarshipFile instanceof File) {
         formData.append("scholorship", values.scholarshipFile);
       }
       try {
-        const response = isEditMode && editId
-          ? await api.put(`/scholorshipProvidedByAlumni`, formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data'
-            }
-          })
-          : await api.create(`/scholorshipProvidedByAlumni`, formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data'
-            }
-          });
+        const response =
+          isEditMode && editId
+            ? await api.put(`/scholorshipProvidedByAlumni`, formData, {
+                headers: {
+                  "Content-Type": "multipart/form-data",
+                },
+              })
+            : await api.create(`/scholorshipProvidedByAlumni`, formData, {
+                headers: {
+                  "Content-Type": "multipart/form-data",
+                },
+              });
 
-        toast.success(response.message || "scholarshipFile record saved successfully!");
+        toast.success(
+          response.message || "scholarshipFile record saved successfully!"
+        );
         // Refresh the page data to show the uploaded file
         handleListAssoClick();
         resetForm();
@@ -329,7 +348,7 @@ const Scholarships: React.FC = () => {
         toast.error("Failed to save scholarshipFile. Please try again.");
         console.error("Error creating/updating scholarshipFile:", error);
       }
-    }
+    },
   });
 
   return (
@@ -369,16 +388,58 @@ const Scholarships: React.FC = () => {
                   </Col>
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>Scholarship File Upload</Label>
+                      <Label>Total Scholarship Amount</Label>
+                      <Input
+                        type="number"
+                        className={`form-control ${
+                          validation.touched.totalScholarshipAmount &&
+                          validation.errors.totalScholarshipAmount
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        value={validation.values.totalScholarshipAmount}
+                        onChange={(e) =>
+                          validation.setFieldValue(
+                            "totalScholarshipAmount",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Enter Total Scholarship Amount"
+                      />
+                      {validation.touched.totalScholarshipAmount &&
+                        validation.errors.totalScholarshipAmount && (
+                          <div className="text-danger">
+                            {validation.errors.totalScholarshipAmount}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Scholarship Details</Label>
                       <Input
                         type="file"
-                        onChange={(e) => validation.setFieldValue("scholarshipFile", e.target.files?.[0] || null)}
-                        className={`form-control ${validation.touched.scholarshipFile && validation.errors.scholarshipFile ? "is-invalid" : ""}`}
+                        
+                        onChange={(e) =>
+                          validation.setFieldValue(
+                            "scholarshipFile",
+                            e.target.files?.[0] || null
+                          )
+                        }
+                        className={`form-control ${
+                          validation.touched.scholarshipFile &&
+                          validation.errors.scholarshipFile
+                            ? "is-invalid"
+                            : ""
+                        }`}
                         disabled={isFileUploadDisabled} // Disable the button if a file exists
                       />
-                      {validation.touched.scholarshipFile && validation.errors.scholarshipFile && (
-                        <div className="text-danger">{validation.errors.scholarshipFile}</div>
-                      )}
+                      {validation.touched.scholarshipFile &&
+                        validation.errors.scholarshipFile && (
+                          <div className="text-danger">
+                            {validation.errors.scholarshipFile}
+                          </div>
+                        )}
                       {/* Show a message if the file upload button is disabled */}
                       {isFileUploadDisabled && (
                         <div className="text-warning mt-2">
@@ -386,17 +447,26 @@ const Scholarships: React.FC = () => {
                         </div>
                       )}
                       {/* Only show the file name if it is a string (from the edit API) */}
-                      {typeof validation.values.scholarshipFile === "string" && (
+                      {typeof validation.values.scholarshipFile ===
+                        "string" && (
                         <div className="mt-2 d-flex align-items-center">
-                          <span className="me-2" style={{ fontWeight: "bold", color: "green" }}>
+                          <span
+                            className="me-2"
+                            style={{ fontWeight: "bold", color: "green" }}
+                          >
                             {validation.values.scholarshipFile}
                           </span>
                           <Button
                             color="link"
                             className="text-primary"
                             onClick={() => {
-                              if (typeof validation.values.scholarshipFile === "string") {
-                                handleDownloadFile(validation.values.scholarshipFile);
+                              if (
+                                typeof validation.values.scholarshipFile ===
+                                "string"
+                              ) {
+                                handleDownloadFile(
+                                  validation.values.scholarshipFile
+                                );
                               }
                             }}
                             title="Download File"
@@ -413,6 +483,20 @@ const Scholarships: React.FC = () => {
                           </Button>
                         </div>
                       )}
+                    </div>
+                  </Col>
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Download Template</Label>
+                      <div>
+                        <a
+                          href={`${process.env.PUBLIC_URL}/templateFiles/BOS_MoM_DeptName_Aug24.docx`}
+                          download
+                          className="btn btn-primary btn-sm"
+                        >
+                         Template
+                        </a>
+                      </div>
                     </div>
                   </Col>
                 </Row>
@@ -447,17 +531,12 @@ const Scholarships: React.FC = () => {
       >
         <ModalHeader toggle={toggleModal}>List Activites</ModalHeader>
         <ModalBody>
-          <Table
-            striped
-            bordered
-            hover
-            id="id"
-            innerRef={tableRef}
-          >
+          <Table striped bordered hover id="id" innerRef={tableRef}>
             <thead className="table-dark">
               <tr>
                 <th>#</th>
                 <th>Academic Year</th>
+                <th>Total Scholarship Amount</th>
                 <th>Scholarship File</th>
                 <th className="d-none">File Path</th> {/* Hidden */}
                 <th>Actions</th>
@@ -469,8 +548,12 @@ const Scholarships: React.FC = () => {
                   <tr key={scholar.id}>
                     <td>{index + 1}</td>
                     <td>{scholar.academicYear}</td>
+                    <td>{scholar.totalScholarshipAmount}</td>
                     <td>{scholar.file?.Scholorship}</td>
-                    <td className="d-none">{scholar?.filePath?.Scholorship || "N/A"}</td> {/* Hidden */}
+                    <td className="d-none">
+                      {scholar?.filePath?.Scholorship || "N/A"}
+                    </td>{" "}
+                    {/* Hidden */}
                     <td>
                       <div className="d-flex justify-content-center gap-2">
                         <button
@@ -516,23 +599,21 @@ const Scholarships: React.FC = () => {
           <Button color="danger" onClick={() => confirmDelete(deleteId!)}>
             Delete
           </Button>
-          <Button
-            color="secondary"
-            onClick={() => setIsDeleteModalOpen(false)}
-          >
+          <Button color="secondary" onClick={() => setIsDeleteModalOpen(false)}>
             Cancel
           </Button>
         </ModalFooter>
       </Modal>
       <Modal isOpen={showDeleteModal} toggle={() => setShowDeleteModal(false)}>
-        <ModalBody>
-          Are you sure you want to delete this file?
-        </ModalBody>
+        <ModalBody>Are you sure you want to delete this file?</ModalBody>
         <ModalFooter>
-          <Button color="danger" onClick={() => {
-            handleDeleteFile();
-            setShowDeleteModal(false);
-          }}>
+          <Button
+            color="danger"
+            onClick={() => {
+              handleDeleteFile();
+              setShowDeleteModal(false);
+            }}
+          >
             Yes
           </Button>
           <Button color="secondary" onClick={() => setShowDeleteModal(false)}>

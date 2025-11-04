@@ -6,14 +6,15 @@ const api = new APIClient();
 
 interface DegreeDropdownProps {
   programTypeId: string | null; // Program Type ID passed from the parent
+  deptId: string | null; // Department ID passed from the parent
   value: any;
   onChange: (selectedOption: any) => void;
   placeholder?: string;
   isInvalid?: boolean;
 }
-
 const DegreeDropdown: React.FC<DegreeDropdownProps> = ({
   programTypeId,
+  deptId,
   value,
   onChange,
   placeholder = "Select Degree",
@@ -24,7 +25,7 @@ const DegreeDropdown: React.FC<DegreeDropdownProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!programTypeId) {
+    if (!programTypeId || !deptId) {
       setOptions([]);
       return;
     }
@@ -33,7 +34,7 @@ const DegreeDropdown: React.FC<DegreeDropdownProps> = ({
       setLoading(true);
       try {
         // Fetch degrees based on the selected program type ID
-        const degreeList = await api.get(`/ProgramsByProgramTypeId?programTypeId=${programTypeId}`, "");
+        const degreeList = await api.get(`/ProgramsByProgramTypeId?deptId=${deptId}&programTypeId=${programTypeId}`, "");
         const degree = degreeList.map((deg: any) => ({
           value: deg.id,
           label: deg.name,
@@ -47,7 +48,7 @@ const DegreeDropdown: React.FC<DegreeDropdownProps> = ({
     };
 
     fetchDegrees();
-  }, [programTypeId]);
+  }, [deptId,programTypeId]);
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div className="text-danger">{error}</div>;

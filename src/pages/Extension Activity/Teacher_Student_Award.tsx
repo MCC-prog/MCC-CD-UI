@@ -32,13 +32,16 @@ import "datatables.net-buttons/js/buttons.html5.js";
 import "jszip";
 import "pdfmake/build/pdfmake";
 import "pdfmake/build/vfs_fonts";
+import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
+import StreamDropdown from "Components/DropDowns/StreamDropdown";
 
 const api = new APIClient();
 
 const Teacher_Student_Award: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
  const [teacherStudentAwardData, setTeacherStudentAwardData] = useState<any[]>([]);
-  const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
+ const [selectedStream, setSelectedStream] = useState<any>(null);
+ const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
   const [editId, setEditId] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
@@ -49,6 +52,7 @@ const Teacher_Student_Award: React.FC = () => {
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
  const tableRef = useRef<HTMLTableElement>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const fileRef1 = useRef<HTMLInputElement | null>(null);
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };
@@ -93,6 +97,9 @@ const Teacher_Student_Award: React.FC = () => {
       // Map API response to Formik values
       const mappedValues = {
         name: response.name || "",
+          stream: response.streamId
+          ? { value: response.streamId.toString(), label: response.streamName }
+          : null,
         department: response.departmentId
           ? {
               value: response.departmentId.toString(),
@@ -102,11 +109,13 @@ const Teacher_Student_Award: React.FC = () => {
         organisation: response.organisation || "",
         awardReceivedYear: response.awardReceivedYear || "",
         file: response.document?.recognitionCertificate || null,
+        certificateFile: response.document?.certificateFile || null,
       };
       // Update Formik values
       validation.setValues({
         ...mappedValues,
         file: response.document?.recognitionCertificate || null,
+        certificateFile: response.document?.certificateFile || null,
       });
 
       setIsEditMode(true); // Set edit mode
@@ -208,13 +217,18 @@ const Teacher_Student_Award: React.FC = () => {
   const validation = useFormik({
     initialValues: {
       name: "",
+      stream: null as { value: string; label: string } | null,
       department: null as { value: string; label: string } | null,
       organisation: "",
       awardReceivedYear: "",
       file: null as File | string | null,
+      certificateFile: null as File | string | null,
     },
     validationSchema: Yup.object({
       name: Yup.string().required("Please select Presenter Name"),
+      stream: Yup.object<{ value: string; label: string }>()
+              .nullable()
+              .required("Please select school"),
       department: Yup.object<{ value: string; label: string }>()
         .nullable()
         .required("Please select department"),
@@ -235,6 +249,20 @@ const Teacher_Student_Award: React.FC = () => {
             ["application/pdf", "image/jpeg", "image/png"].includes(value.type)
           );
         }),
+        certificateFile: Yup.mixed()
+        .required("Please upload a file")
+        .test("fileSize", "File size is too large", (value: any) => {
+          if (typeof value === "string") return true;
+          return value && value.size <= 2 * 1024 * 1024; // 2MB limit
+        })
+        .test("fileType", "Unsupported file format", (value: any) => {
+          if (typeof value === "string") return true;
+          return (
+            value &&
+            ["application/pdf", "image/jpeg", "image/png"].includes(value.type)
+          );
+        }),
+        
     }),
     onSubmit: async (values, { resetForm }) => {
       // Create FormData object
@@ -242,6 +270,7 @@ const Teacher_Student_Award: React.FC = () => {
 
       // Append fields to FormData
       formData.append("name", values.name || "");
+      formData.append("streamId", values.stream?.value || "");
       formData.append("departmentId", values.department?.value || "");
       formData.append("organisation", values.organisation || "");
       formData.append("awardReceivedYear", values.awardReceivedYear || "");
@@ -253,6 +282,14 @@ const Teacher_Student_Award: React.FC = () => {
         formData.append("file", new Blob([]), "empty.pdf");
       } else if (values.file) {
         formData.append("file", values.file);
+      }
+        if (isEditMode && typeof values.certificateFile === "string") {
+        // Pass an empty Blob instead of null
+        formData.append("certificateFile", new Blob([]), "empty.pdf");
+      } else if (isEditMode && values.certificateFile === null) {
+        formData.append("certificateFile", new Blob([]), "empty.pdf");
+      } else if (values.certificateFile) {
+        formData.append("certificateFile", values.certificateFile);
       }
 
       // If editing, include ID
@@ -340,8 +377,8 @@ const Teacher_Student_Award: React.FC = () => {
       <div className="page-content">
         <Container fluid>
           <Breadcrumb
-            title="Teacher Student Award"
-            breadcrumbItem="Teacher Student Award"
+            title="Extension Activity"
+            breadcrumbItem="Teacher Student Awards"
           />
           <Card>
             <CardBody>
@@ -349,7 +386,7 @@ const Teacher_Student_Award: React.FC = () => {
                 <Row>
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>Presenter Name</Label>
+                      <Label>Faculty/Student Name</Label>
                       <Input
                         type="text"
                         className={`form-control ${
@@ -370,8 +407,54 @@ const Teacher_Student_Award: React.FC = () => {
                       )}
                     </div>
                   </Col>
-
+                      <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>School</Label>
+                      <StreamDropdown
+                        value={validation.values.stream}
+                        onChange={(selectedOption) => {
+                          validation.setFieldValue("stream", selectedOption);
+                          setSelectedStream(selectedOption);
+                        }}
+                        isInvalid={
+                          validation.touched.stream &&
+                          !!validation.errors.stream
+                        }
+                      />
+                      {validation.touched.stream &&
+                        validation.errors.stream && (
+                          <div className="text-danger">
+                            {validation.errors.stream}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
                   <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Department</Label>
+                      <DepartmentDropdown
+                        streamId={selectedStream?.value}
+                        value={validation.values.department}
+                        onChange={(selectedOption) => {
+                          validation.setFieldValue(
+                            "department",
+                            selectedOption
+                          );
+                        }}
+                        isInvalid={
+                          validation.touched.department &&
+                          !!validation.errors.department
+                        }
+                      />
+                      {validation.touched.department &&
+                        validation.errors.department && (
+                          <div className="text-danger">
+                            {validation.errors.department}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+                  {/* <Col lg={4}>
                     <div className="mb-3">
                       <Label>Department</Label>
                       <GetAllDepartmentDropdown
@@ -395,10 +478,10 @@ const Teacher_Student_Award: React.FC = () => {
                           </div>
                         )}
                     </div>
-                  </Col>
+                  </Col> */}
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>Organization</Label>
+                      <Label>Presenting Organization</Label>
                       <Input
                         type="text"
                         className={`form-control ${
@@ -455,7 +538,7 @@ const Teacher_Student_Award: React.FC = () => {
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
-                        Upload Teacher Student Award
+                        Upload Teacher Student Awards
                         <i
                           id="infoIcon"
                           className="bi bi-info-circle ms-2"
@@ -533,6 +616,87 @@ const Teacher_Student_Award: React.FC = () => {
                       )}
                     </div>
                   </Col>
+                   <Col sm={4}>
+                    <div className="mb-3">
+                      <Label htmlFor="formFile" className="form-label">
+                        Upload Certificate
+                        <i
+                          id="infoIcon"
+                          className="bi bi-info-circle ms-2"
+                          style={{ cursor: "pointer", color: "#0d6efd" }}
+                        ></i>
+                      </Label>
+                      <Tooltip
+                        placement="right"
+                        isOpen={tooltipOpen}
+                        target="infoIcon"
+                        toggle={toggleTooltip}
+                      >
+                        Upload an Excel or PDF file. Max size 10MB.
+                      </Tooltip>
+                      <Input
+                        className={`form-control ${
+                          validation.touched.certificateFile && validation.errors.certificateFile
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        type="file"
+                        id="formFile"
+                        innerRef={fileRef1}
+                        onChange={(event) => {
+                          validation.setFieldValue(
+                            "certificateFile",
+                            event.currentTarget.files
+                              ? event.currentTarget.files[0]
+                              : null
+                          );
+                        }}
+                        disabled={isFileUploadDisabled} // Disable the button if a file exists
+                      />
+                      {validation.touched.certificateFile && validation.errors.certificateFile && (
+                        <div className="text-danger">
+                          {validation.errors.certificateFile}
+                        </div>
+                      )}
+                      {/* Show a message if the file upload button is disabled */}
+                      {isFileUploadDisabled && (
+                        <div className="text-warning mt-2">
+                          Please remove the existing file to upload a new one.
+                        </div>
+                      )}
+                      {/* Only show the file name if it is a string (from the edit API) */}
+                      {typeof validation.values.certificateFile === "string" && (
+                        <div className="mt-2 d-flex align-items-center">
+                          <span
+                            className="me-2"
+                            style={{ fontWeight: "bold", color: "green" }}
+                          >
+                            {validation.values.certificateFile}
+                          </span>
+                          <Button
+                            color="link"
+                            className="text-primary"
+                            onClick={() =>
+                              handleDownloadFile(
+                                validation.values.certificateFile as string
+                              )
+                            }
+                            title="Download File"
+                          >
+                            <i className="bi bi-download"></i>
+                          </Button>
+                          <Button
+                            color="link"
+                            className="text-danger"
+                            onClick={() => handleDeleteFile()}
+                            title="Delete certificateFile"
+                          >
+                            <i className="bi bi-trash"></i>
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </Col>
                 </Row>
                 <Row>
                   <Col lg={12}>
@@ -575,11 +739,13 @@ const Teacher_Student_Award: React.FC = () => {
               <thead >
                 <tr>
                   <th>Sl.No</th>
-                  <th>Presenter Name</th>
+                  <th>Faculty/Student Name</th>
+                  <th>School</th>
                   <th>Department</th>
-                  <th>Organization</th>
+                  <th>Presenting Organization</th>
                   <th>Year Of Receiving Award</th>
                   <th className="d-none">FilePath</th>
+                  <th className="d-none">Certificate File</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -589,10 +755,12 @@ const Teacher_Student_Award: React.FC = () => {
                     <tr key={award.awardId}>
                       <td>{index + 1}</td>
                       <td>{award.name}</td>
+                      <td>{award.streamName}</td>
                       <td>{award.departmentName}</td>
                       <td>{award.organisation}</td>
                       <td>{award.awardReceivedYear}</td>
                       <td className="d-none">{award?.filePath?.recognitionCertificate || "N/A"}</td>
+                      <td className="d-none">{award?.filePath?.certificateFile || "N/A"}</td>
                       <td>
                         <button
                           className="btn btn-sm btn-warning me-2"

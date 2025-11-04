@@ -55,13 +55,16 @@ const FinancialContribution: React.FC = () => {
 
   const fetchFinancialFileData = async () => {
     try {
-      const response = await api.get("/financialContributionByAlumni/getAllFinancialContributionByAlumni", "");
+      const response = await api.get(
+        "/financialContributionByAlumni/getAllFinancialContributionByAlumni",
+        ""
+      );
       setAssoData(response);
       setFilteredData(response);
     } catch (error) {
       toast.error("Failed to fetch scholarship data.");
     }
-  }
+  };
 
   // Open the modal and fetch data
   const handleListAssoClick = async () => {
@@ -95,6 +98,7 @@ const FinancialContribution: React.FC = () => {
       const mappedValues = {
         academicYear: mapValueToLabel(response.academicYear, academicYearList),
         id: response.id || "",
+        totalFinancialContributionAmount: response.totalFinancialContributionAmount || "",
         financialFile: response.file?.FinancialContribution || null,
       };
 
@@ -134,15 +138,18 @@ const FinancialContribution: React.FC = () => {
     if (fileName) {
       try {
         // Ensure you set responseType to 'blob' to handle binary data
-        const response = await axios.get(`/financialContributionByAlumni/download/${fileName}`, {
-          responseType: 'blob'
-        });
+        const response = await axios.get(
+          `/financialContributionByAlumni/download/${fileName}`,
+          {
+            responseType: "blob",
+          }
+        );
         // Create a Blob from the response data
         const blob = new Blob([response], { type: "*/*" });
         // Create a URL for the Blob
         const url = window.URL.createObjectURL(blob);
         // Create a temporary anchor element to trigger the download
-        const link = document.createElement('a');
+        const link = document.createElement("a");
         link.href = url;
         link.download = fileName; // Set the file name for the download
         document.body.appendChild(link);
@@ -253,7 +260,7 @@ const FinancialContribution: React.FC = () => {
       // Call the delete API with the filename
       const response = await api.delete(
         `/financialContributionByAlumni/deleteFinancialContributionByAlumniDocument?fileName=${validation.values.financialFile}`,
-        ''
+        ""
       );
       toast.success(response.message || "File deleted successfully!");
       validation.setFieldValue("financialFile", null);
@@ -269,12 +276,17 @@ const FinancialContribution: React.FC = () => {
   const validation = useFormik({
     initialValues: {
       academicYear: null as { value: string; label: string } | null,
+      totalFinancialContributionAmount: "",
       financialFile: null as File | string | null,
     },
     validationSchema: Yup.object({
       academicYear: Yup.object<{ value: string; label: string }>()
         .nullable()
         .required("Please select academic year"),
+      totalFinancialContributionAmount: Yup.number()
+              .typeError("Total Financial Contribution Amount must be a number")
+              .min(0, "Total Financial Contribution Amount cannot be less than 0")
+              .required("Please enter total financial contribution Amount"),
       financialFile: Yup.mixed().test(
         "fileValidation",
         "Please upload a valid file",
@@ -298,7 +310,7 @@ const FinancialContribution: React.FC = () => {
           }
           return true;
         }
-      )
+      ),
     }),
     onSubmit: async (values, { resetForm }) => {
       // Create FormData object
@@ -306,25 +318,32 @@ const FinancialContribution: React.FC = () => {
 
       formData.append("id", editId || "");
       formData.append("academicYear", values.academicYear?.value || "");
+      formData.append(
+        "totalFinancialContributionAmount",
+        values.totalFinancialContributionAmount || ""
+      );
 
       // Append the file with the key `file`
       if (values.financialFile instanceof File) {
         formData.append("financialContribution", values.financialFile);
       }
       try {
-        const response = isEditMode && editId
-          ? await api.put(`/financialContributionByAlumni`, formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data'
-            }
-          })
-          : await api.create(`/financialContributionByAlumni`, formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data'
-            }
-          });
+        const response =
+          isEditMode && editId
+            ? await api.put(`/financialContributionByAlumni`, formData, {
+                headers: {
+                  "Content-Type": "multipart/form-data",
+                },
+              })
+            : await api.create(`/financialContributionByAlumni`, formData, {
+                headers: {
+                  "Content-Type": "multipart/form-data",
+                },
+              });
 
-        toast.success(response.message || "financialFile record saved successfully!");
+        toast.success(
+          response.message || "financialFile record saved successfully!"
+        );
         handleListAssoClick();
         resetForm();
         setIsEditMode(false);
@@ -334,14 +353,17 @@ const FinancialContribution: React.FC = () => {
         toast.error("Failed to save financialFile. Please try again.");
         console.error("Error creating/updating financialFile:", error);
       }
-    }
+    },
   });
 
   return (
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <Breadcrumb title="Alumini" breadcrumbItem="Financial Contribution by Alumini" />
+          <Breadcrumb
+            title="Alumini"
+            breadcrumbItem="Financial Contribution by Alumini"
+          />
           <Card>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
@@ -374,16 +396,58 @@ const FinancialContribution: React.FC = () => {
                   </Col>
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>Financial Contribution File Upload</Label>
+                      <Label>Total Financial Contribution Amount</Label>
+                      <Input
+                        type="number"
+                        className={`form-control ${
+                          validation.touched.totalFinancialContributionAmount &&
+                          validation.errors.totalFinancialContributionAmount
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        value={validation.values.totalFinancialContributionAmount}
+                        onChange={(e) =>
+                          validation.setFieldValue(
+                            "totalFinancialContributionAmount",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Enter Total Financial Contribution Amount"
+                      />
+                      {validation.touched.totalFinancialContributionAmount &&
+                        validation.errors.totalFinancialContributionAmount && (
+                          <div className="text-danger">
+                            {validation.errors.totalFinancialContributionAmount}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Financial Contribution Details</Label>
                       <Input
                         type="file"
-                        onChange={(e) => validation.setFieldValue("financialFile", e.target.files?.[0] || null)}
-                        className={`form-control ${validation.touched.financialFile && validation.errors.financialFile ? "is-invalid" : ""}`}
+                        innerRef={fileRef}
+                        onChange={(e) =>
+                          validation.setFieldValue(
+                            "financialFile",
+                            e.target.files?.[0] || null
+                          )
+                        }
+                        className={`form-control ${
+                          validation.touched.financialFile &&
+                          validation.errors.financialFile
+                            ? "is-invalid"
+                            : ""
+                        }`}
                         disabled={isFileUploadDisabled} // Disable the button if a file exists
                       />
-                      {validation.touched.financialFile && validation.errors.financialFile && (
-                        <div className="text-danger">{validation.errors.financialFile}</div>
-                      )}
+                      {validation.touched.financialFile &&
+                        validation.errors.financialFile && (
+                          <div className="text-danger">
+                            {validation.errors.financialFile}
+                          </div>
+                        )}
                       {/* Show a message if the file upload button is disabled */}
                       {isFileUploadDisabled && (
                         <div className="text-warning mt-2">
@@ -393,15 +457,23 @@ const FinancialContribution: React.FC = () => {
                       {/* Only show the file name if it is a string (from the edit API) */}
                       {typeof validation.values.financialFile === "string" && (
                         <div className="mt-2 d-flex align-items-center">
-                          <span className="me-2" style={{ fontWeight: "bold", color: "green" }}>
+                          <span
+                            className="me-2"
+                            style={{ fontWeight: "bold", color: "green" }}
+                          >
                             {validation.values.financialFile}
                           </span>
                           <Button
                             color="link"
                             className="text-primary"
                             onClick={() => {
-                              if (typeof validation.values.financialFile === "string") {
-                                handleDownloadFile(validation.values.financialFile);
+                              if (
+                                typeof validation.values.financialFile ===
+                                "string"
+                              ) {
+                                handleDownloadFile(
+                                  validation.values.financialFile
+                                );
                               }
                             }}
                             title="Download File"
@@ -450,20 +522,17 @@ const FinancialContribution: React.FC = () => {
         size="lg"
         style={{ maxWidth: "100%", width: "auto" }}
       >
-        <ModalHeader toggle={toggleModal}>List Financial Contribution</ModalHeader>
+        <ModalHeader toggle={toggleModal}>
+          List Financial Contribution
+        </ModalHeader>
         <ModalBody>
-          <Table
-            striped
-            bordered
-            hover
-            id="id"
-            innerRef={tableRef}
-          >
+          <Table striped bordered hover id="id" innerRef={tableRef}>
             <thead className="table-dark">
               <tr>
                 <th>#</th>
                 <th>Academic Year</th>
-                <th>Financial Contribution File</th>
+                <th>Total Financial Contribution Amount</th>
+                <th>Financial Contribution Details</th>
                 <th className="d-none">File Path</th> {/* Hidden */}
                 <th>Actions</th>
               </tr>
@@ -474,8 +543,12 @@ const FinancialContribution: React.FC = () => {
                   <tr key={scholar.id}>
                     <td>{index + 1}</td>
                     <td>{scholar.academicYear}</td>
+                    <td>{scholar.totalFinancialContributionAmount}</td>
                     <td>{scholar.file?.FinancialContribution}</td>
-                    <td className="d-none">{scholar?.filePath?.FinancialContribution || "N/A"}</td> {/* Hidden */}
+                    <td className="d-none">
+                      {scholar?.filePath?.FinancialContribution || "N/A"}
+                    </td>{" "}
+                    {/* Hidden */}
                     <td>
                       <div className="d-flex justify-content-center gap-2">
                         <button
@@ -520,23 +593,21 @@ const FinancialContribution: React.FC = () => {
           <Button color="danger" onClick={() => confirmDelete(deleteId!)}>
             Delete
           </Button>
-          <Button
-            color="secondary"
-            onClick={() => setIsDeleteModalOpen(false)}
-          >
+          <Button color="secondary" onClick={() => setIsDeleteModalOpen(false)}>
             Cancel
           </Button>
         </ModalFooter>
       </Modal>
       <Modal isOpen={showDeleteModal} toggle={() => setShowDeleteModal(false)}>
-        <ModalBody>
-          Are you sure you want to delete this file?
-        </ModalBody>
+        <ModalBody>Are you sure you want to delete this file?</ModalBody>
         <ModalFooter>
-          <Button color="danger" onClick={() => {
-            handleDeleteFile();
-            setShowDeleteModal(false);
-          }}>
+          <Button
+            color="danger"
+            onClick={() => {
+              handleDeleteFile();
+              setShowDeleteModal(false);
+            }}
+          >
             Yes
           </Button>
           <Button color="secondary" onClick={() => setShowDeleteModal(false)}>

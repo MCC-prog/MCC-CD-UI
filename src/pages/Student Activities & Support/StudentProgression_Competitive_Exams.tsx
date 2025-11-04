@@ -54,7 +54,11 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
   const [tooltipOpen, setTooltipOpen] = useState(false);
+   const [tooltipOpenIdProof, setTooltipOpenIdProof] = useState(false);
+   const [tooltipOpenCompetitiveExam, setTooltipOpenCompetitiveExam] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
+  const toggleTooltipIdProof = () => setTooltipOpenIdProof(!tooltipOpenIdProof);
+  const toggleTooltipCompetitiveExam = () => setTooltipOpenCompetitiveExam(!tooltipOpenCompetitiveExam);
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
   const [filters, setFilters] = useState({
     academicYear: null,
@@ -70,6 +74,8 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
     excel: null,
   });
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const fileRef1 = useRef<HTMLInputElement | null>(null);
+  const fileRef2 = useRef<HTMLInputElement | null>(null);
   const tableRef = useRef<HTMLTableElement>(null);
 
   // Calculate the paginated data
@@ -181,6 +187,8 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
           ? { value: response.status, label: response.status }
           : null,
         excel: response.documents?.competitiveExam || null,
+        idProof: response.documents?.idProof || null,
+        competitiveExam: response.documents?.competitiveExam || null,
       };
       const streamOption = mapValueToLabel(response.streamId, []); // Replace [] with stream options array if available
       const departmentOption = mapValueToLabel(response.departmentId, []); // Replace [] with department options array if available
@@ -217,6 +225,8 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
             }
           : null,
         excel: response.documents?.competitiveExam || null, // Use the file from the response
+         idProof: response.documents?.idProof || null,
+        competitiveExam: response.documents?.competitiveExam || null,
       });
       setSelectedStream(streamOption);
       setSelectedDepartment(departmentOption);
@@ -332,6 +342,8 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
       courses: [] as { value: string; label: string }[],
       status: null as { value: string; label: string } | null,
       excel: null as File | string | null,
+      idProof: null as File | string | null,
+      competitiveExam: null as File | string | null,
     },
     validationSchema: Yup.object({
       academicYear: Yup.object()
@@ -355,6 +367,42 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
         .required("Please select program"),
       status: Yup.object().nullable().required("Please select status"),
       excel: Yup.mixed()
+        .required("Please upload a file")
+        .test("fileSize", "File size is too large", (value: any) => {
+          // Skip size validation if file is a string (from existing data)
+          if (typeof value === "string") return true;
+          return value && value.size <= 50 * 1024 * 1024; // 50MB
+        })
+        .test("fileType", "Unsupported file format", (value: any) => {
+          // Skip type validation if file is a string
+          if (typeof value === "string") return true;
+          return (
+            value &&
+            [
+              "application/vnd.ms-excel",
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            ].includes(value.type)
+          );
+        }),
+        idProof: Yup.mixed()
+        .required("Please upload a file")
+        .test("fileSize", "File size is too large", (value: any) => {
+          // Skip size validation if file is a string (from existing data)
+          if (typeof value === "string") return true;
+          return value && value.size <= 50 * 1024 * 1024; // 50MB
+        })
+        .test("fileType", "Unsupported file format", (value: any) => {
+          // Skip type validation if file is a string
+          if (typeof value === "string") return true;
+          return (
+            value &&
+            [
+              "application/vnd.ms-excel",
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            ].includes(value.type)
+          );
+        }),
+        competitiveExam: Yup.mixed()
         .required("Please upload a file")
         .test("fileSize", "File size is too large", (value: any) => {
           // Skip size validation if file is a string (from existing data)
@@ -413,6 +461,47 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
           formData.append("excel", values.excel);
         }
 
+
+         if (isEditMode && typeof values.idProof === "string") {
+          formData.append(
+            "idProof",
+            new Blob([], {
+              type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            }),
+            "empty.xlsx"
+          );
+        } else if (isEditMode && values.idProof === null) {
+          formData.append(
+            "idProof",
+            new Blob([], {
+              type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            }),
+            "empty.xlsx"
+          );
+        } else if (values.idProof) {
+          formData.append("idProof", values.idProof);
+        }
+
+         if (isEditMode && typeof values.competitiveExam === "string") {
+          formData.append(
+            "competitiveExam",
+            new Blob([], {
+              type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            }),
+            "empty.xlsx"
+          );
+        } else if (isEditMode && values.competitiveExam === null) {
+          formData.append(
+            "competitiveExam",
+            new Blob([], {
+              type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            }),
+            "empty.xlsx"
+          );
+        } else if (values.competitiveExam) {
+          formData.append("competitiveExam", values.competitiveExam);
+        }
+
         // If in edit mode, append the edit ID
         if (isEditMode && editId) {
           formData.append("competitiveExamId", editId);
@@ -443,6 +532,12 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
         if (fileRef.current) {
           fileRef.current.value = "";
         }
+        if (fileRef1.current) { 
+          fileRef1.current.value = "";
+        }
+        if (fileRef2.current) {
+          fileRef2.current.value = "";
+        } 
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         // display the BOS List
@@ -534,39 +629,6 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
                         )}
                     </div>
                   </Col>
-
-                  <Col sm={4}>
-                    <div className="mb-3">
-                      <Label htmlFor="formFile" className="form-label">
-                        Student Name
-                      </Label>
-                      <Input
-                        className={`form-control ${
-                          validation.touched.studentName &&
-                          validation.errors.studentName
-                            ? "is-invalid"
-                            : ""
-                        }`}
-                        type="text"
-                        id="studentName"
-                        onChange={(e) =>
-                          validation.setFieldValue(
-                            "studentName",
-                            e.target.value
-                          )
-                        }
-                        placeholder="Enter student name"
-                        value={validation.values.studentName}
-                      />
-                      {validation.touched.studentName &&
-                        validation.errors.studentName && (
-                          <div className="text-danger">
-                            {validation.errors.studentName}
-                          </div>
-                        )}
-                    </div>
-                  </Col>
-
                   <Col lg={4}>
                     <div className="mb-3">
                       <Label>School</Label>
@@ -637,6 +699,37 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
                             {Array.isArray(validation.errors.courses)
                               ? validation.errors.courses.join(", ")
                               : validation.errors.courses}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+                   <Col sm={4}>
+                    <div className="mb-3">
+                      <Label htmlFor="formFile" className="form-label">
+                        Student Name
+                      </Label>
+                      <Input
+                        className={`form-control ${
+                          validation.touched.studentName &&
+                          validation.errors.studentName
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        type="text"
+                        id="studentName"
+                        onChange={(e) =>
+                          validation.setFieldValue(
+                            "studentName",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Enter student name"
+                        value={validation.values.studentName}
+                      />
+                      {validation.touched.studentName &&
+                        validation.errors.studentName && (
+                          <div className="text-danger">
+                            {validation.errors.studentName}
                           </div>
                         )}
                     </div>
@@ -816,17 +909,188 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
                       )}
                     </div>
                   </Col>
-
-                  <Col lg={4}>
+                  <Col sm={4}>
                     <div className="mb-3">
-                      <Label>Download </Label>
+                      <Label htmlFor="formFile" className="form-label">
+                        Upload ID Card Proof
+                        <i
+                          id="infoIconIdProof"
+                          className="bi bi-info-circle ms-2"
+                          style={{ cursor: "pointer", color: "#0d6efd" }}
+                        ></i>
+                      </Label>
+                      <Tooltip
+                        placement="right"
+                        isOpen={tooltipOpenIdProof}
+                        target="infoIconIdProof"
+                        toggle={toggleTooltipIdProof}
+                      >
+                        Merged PDF for Bulk Data.
+                      </Tooltip>
+                      <Input
+                        className={`form-control ${
+                          validation.touched.idProof && validation.errors.idProof
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        type="file"
+                        id="formFile"
+                        innerRef={fileRef1}
+                        onChange={(event) => {
+                          validation.setFieldValue(
+                            "idProof",
+                            event.currentTarget.files
+                              ? event.currentTarget.files[0]
+                              : null
+                          );
+                        }}
+                        disabled={isFileUploadDisabled} // Disable the button if a file exists
+                      />
+                      {validation.touched.idProof && validation.errors.idProof && (
+                        <div className="text-danger">
+                          {validation.errors.idProof}
+                        </div>
+                      )}
+                      {/* Show a message if the file upload button is disabled */}
+                      {isFileUploadDisabled && (
+                        <div className="text-warning mt-2">
+                          Please remove the existing file to upload a new one.
+                        </div>
+                      )}
+                      {/* Only show the file name if it is a string (from the edit API) */}
+                      {typeof validation.values.idProof === "string" && (
+                        <div className="mt-2 d-flex align-items-center">
+                          <span
+                            className="me-2"
+                            style={{ fontWeight: "bold", color: "green" }}
+                          >
+                            {validation.values.idProof}
+                          </span>
+                          <Button
+                            color="link"
+                            className="text-primary"
+                            onClick={() =>
+                              handleDownloadFile(
+                                validation.values.idProof as string
+                              )
+                            }
+                            title="Download File"
+                          >
+                            <i className="bi bi-download"></i>
+                          </Button>
+                          <Button
+                            color="link"
+                            className="text-danger"
+                            onClick={() =>
+                              handleDeleteFile(
+                                validation.values.idProof as string,
+                                "idProof"
+                              )
+                            }
+                            title="Delete File"
+                          >
+                            <i className="bi bi-trash"></i>
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </Col>
+                   <Col sm={4}>
+                    <div className="mb-3">
+                      <Label htmlFor="formFile" className="form-label">
+                        Upload student Details Competitive Exam
+                        <i
+                          id="infoIconCompetitiveExam"
+                          className="bi bi-info-circle ms-2"
+                          style={{ cursor: "pointer", color: "#0d6efd" }}
+                        ></i>
+                      </Label>
+                      <Tooltip
+                        placement="right"
+                        isOpen={tooltipOpenCompetitiveExam}
+                        target="infoIconCompetitiveExam"
+                        toggle={toggleTooltipCompetitiveExam}
+                      >
+                        Bulk Data Upload in Excel.
+                      </Tooltip>
+                      <Input
+                        className={`form-control ${
+                          validation.touched.competitiveExam && validation.errors.competitiveExam
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        type="file"
+                        id="formFile"
+                        innerRef={fileRef2}
+                        onChange={(event) => {
+                          validation.setFieldValue(
+                            "competitiveExam",
+                            event.currentTarget.files
+                              ? event.currentTarget.files[0]
+                              : null
+                          );
+                        }}
+                        disabled={isFileUploadDisabled} // Disable the button if a file exists
+                      />
+                      {validation.touched.competitiveExam && validation.errors.competitiveExam && (
+                        <div className="text-danger">
+                          {validation.errors.competitiveExam}
+                        </div>
+                      )}
+                      {/* Show a message if the file upload button is disabled */}
+                      {isFileUploadDisabled && (
+                        <div className="text-warning mt-2">
+                          Please remove the existing file to upload a new one.
+                        </div>
+                      )}
+                      {/* Only show the file name if it is a string (from the edit API) */}
+                      {typeof validation.values.competitiveExam === "string" && (
+                        <div className="mt-2 d-flex align-items-center">
+                          <span
+                            className="me-2"
+                            style={{ fontWeight: "bold", color: "green" }}
+                          >
+                            {validation.values.competitiveExam}
+                          </span>
+                          <Button
+                            color="link"
+                            className="text-primary"
+                            onClick={() =>
+                              handleDownloadFile(
+                                validation.values.competitiveExam as string
+                              )
+                            }
+                            title="Download File"
+                          >
+                            <i className="bi bi-download"></i>
+                          </Button>
+                          <Button
+                            color="link"
+                            className="text-danger"
+                            onClick={() =>
+                              handleDeleteFile(
+                                validation.values.competitiveExam as string,
+                                "competitiveExam"
+                              )
+                            }
+                            title="Delete File"
+                          >
+                            <i className="bi bi-trash"></i>
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </Col>
+                   <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Excel Template</Label>
                       <div>
                         <a
                           href={`${process.env.PUBLIC_URL}/templateFiles/YEAR_DEPT_NAME_COMPETITIVE_EXAM.xlsx`}
                           download
                           className="btn btn-primary btn-sm"
                         >
-                          Year Dept Name Competitve Exam
+                          Template
                         </a>
                       </div>
                     </div>
@@ -874,7 +1138,9 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
                   <th>Program</th>
                   <th>Competitive Exam Name</th>
                   <th>Status</th>
-                  <th className="d-none">File Path</th>
+                  <th className="d-none">File Path(Excel)</th>
+                  <th className="d-none">File Path(ID Proof)</th>
+                  <th className="d-none">File Path(Competitive Exam)</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -903,6 +1169,12 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
                       <td>{bos.status}</td>
                       <td className="d-none">
                         {bos.filePath?.competitiveExam || "N/A"}
+                      </td>
+                      <td className="d-none">
+                        {bos.filePath?.idProof || "N/A"}
+                      </td>
+                      <td className="d-none">
+                        {bos.filePath?.excel || "N/A"}
                       </td>
                       <td>
                        <button

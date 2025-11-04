@@ -89,7 +89,7 @@ const Research_Publications = () => {
       volume: "",
       issue: "",
       pageNumber: "",
-      issxl: "",
+      issn: "",
       doi: "",
       publicationDate: "",
       publisher: "",
@@ -125,7 +125,7 @@ const Research_Publications = () => {
         .required("Please enter page number")
         .positive("Page number must be positive")
         .integer("Page number must be an integer"),
-      issxl: Yup.string().required("Please enter ISSXL"),
+      issn: Yup.string().required("Please enter ISSN"),
       doi: Yup.string().required("Please enter DOI"),
       publicationDate: Yup.date().required("Please select from date"),
       publisher: Yup.string().required("Please enter publisher"),
@@ -170,7 +170,7 @@ const Research_Publications = () => {
       formData.append("volume", values.volume);
       formData.append("issue", values.issue);
       formData.append("pageNumber", values.pageNumber);
-      formData.append("issn", values.issxl);
+      formData.append("issn", values.issn);
       formData.append("doi", values.doi);
       formData.append(
         "publicationDate",
@@ -287,7 +287,7 @@ const Research_Publications = () => {
         volume: response.volume || "",
         issue: response.issue || "",
         pageNumber: response.pageNumber || "",
-        issxl: response.issn || "",
+        issn: response.issn || "",
         doi: response.doi || "",
         publicationDate: response.publicationDate
           ? moment(response.publicationDate, "DD/MM/YYYY").isValid()
@@ -816,23 +816,23 @@ const Research_Publications = () => {
 
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>ISSXL</Label>
+                      <Label>ISSN</Label>
                       <Input
                         type="text"
-                        name="issxl"
-                        value={validation.values.issxl}
+                        name="issn"
+                        value={validation.values.issn}
                         onChange={validation.handleChange}
                         className={`form-control ${
-                          validation.touched.issxl && validation.errors.issxl
+                          validation.touched.issn && validation.errors.issn
                             ? "is-invalid"
                             : ""
                         }`}
-                        placeholder="Enter ISSXL"
+                        placeholder="Enter ISSN"
                       />
-                      {validation.touched.issxl && validation.errors.issxl && (
+                      {validation.touched.issn && validation.errors.issn && (
                         <div className="text-danger">
-                          {typeof validation.errors.issxl === "string" &&
-                            validation.errors.issxl}
+                          {typeof validation.errors.issn === "string" &&
+                            validation.errors.issn}
                         </div>
                       )}
                     </div>

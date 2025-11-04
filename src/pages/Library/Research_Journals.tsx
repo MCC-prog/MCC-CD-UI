@@ -106,6 +106,11 @@ const Research_Journals: React.FC = () => {
     { value: "International", label: "International" },
   ];
 
+   const TypePublishing = [
+    { value: "E-Journal", label: "E-Journal" },
+    { value: "Print Journal", label: "Print Journal"},
+  ];
+
   // Handle edit action
   // Fetch the data for the selected Research Journals ID and populate the form fields
   const handleEdit = async (id: string) => {
@@ -121,6 +126,12 @@ const Research_Journals: React.FC = () => {
 
       // Map API response to Formik values
       const mappedValues = {
+        academicYear: response.academicYear
+          ? {
+              value: response.academicYear,
+              label: response.academicYear,
+            }
+          : null,
         file: response.file?.ResearchJournal || null,
         level: response.journalType
           ? {
@@ -241,14 +252,17 @@ const Research_Journals: React.FC = () => {
   type SelectOption = { value: string; label: string };
 
   const validation = useFormik<{
+    academicYear: SelectOption | null;
     level: SelectOption | null;
     file: File | string | null;
   }>({
     initialValues: {
+      academicYear: null as { value: string; label: string } | null,
       level: null,
       file: null,
     },
     validationSchema: Yup.object({
+      academicYear: Yup.object().nullable().required("Please select an academic year"),
       file: Yup.mixed().test(
         "fileValidation",
         "Please upload a valid file",
@@ -278,6 +292,7 @@ const Research_Journals: React.FC = () => {
     onSubmit: async (values, { resetForm }) => {
       try {
         const formData = new FormData();
+        formData.append("academicYear", values.academicYear?.value || "");
         formData.append("journalType", values.level?.value || "");
         if (isEditMode && typeof values.file === "string") {
           // Pass an empty PDF instead of null
@@ -379,6 +394,58 @@ const Research_Journals: React.FC = () => {
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
                 <Row>
+                   <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Academic Year</Label>
+                      <br />
+                      <AcademicYearDropdown
+                        value={validation.values.academicYear}
+                        onChange={(selectedOption) =>
+                          validation.setFieldValue(
+                            "academicYear",
+                            selectedOption
+                          )
+                        }
+                        isInvalid={
+                          validation.touched.academicYear &&
+                          !!validation.errors.academicYear
+                        }
+                      />
+                      {validation.touched.academicYear &&
+                        validation.errors.academicYear && (
+                          <div className="text-danger">
+                            {validation.errors.academicYear}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Type Of Publishing</Label>
+                      <Select
+                        options={TypePublishing}
+                        value={validation.values.level}
+                        onChange={(selectedOption) =>
+                          validation.setFieldValue("level", selectedOption)
+                        }
+                        placeholder="Select Type Of Publishing"
+                        styles={dropdownStyles}
+                        menuPortalTarget={document.body}
+                        className={
+                          validation.touched.level && validation.errors.level
+                            ? "select-error"
+                            : ""
+                        }
+                      />
+                      {validation.touched.level && validation.errors.level && (
+                        <div className="text-danger">
+                          {typeof validation.errors.level === "string"
+                            ? validation.errors.level
+                            : ""}
+                        </div>
+                      )}
+                    </div>
+                  </Col>
                   <Col lg={4}>
                     <div className="mb-3">
                       <Label>Journal Type</Label>
@@ -410,14 +477,14 @@ const Research_Journals: React.FC = () => {
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
-                        Upload a report with summary
+                        Upload Journal List
                       </Label>
                       <Tooltip
                         placement="right"
                         open={tooltipOpen}
                         onClose={() => setTooltipOpen(false)}
                         onOpen={() => setTooltipOpen(true)}
-                        title={<span>Upload file. Max size 10MB.</span>}
+                        title={<span>Include only for current academic year.</span>}
                         arrow
                       >
                         <i
@@ -529,6 +596,8 @@ const Research_Journals: React.FC = () => {
               <thead className="table-dark">
                 <tr>
                   <th>#</th>
+                  <th>Academic Year</th>
+                  <th>Type Of Publishing</th>
                   <th>Journal Type </th>
                   <th className="d-none">File </th>
                   <th>Actions</th>
@@ -539,6 +608,8 @@ const Research_Journals: React.FC = () => {
                   currentRows.map((cds, index) => (
                     <tr key={cds.id}>
                       <td>{index + 1}</td>
+                      <td>{cds.academicYear}</td>
+                      <td>{cds.typeOfPublishing}</td>
                       <td>{cds.journalType}</td>
                       <td className="d-none">
                         {cds?.filePath.ResearchJournal || "N/A"}

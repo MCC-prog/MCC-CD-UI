@@ -420,7 +420,7 @@ const Amphitheatre: React.FC = () => {
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
-                        Upload Documents
+                        Upload Photos
                         <i
                           id="infoIcon"
                           className="bi bi-info-circle ms-2"
@@ -433,7 +433,7 @@ const Amphitheatre: React.FC = () => {
                         target="infoIcon"
                         toggle={toggleTooltip}
                       >
-                        Upload an PDF file. Max size 10MB.
+                        Current Year geo-tagged Photos Only.
                       </Tooltip>
                       <Input
                         className={`form-control ${
@@ -536,7 +536,7 @@ const Amphitheatre: React.FC = () => {
                   <th>#</th>
                   <th>Academic Year</th>
                   <th>No. of Amphitheatres</th>
-                  <th>Documents</th>
+                  <th>Photos</th>
                   <th className="d-none">File Path</th> {/* Hidden */}
                   <th>Actions</th>
                 </tr>

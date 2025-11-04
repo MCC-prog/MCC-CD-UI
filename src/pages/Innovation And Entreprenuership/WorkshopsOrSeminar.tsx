@@ -161,6 +161,7 @@ const WorkshopsOrSeminars: React.FC = () => {
   const modeOpt = [
     { value: "Offline", label: "Offline" },
     { value: "Online", label: "Online" },
+    { value: "Hybrid", label: "Hybrid" },
   ];
 
   // Handle edit action
@@ -381,7 +382,7 @@ const WorkshopsOrSeminars: React.FC = () => {
             : schema;
         }
       ),
-      facultyName: Yup.string().required("Please enter faculty name"),
+      facultyName: Yup.string().required("Please enter Faculty Co-ordinator/s Name"),
       type: Yup.object({
         value: Yup.string().required(),
         label: Yup.string().required(),
@@ -404,7 +405,7 @@ const WorkshopsOrSeminars: React.FC = () => {
         .required("Please select state"),
 
       title: Yup.string().required("Please enter title"),
-      organizedBy: Yup.string().required("Please enter organizer"),
+      organizedBy: Yup.string().required("Please enter Collaborating Department/Organisation"),
       fromDate: Yup.string()
         .required("Please select from date")
         .matches(
@@ -660,9 +661,9 @@ const WorkshopsOrSeminars: React.FC = () => {
                   )}
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>Faculty Name</Label>
+                      <Label>Faculty Co-ordinator/s Name</Label>
                       <Input
-                        placeholder="Enter Faculty Name"
+                        placeholder="Enter Faculty Co-ordinator/s Name"
                         type="text"
                         value={validation.values.facultyName}
                         onChange={(e) =>
@@ -792,9 +793,9 @@ const WorkshopsOrSeminars: React.FC = () => {
                   </Col>
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>Organized By</Label>
+                      <Label>Collaborating Department/Organisation</Label>
                       <Input
-                        placeholder="Enter Organized By"
+                        placeholder="Enter Collaborating Department/Organisation"
                         type="text"
                         value={validation.values.organizedBy}
                         onChange={(e) =>
@@ -1000,12 +1001,12 @@ const WorkshopsOrSeminars: React.FC = () => {
                   <th>Academic Year</th>
                   <th>Stream</th>
                   <th>Department</th>
-                  <th>Faculty Name</th>
+                  <th>Faculty Co-ordinator/s Name</th>
                   <th>Type</th>
                   <th>Mode</th>
                   <th>Level</th>
                   <th>Title</th>
-                  <th>Organized By</th>
+                  <th>Collaborating Department/Organisation</th>
                   <th>From Date</th>
                   <th>To Date</th>
                   <th className="d-none">File Path</th>

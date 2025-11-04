@@ -45,14 +45,8 @@ const AC_GB_MoM: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
   const [filteredData, setFilteredData] = useState(acGbMomData);
-  const [filters, setFilters] = useState({
-    academicYear: "",
-    date: "",
-    acFile: null as string | null,
-    gbFile: null as string | null,
-  });
-  const acFileRef = useRef<HTMLInputElement | null>(null);
-  const gbFileRef = useRef<HTMLInputElement | null>(null);
+  const FileRef = useRef<HTMLInputElement | null>(null);
+ // const gbFileRef = useRef<HTMLInputElement | null>(null);
 
   const tableRef = useRef<HTMLTableElement>(null);
 
@@ -71,6 +65,15 @@ const AC_GB_MoM: React.FC = () => {
     setFilteredData(filtered);
   };
 
+  const dropdownStyles = {
+    menu: (provided: any) => ({
+      ...provided,
+      overflowY: "auto", // Enable scrolling for additional options
+    }),
+    menuPortal: (base: any) => ({ ...base, zIndex: 9999 }), // Ensure the menu is above other elements
+  };
+
+
   // Calculate the paginated data
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
@@ -87,6 +90,13 @@ const AC_GB_MoM: React.FC = () => {
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };
+
+
+  const typeOption = [
+    { value: "Academic Council", label: "Academic Council" },
+    { value: "Governing Body", label: "Governing Body" },
+  ];
+
 
   // Fetch Ac & Gb Mom data from the backend
   const fetchAcGbMomData = async () => {
@@ -133,12 +143,17 @@ const AC_GB_MoM: React.FC = () => {
       // Map API response to Formik values
       const mappedValues = {
         academicYear: mapValueToLabel(response.academicYear, academicYearList),
-        dates: response.date
+        date: response.date
           ? moment(response.date, "YYYY-MM-DD").format("DD/MM/YYYY")
           : "",
-
-        acFile: response.documents?.AcademicCouncilMom || null,
-        gbFile: response.documents?.GoverningBodyMom || null,
+           type: response.type
+          ? {
+              value: String(response.type),
+              label: String(response.type),
+            }
+          : null,
+        acGbFile: response.documents?.mom || null,
+        // gbFile: response.documents?.GoverningBodyMom || null,
       };
 
       // Update Formik values
@@ -149,14 +164,20 @@ const AC_GB_MoM: React.FC = () => {
               value: String(mappedValues.academicYear.value),
             }
           : null,
-        dates: mappedValues.dates || "",
-        acFile: mappedValues.acFile || null,
-        gbFile: mappedValues.gbFile || null,
+        type: mappedValues.type
+          ? {
+              ...mappedValues.type,
+            }
+          : null,
+        date: mappedValues.date || "",
+        // dateOfGb: mappedValues.dateOfGb || "",
+        acGbFile: mappedValues.acGbFile || null,
+        // gbFile: mappedValues.gbFile || null,
       });
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       // Disable the file upload button if a file exists
-      setIsFileUploadDisabled(!!response.document?.excel);
+      setIsFileUploadDisabled(!!response.documents?.mom);
       toggleModal();
     } catch (error) {
       console.error("Error fetching Ac & Gb Mom data by ID:", error);
@@ -239,7 +260,7 @@ const AC_GB_MoM: React.FC = () => {
       // Show success message
       toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
-      validation.setFieldValue("file", null); // Clear the file from Formik state
+      validation.setFieldValue("acGbFile", null); // Clear the file from Formik state
       setIsFileUploadDisabled(false); // Enable the file upload button
     } catch (error) {
       // Show error message
@@ -253,16 +274,22 @@ const AC_GB_MoM: React.FC = () => {
   const validation = useFormik({
     initialValues: {
       academicYear: null as { value: string; label: string } | null,
-      dates: "",
-      acFile: null,
-      gbFile: null,
+      type: null as { value: string; label: string } | null,
+      date: "",
+      // dateOfGb: "",
+      acGbFile: null,
+      // gbFile: null,
     },
     validationSchema: Yup.object({
       academicYear: Yup.object()
         .nullable()
         .required("Please select academic year"),
-      dates: Yup.string().required("Please select Date"),
-      acFile: Yup.mixed()
+      type: Yup.object()
+        .nullable()
+        .required("Please select type"),
+      date: Yup.string().required("Please select Date"),
+      // dateOfGb: Yup.string().required("Please select Date of GB"),
+      acGbFile: Yup.mixed()
         .test("required", "Please upload a file", (value: any) => {
           return value !== null && value !== undefined;
         })
@@ -279,22 +306,22 @@ const AC_GB_MoM: React.FC = () => {
           );
         }),
 
-      gbFile: Yup.mixed()
-        .test("required", "Please upload a file", (value: any) => {
-          return value !== null && value !== undefined;
-        })
-        .test("fileSize", "File size is too large", (value: any) => {
-          if (typeof value === "string") return true; // allow previously uploaded URLs in edit mode
-          if (!value) return true; // let required() handle null
-          return value.size <= 2 * 1024 * 1024; // 2MB
-        })
-        .test("fileType", "Unsupported file format", (value: any) => {
-          if (typeof value === "string") return true; // allow previously uploaded file references
-          if (!value) return true; // let required() handle null
-          return ["application/pdf", "image/jpeg", "image/png"].includes(
-            value.type
-          );
-        }),
+      // gbFile: Yup.mixed()
+      //   .test("required", "Please upload a file", (value: any) => {
+      //     return value !== null && value !== undefined;
+      //   })
+      //   .test("fileSize", "File size is too large", (value: any) => {
+      //     if (typeof value === "string") return true; // allow previously uploaded URLs in edit mode
+      //     if (!value) return true; // let required() handle null
+      //     return value.size <= 2 * 1024 * 1024; // 2MB
+      //   })
+      //   .test("fileType", "Unsupported file format", (value: any) => {
+      //     if (typeof value === "string") return true; // allow previously uploaded file references
+      //     if (!value) return true; // let required() handle null
+      //     return ["application/pdf", "image/jpeg", "image/png"].includes(
+      //       value.type
+      //     );
+      //   }),
     }),
     onSubmit: (values, { resetForm }) => {
       const formData = new FormData();
@@ -305,42 +332,47 @@ const AC_GB_MoM: React.FC = () => {
       );
       formData.append(
         "date",
-        moment(values.dates, "DD/MM/YYYY").format("DD/MM/YYYY") // Convert to yyyy-mm-dd for the backend
+        moment(values.date, "DD/MM/YYYY").format("DD/MM/YYYY") // Convert to yyyy-mm-dd for the backend
       );
+      formData.append("type", values.type ? values.type.value : "");
+      // formData.append(
+      //   "dateOfGb",
+      //   moment(values.dateOfGb, "DD/MM/YYYY").format("DD/MM/YYYY") // Convert to yyyy-mm-dd for the backend
+      // );
       // Handle the file conditionally
-      if (isEditMode && typeof values.acFile === "string") {
+      if (isEditMode && typeof values.acGbFile === "string") {
         // Pass an empty Blob instead of null
         formData.append(
-          "academicCouncilMom",
+          "mom",
           new Blob([], { type: "application/pdf" }),
           "empty.pdf"
         );
-      } else if (isEditMode && values.acFile === null) {
+      } else if (isEditMode && values.acGbFile === null) {
         formData.append(
-          "academicCouncilMom",
+          "mom",
           new Blob([], { type: "application/pdf" }),
           "empty.pdf"
         );
-      } else if (values.acFile) {
-        formData.append("academicCouncilMom", values.acFile);
+      } else if (values.acGbFile) {
+        formData.append("mom", values.acGbFile);
       }
 
-      if (isEditMode && typeof values.gbFile === "string") {
-        // Pass an empty PDF instead of null
-        formData.append(
-          "governingBodyMom",
-          new Blob([], { type: "application/pdf" }),
-          "empty.pdf"
-        );
-      } else if (isEditMode && values.gbFile === null) {
-        formData.append(
-          "governingBodyMom",
-          new Blob([], { type: "application/pdf" }),
-          "empty.pdf"
-        );
-      } else if (values.gbFile) {
-        formData.append("governingBodyMom", values.gbFile);
-      }
+      // if (isEditMode && typeof values.gbFile === "string") {
+      //   // Pass an empty PDF instead of null
+      //   formData.append(
+      //     "governingBodyMom",
+      //     new Blob([], { type: "application/pdf" }),
+      //     "empty.pdf"
+      //   );
+      // } else if (isEditMode && values.gbFile === null) {
+      //   formData.append(
+      //     "governingBodyMom",
+      //     new Blob([], { type: "application/pdf" }),
+      //     "empty.pdf"
+      //   );
+      // } else if (values.gbFile) {
+      //   formData.append("governingBodyMom", values.gbFile);
+      // }
 
       if (isEditMode && editId) {
         // Update existing record
@@ -351,8 +383,9 @@ const AC_GB_MoM: React.FC = () => {
               response.message || "Ac & Gb Mom updated successfully!"
             );
             resetForm();
-            if (acFileRef.current) acFileRef.current.value = "";
-            if (gbFileRef.current) gbFileRef.current.value = "";
+             if (FileRef.current) {
+          FileRef.current.value = "";
+        }
 
             setIsEditMode(false);
             setEditId(null);
@@ -373,8 +406,8 @@ const AC_GB_MoM: React.FC = () => {
               response.message || "Ac & Gb Mom created successfully!"
             );
             resetForm();
-            if (acFileRef.current) acFileRef.current.value = "";
-            if (gbFileRef.current) gbFileRef.current.value = "";
+            if (FileRef.current) FileRef.current.value = "";
+            // if (gbFileRef.current) gbFileRef.current.value = "";
 
             setIsEditMode(false);
             setEditId(null);
@@ -451,7 +484,7 @@ const AC_GB_MoM: React.FC = () => {
       <div className="page-content">
         <Container fluid>
           <Breadcrumb title="Curriculum" breadcrumbItem="Ac & GB MoM" />
-          <Card>
+          <Card style={{ height: "300px" }}>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
                 <Row>
@@ -481,179 +514,253 @@ const AC_GB_MoM: React.FC = () => {
                   </Col>
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>Date</Label>
-                      <Input
-                        type="date" // Use native date input
-                        className={`form-control ${
-                          validation.touched.dates && validation.errors.dates
-                            ? "is-invalid"
-                            : ""
-                        }`}
-                        value={
-                          validation.values.dates
-                            ? moment(
-                                validation.values.dates,
-                                "DD/MM/YYYY"
-                              ).format("YYYY-MM-DD") // Convert to yyyy-mm-dd for the input
+                      <Label>Type</Label>
+                      <Select
+                        options={typeOption}
+                        value={validation.values.type}
+                        onChange={(selectedOption) =>
+                          validation.setFieldValue("type", selectedOption)
+                        }
+                        placeholder="Select Type"
+                        styles={dropdownStyles}
+                        menuPortalTarget={document.body}
+                        className={
+                          validation.touched.type &&
+                          validation.errors.type
+                            ? "select-error"
                             : ""
                         }
-                        onChange={(e) => {
-                          const formattedDate = moment(
-                            e.target.value,
-                            "YYYY-MM-DD"
-                          ).format("DD/MM/YYYY"); // Convert to dd/mm/yyyy
-                          validation.setFieldValue("dates", formattedDate);
-                        }}
-                        placeholder="dd/mm/yyyy"
                       />
-                      {validation.touched.dates && validation.errors.dates && (
-                        <div className="text-danger">
-                          {validation.errors.dates}
-                        </div>
-                      )}
-                    </div>
-                  </Col>
-                  <Col sm={4}>
-                    <div className="mb-3">
-                      <Label htmlFor="formFile" className="form-label">
-                        Academic Council MOM
-                      </Label>
-                      <Input
-                        className={`form-control ${
-                          validation.touched.acFile && validation.errors.acFile
-                            ? "is-invalid"
-                            : ""
-                        }`}
-                        type="file"
-                        innerRef={acFileRef}
-                        id="formFile"
-                        onChange={(event) => {
-                          validation.setFieldValue(
-                            "acFile",
-                            event.currentTarget.files
-                              ? event.currentTarget.files[0]
-                              : null
-                          );
-                        }}
-                        disabled={isFileUploadDisabled} // Disable the button if a file exists
-                      />
-                      {validation.touched.acFile &&
-                        validation.errors.acFile && (
+                      {validation.touched.type &&
+                        validation.errors.type && (
                           <div className="text-danger">
-                            {validation.errors.acFile}
+                            {typeof validation.errors.type === "string"
+                              ? validation.errors.type
+                              : ""}
                           </div>
                         )}
-                      {/* Show a message if the file upload button is disabled */}
-                      {isFileUploadDisabled && (
-                        <div className="text-warning mt-2">
-                          Please remove the existing file to upload a new one.
-                        </div>
-                      )}
-                      {/* Only show the file name if it is a string (from the edit API) */}
-                      {typeof validation.values.acFile === "string" && (
-                        <div className="mt-2 d-flex align-items-center">
-                          <span
-                            className="me-2"
-                            style={{ fontWeight: "bold", color: "green" }}
-                          >
-                            {validation.values.acFile}
-                          </span>
-                          <Button
-                            color="link"
-                            className="text-primary"
-                            onClick={() =>
-                              handleDownloadFile(
-                                typeof validation.values.acFile === "string"
-                                  ? validation.values.acFile
-                                  : ""
-                              )
-                            }
-                            title="Download File"
-                          >
-                            <i className="bi bi-download"></i>
-                          </Button>
-                          <Button
-                            color="link"
-                            className="text-danger"
-                            onClick={() => handleDeleteFile()}
-                            title="Delete File"
-                          >
-                            <i className="bi bi-trash"></i>
-                          </Button>
-                        </div>
-                      )}
                     </div>
                   </Col>
-                  <Col sm={4}>
-                    <div className="mb-3">
-                      <Label htmlFor="formFile" className="form-label">
-                        Governing Body MoM
-                      </Label>
-                      <Input
-                        className={`form-control ${
-                          validation.touched.gbFile && validation.errors.gbFile
-                            ? "is-invalid"
-                            : ""
-                        }`}
-                        type="file"
-                        innerRef={gbFileRef}
-                        onChange={(event) => {
-                          validation.setFieldValue(
-                            "gbFile",
-                            event.currentTarget.files
-                              ? event.currentTarget.files[0]
-                              : null
-                          );
-                        }}
-                        disabled={isFileUploadDisabled} // Disable the button if a file exists
-                      />
-                      {validation.touched.gbFile &&
-                        validation.errors.gbFile && (
-                          <div className="text-danger">
-                            {validation.errors.gbFile}
+
+                {(validation.values.type?.value === "Academic Council" ||
+                  validation.values.type?.value === "Governing Body") && (
+                  <>
+                    {validation.values.type?.value === "Academic Council" && (
+                      <>
+                        <Col lg={4}>
+                          <div className="mb-3">
+                            <Label>Date Of AC</Label>
+                            <Input
+                              type="date"
+                              className={`form-control ${
+                                validation.touched.date &&
+                                validation.errors.date
+                                  ? "is-invalid"
+                                  : ""
+                              }`}
+                              value={
+                                validation.values.date
+                                  ? moment(
+                                      validation.values.date,
+                                      "DD/MM/YYYY"
+                                    ).format("YYYY-MM-DD")
+                                  : ""
+                              }
+                              onChange={(e) => {
+                                const formattedDate = moment(
+                                  e.target.value,
+                                  "YYYY-MM-DD"
+                                ).format("DD/MM/YYYY");
+                                validation.setFieldValue("date", formattedDate);
+                              }}
+                              placeholder="dd/mm/yyyy"
+                            />
+                            {validation.touched.date && validation.errors.date && (
+                              <div className="text-danger">
+                                {validation.errors.date}
+                              </div>
+                            )}
                           </div>
-                        )}
-                      {/* Show a message if the file upload button is disabled */}
-                      {isFileUploadDisabled && (
-                        <div className="text-warning mt-2">
-                          Please remove the existing file to upload a new one.
-                        </div>
-                      )}
-                      {/* Only show the file name if it is a string (from the edit API) */}
-                      {typeof validation.values.gbFile === "string" && (
-                        <div className="mt-2 d-flex align-items-center">
-                          <span
-                            className="me-2"
-                            style={{ fontWeight: "bold", color: "green" }}
-                          >
-                            {validation.values.gbFile}
-                          </span>
-                          <Button
-                            color="link"
-                            className="text-primary"
-                            onClick={() =>
-                              handleDownloadFile(
-                                typeof validation.values.gbFile === "string"
-                                  ? validation.values.gbFile
+                        </Col>
+                        <Col sm={4}>
+                          <div className="mb-3">
+                            <Label htmlFor="formFile" className="form-label">
+                              Academic Council MOM
+                            </Label>
+                            <Input
+                              className={`form-control ${
+                                validation.touched.acGbFile && validation.errors.acGbFile
+                                  ? "is-invalid"
                                   : ""
-                              )
-                            }
-                            title="Download File"
-                          >
-                            <i className="bi bi-download"></i>
-                          </Button>
-                          <Button
-                            color="link"
-                            className="text-danger"
-                            onClick={() => handleDeleteFile()}
-                            title="Delete File"
-                          >
-                            <i className="bi bi-trash"></i>
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  </Col>
+                              }`}
+                              type="file"
+                              innerRef={FileRef}
+                              id="formFile"
+                              onChange={(event) => {
+                                validation.setFieldValue(
+                                  "acGbFile",
+                                  event.currentTarget.files
+                                    ? event.currentTarget.files[0]
+                                    : null
+                                );
+                              }}
+                              disabled={isFileUploadDisabled}
+                            />
+                            {validation.touched.acGbFile &&
+                              validation.errors.acGbFile && (
+                                <div className="text-danger">
+                                  {validation.errors.acGbFile}
+                                </div>
+                              )}
+                            {isFileUploadDisabled && (
+                              <div className="text-warning mt-2">
+                                Please remove the existing file to upload a new one.
+                              </div>
+                            )}
+                            {typeof validation.values.acGbFile === "string" && (
+                              <div className="mt-2 d-flex align-items-center">
+                                <span
+                                  className="me-2"
+                                  style={{ fontWeight: "bold", color: "green" }}
+                                >
+                                  {validation.values.acGbFile}
+                                </span>
+                                <Button
+                                  color="link"
+                                  className="text-primary"
+                                  onClick={() =>
+                                    handleDownloadFile(
+                                      typeof validation.values.acGbFile === "string"
+                                        ? validation.values.acGbFile
+                                        : ""
+                                    )
+                                  }
+                                  title="Download File"
+                                >
+                                  <i className="bi bi-download"></i>
+                                </Button>
+                                <Button
+                                  color="link"
+                                  className="text-danger"
+                                  onClick={() => handleDeleteFile()}
+                                  title="Delete File"
+                                >
+                                  <i className="bi bi-trash"></i>
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        </Col>
+                      </>
+                    )}
+                    {validation.values.type?.value === "Governing Body" && (
+                      <>
+                        <Col lg={4}>
+                          <div className="mb-3">
+                            <Label>Date Of GB</Label>
+                            <Input
+                              type="date"
+                              className={`form-control ${
+                                validation.touched.date && validation.errors.date
+                                  ? "is-invalid"
+                                  : ""
+                              }`}
+                              value={
+                                validation.values.date
+                                  ? moment(
+                                      validation.values.date,
+                                      "DD/MM/YYYY"
+                                    ).format("YYYY-MM-DD")
+                                  : ""
+                              }
+                              onChange={(e) => {
+                                const formattedDate = moment(
+                                  e.target.value,
+                                  "YYYY-MM-DD"
+                                ).format("DD/MM/YYYY");
+                                validation.setFieldValue("date", formattedDate);
+                              }}
+                              placeholder="dd/mm/yyyy"
+                            />
+                            {validation.touched.date && validation.errors.date && (
+                              <div className="text-danger">
+                                {validation.errors.date}
+                              </div>
+                            )}
+                          </div>
+                        </Col>
+                        <Col sm={4}>
+                          <div className="mb-3">
+                            <Label htmlFor="formFile" className="form-label">
+                              Governing Body MoM
+                            </Label>
+                            <Input
+                              className={`form-control ${
+                                validation.touched.acGbFile && validation.errors.acGbFile
+                                  ? "is-invalid"
+                                  : ""
+                              }`}
+                              type="file"
+                              innerRef={FileRef}
+                              onChange={(event) => {
+                                validation.setFieldValue(
+                                  "acGbFile",
+                                  event.currentTarget.files
+                                    ? event.currentTarget.files[0]
+                                    : null
+                                );
+                              }}
+                              disabled={isFileUploadDisabled}
+                            />
+                            {validation.touched.acGbFile &&
+                              validation.errors.acGbFile && (
+                                <div className="text-danger">
+                                  {validation.errors.acGbFile}
+                                </div>
+                              )}
+                            {isFileUploadDisabled && (
+                              <div className="text-warning mt-2">
+                                Please remove the existing file to upload a new one.
+                              </div>
+                            )}
+                            {typeof validation.values.acGbFile === "string" && (
+                              <div className="mt-2 d-flex align-items-center">
+                                <span
+                                  className="me-2"
+                                  style={{ fontWeight: "bold", color: "green" }}
+                                >
+                                  {validation.values.acGbFile}
+                                </span>
+                                <Button
+                                  color="link"
+                                  className="text-primary"
+                                  onClick={() =>
+                                    handleDownloadFile(
+                                      typeof validation.values.acGbFile === "string"
+                                        ? validation.values.acGbFile
+                                        : ""
+                                    )
+                                  }
+                                  title="Download File"
+                                >
+                                  <i className="bi bi-download"></i>
+                                </Button>
+                                <Button
+                                  color="link"
+                                  className="text-danger"
+                                  onClick={() => handleDeleteFile()}
+                                  title="Delete File"
+                                >
+                                  <i className="bi bi-trash"></i>
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        </Col>
+                      </>
+                    )}
+                  </>
+                )}
                 </Row>
                 <Row>
                   <Col lg={12}>
@@ -703,9 +810,10 @@ const AC_GB_MoM: React.FC = () => {
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
+                  <th>Type</th>
                   <th>Date</th>
                   <th>File</th>
-                  <th>GB File</th>
+                  {/* <th>GB File</th> */}
                 </tr>
               </thead>
               <tbody>
@@ -714,9 +822,10 @@ const AC_GB_MoM: React.FC = () => {
                     <tr key={acgb.acGbMomId}>
                       <td>{index + 1}</td>
                       <td>{acgb.academicYear}</td>
+                      <td>{acgb.type}</td>
                       <td>{acgb.date}</td>
-                      <td>{acgb.filePath?.AcademicCouncilMom || "N/A"}</td>
-                      <td>{acgb.filePath?.GoverningBodyMom || "N/A"}</td>
+                      <td>{acgb.filePath?.mom || "N/A"}</td>
+                      {/* <td>{acgb.filePath?.GoverningBodyMom || "N/A"}</td> */}
                     </tr>
                   ))
                 ) : (
@@ -740,8 +849,9 @@ const AC_GB_MoM: React.FC = () => {
                   <th>#</th>
                   <th>Academic Year</th>
                   <th>Date</th>
+                  <th>Type</th>
                   <th>File</th>
-                  <th>GB File</th>
+                  {/* <th>GB File</th> */}
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -752,17 +862,18 @@ const AC_GB_MoM: React.FC = () => {
                       <td>{index + 1}</td>
                       <td>{acgb.academicYear}</td>
                       <td>{acgb.date}</td>
+                      <td>{acgb.type}</td>
                       <td>
-                        {acgb.documents?.AcademicCouncilMom ||
+                        {acgb.documents?.mom ||
                           "No file uploaded"}
                       </td>
-                      <td>
+                      {/* <td>
                         {acgb.documents?.GoverningBodyMom ? (
                           <span>{acgb.documents.GoverningBodyMom}</span>
                         ) : (
                           "No file uploaded"
                         )}
-                      </td>
+                      </td> */}
                       <td>
                         <button
                           className="btn btn-sm btn-warning me-2"

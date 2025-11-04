@@ -34,6 +34,8 @@ import "datatables.net-buttons/js/buttons.html5.js";
 import "jszip";
 import "pdfmake/build/pdfmake";
 import "pdfmake/build/vfs_fonts";
+import GetAllDepartmentDropdown from "Components/DropDowns/GetAllDepartmentDropdown";
+import GetAllProgramDropdown from "Components/DropDowns/GetAllProgramDropdown";
 const api = new APIClient();
 
 const Year_Of_Establishment: React.FC = () => {
@@ -47,6 +49,7 @@ const Year_Of_Establishment: React.FC = () => {
   const [editId, setEditId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
   const rowsPerPage = 10;
   const [filteredData, setFilteredData] = useState(bosData);
   const [searchTerm, setSearchTerm] = useState("");
@@ -142,6 +145,12 @@ const Year_Of_Establishment: React.FC = () => {
         stream: response.streamId
           ? { value: response.streamId.toString(), label: response.streamName }
           : null,
+        department: response.departmentId
+          ? { value: response.departmentId.toString(), label: response.departmentName }
+          : null,
+        program: response.programId
+          ? { value: response.programId.toString(), label: response.programName }
+          : null,
       };
 
       // Update Formik values
@@ -157,6 +166,18 @@ const Year_Of_Establishment: React.FC = () => {
           ? {
               value: String(mappedValues.stream.value),
               label: mappedValues.stream.label || "",
+            }
+          : null,
+        department: mappedValues.department
+          ? {
+              value: String(mappedValues.department.value),
+              label: mappedValues.department.label || "",
+            }
+          : null,
+        program: mappedValues.program
+          ? {
+              value: String(mappedValues.program.value),
+              label: mappedValues.program.label || "",
             }
           : null,
       });
@@ -205,6 +226,8 @@ const Year_Of_Establishment: React.FC = () => {
       academicYear: null as { value: string; label: string } | null,
       yearOfEst: "",
       stream: null as { value: string; label: string } | null,
+      department: null as { value: string; label: string } | null,
+      program: null as { value: string; label: string } | null,
     },
     validationSchema: Yup.object({
       academicYear: Yup.object()
@@ -212,12 +235,16 @@ const Year_Of_Establishment: React.FC = () => {
         .required("Please select academic year"),
       stream: Yup.object().nullable().required("Please select stream"),
       yearOfEst: Yup.string().required("Please enter year of establishment"),
+      department: Yup.object().nullable().required("Please select department"),
+      program: Yup.object().nullable().required("Please select program"),
     }),
     onSubmit: async (values, { resetForm }) => {
       const payload = {
         academicYear: values.academicYear?.value || "",
         streamId: values.stream?.value || "",
         yearOfEstablishment: values.yearOfEst || "",
+        departmentId: values.department?.value || "",
+        programId: values.program?.value || "",
       };
 
       // If editing, include the ID
@@ -307,7 +334,7 @@ const Year_Of_Establishment: React.FC = () => {
               <form onSubmit={validation.handleSubmit}>
                 <Row>
                   {/* Academic Year Dropdown */}
-                  <Col lg={4}>
+                  {/* <Col lg={4}>
                     <div className="mb-3">
                       <Label>Academic Year</Label>
                       <AcademicYearDropdown
@@ -330,9 +357,9 @@ const Year_Of_Establishment: React.FC = () => {
                           </div>
                         )}
                     </div>
-                  </Col>
+                  </Col> */}
 
-                  <Col lg={4}>
+                  {/* <Col lg={4}>
                     <div className="mb-3">
                       <Label>School</Label>
                       <StreamDropdown
@@ -353,7 +380,60 @@ const Year_Of_Establishment: React.FC = () => {
                           </div>
                         )}
                     </div>
+                  </Col> */}
+
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Department</Label>
+                      <GetAllDepartmentDropdown
+                        value={validation.values.department}
+                        onChange={(selectedOption) => {
+                          validation.setFieldValue(
+                            "department",
+                            selectedOption
+                          );
+                          setSelectedDepartment(selectedOption);
+                        }}
+                        isInvalid={
+                          validation.touched.department &&
+                          !!validation.errors.department
+                        }
+                      />
+                      {validation.touched.department &&
+                        validation.errors.department && (
+                          <div className="text-danger">
+                            {validation.errors.department}
+                          </div>
+                        )}
+                    </div>
                   </Col>
+
+                   <Col lg={4}>
+                    <div className="mb-3">
+                      <Label> Program </Label>
+                      <GetAllProgramDropdown
+                        value={validation.values.program}
+                        onChange={(selectedOption) => {
+                          validation.setFieldValue(
+                            "program",
+                            selectedOption
+                          );
+                          setSelectedDepartment(selectedOption);
+                        }}
+                        isInvalid={
+                          validation.touched.program &&
+                          !!validation.errors.program
+                        }
+                      />
+                      {validation.touched.program &&
+                        validation.errors.program && (
+                          <div className="text-danger">
+                            {validation.errors.program}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+
 
                   <Col sm={4}>
                     <div className="mb-3">
@@ -419,8 +499,10 @@ const Year_Of_Establishment: React.FC = () => {
               <thead className="table-dark">
                 <tr>
                   <th>#</th>
-                  <th>Academic Year</th>
-                  <th>Stream</th>
+                  {/* <th>Academic Year</th>
+                  <th>School</th> */}
+                  <th>Department</th>
+                  <th>Program</th>
                   <th>Year of Establishment</th>
                   <th>Actions</th>
                 </tr>
@@ -430,8 +512,10 @@ const Year_Of_Establishment: React.FC = () => {
                   currentRows.map((bos, index) => (
                     <tr key={bos.establismentYearId}>
                       <td>{index + 1}</td>
-                      <td>{bos.academicYear}</td>
-                      <td>{bos.streamName}</td>
+                      {/* <td>{bos.academicYear}</td>
+                      <td>{bos.streamName}</td> */}
+                      <td>{bos.departmentName}</td>
+                      <td>{bos.programName}</td>
                       <td>{bos.yearOfEstablishment}</td>
                       <td>
                         <button

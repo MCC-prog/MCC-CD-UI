@@ -106,10 +106,18 @@ const Management_Funded_Project: React.FC = () => {
         .typeError("Please enter a valid number")
         .min(0, "Amount cannot be less than 0")
         .required("Please enter the amount"),
-      monthOfGrant: Yup.string().required("Please enter the month of grant"),
+      monthOfGrant: Yup.date().required("Please select Month Of Grant"),
       typeOfFunding: Yup.object<{ value: string; label: string }>()
         .nullable()
         .required("Please select type of funding"),
+      otherTypeOfFunding: Yup.string().when(
+        "typeOfFunding",
+        (typeOfFunding: any, schema) => {
+          return typeOfFunding?.value === "Others"
+            ? schema.required("Please specify the Type Of Funding")
+            : schema;
+        }
+      ),
       principalInvestigator:
         isMultidisciplinary === "Yes" && activeTab === "1"
           ? Yup.object({
@@ -156,6 +164,7 @@ const Management_Funded_Project: React.FC = () => {
       amount: "",
       monthOfGrant: "",
       typeOfFunding: null as { value: string; label: string } | null,
+      otherTypeOfFunding: "",
       principalInvestigator: {
         name: "",
         qualification: "",
@@ -941,7 +950,7 @@ const Management_Funded_Project: React.FC = () => {
         <Container fluid>
           <Breadcrumb
             title="Research"
-            breadcrumbItem="Management_Funded_Project"
+            breadcrumbItem="Research Project"
           />
           <Card>
             <CardBody>
@@ -1149,7 +1158,7 @@ const Management_Funded_Project: React.FC = () => {
                     <div className="mb-3">
                       <Label>Month of Grant</Label>
                       <Input
-                        type="text"
+                        type="date"
                         value={validation.values.monthOfGrant}
                         onChange={(e) =>
                           validation.setFieldValue(
@@ -1195,10 +1204,11 @@ const Management_Funded_Project: React.FC = () => {
                         }`}
                       >
                         <option value="">Select Type of Funding</option>
-                        <option value="MGMT">MGMT</option>
-                        <option value="External Funding Agent">
-                          External Funding Agent
-                        </option>
+                        <option value="Management">Management</option>
+                        <option value="Government">Government</option>
+                        <option value="NGO">NGO</option>
+                        <option value="Industry">Industry</option>
+                        <option value="Others">Others</option>
                       </Input>
                       {validation.touched.typeOfFunding &&
                         validation.errors.typeOfFunding && (
@@ -1208,6 +1218,38 @@ const Management_Funded_Project: React.FC = () => {
                         )}
                     </div>
                   </Col>
+                     {validation.values.typeOfFunding?.value === "Others" && (
+                    <Col lg={4}>
+                      <div className="mb-3">
+                        <Label>Specify Type of Funding</Label>
+                        <Input
+                          type="text"
+                          className={`form-control ${
+                            validation.touched.otherTypeOfFunding &&
+                            validation.errors.otherTypeOfFunding
+                              ? "is-invalid"
+                              : ""
+                          }`}
+                          value={validation.values.otherTypeOfFunding}
+                          onChange={(e) =>
+                            validation.setFieldValue(
+                              "otherTypeOfFunding",
+                              e.target.value
+                            )
+                          }
+                          placeholder="Enter Type of Funding"
+                        />
+                        {validation.touched.otherTypeOfFunding &&
+                          validation.errors.otherTypeOfFunding && (
+                            <div className="text-danger">
+                              {validation.errors.otherTypeOfFunding}
+                            </div>
+                          )}
+                      </div>
+                    </Col>
+                  )}
+
+
                   {/* Multidisciplinary Dropdown */}
                   <Col lg={4}>
                     <div className="mb-3">
