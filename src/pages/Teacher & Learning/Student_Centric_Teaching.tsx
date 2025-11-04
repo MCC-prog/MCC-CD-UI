@@ -712,17 +712,8 @@ const Student_Centric_Teaching: React.FC = () => {
     validationSchema: getTabValidationSchema(activeTab),
     enableReinitialize: true,
     onSubmit: async (values, { resetForm, setErrors, setSubmitting }) => {
-      // Block submit if no Focus Area tab is active
-      // if (!activeTab) {
-      //   validation.setStatus(
-      //     "Please select a Focus Area and fill at least one focus area type."
-      //   );
-      //   setSubmitting(false);
-      //   return;
-      // }
-      // console.log("Submit triggered with values:", values);
-
       const formData = new FormData();
+
       const isExperintalLearningFilled =
         !!values.caseStudyEL ||
         !!values.indVisitEL ||
@@ -732,6 +723,7 @@ const Student_Centric_Teaching: React.FC = () => {
         !!values.exhibitionEL ||
         !!values.awarenesDriveEL ||
         !!values.streetPlaysEL;
+
       const isParticipateLearningFilled =
         !!values.caseStudyPL ||
         !!values.indVisitPL ||
@@ -741,6 +733,7 @@ const Student_Centric_Teaching: React.FC = () => {
         !!values.exhibitionPL ||
         !!values.awarenesDrivePL ||
         !!values.streetPlaysPL;
+
       const isProblemLearningFilled =
         !!values.caseStudyProblemLg ||
         !!values.indVisitProblemLg ||
@@ -748,86 +741,98 @@ const Student_Centric_Teaching: React.FC = () => {
         !!values.simulationtProblemLg ||
         !!values.ojtInternProblemLg ||
         !!values.exhibitionProblemLg ||
-        !!values.awarenesDriveProblemLg ||
         !!values.awarenesDriveProblemLg;
 
+      // Determine which methodology tab is filled
+      const methodologyTab = isExperintalLearningFilled
+        ? "ExperientialLearning"
+        : isParticipateLearningFilled
+        ? "ParticipativeLearning"
+        : isProblemLearningFilled
+        ? "ProblemLearning"
+        : null;
+
+      // Build additionalDto based on methodologyTab and activeTab
+      let additionalDto: null | {
+        caseStudy: string;
+        industrialVisit: string;
+        workShop: string;
+        simulation: string;
+        internship: string;
+        exhibition: string;
+        awarenessDrive: string;
+        streetPlays: string;
+      } = null;
+
+      if (methodologyTab === "ExperientialLearning" && activeTab === 1) {
+        additionalDto = {
+          caseStudy: values.caseStudyEL,
+          industrialVisit: values.indVisitEL,
+          workShop: values.workShopEL,
+          simulation: values.simulationtEL,
+          internship: values.ojtInternEL,
+          exhibition: values.exhibitionEL,
+          awarenessDrive: values.awarenesDriveEL,
+          streetPlays: values.streetPlaysEL,
+        };
+      } else if (
+        methodologyTab === "ParticipativeLearning" &&
+        activeTab === 2
+      ) {
+        additionalDto = {
+          caseStudy: values.caseStudyPL,
+          industrialVisit: values.indVisitPL,
+          workShop: values.workShopPL,
+          simulation: values.simulationtPL,
+          internship: values.ojtInternPL,
+          exhibition: values.exhibitionPL,
+          awarenessDrive: values.awarenesDrivePL,
+          streetPlays: values.streetPlaysPL,
+        };
+      } else if (methodologyTab === "ProblemLearning" && activeTab === 3) {
+        additionalDto = {
+          caseStudy: values.caseStudyProblemLg,
+          industrialVisit: values.indVisitProblemLg,
+          workShop: values.workShopProblemLg,
+          simulation: values.simulationtProblemLg,
+          internship: values.ojtInternProblemLg,
+          exhibition: values.exhibitionProblemLg,
+          awarenessDrive: values.awarenesDriveProblemLg,
+          streetPlays: values.streetPlaysProblemLg,
+        };
+      }
+
+      // Final DTO
       const advanceLearnersRequestDto = {
         studentCentricMethodologyId: editId || null,
         academicYear: Number(values.academicYear?.value || 0),
         semType: values.semesterType?.value || "",
-        semester: Number(values.semesterNo?.value || ""),
+        semester: Number(values.semesterNo?.value || 0),
         streamId: Number(values.stream?.value || 0),
         departmentId: Number(values.department?.value || 0),
         courseIds: Array.isArray(values.courses)
           ? values.courses.map((option: any) => Number(option.value))
           : [],
         courseTitle: values.courseTitle,
-        methodologyTab: isExperintalLearningFilled
-          ? "ExperientialLearning"
-          : isParticipateLearningFilled
-          ? "ParticipativeLearning"
-          : isProblemLearningFilled
-          ? "ProblemLearning"
-          : null,
-        experientialLearningDto:
-          activeTab === 1
-            ? {
-                caseStudy: values.caseStudyEL,
-                industrialVisit: values.indVisitEL,
-                workShop: values.workShopEL,
-                simulation: values.simulationtEL,
-                internship: values.ojtInternEL,
-                exhibition: values.exhibitionEL,
-                awarenessDrive: values.awarenesDriveEL,
-                streetPlays: values.streetPlaysEL,
-              }
-            : null,
-        problemLearningDto:
-          activeTab === 2
-            ? {
-                caseStudy: values.caseStudyPL,
-                industrialVisit: values.indVisitPL,
-                workShop: values.workShopPL,
-                simulation: values.simulationtPL,
-                internship: values.ojtInternPL,
-                exhibition: values.exhibitionPL,
-                awarenessDrive: values.awarenesDrivePL,
-                streetPlays: values.streetPlaysPL,
-              }
-            : null,
-        participativeLearningDto:
-          activeTab === 3
-            ? {
-                caseStudy: values.caseStudyPL,
-                industrialVisit: values.indVisitPL,
-                workShop: values.workShopPL,
-                simulation: values.simulationtPL,
-                internship: values.ojtInternPL,
-                exhibition: values.exhibitionPL,
-                awarenessDrive: values.awarenesDrivePL,
-                streetPlays: values.streetPlaysPL,
-              }
-            : null,
+        methodologyTab,
+        additionalDto,
       };
 
       console.log("Request DTO:", advanceLearnersRequestDto);
 
       formData.append(
-        "studentCentricMethodologyRequestDto ",
+        "studentCentricMethodologyRequestDto",
         new Blob([JSON.stringify(advanceLearnersRequestDto)], {
           type: "application/json",
         })
       );
 
+      // Select the appropriate file
       let selectedFile: File | null = null;
 
-      if (values.fileEL) {
-        selectedFile = values.fileEL;
-      } else if (values.filePL) {
-        selectedFile = values.filePL;
-      } else if (values.fileProblemLg) {
-        selectedFile = values.fileProblemLg;
-      }
+      if (values.fileEL) selectedFile = values.fileEL;
+      else if (values.filePL) selectedFile = values.filePL;
+      else if (values.fileProblemLg) selectedFile = values.fileProblemLg;
 
       if (isEditMode) {
         if (typeof selectedFile === "string" || selectedFile === null) {
@@ -840,41 +845,31 @@ const Student_Centric_Teaching: React.FC = () => {
           formData.append("file", selectedFile);
         }
       } else {
-        if (selectedFile) {
-          formData.append("file", selectedFile);
-        }
+        if (selectedFile) formData.append("file", selectedFile);
       }
 
-      // console.log("Form Data:", formData);
       try {
         const response =
           isEditMode && editId
             ? await api.put(`/studentCentricMethodology/update`, formData, {
-                headers: {
-                  "Content-Type": "multipart/form-data",
-                },
+                headers: { "Content-Type": "multipart/form-data" },
               })
             : await api.create(`/studentCentricMethodology/save`, formData, {
-                headers: {
-                  "Content-Type": "multipart/form-data",
-                },
+                headers: { "Content-Type": "multipart/form-data" },
               });
+
         toast.success(response.message || "Successfully submitted!");
         resetForm();
-        if (fileRef.current) {
-          fileRef.current.value = ""; // Clear the file input
-        }
-        if (file2Ref.current) {
-          file2Ref.current.value = ""; // Clear the file input
-        }
-        if (file3Ref.current) {
-          file3Ref.current.value = ""; // Clear the file input
-        }
-        setIsEditMode(false); // Reset edit mode
-        setEditId(null); // Clear the edit ID
+
+        // Clear all file inputs
+        [fileRef, file2Ref, file3Ref].forEach((ref) => {
+          if (ref.current) ref.current.value = "";
+        });
+
+        setIsEditMode(false);
+        setEditId(null);
       } catch (error) {
         toast.error("Submission failed.");
-        // console.error("Form submission error:", error);
       }
     },
   });
@@ -2122,7 +2117,9 @@ const Student_Centric_Teaching: React.FC = () => {
           size="lg"
           style={{ maxWidth: "100%", width: "auto" }}
         >
-          <ModalHeader toggle={toggleModal}>List Student Centric Methodology</ModalHeader>
+          <ModalHeader toggle={toggleModal}>
+            List Student Centric Methodology
+          </ModalHeader>
           <ModalBody>
             {/* Global Search */}
             <div className="mb-3">

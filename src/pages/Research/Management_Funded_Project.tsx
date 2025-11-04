@@ -60,6 +60,7 @@ const Management_Funded_Project: React.FC = () => {
   const [filteredData, setFilteredData] = useState(mfpData);
   const tableRef = useRef<HTMLTableElement>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const file2Ref = useRef<HTMLInputElement | null>(null);
 
   // Fetch department data on mount
   useEffect(() => {
@@ -166,6 +167,7 @@ const Management_Funded_Project: React.FC = () => {
       typeOfFunding: null as { value: string; label: string } | null,
       otherTypeOfFunding: "",
       principalInvestigator: {
+        pId: null,
         name: "",
         qualification: "",
         designation: "",
@@ -174,6 +176,7 @@ const Management_Funded_Project: React.FC = () => {
         sanctionOrderFile: null as File | null,
       },
       coInvestigator: {
+        cId: null,
         name: "",
         qualification: "",
         designation: "",
@@ -200,7 +203,10 @@ const Management_Funded_Project: React.FC = () => {
             ? "PrincipleInvestigatorDetails"
             : "CoInvestigatorDetails",
         managementFundProjectAddTabDto: {
-          additionalTabId: editId || null,
+          additionalTabId:
+            activeTab === "1"
+              ? values.principalInvestigator.pId || null
+              : values.coInvestigator.cId || null,
           name:
             activeTab === "1"
               ? values.principalInvestigator.name || null
@@ -266,6 +272,11 @@ const Management_Funded_Project: React.FC = () => {
         if (fileRef.current) {
           fileRef.current.value = "";
         }
+        if (file2Ref.current) {
+          file2Ref.current.value = "";
+        }
+        setIsAbstractFileUploadDisabled(false);
+        setIsSanctionFileUploadDisabled(false);
         setIsEditMode(false);
         setEditId(null);
         handleListMFPClick();
@@ -563,6 +574,7 @@ const Management_Funded_Project: React.FC = () => {
                 ? "is-invalid"
                 : ""
             }`}
+            innerRef={fileRef}
             disabled={isAbstractFileUploadDisabled} // Disable the button if a file exists
           />
           {validation.touched.principalInvestigator?.abstractFile &&
@@ -637,6 +649,7 @@ const Management_Funded_Project: React.FC = () => {
                 ? "is-invalid"
                 : ""
             }`}
+            innerRef={file2Ref}
             disabled={isSanctionFileUploadDisabled} // Disable the button if a file exists
           />
           {validation.touched.principalInvestigator?.sanctionOrderFile &&
@@ -826,6 +839,8 @@ const Management_Funded_Project: React.FC = () => {
           ? { value: response.fundingType, label: response.fundingType }
           : null,
         principalInvestigator: {
+          pId:
+            response.principleInvestigatorDto?.principleInvestigatorId || null,
           name: response.principleInvestigatorDto?.name || "",
           qualification: response.principleInvestigatorDto?.qualification || "",
           designation: response.principleInvestigatorDto?.designation || "",
@@ -844,6 +859,7 @@ const Management_Funded_Project: React.FC = () => {
         },
         coInvestigator: response.coInvestigatorDto
           ? {
+              cId: response.coInvestigatorDto?.coInvestigatorId || null,
               name: response.coInvestigatorDto.name || "",
               qualification: response.coInvestigatorDto.qualification || "",
               designation: response.coInvestigatorDto.designation || "",
@@ -903,55 +919,52 @@ const Management_Funded_Project: React.FC = () => {
     return matchedOption ? matchedOption : { value, label: String(value) };
   };
 
-    useEffect(() => {
-      if (mfpData.length === 0) return; // wait until data is loaded
-  
-      const table = $("#managementFundProjectId").DataTable({
-        destroy: true, // destroy existing instance if re-rendered
-        scrollX: true, 
-         autoWidth: false, 
-        dom: "Bfrtip",
-        buttons: [
-          {
-            extend: "copy",
-            exportOptions: {
-              columns: ":not(:last-child)", // skip Actions column
-            },
+  useEffect(() => {
+    if (mfpData.length === 0) return; // wait until data is loaded
+
+    const table = $("#managementFundProjectId").DataTable({
+      destroy: true, // destroy existing instance if re-rendered
+      scrollX: true,
+      autoWidth: false,
+      dom: "Bfrtip",
+      buttons: [
+        {
+          extend: "copy",
+          exportOptions: {
+            columns: ":not(:last-child)", // skip Actions column
           },
-          {
-            extend: "csv",
-            exportOptions: {
-              columns: ":not(:last-child)",
-            },
+        },
+        {
+          extend: "csv",
+          exportOptions: {
+            columns: ":not(:last-child)",
           },
-        ],
-      });
-      $(".dt-buttons").addClass("mb-3 gap-2");
-      $(".buttons-copy").addClass("btn btn-success");
-      $(".buttons-csv").addClass("btn btn-info");
-  
-      $("#managementFundProjectId").on(
-        "buttons-action.dt",
-        function (e, buttonApi, dataTable, node, config) {
-          if (buttonApi.text() === "Copy") {
-            toast.success("Copied to clipboard!");
-          }
+        },
+      ],
+    });
+    $(".dt-buttons").addClass("mb-3 gap-2");
+    $(".buttons-copy").addClass("btn btn-success");
+    $(".buttons-csv").addClass("btn btn-info");
+
+    $("#managementFundProjectId").on(
+      "buttons-action.dt",
+      function (e, buttonApi, dataTable, node, config) {
+        if (buttonApi.text() === "Copy") {
+          toast.success("Copied to clipboard!");
         }
-      );
-  
-      return () => {
-        table.destroy(); // clean up
-      };
-    }, [mfpData]);
+      }
+    );
+
+    return () => {
+      table.destroy(); // clean up
+    };
+  }, [mfpData]);
 
   return (
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <Breadcrumb
-            title="Research"
-            breadcrumbItem="Research Project"
-          />
+          <Breadcrumb title="Research" breadcrumbItem="Research Project" />
           <Card>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
@@ -1218,7 +1231,7 @@ const Management_Funded_Project: React.FC = () => {
                         )}
                     </div>
                   </Col>
-                     {validation.values.typeOfFunding?.value === "Others" && (
+                  {validation.values.typeOfFunding?.value === "Others" && (
                     <Col lg={4}>
                       <div className="mb-3">
                         <Label>Specify Type of Funding</Label>
@@ -1248,7 +1261,6 @@ const Management_Funded_Project: React.FC = () => {
                       </div>
                     </Col>
                   )}
-
 
                   {/* Multidisciplinary Dropdown */}
                   <Col lg={4}>
@@ -1327,11 +1339,12 @@ const Management_Funded_Project: React.FC = () => {
           <ModalBody>
             {/* Table with Pagination */}
             <Table
-            striped
+              striped
               bordered
               hover
               id="managementFundProjectId"
-              innerRef={tableRef} >
+              innerRef={tableRef}
+            >
               <thead>
                 <tr>
                   <th>#</th>
@@ -1344,7 +1357,8 @@ const Management_Funded_Project: React.FC = () => {
                   <th>Month of Grant</th>
                   <th>Type of Funding</th>
                   <th className="d-none">Abstract File Path</th> {/* Hidden */}
-                  <th className="d-none">SanctionOrder File Path</th> {/* Hidden */}
+                  <th className="d-none">SanctionOrder File Path</th>{" "}
+                  {/* Hidden */}
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -1361,8 +1375,16 @@ const Management_Funded_Project: React.FC = () => {
                       <td>{mfp.amount}</td>
                       <td>{mfp.monthOfGrant}</td>
                       <td>{mfp.fundingType}</td>
-                       <td className="d-none">{mfp?.principleInvestigatorDto?.filePath?.abstractProject || "N/A"}</td> {/* Hidden */}
-                        <td className="d-none">{mfp?.principleInvestigatorDto?.filePath?.sanctionOrder || "N/A"}</td> {/* Hidden */}
+                      <td className="d-none">
+                        {mfp?.principleInvestigatorDto?.filePath
+                          ?.abstractProject || "N/A"}
+                      </td>{" "}
+                      {/* Hidden */}
+                      <td className="d-none">
+                        {mfp?.principleInvestigatorDto?.filePath
+                          ?.sanctionOrder || "N/A"}
+                      </td>{" "}
+                      {/* Hidden */}
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button

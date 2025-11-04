@@ -140,11 +140,11 @@ const Year_Of_Establishment: React.FC = () => {
 
       // Map API response to Formik values
       const mappedValues = {
-        academicYear: mapValueToLabel(response.academicYear, academicYearList),
+        // academicYear: mapValueToLabel(response.academicYear, academicYearList),
         yearOfEst: response.yearOfEstablishment || "",
-        stream: response.streamId
-          ? { value: response.streamId.toString(), label: response.streamName }
-          : null,
+        // stream: response.streamId
+        //   ? { value: response.streamId.toString(), label: response.streamName }
+        //   : null,
         department: response.departmentId
           ? { value: response.departmentId.toString(), label: response.departmentName }
           : null,
@@ -156,18 +156,18 @@ const Year_Of_Establishment: React.FC = () => {
       // Update Formik values
       validation.setValues({
         ...mappedValues,
-        academicYear: mappedValues.academicYear
-          ? {
-              ...mappedValues.academicYear,
-              value: String(mappedValues.academicYear.value),
-            }
-          : null,
-        stream: mappedValues.stream
-          ? {
-              value: String(mappedValues.stream.value),
-              label: mappedValues.stream.label || "",
-            }
-          : null,
+        // academicYear: mappedValues.academicYear
+        //   ? {
+        //       ...mappedValues.academicYear,
+        //       value: String(mappedValues.academicYear.value),
+        //     }
+        //   : null,
+        // stream: mappedValues.stream
+        //   ? {
+        //       value: String(mappedValues.stream.value),
+        //       label: mappedValues.stream.label || "",
+        //     }
+        //   : null,
         department: mappedValues.department
           ? {
               value: String(mappedValues.department.value),
@@ -223,9 +223,9 @@ const Year_Of_Establishment: React.FC = () => {
 
   const validation = useFormik({
     initialValues: {
-      academicYear: null as { value: string; label: string } | null,
+      // academicYear: null as { value: string; label: string } | null,
       yearOfEst: "",
-      stream: null as { value: string; label: string } | null,
+      // stream: null as { value: string; label: string } | null,
       department: null as { value: string; label: string } | null,
       program: null as { value: string; label: string } | null,
     },
@@ -240,8 +240,8 @@ const Year_Of_Establishment: React.FC = () => {
     }),
     onSubmit: async (values, { resetForm }) => {
       const payload = {
-        academicYear: values.academicYear?.value || "",
-        streamId: values.stream?.value || "",
+        // academicYear: values.academicYear?.value || "",
+        // streamId: values.stream?.value || "",
         yearOfEstablishment: values.yearOfEst || "",
         departmentId: values.department?.value || "",
         programId: values.program?.value || "",

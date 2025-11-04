@@ -54,6 +54,7 @@ const Research_Guides = () => {
   // State variable for managing search term and pagination
   const tableRef = useRef<HTMLTableElement>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const file2Ref = useRef<HTMLInputElement | null>(null);
   const [filteredData, setFilteredData] = useState(researchGuideData);
 
   // Toggle the modal for listing BOS
@@ -106,8 +107,8 @@ const Research_Guides = () => {
       guideName: Yup.string().required("Please enter guide name"),
       guideAffiliation: Yup.string().required("Please enter guide affiliation"),
       status: Yup.object<{ value: string; label: string }>()
-            .nullable()
-            .required("Please select Status"),
+        .nullable()
+        .required("Please select Status"),
       numberOfStudents: Yup.number()
         .typeError("Please enter a valid number")
         .min(1, "Number of students must be at least 1")
@@ -160,6 +161,7 @@ const Research_Guides = () => {
         departmentId: values.department?.value || "0",
         guideName: values.guideName || "",
         guidesAffiliation: values.guideAffiliation || "",
+        status: values.status?.value || "",
         noOfStudents: String(values.numberOfStudents || "0"),
         studentList: values.studentDetails.map((student) => ({
           studentDetailId: student.studentDetailId || null,
@@ -205,6 +207,9 @@ const Research_Guides = () => {
         resetForm();
         if (fileRef.current) {
           fileRef.current.value = "";
+        }
+        if (file2Ref.current) {
+          file2Ref.current.value = "";
         }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
@@ -715,8 +720,7 @@ const Research_Guides = () => {
                           })
                         }
                         className={`form-control ${
-                          validation.touched.status &&
-                          validation.errors.status
+                          validation.touched.status && validation.errors.status
                             ? "is-invalid"
                             : ""
                         }`}
