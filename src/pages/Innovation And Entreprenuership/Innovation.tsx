@@ -214,6 +214,7 @@ const Innovation: React.FC = () => {
             }
           : null,
       });
+      setIsFileUploadDisabled(!!response.files?.Innovation); // Disable file upload if a file exists
       setSelectedStream(streamOption);
       setSelectedDepartment(departmentOption);
 
@@ -405,6 +406,7 @@ const Innovation: React.FC = () => {
         if (fileRef.current) {
           fileRef.current.value = "";
         }
+        setIsFileUploadDisabled(false); // Enable file upload for new entries
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         // display the BOS List

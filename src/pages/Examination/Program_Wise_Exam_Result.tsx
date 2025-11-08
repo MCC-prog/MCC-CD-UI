@@ -79,8 +79,8 @@ const Program_Wise_Exam_Result: React.FC = () => {
 
   const fileRef = useRef<HTMLInputElement | null>(null);
 
-    const tableRef = useRef<HTMLTableElement>(null);
-  
+  const tableRef = useRef<HTMLTableElement>(null);
+
   // Calculate the paginated data
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
@@ -169,43 +169,43 @@ const Program_Wise_Exam_Result: React.FC = () => {
 
         department: response.departmentId
           ? {
-              value: response.departmentId.toString(),
-              label: response.departmentName,
-            }
+            value: response.departmentId.toString(),
+            label: response.departmentName,
+          }
           : null,
 
         programType: response.programTypeId
           ? {
-              value: response.programTypeId.toString(),
-              label: response.programTypeName,
-            }
+            value: response.programTypeId.toString(),
+            label: response.programTypeName,
+          }
           : null,
 
         degree: response.programId
           ? {
-              value: response.programId.toString(),
-              label: response.programName,
-            }
+            value: response.programId.toString(),
+            label: response.programName,
+          }
           : null,
 
         program: response.courses
           ? Object.entries(response.courses).map(([key, value]) => ({
-              value: key,
-              label: String(value),
-            }))
+            value: key,
+            label: String(value),
+          }))
           : [],
 
         examType: response.typeOfExam
           ? {
-              value: String(response.typeOfExam),
-              label: String(response.typeOfExam),
-            }
+            value: String(response.typeOfExam),
+            label: String(response.typeOfExam),
+          }
           : null,
 
         semester: response.semesters
           ? response.semesters.map((sem: number) =>
-              mapValueToLabel(String(sem), semesterNoOptions)
-            )
+            mapValueToLabel(String(sem), semesterNoOptions)
+          )
           : [],
 
         file: response.documents?.examResult || null,
@@ -220,15 +220,16 @@ const Program_Wise_Exam_Result: React.FC = () => {
         ...mappedValues,
         academicYear: mappedValues.academicYear
           ? {
-              ...mappedValues.academicYear,
-              value: String(mappedValues.academicYear.value),
-            }
+            ...mappedValues.academicYear,
+            value: String(mappedValues.academicYear.value),
+          }
           : null,
       });
       setSelectedStream(streamOption);
       setSelectedDepartment(departmentOption);
       setSelectedProgramType(programTypeOption);
       setSelectedDegree(degreeOption);
+      setIsFileUploadDisabled(!!mappedValues.file); // Disable file upload if a file exists
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();
@@ -452,7 +453,7 @@ const Program_Wise_Exam_Result: React.FC = () => {
           );
           toast.success(
             response.message ||
-              "Program –wise Exam Results updated successfully!"
+            "Program –wise Exam Results updated successfully!"
           );
         } else {
           // Call the save API
@@ -471,6 +472,7 @@ const Program_Wise_Exam_Result: React.FC = () => {
         }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
+        setIsFileUploadDisabled(false); // Enable file upload for new entries
         // display the Program –wise Exam Results List
         handleListPWERClick();
       } catch (error) {
@@ -623,12 +625,11 @@ const Program_Wise_Exam_Result: React.FC = () => {
                         <Label>Specify Department</Label>
                         <Input
                           type="text"
-                          className={`form-control ${
-                            validation.touched.otherDepartment &&
-                            validation.errors.otherDepartment
+                          className={`form-control ${validation.touched.otherDepartment &&
+                              validation.errors.otherDepartment
                               ? "is-invalid"
                               : ""
-                          }`}
+                            }`}
                           value={validation.values.otherDepartment}
                           onChange={(e) =>
                             validation.setFieldValue(
@@ -747,7 +748,7 @@ const Program_Wise_Exam_Result: React.FC = () => {
                         }
                         className={
                           validation.touched.semester &&
-                          validation.errors.semester
+                            validation.errors.semester
                             ? "select-error"
                             : ""
                         }
@@ -776,7 +777,7 @@ const Program_Wise_Exam_Result: React.FC = () => {
                         menuPortalTarget={document.body}
                         className={
                           validation.touched.examType &&
-                          validation.errors.examType
+                            validation.errors.examType
                             ? "select-error"
                             : ""
                         }
@@ -798,11 +799,10 @@ const Program_Wise_Exam_Result: React.FC = () => {
                         Upload Results from KP
                       </Label>
                       <Input
-                        className={`form-control ${
-                          validation.touched.file && validation.errors.file
+                        className={`form-control ${validation.touched.file && validation.errors.file
                             ? "is-invalid"
                             : ""
-                        }`}
+                          }`}
                         type="file"
                         id="formFile"
                         innerRef={fileRef}
@@ -813,6 +813,11 @@ const Program_Wise_Exam_Result: React.FC = () => {
                               ? event.currentTarget.files[0]
                               : null
                           );
+                          if (typeof validation.values.file === "string") {
+                            setIsFileUploadDisabled(true);
+                          } else {
+                            setIsFileUploadDisabled(false);
+                          }
                         }}
                         disabled={isFileUploadDisabled} // Disable the button if a file exists
                       />
@@ -822,7 +827,7 @@ const Program_Wise_Exam_Result: React.FC = () => {
                         </div>
                       )}
                       {/* Show a message if the file upload button is disabled */}
-                      {isFileUploadDisabled && (
+                      {isFileUploadDisabled && typeof validation.values.file === "string" &&(
                         <div className="text-warning mt-2">
                           Please remove the existing file to upload a new one.
                         </div>
@@ -901,7 +906,7 @@ const Program_Wise_Exam_Result: React.FC = () => {
                   <th>Department</th>
                   <th>Program Type</th>
                   <th>Program</th>
-                  <th>Semester</th>
+                  {/* <th>Semester</th> */}
                   <th>Exam Type</th>
                   <th className="d-none">File</th>
                   <th>Actions</th>
@@ -917,7 +922,7 @@ const Program_Wise_Exam_Result: React.FC = () => {
                       <td>{bos.departmentName}</td>
                       <td>{bos.programTypeName}</td>
                       <td>{bos.programName}</td>
-                      <td>{bos.semester}</td>
+                      {/* <td>{bos.semester}</td> */}
                       <td>{bos.typeOfExam}</td>
                       <td className="d-none">{bos?.filePath.examResult}</td>
                       <td>
@@ -944,7 +949,7 @@ const Program_Wise_Exam_Result: React.FC = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={11} className="text-center">
+                    <td colSpan={10} className="text-center">
                       No Program –wise Exam Results available.
                     </td>
                   </tr>

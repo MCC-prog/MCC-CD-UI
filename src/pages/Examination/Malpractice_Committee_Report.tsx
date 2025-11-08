@@ -41,6 +41,7 @@ import "datatables.net-buttons/js/buttons.html5.js";
 import "jszip";
 import "pdfmake/build/pdfmake";
 import "pdfmake/build/vfs_fonts";
+import { s } from "@fullcalendar/core/internal-common";
 
 const api = new APIClient();
 
@@ -53,6 +54,7 @@ const Malpractice_committee_Report: React.FC = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   // State variable for managing file upload status
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
+  const [isFile2UploadDisabled, setIsFile2UploadDisabled] = useState(false);
   // State variable for managing the modal for listing Malpractice Committee report
   const [isModalOpen, setIsModalOpen] = useState(false);
   // State variable for managing the list of Malpractice Committee report data
@@ -219,58 +221,58 @@ const Malpractice_committee_Report: React.FC = () => {
       const mappedValues = {
         academicYear: response.academicYear
           ? {
-              value: String(response.academicYear),
-              label:
-                academicYearList.find(
-                  (opt: any) =>
-                    String(opt.value) === String(response.academicYear)
-                )?.label || String(response.academicYear),
-            }
+            value: String(response.academicYear),
+            label:
+              academicYearList.find(
+                (opt: any) =>
+                  String(opt.value) === String(response.academicYear)
+              )?.label || String(response.academicYear),
+          }
           : null,
         stream: response.streamId
           ? {
-              value: String(response.streamId),
-              label: response.streamName,
-            }
+            value: String(response.streamId),
+            label: response.streamName,
+          }
           : null,
         department: response.departmentId
           ? {
-              value: String(response.departmentId),
-              label: response.departmentName,
-            }
+            value: String(response.departmentId),
+            label: response.departmentName,
+          }
           : null,
         otherDepartment: "",
         subject: response.subjectId
           ? {
-              value: String(response.subjectId),
-              label: response.subjectName,
-            }
+            value: String(response.subjectId),
+            label: response.subjectName,
+          }
           : null,
         class: response.classId
           ? {
-              value: String(response.classId),
-              label: response.className,
-            }
+            value: String(response.classId),
+            label: response.className,
+          }
           : null,
         file: response.file?.Invigilator || null,
         actionTaken: response.file?.ActionTaken || null,
         programType: response.programTypeId
           ? {
-              value: String(response.programTypeId),
-              label: response.programTypeName,
-            }
+            value: String(response.programTypeId),
+            label: response.programTypeName,
+          }
           : null,
         degree: response.programId
           ? {
-              value: String(response.programId),
-              label: response.programName,
-            }
+            value: String(response.programId),
+            label: response.programName,
+          }
           : null,
         program: response.courseId
           ? {
-              value: String(response.courseId),
-              label: response.courseName,
-            }
+            value: String(response.courseId),
+            label: response.courseName,
+          }
           : null,
         revisionPercentage: "", // Assuming not in API
         conductedDate: "", // Assuming not in API
@@ -280,9 +282,9 @@ const Malpractice_committee_Report: React.FC = () => {
         dateOfExam: response.dateOfExam || "",
         malpracticeType: response.typeOfMalpractise
           ? {
-              value: String(response.typeOfMalpractise),
-              label: String(response.typeOfMalpractise),
-            }
+            value: String(response.typeOfMalpractise),
+            label: String(response.typeOfMalpractise),
+          }
           : null,
       };
       const streamOption = mapValueToLabel(response.streamId, []); // Replace [] with stream options array if available
@@ -295,6 +297,8 @@ const Malpractice_committee_Report: React.FC = () => {
       setSelectedDepartment(departmentOption);
       setSelectedProgramType(programTypeOption);
       setSelectedDegree(degreeOption);
+      setIsFileUploadDisabled(!!mappedValues.file); // Disable file upload if a file exists
+      setIsFile2UploadDisabled(!!mappedValues.actionTaken); // Disable file upload if a file exists
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();
@@ -324,8 +328,9 @@ const Malpractice_committee_Report: React.FC = () => {
         );
         toast.success(
           response.message ||
-            "Malpractice Committee report removed successfully!"
+          "Malpractice Committee report removed successfully!"
         );
+
         fetchMCRData();
       } catch (error) {
         toast.error(
@@ -392,11 +397,12 @@ const Malpractice_committee_Report: React.FC = () => {
       // Remove the file from the form
       if (docType === "file") {
         validation.setFieldValue("file", null);
+        setIsFileUploadDisabled(false); // Enable the file upload button
       }
       if (docType === "actionTaken") {
         validation.setFieldValue("actionTaken", null);
+        setIsFile2UploadDisabled(false); // Enable the file upload button
       }
-      setIsFileUploadDisabled(false); // Enable the file upload button
     } catch (error) {
       // Show error message
       toast.error("Failed to delete the file. Please try again.");
@@ -578,7 +584,7 @@ const Malpractice_committee_Report: React.FC = () => {
           );
           toast.success(
             response.message ||
-              "Malpractice Committee report updated successfully!"
+            "Malpractice Committee report updated successfully!"
           );
         } else {
           // Call the save API
@@ -588,7 +594,7 @@ const Malpractice_committee_Report: React.FC = () => {
           );
           toast.success(
             response.message ||
-              "Malpractice Committee report added successfully!"
+            "Malpractice Committee report added successfully!"
           );
         }
         // Reset the form fields
@@ -599,6 +605,8 @@ const Malpractice_committee_Report: React.FC = () => {
         if (fileActRef.current) {
           fileActRef.current.value = "";
         }
+        setIsFileUploadDisabled(false); // Enable file upload for new entries
+        setIsFile2UploadDisabled(false); // Enable file upload for new entries
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         // display the Malpractice Committee report List
@@ -752,12 +760,11 @@ const Malpractice_committee_Report: React.FC = () => {
                         <Label>Specify Department</Label>
                         <Input
                           type="text"
-                          className={`form-control ${
-                            validation.touched.otherDepartment &&
+                          className={`form-control ${validation.touched.otherDepartment &&
                             validation.errors.otherDepartment
-                              ? "is-invalid"
-                              : ""
-                          }`}
+                            ? "is-invalid"
+                            : ""
+                            }`}
                           value={validation.values.otherDepartment}
                           onChange={(e) =>
                             validation.setFieldValue(
@@ -840,7 +847,7 @@ const Malpractice_committee_Report: React.FC = () => {
                         }
                         className={
                           validation.touched.program &&
-                          validation.errors.program
+                            validation.errors.program
                             ? "select-error"
                             : ""
                         }
@@ -890,7 +897,7 @@ const Malpractice_committee_Report: React.FC = () => {
                         placeholder="Enter Name of the Candidate"
                         className={
                           validation.touched.candidateName &&
-                          validation.errors.candidateName
+                            validation.errors.candidateName
                             ? "is-invalid"
                             : ""
                         }
@@ -919,7 +926,7 @@ const Malpractice_committee_Report: React.FC = () => {
                         placeholder="Enter Register Number"
                         className={
                           validation.touched.registerNumber &&
-                          validation.errors.registerNumber
+                            validation.errors.registerNumber
                             ? "is-invalid"
                             : ""
                         }
@@ -948,7 +955,7 @@ const Malpractice_committee_Report: React.FC = () => {
                         placeholder="Enter Name of the Exam"
                         className={
                           validation.touched.nameOfTheExam &&
-                          validation.errors.nameOfTheExam
+                            validation.errors.nameOfTheExam
                             ? "is-invalid"
                             : ""
                         }
@@ -999,7 +1006,7 @@ const Malpractice_committee_Report: React.FC = () => {
                         }
                         className={
                           validation.touched.dateOfExam &&
-                          validation.errors.dateOfExam
+                            validation.errors.dateOfExam
                             ? "is-invalid"
                             : ""
                         }
@@ -1029,7 +1036,7 @@ const Malpractice_committee_Report: React.FC = () => {
                         menuPortalTarget={document.body}
                         className={
                           validation.touched.malpracticeType &&
-                          validation.errors.malpracticeType
+                            validation.errors.malpracticeType
                             ? "select-error"
                             : ""
                         }
@@ -1038,7 +1045,7 @@ const Malpractice_committee_Report: React.FC = () => {
                         validation.errors.malpracticeType && (
                           <div className="text-danger">
                             {typeof validation.errors.malpracticeType ===
-                            "string"
+                              "string"
                               ? validation.errors.malpracticeType
                               : ""}
                           </div>
@@ -1052,11 +1059,10 @@ const Malpractice_committee_Report: React.FC = () => {
                         Upload Report of Invigilator
                       </Label>
                       <Input
-                        className={`form-control ${
-                          validation.touched.file && validation.errors.file
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                        className={`form-control ${validation.touched.file && validation.errors.file
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         type="file"
                         id="formFile"
                         innerRef={fileRef}
@@ -1125,12 +1131,11 @@ const Malpractice_committee_Report: React.FC = () => {
                         Upload Action Taken File
                       </Label>
                       <Input
-                        className={`form-control ${
-                          validation.touched.actionTaken &&
+                        className={`form-control ${validation.touched.actionTaken &&
                           validation.errors.actionTaken
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         type="file"
                         id="formFile"
                         innerRef={fileActRef}
@@ -1142,7 +1147,7 @@ const Malpractice_committee_Report: React.FC = () => {
                               : null
                           );
                         }}
-                        disabled={isFileUploadDisabled} // Disable the button if a file exists
+                        disabled={isFile2UploadDisabled} // Disable the button if a file exists
                       />
                       {validation.touched.actionTaken &&
                         validation.errors.actionTaken && (
@@ -1151,7 +1156,7 @@ const Malpractice_committee_Report: React.FC = () => {
                           </div>
                         )}
                       {/* Show a message if the file upload button is disabled */}
-                      {isFileUploadDisabled && (
+                      {isFile2UploadDisabled && (
                         <div className="text-warning mt-2">
                           Please remove the existing file to upload a new one.
                         </div>
@@ -1282,18 +1287,20 @@ const Malpractice_committee_Report: React.FC = () => {
                       </td>
 
                       <td>
-                        <button
-                          className="btn btn-sm btn-warning"
-                          onClick={() => handleEdit(mcr.id)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="btn btn-sm btn-danger"
-                          onClick={() => handleDelete(mcr.id)}
-                        >
-                          Delete
-                        </button>
+                        <div className="d-flex justify-content-center gap-2">
+                          <button
+                            className="btn btn-sm btn-warning"
+                            onClick={() => handleEdit(mcr.id)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="btn btn-sm btn-danger"
+                            onClick={() => handleDelete(mcr.id)}
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))

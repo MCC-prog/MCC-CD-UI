@@ -213,6 +213,7 @@ const Research_Publications = () => {
          if (fileRef.current) {
           fileRef.current.value = "";
         }
+        setIsFrontPageFileUploadDisabled(false); // Enable file upload for new entries
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         // Display the Research Publication List
@@ -326,7 +327,7 @@ const Research_Publications = () => {
             }
           : null,
       });
-
+      setIsFrontPageFileUploadDisabled(!!response.documents?.researchPublication); // Disable file upload if a file exists
       // Set edit mode and toggle modal
       setIsEditMode(true);
       setEditId(id); // Store the ID of the record being edited

@@ -192,7 +192,7 @@ const Career_Counseling_Guidance: React.FC = () => {
       });
       setSelectedStream(streamOption);
       setSelectedDepartment(departmentOption);
-
+      setIsFileUploadDisabled(!!response.documents?.careerCounseling); // Disable file upload if a file exists  
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();
@@ -213,7 +213,8 @@ const Career_Counseling_Guidance: React.FC = () => {
         const response = await api.delete(
           `/careerCounseling/deleteCareerCounseling?careerCounselingId=${id}`,
           ""
-        );
+        );setIsModalOpen(false);
+
         toast.success(
           response.message ||
             "Career Counseling & Guidance removed successfully!"
@@ -411,6 +412,7 @@ const Career_Counseling_Guidance: React.FC = () => {
         if (fileRef.current) {
           fileRef.current.value = "";
         }
+        setIsFileUploadDisabled(false); 
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         // display the BOS List
@@ -936,6 +938,7 @@ const Career_Counseling_Guidance: React.FC = () => {
                         {bos.filePath.careerCounseling || "N/A"}
                       </td>
                       <td>
+                        <div className="d-flex justify-content-center gap-2">
                         <button
                           className="btn btn-sm btn-warning me-2"
                           onClick={() => handleEdit(bos.careerCounselingId)}
@@ -948,6 +951,7 @@ const Career_Counseling_Guidance: React.FC = () => {
                         >
                           Delete
                         </button>
+                        </div>
                       </td>
                     </tr>
                   ))

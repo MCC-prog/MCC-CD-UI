@@ -37,6 +37,7 @@ import "pdfmake/build/pdfmake";
 import "pdfmake/build/vfs_fonts";
 import DepartmentDropdown from "Components/DropDowns/DepartmentDropdown";
 
+
 const api = new APIClient();
 
 const Isrc: React.FC = () => {
@@ -155,6 +156,7 @@ const Isrc: React.FC = () => {
     if (deleteId) {
       try {
         const response = await api.delete(`/ISRC/deleteISRC?isrcId=${id}`, "");
+        setIsModalOpen(false);
         toast.success(response.message || "ISRC  removed successfully!");
         fetchIsrcData();
       } catch (error) {
@@ -221,14 +223,6 @@ const Isrc: React.FC = () => {
       toast.error("Failed to delete the file. Please try again.");
       console.error("Error deleting file:", error);
     }
-  };
-
-  const formatDate = (date: string): string => {
-    const d = new Date(date);
-    const day = String(d.getDate()).padStart(2, "0");
-    const month = String(d.getMonth() + 1).padStart(2, "0"); // Months are 0-based
-    const year = d.getFullYear();
-    return `${day}/${month}/${year}`;
   };
 
   const validation = useFormik({
@@ -328,6 +322,9 @@ const Isrc: React.FC = () => {
           // Call the save API
           const response = await api.create("/ISRC/save", formData);
           toast.success(response.message || "ISRC added successfully!");
+        }
+        if (fileRef.current) {
+          fileRef.current.value = "";
         }
         // Reset the form fields
         resetForm();
@@ -855,7 +852,7 @@ const Isrc: React.FC = () => {
                           )}
                         </ul>
                       </td>
-                      
+
                       <td>{isrc.semester}</td>
                       <td>{isrc.noOfParticipants}</td>
                       <td>{isrc.organisation}</td>
@@ -864,18 +861,20 @@ const Isrc: React.FC = () => {
                       <td>{isrc.endDate}</td>
                       <td className="d-none">{isrc?.filePath.ISRC || "N/A"}</td>
                       <td>
-                        <button
-                          className="btn btn-sm btn-warning me-2"
-                          onClick={() => handleEdit(isrc.id)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="btn btn-sm btn-danger"
-                          onClick={() => handleDelete(isrc.id)}
-                        >
-                          Delete
-                        </button>
+                        <div className="d-flex justify-content-center gap-2">
+                          <button
+                            className="btn btn-sm btn-warning me-2"
+                            onClick={() => handleEdit(isrc.id)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="btn btn-sm btn-danger"
+                            onClick={() => handleDelete(isrc.id)}
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))

@@ -45,6 +45,7 @@ import "jszip";
 import "pdfmake/build/pdfmake";
 import "pdfmake/build/vfs_fonts";
 
+
 const api = new APIClient();
 
 const getTabValidationSchema = (tab: number | null) => {
@@ -224,6 +225,7 @@ const Advanced_Learners: React.FC = () => {
       }
       switch (tab) {
         case 1:
+          validation.setFieldValue("researchProjectId", null);
           validation.setFieldValue("researchProjectTitle", "");
           validation.setFieldValue("projectType", null);
           validation.setFieldValue("Type", null);
@@ -232,14 +234,20 @@ const Advanced_Learners: React.FC = () => {
           validation.setFieldValue("researchAmount", "");
           validation.setFieldValue("file", null);
           validation.setFieldValue("SynopsisFile", null);
-
+          setResearchProjectId(null);
+          setIsFileSynUploadDisabled(false);
+          setIsFileProjUploadDisabled(false);
           break;
         case 2:
+          validation.setFieldValue("peerTeachingId", null);
           validation.setFieldValue("peerCourseTitile", "");
           validation.setFieldValue("peerMentorShip", null);
           validation.setFieldValue("peerRegisterNumber", "");
           validation.setFieldValue("peerTeacherCoOrdinator", "");
           validation.setFieldValue("peerFile", null);
+          setPeerTeachingId(null);
+
+          setIsFilePeerUploadDisabled(false);
 
           break;
         default:
@@ -943,6 +951,10 @@ const Advanced_Learners: React.FC = () => {
         if (filePeerRef.current) {
           filePeerRef.current.value = "";
         }
+        setIsFilePeerUploadDisabled(false);
+        setIsFileSynUploadDisabled(false);
+        setIsFileProjUploadDisabled(false);
+        fetchExperientialLearningData(); // Refresh data
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
       } catch (error) {
@@ -1756,9 +1768,9 @@ const Advanced_Learners: React.FC = () => {
                                     if (
                                       typeof formik.values.peerFile === "string"
                                     ) {
-                                      setIsFileSynUploadDisabled(true);
+                                      setIsFilePeerUploadDisabled(true);
                                     } else {
-                                      setIsFileSynUploadDisabled(false);
+                                      setIsFilePeerUploadDisabled(false);
                                     }
                                   }}
                                 />
@@ -1767,7 +1779,7 @@ const Advanced_Learners: React.FC = () => {
                                   formik.touched.peerFile,
                                   formik.errors.peerFile
                                 )}
-                                {isFileSynUploadDisabled &&
+                                {isFilePeerUploadDisabled &&
                                   typeof formik.values.peerFile ===
                                     "string" && (
                                     <div className="text-warning mt-2">

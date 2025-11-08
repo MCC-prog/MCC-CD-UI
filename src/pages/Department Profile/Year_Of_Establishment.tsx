@@ -149,8 +149,8 @@ const Year_Of_Establishment: React.FC = () => {
           ? { value: response.departmentId.toString(), label: response.departmentName }
           : null,
         program: response.programId
-          ? { value: response.programId.toString(), label: response.programName }
-          : null,
+          ? [{ value: response.programId.toString(), label: response.programName }]
+          : [],
       };
 
       // Update Formik values
@@ -170,16 +170,16 @@ const Year_Of_Establishment: React.FC = () => {
         //   : null,
         department: mappedValues.department
           ? {
-              value: String(mappedValues.department.value),
-              label: mappedValues.department.label || "",
-            }
+            value: String(mappedValues.department.value),
+            label: mappedValues.department.label || "",
+          }
           : null,
         program: mappedValues.program
-          ? {
-              value: String(mappedValues.program.value),
-              label: mappedValues.program.label || "",
-            }
-          : null,
+          ? mappedValues.program.map((p: any) => ({
+            value: String(p.value),
+            label: p.label || "",
+          }))
+          : [],
       });
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
@@ -223,62 +223,44 @@ const Year_Of_Establishment: React.FC = () => {
 
   const validation = useFormik({
     initialValues: {
-      // academicYear: null as { value: string; label: string } | null,
       yearOfEst: "",
-      // stream: null as { value: string; label: string } | null,
       department: null as { value: string; label: string } | null,
-      program: null as { value: string; label: string } | null,
+      program: [] as { value: string; label: string }[],
     },
     validationSchema: Yup.object({
-      academicYear: Yup.object()
-        .nullable()
-        .required("Please select academic year"),
-      stream: Yup.object().nullable().required("Please select stream"),
       yearOfEst: Yup.string().required("Please enter year of establishment"),
       department: Yup.object().nullable().required("Please select department"),
-      program: Yup.object().nullable().required("Please select program"),
+      program: Yup.array()
+        .min(1, "Please select at least one program")
+        .required("Please select program"),
     }),
     onSubmit: async (values, { resetForm }) => {
+      console.log("✅ Submitting form", values);
       const payload = {
-        // academicYear: values.academicYear?.value || "",
-        // streamId: values.stream?.value || "",
         yearOfEstablishment: values.yearOfEst || "",
         departmentId: values.department?.value || "",
-        programId: values.program?.value || "",
+        programId: values.program.map((p) => p.value) || [],
       };
 
-      // If editing, include the ID
-      if (isEditMode && editId) {
-        payload["establismentYearId"] = editId;
-      }
+      if (isEditMode && editId) payload["establishmentYearId"] = editId;
 
       try {
-        if (isEditMode && editId) {
-          // Call the update API
-          const response = await api.put(`/establishmentYear/update`, payload);
-          toast.success(
-            response.message || "Year of establishment updated successfully!"
-          );
-        } else {
-          // Call the save API
-          const response = await api.create("/establishmentYear/save", payload);
-          toast.success(
-            response.message || "Year of establishment added successfully!"
-          );
-        }
-        // Reset the form fields
+        const response = isEditMode
+          ? await api.put(`/establishmentYear/update`, payload)
+          : await api.create(`/establishmentYear/save`, payload);
+
+        toast.success(response.message || "Operation successful!");
         resetForm();
-        setIsEditMode(false); // Reset edit mode
-        setEditId(null); // Clear the edit ID
-        // display the BOS List
+        setIsEditMode(false);
+        setEditId(null);
         handleListBosClick();
       } catch (error) {
-        // Display error message
         toast.error("Failed to save Year of establishment. Please try again.");
-        console.error("Error creating BOS:", error);
+        console.error(error);
       }
     },
   });
+
 
   useEffect(() => {
     if (bosData.length === 0) return; // wait until data is loaded
@@ -408,7 +390,7 @@ const Year_Of_Establishment: React.FC = () => {
                     </div>
                   </Col>
 
-                   <Col lg={4}>
+                  <Col lg={4}>
                     <div className="mb-3">
                       <Label> Program </Label>
                       <GetAllProgramDropdown
@@ -428,7 +410,11 @@ const Year_Of_Establishment: React.FC = () => {
                       {validation.touched.program &&
                         validation.errors.program && (
                           <div className="text-danger">
-                            {validation.errors.program}
+                            {typeof validation.errors.program === "string"
+                              ? validation.errors.program
+                              : Array.isArray(validation.errors.program)
+                                ? (validation.errors.program as any).join(", ")
+                                : String(validation.errors.program)}
                           </div>
                         )}
                     </div>
@@ -441,12 +427,11 @@ const Year_Of_Establishment: React.FC = () => {
                         Year of Establishment
                       </Label>
                       <Input
-                        className={`form-control ${
-                          validation.touched.yearOfEst &&
+                        className={`form-control ${validation.touched.yearOfEst &&
                           validation.errors.yearOfEst
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         type="text"
                         id="yearOfEst"
                         value={validation.values.yearOfEst}

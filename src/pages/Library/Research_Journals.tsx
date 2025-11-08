@@ -106,9 +106,9 @@ const Research_Journals: React.FC = () => {
     { value: "International", label: "International" },
   ];
 
-   const TypePublishing = [
+  const TypePublishing = [
     { value: "E-Journal", label: "E-Journal" },
-    { value: "Print Journal", label: "Print Journal"},
+    { value: "Print Journal", label: "Print Journal" },
   ];
 
   // Handle edit action
@@ -145,6 +145,7 @@ const Research_Journals: React.FC = () => {
       validation.setValues({
         ...mappedValues,
       });
+      setIsFileUploadDisabled(!!response.file?.ResearchJournal); // Disable file upload if a file exists
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();
@@ -169,6 +170,7 @@ const Research_Journals: React.FC = () => {
           `/researchJournals/deleteResearchJournals?researchJournalsId=${id}`,
           ""
         );
+        setIsModalOpen(false);
         toast.success(
           response.message || "Research Journals removed successfully!"
         );
@@ -262,7 +264,9 @@ const Research_Journals: React.FC = () => {
       file: null,
     },
     validationSchema: Yup.object({
-      academicYear: Yup.object().nullable().required("Please select an academic year"),
+      academicYear: Yup.object()
+        .nullable()
+        .required("Please select an academic year"),
       file: Yup.mixed().test(
         "fileValidation",
         "Please upload a valid file",
@@ -334,6 +338,8 @@ const Research_Journals: React.FC = () => {
         if (fileRef.current) {
           fileRef.current.value = "";
         }
+
+        setIsFileUploadDisabled(false);
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         handleListCSWClick();
@@ -345,46 +351,46 @@ const Research_Journals: React.FC = () => {
     },
   });
 
-    useEffect(() => {
-      if (cswData.length === 0) return; // wait until data is loaded
-  
-      const table = $("#id").DataTable({
-        destroy: true,
-        scrollX: true,
-        autoWidth: false,
-        dom: "Bfrtip",
-        buttons: [
-          {
-            extend: "copy",
-            exportOptions: {
-              columns: ":not(:last-child)", // skip Actions column
-            },
+  useEffect(() => {
+    if (cswData.length === 0) return; // wait until data is loaded
+
+    const table = $("#id").DataTable({
+      destroy: true,
+      scrollX: true,
+      autoWidth: false,
+      dom: "Bfrtip",
+      buttons: [
+        {
+          extend: "copy",
+          exportOptions: {
+            columns: ":not(:last-child)", // skip Actions column
           },
-          {
-            extend: "csv",
-            exportOptions: {
-              columns: ":not(:last-child)",
-            },
+        },
+        {
+          extend: "csv",
+          exportOptions: {
+            columns: ":not(:last-child)",
           },
-        ],
-      });
-      $(".dt-buttons").addClass("mb-3 gap-2");
-      $(".buttons-copy").addClass("btn btn-success");
-      $(".buttons-csv").addClass("btn btn-info");
-  
-      $("#id").on(
-        "buttons-action.dt",
-        function (e, buttonApi, dataTable, node, config) {
-          if (buttonApi.text() === "Copy") {
-            toast.success("Copied to clipboard!");
-          }
+        },
+      ],
+    });
+    $(".dt-buttons").addClass("mb-3 gap-2");
+    $(".buttons-copy").addClass("btn btn-success");
+    $(".buttons-csv").addClass("btn btn-info");
+
+    $("#id").on(
+      "buttons-action.dt",
+      function (e, buttonApi, dataTable, node, config) {
+        if (buttonApi.text() === "Copy") {
+          toast.success("Copied to clipboard!");
         }
-      );
-  
-      return () => {
-        table.destroy(); // clean up
-      };
-    }, [cswData]);
+      }
+    );
+
+    return () => {
+      table.destroy(); // clean up
+    };
+  }, [cswData]);
   return (
     <React.Fragment>
       <div className="page-content">
@@ -394,7 +400,7 @@ const Research_Journals: React.FC = () => {
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
                 <Row>
-                   <Col lg={4}>
+                  <Col lg={4}>
                     <div className="mb-3">
                       <Label>Academic Year</Label>
                       <br />
@@ -484,7 +490,9 @@ const Research_Journals: React.FC = () => {
                         open={tooltipOpen}
                         onClose={() => setTooltipOpen(false)}
                         onOpen={() => setTooltipOpen(true)}
-                        title={<span>Include only for current academic year.</span>}
+                        title={
+                          <span>Include only for current academic year.</span>
+                        }
                         arrow
                       >
                         <i

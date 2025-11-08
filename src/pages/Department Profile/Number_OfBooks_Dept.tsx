@@ -488,7 +488,7 @@ const Number_OfBooks_Dept: React.FC = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className="text-center">
+                    <td colSpan={6} className="text-center">
                       No Number of books in the department library available.
                     </td>
                   </tr>

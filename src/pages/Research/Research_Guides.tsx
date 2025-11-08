@@ -211,6 +211,7 @@ const Research_Guides = () => {
         if (file2Ref.current) {
           file2Ref.current.value = "";
         }
+        setIsFileUploadDisabled(false); // Enable file upload for new entries
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         handleListResearchGuidesClick(); // Refresh the list

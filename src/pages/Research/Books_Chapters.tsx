@@ -285,7 +285,7 @@ const Books_Chapters = () => {
             }
           : null,
       });
-
+      setIsFrontPageFileUploadDisabled(!!response.documents?.bookChapter); // Disable file upload if a file exists
       // Set edit mode and toggle modal
       setIsEditMode(true);
       setEditId(id); // Store the ID of the record being edited

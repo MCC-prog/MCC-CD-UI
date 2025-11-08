@@ -50,15 +50,12 @@ const Activities_Conducted_MCCIE: React.FC = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   // State variable for managing file upload status
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
+  const [isFile2UploadDisabled, setIsFile2UploadDisabled] = useState(false);
   // State variable for managing the modal for listing Activities Conducted MCCIE
   const [isModalOpen, setIsModalOpen] = useState(false);
   // State variable for managing the list of Activities Conducted MCCIE data
   const [acmData, setACMData] = useState<any[]>([]);
   // State variables for managing selected options in dropdowns
-  const [selectedStream, setSelectedStream] = useState<any>(null);
-  const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
-  const [selectedProgramType, setSelectedProgramType] = useState<any>(null);
-  const [selectedDegree, setSelectedDegree] = useState<any>(null);
   // State variable for managing search term and pagination
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -86,13 +83,6 @@ const Activities_Conducted_MCCIE: React.FC = () => {
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
   const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
 
-  // Handle page change
-  const handlePageChange = (pageNumber: number) => {
-    setCurrentPage(pageNumber);
-  };
-
-  // Calculate total pages
-  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
   // Toggle the modal for listing Activities Conducted MCCIE
   const toggleModal = () => {
@@ -160,39 +150,32 @@ const Activities_Conducted_MCCIE: React.FC = () => {
         //     }
         //   : null,
       };
-      // const streamOption = mapValueToLabel(response.streamId, []); // Replace [] with stream options array if available
-      // const departmentOption = mapValueToLabel(response.departmentId, []); // Replace [] with department options array if available
 
       validation.setValues({
         academicYear: mappedValues.academicYear
           ? {
-              ...mappedValues.academicYear,
-              value: String(mappedValues.academicYear.value),
-            }
+            ...mappedValues.academicYear,
+            value: String(mappedValues.academicYear.value),
+          }
           : null,
-
-        // stream: mappedValues.stream,
-        // department: mappedValues.department,
-
-        // otherDepartment: "", // unless provided by response
+        startDate: response.startDate
+          ? moment(response.startDate, "DD/MM/YYYY").format("DD/MM/YYYY")
+          : "",
+        endDate: response.endDate
+          ? moment(response.endDate, "DD/MM/YYYY").format("DD/MM/YYYY")
+          : "",
 
         agencyName: response.agencyName || "",
         activityName: response.activityName || "",
         noOfStudents: response.noOfStudents || "",
         financialSupportSource: response.sourceFinancialSupport || "",
         // duration: response.duration || "",
-        startDate: response.startDate
-          ? moment(response.startDate).format("DD/MM/YYYY")
-          : "",
-        endDate: response.endDate
-          ? moment(response.endDate).format("DD/MM/YYYY")
-          : "",
+
         activityPhoto: response.files?.Photograph || null,
         activityLetter: response.files?.Letter || null,
       });
-      // setSelectedStream(streamOption);
-      // setSelectedDepartment(departmentOption);
-
+      setIsFileUploadDisabled(!!response.files?.Photograph); // Disable file upload if a file exists
+      setIsFile2UploadDisabled(!!response.files?.Letter); // Disable file upload if a file exists
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();
@@ -222,7 +205,7 @@ const Activities_Conducted_MCCIE: React.FC = () => {
         );
         toast.success(
           response.message ||
-            "Activities Conducted MCCIIE removed successfully!"
+          "Activities Conducted MCCIIE removed successfully!"
         );
         fetchACMData();
       } catch (error) {
@@ -289,13 +272,16 @@ const Activities_Conducted_MCCIE: React.FC = () => {
       toast.success(response.message || "File deleted successfully!");
       if (docType === "activityPhoto") {
         validation.setFieldValue("activityPhoto", null);
+        setIsFileUploadDisabled(false); // Enable the file upload button
+
       }
       if (docType === "activityLetter") {
         validation.setFieldValue("activityLetter", null);
+        setIsFile2UploadDisabled(false); // Enable the file upload button
+
       }
       // Remove the file from the form
       validation.setFieldValue("file", null); // Clear the file from Formik state
-      setIsFileUploadDisabled(false); // Enable the file upload button
     } catch (error) {
       // Show error message
       toast.error("Failed to delete the file. Please try again.");
@@ -325,20 +311,6 @@ const Activities_Conducted_MCCIE: React.FC = () => {
       academicYear: Yup.object<{ value: string; label: string }>()
         .nullable()
         .required("Please select academic year"),
-      // stream: Yup.object<{ value: string; label: string }>()
-      //   .nullable()
-      //   .required("Please select school"),
-      // department: Yup.object<{ value: string; label: string }>()
-      //   .nullable()
-      //   .required("Please select department"),
-      // otherDepartment: Yup.string().when(
-      //   "department",
-      //   (department: any, schema) => {
-      //     return department?.value === "Others"
-      //       ? schema.required("Please specify the department")
-      //       : schema;
-      //   }
-      // ),
       agencyName: Yup.string().required("Please enter Collaborating Organisation"),
       activityName: Yup.string().required("Please enter Activity Title"),
       noOfStudents: Yup.number()
@@ -347,11 +319,16 @@ const Activities_Conducted_MCCIE: React.FC = () => {
       financialSupportSource: Yup.string().required(
         "Please enter source of financial support"
       ),
-      // duration: Yup.number()
-      //   .typeError("Enter a valid number")
-      //   .required("Please enter duration"),
-       startDate: Yup.date().required("Please select conducted date"),
-      endDate: Yup.date().required("Please select conducted date"),
+      startDate: Yup.string()
+        .required("Start date is required")
+        .test("is-valid-date", "Invalid start date", (value) =>
+          moment(value, "DD/MM/YYYY", true).isValid()
+        ),
+      endDate: Yup.string()
+        .required("End date is required")
+        .test("is-valid-date", "Invalid start date", (value) =>
+          moment(value, "DD/MM/YYYY", true).isValid()
+        ),
       activityPhoto: Yup.mixed()
         .required("Please upload a photograph")
         .test("fileType", "Only image files allowed", (value) => {
@@ -382,10 +359,12 @@ const Activities_Conducted_MCCIE: React.FC = () => {
       formData.append("agencyName", values.agencyName || "");
       formData.append("activityName", values.activityName || "");
       formData.append("noOfStudents", values.noOfStudents || "");
-      formData.append("startDate", moment(values.startDate).format("DD/MM/YYYY") || "");
-      formData.append("endDate", moment(values.endDate).format("DD/MM/YYYY") || "");
-   
-     
+      formData.append("startDate", values.startDate ? moment(values.startDate, "DD/MM/YYYY").format("DD/MM/YYYY")
+        : "");
+      formData.append("endDate", values.endDate ? moment(values.endDate, "DD/MM/YYYY").format("DD/MM/YYYY")
+        : "");
+
+
 
       formData.append(
         "sourceFinancialSupport",
@@ -434,7 +413,7 @@ const Activities_Conducted_MCCIE: React.FC = () => {
           );
           toast.success(
             response.message ||
-              "Activities Conducted MCCIIE updated successfully!"
+            "Activities Conducted MCCIIE updated successfully!"
           );
         } else {
           // Call the save API
@@ -444,7 +423,7 @@ const Activities_Conducted_MCCIE: React.FC = () => {
           );
           toast.success(
             response.message ||
-              "Activities Conducted MCCIIE added successfully!"
+            "Activities Conducted MCCIIE added successfully!"
           );
         }
         // Reset the form fields
@@ -457,6 +436,8 @@ const Activities_Conducted_MCCIE: React.FC = () => {
         }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
+        setIsFileUploadDisabled(false); // Enable file upload for new entries
+        setIsFile2UploadDisabled(false); // Enable file upload for new entries
         // display the Activities Conducted MCCIE List
         handleListACMClick();
       } catch (error) {
@@ -642,7 +623,7 @@ const Activities_Conducted_MCCIE: React.FC = () => {
                         }
                         className={
                           validation.touched.agencyName &&
-                          validation.errors.agencyName
+                            validation.errors.agencyName
                             ? "is-invalid"
                             : ""
                         }
@@ -670,7 +651,7 @@ const Activities_Conducted_MCCIE: React.FC = () => {
                         }
                         className={
                           validation.touched.activityName &&
-                          validation.errors.activityName
+                            validation.errors.activityName
                             ? "is-invalid"
                             : ""
                         }
@@ -699,7 +680,7 @@ const Activities_Conducted_MCCIE: React.FC = () => {
                         }
                         className={
                           validation.touched.noOfStudents &&
-                          validation.errors.noOfStudents
+                            validation.errors.noOfStudents
                             ? "is-invalid"
                             : ""
                         }
@@ -727,7 +708,7 @@ const Activities_Conducted_MCCIE: React.FC = () => {
                         }
                         className={
                           validation.touched.financialSupportSource &&
-                          validation.errors.financialSupportSource
+                            validation.errors.financialSupportSource
                             ? "is-invalid"
                             : ""
                         }
@@ -773,9 +754,9 @@ const Activities_Conducted_MCCIE: React.FC = () => {
                         value={
                           validation.values.startDate
                             ? moment(
-                                validation.values.startDate,
-                                "DD/MM/YYYY"
-                              ).format("YYYY-MM-DD")
+                              validation.values.startDate,
+                              "DD/MM/YYYY"
+                            ).format("YYYY-MM-DD")
                             : ""
                         }
                         onChange={(e) => {
@@ -787,7 +768,7 @@ const Activities_Conducted_MCCIE: React.FC = () => {
                         }}
                         className={
                           validation.touched.startDate &&
-                          validation.errors.startDate
+                            validation.errors.startDate
                             ? "is-invalid"
                             : ""
                         }
@@ -808,9 +789,9 @@ const Activities_Conducted_MCCIE: React.FC = () => {
                         value={
                           validation.values.endDate
                             ? moment(
-                                validation.values.endDate,
-                                "DD/MM/YYYY"
-                              ).format("YYYY-MM-DD")
+                              validation.values.endDate,
+                              "DD/MM/YYYY"
+                            ).format("YYYY-MM-DD")
                             : ""
                         }
                         onChange={(e) => {
@@ -849,10 +830,11 @@ const Activities_Conducted_MCCIE: React.FC = () => {
                         }
                         className={
                           validation.touched.activityPhoto &&
-                          validation.errors.activityPhoto
+                            validation.errors.activityPhoto
                             ? "is-invalid"
                             : ""
                         }
+                        disabled={isFileUploadDisabled}
                       />
                       {validation.touched.activityPhoto &&
                         validation.errors.activityPhoto && (
@@ -919,10 +901,11 @@ const Activities_Conducted_MCCIE: React.FC = () => {
                         }
                         className={
                           validation.touched.activityLetter &&
-                          validation.errors.activityLetter
+                            validation.errors.activityLetter
                             ? "is-invalid"
                             : ""
                         }
+                        disabled={isFile2UploadDisabled}
                       />
                       {validation.touched.activityLetter &&
                         validation.errors.activityLetter && (
@@ -931,7 +914,7 @@ const Activities_Conducted_MCCIE: React.FC = () => {
                           </div>
                         )}
                       {/* Show a message if the file upload button is disabled */}
-                      {isFileUploadDisabled && (
+                      {isFile2UploadDisabled && (
                         <div className="text-warning mt-2">
                           Please remove the existing file to upload a new one.
                         </div>

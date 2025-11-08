@@ -38,6 +38,7 @@ import "pdfmake/build/pdfmake";
 import "pdfmake/build/vfs_fonts";
 import Select from "react-select";
 
+
 const api = new APIClient();
 
 const Details_of_Programs_offered: React.FC = () => {
@@ -58,7 +59,7 @@ const Details_of_Programs_offered: React.FC = () => {
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
   const fileRef = useRef<HTMLInputElement | null>(null);
-   const tableRef = useRef<HTMLTableElement>(null);
+  const tableRef = useRef<HTMLTableElement>(null);
 
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
@@ -71,8 +72,15 @@ const Details_of_Programs_offered: React.FC = () => {
         "/detailsOfProgramsOffered/getAllDetailsOfProgramsOffered",
         ""
       );
-      setDetailsProgramOfferedData(response.data);
-      setFilteredData(response);
+      const data = response?.data || response; // handle both shapes
+
+      if (Array.isArray(data)) {
+        setDetailsProgramOfferedData(data);
+        setFilteredData(data);
+      } else {
+        console.error("Unexpected response format:", response);
+        setDetailsProgramOfferedData([]);
+      }
     } catch (error) {
       console.error("Error fetching Details Of Program Offered data:", error);
     }
@@ -101,7 +109,7 @@ const Details_of_Programs_offered: React.FC = () => {
     menuPortal: (base: any) => ({ ...base, zIndex: 9999 }), // Ensure the menu is above other elements
   };
 
-    const ModeType = [
+  const ModeType = [
     { value: "ONLINE", label: "ONLINE" },
     { value: "OFFLINE", label: "OFFLINE" },
     { value: "HYBRID", label: "HYBRID" },
@@ -111,7 +119,10 @@ const Details_of_Programs_offered: React.FC = () => {
   // Fetch the data for the selected BOS ID and populate the form fields
   const handleEdit = async (id: string) => {
     try {
-      const response = await api.get(`/bos/edit?bosId=${id}`, "");
+      const response = await axios.get("/detailsOfProgramsOffered", {
+        params: { detailsOfProgramsOfferedId: id },
+      });
+
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
       // Filter the response where isCurrent or isCurrentForAdmission is true
       const filteredAcademicYearList = academicYearOptions.filter(
@@ -131,50 +142,54 @@ const Details_of_Programs_offered: React.FC = () => {
           : null,
         department: response.departmentId
           ? {
-              value: response.departmentId.toString(),
-              label: response.departmentName,
-            }
+            value: response.departmentId.toString(),
+            label: response.departmentName,
+          }
           : null,
         programType: response.programTypeId
           ? {
-              value: response.programTypeId.toString(),
-              label: response.programTypeName,
-            }
+            value: response.programTypeId.toString(),
+            label: response.programTypeName,
+          }
           : null,
         degree: response.programId
           ? {
-              value: response.programId.toString(),
-              label: response.programName,
-            }
+            value: response.programId.toString(),
+            label: response.programName,
+          }
           : null,
         program: response.courses
           ? Object.entries(response.courses).map(([key, value]) => ({
-              value: key,
-              label: String(value),
-            }))
+            value: key,
+            label: String(value),
+          }))
           : [],
         agencyName: response.agencyName || "",
         numberOfStudent: response.noOfStudent || "",
         duration: response.duration || "",
         mode: response.mode || null,
-        file: response.mous?.mou || null,
+        file: response.mous?.ProgramOffered || null,
       };
 
       // Update Formik values
       validation.setValues({
         ...mappedValues,
-        file: response.mous?.mou || null,
+        file: response.mous?.ProgramOffered || null,
         academicYear: mappedValues.academicYear
           ? {
-              ...mappedValues.academicYear,
-              value: String(mappedValues.academicYear.value),
-            }
+            ...mappedValues.academicYear,
+            value: String(mappedValues.academicYear.value),
+          }
           : null,
       });
+      setSelectedDepartment(mappedValues.department);
+      setSelectedStream(mappedValues.stream);
+      setSelectedDegree(mappedValues.degree);
+      setSelectedProgramType(mappedValues.programType);
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       // Disable the file upload button if a file exists
-      setIsFileUploadDisabled(!!response.mous?.mou);
+      setIsFileUploadDisabled(!!response.mous?.ProgramOffered);
       toggleModal();
     } catch (error) {
       console.error(
@@ -198,7 +213,7 @@ const Details_of_Programs_offered: React.FC = () => {
         );
         toast.success(
           response.message ||
-            "Details of Programs Offered removed successfully!"
+          "Details of Programs Offered removed successfully!"
         );
         fetchDetailsProgramOfferedData();
       } catch (error) {
@@ -253,11 +268,11 @@ const Details_of_Programs_offered: React.FC = () => {
 
   // Handle file deletion
   // Clear the file from the form and show success message
-  const handleDeleteFile = async () => {
+  const handleDeleteFile = async (fileName: string) => {
     try {
       // Call the delete API
       const response = await api.delete(
-        `/detailsOfProgramsOffered/deleteDetailsOfProgramsOfferedDocument?detailsOfProgramsOfferedDocumentId=${editId}`,
+        `/detailsOfProgramsOffered/deleteDetailsOfProgramsOfferedDocument?fileName=${fileName}`,
         ""
       );
       // Show success message
@@ -300,9 +315,9 @@ const Details_of_Programs_offered: React.FC = () => {
         .nullable()
         .required("Please select program type"),
       degree: Yup.object().nullable().required("Please select degree"),
-     program: Yup.array()
-            .min(1, "Please select at least one program")
-            .required("Please select programs"),
+      program: Yup.array()
+        .min(1, "Please select at least one program")
+        .required("Please select programs"),
       agencyName: Yup.string().required("Please select Agency Name"),
       numberOfStudent: Yup.number()
         .typeError("Please enter a valid number")
@@ -314,15 +329,11 @@ const Details_of_Programs_offered: React.FC = () => {
         .nullable()
         .required("Please select Mode"),
       file: Yup.mixed()
-        .required("Please upload a file")
-        .test("fileSize", "File size is too large", (value: any) => {
-          return value && value.size <= 2 * 1024 * 1024; // 2MB limit
-        })
-        .test("fileType", "Unsupported file format", (value: any) => {
-          return (
-            value &&
-            ["application/pdf", "image/jpeg", "image/png"].includes(value.type)
-          );
+        .required("Please upload abstract file")
+        .test("fileType", "Only PDF allowed", (value) => {
+          if (!value) return false;
+          if (typeof value === "string") return true;
+          return value instanceof File && value.type === "application/pdf";
         }),
     }),
     onSubmit: async (values, { resetForm }) => {
@@ -334,7 +345,7 @@ const Details_of_Programs_offered: React.FC = () => {
       formData.append("streamId", values.stream?.value || "");
       formData.append("departmentId", values.department?.value || "");
       formData.append("programTypeId", values.programType?.value || "");
-       formData.append("programId", values.degree?.value || "");
+      formData.append("programId", values.degree?.value || "");
       formData.append("courseId", "1,2");
       formData.append("agencyName", values.agencyName || "");
       formData.append("noOfStudent", values.numberOfStudent || "");
@@ -361,7 +372,7 @@ const Details_of_Programs_offered: React.FC = () => {
           const response = await api.put(`/detailsOfProgramsOffered`, formData);
           toast.success(
             response.message ||
-              "Details of Programs Offered updated successfully!"
+            "Details of Programs Offered updated successfully!"
           );
         } else {
           // Call the save API
@@ -371,12 +382,12 @@ const Details_of_Programs_offered: React.FC = () => {
           );
           toast.success(
             response.message ||
-              "Details of Programs Offered added successfully!"
+            "Details of Programs Offered added successfully!"
           );
         }
         // Reset the form fields
         resetForm();
-            if (fileRef.current) {
+        if (fileRef.current) {
           fileRef.current.value = "";
         }
         setIsEditMode(false); // Reset edit mode
@@ -578,7 +589,7 @@ const Details_of_Programs_offered: React.FC = () => {
                         )}
                     </div>
                   </Col>
-                <Col lg={4}>
+                  <Col lg={4}>
                     <div className="mb-3">
                       <Label>Program</Label>
                       <ProgramDropdown
@@ -607,12 +618,11 @@ const Details_of_Programs_offered: React.FC = () => {
                       <Label>Agency Name</Label>
                       <Input
                         type="text"
-                        className={`form-control ${
-                          validation.touched.agencyName &&
+                        className={`form-control ${validation.touched.agencyName &&
                           validation.errors.agencyName
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         value={validation.values.agencyName}
                         onChange={(e) =>
                           validation.setFieldValue("agencyName", e.target.value)
@@ -632,12 +642,11 @@ const Details_of_Programs_offered: React.FC = () => {
                       <Label>Number of Student</Label>
                       <Input
                         type="number"
-                        className={`form-control ${
-                          validation.touched.numberOfStudent &&
+                        className={`form-control ${validation.touched.numberOfStudent &&
                           validation.errors.numberOfStudent
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         value={validation.values.numberOfStudent}
                         onChange={(e) =>
                           validation.setFieldValue(
@@ -660,12 +669,11 @@ const Details_of_Programs_offered: React.FC = () => {
                       <Label>Duration(in Month)</Label>
                       <Input
                         type="text"
-                        className={`form-control ${
-                          validation.touched.duration &&
+                        className={`form-control ${validation.touched.duration &&
                           validation.errors.duration
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         value={validation.values.duration}
                         onChange={(e) =>
                           validation.setFieldValue("duration", e.target.value)
@@ -697,7 +705,7 @@ const Details_of_Programs_offered: React.FC = () => {
                         menuPortalTarget={document.body}
                         className={
                           validation.touched.mode &&
-                          validation.errors.mode
+                            validation.errors.mode
                             ? "select-error"
                             : ""
                         }
@@ -729,11 +737,10 @@ const Details_of_Programs_offered: React.FC = () => {
                         Upload an Excel or PDF file. Max size 10MB.
                       </Tooltip>
                       <Input
-                        className={`form-control ${
-                          validation.touched.file && validation.errors.file
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                        className={`form-control ${validation.touched.file && validation.errors.file
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         type="file"
                         id="formFile"
                         innerRef={fileRef}
@@ -782,7 +789,7 @@ const Details_of_Programs_offered: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
-                            onClick={() => handleDeleteFile()}
+                            onClick={() => handleDeleteFile(validation.values.file as string)}
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>
@@ -825,12 +832,12 @@ const Details_of_Programs_offered: React.FC = () => {
           </ModalHeader>
           <ModalBody>
             <Table
-             striped
+              striped
               bordered
               hover
               id="detailsProgramOfferedDataId"
               innerRef={tableRef}>
-              <thead>
+              <thead className="table-dark">
                 <tr>
                   <th>Sl.No</th>
                   <th>Academic Year</th>
@@ -870,13 +877,13 @@ const Details_of_Programs_offered: React.FC = () => {
                       <td>{detailsProgramOffered.agencyName}</td>
                       <td>{detailsProgramOffered.noOfStudent}</td>
                       <td>{detailsProgramOffered.duration}</td>
-                       <td className="d-none">{detailsProgramOffered?.filePath?.mou || "N/A"}</td> {/* Hidden */}
+                      <td className="d-none">{detailsProgramOffered?.filePath?.mou || "N/A"}</td> {/* Hidden */}
                       <td>
                         <button
                           className="btn btn-sm btn-warning me-2"
                           onClick={() =>
                             handleEdit(
-                              detailsProgramOffered.detailsProgramOfferedDataId
+                              detailsProgramOffered.id
                             )
                           }
                         >
@@ -886,7 +893,7 @@ const Details_of_Programs_offered: React.FC = () => {
                           className="btn btn-sm btn-danger"
                           onClick={() =>
                             handleDelete(
-                              detailsProgramOffered.detailsProgramOfferedDataId
+                              detailsProgramOffered.id
                             )
                           }
                         >
@@ -904,8 +911,8 @@ const Details_of_Programs_offered: React.FC = () => {
                 )}
               </tbody>
             </Table>
-             </ModalBody>
-             </Modal>
+          </ModalBody>
+        </Modal>
         <Modal
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}

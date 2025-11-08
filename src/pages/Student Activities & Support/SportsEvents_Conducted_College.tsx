@@ -114,6 +114,7 @@ const SportsEvents_Conducted_College: React.FC = () => {
         fromDate: mappedValues.fromDate || "",
         toDate: mappedValues.toDate || "",
       });
+      setIsFileUploadDisabled(!!response.documents?.SportsEventsReport); // Disable file upload if a file exists
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();
@@ -141,6 +142,7 @@ const SportsEvents_Conducted_College: React.FC = () => {
           `/sportsEvents/deleteSportsEvents?sportsEventsId=${id}`,
           ""
         );
+        setIsModalOpen(false);
         toast.success(
           response.message ||
             "Sports Events conducted in the college removed successfully!"
@@ -334,6 +336,7 @@ const SportsEvents_Conducted_College: React.FC = () => {
         if (fileRef.current) {
           fileRef.current.value = "";
         }
+        setIsFileUploadDisabled(false);
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         handleListCSWClick();

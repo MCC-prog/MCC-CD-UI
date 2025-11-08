@@ -32,6 +32,7 @@ import "jszip";
 import "pdfmake/build/pdfmake";
 import "pdfmake/build/vfs_fonts";
 
+
 const api = new APIClient();
 
 const FP_And_Presentation_Research_Papers = () => {
@@ -166,6 +167,7 @@ const FP_And_Presentation_Research_Papers = () => {
         }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
+        setIsFileUploadDisabled(false); // Enable file upload for new entries
         // Display the Faculty Participation List
         handleListFPClick();
       } catch (error) {

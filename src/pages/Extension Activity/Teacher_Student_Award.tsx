@@ -39,9 +39,11 @@ const api = new APIClient();
 
 const Teacher_Student_Award: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
- const [teacherStudentAwardData, setTeacherStudentAwardData] = useState<any[]>([]);
- const [selectedStream, setSelectedStream] = useState<any>(null);
- const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
+  const [teacherStudentAwardData, setTeacherStudentAwardData] = useState<any[]>(
+    []
+  );
+  const [selectedStream, setSelectedStream] = useState<any>(null);
+  const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
   const [editId, setEditId] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
@@ -50,13 +52,12 @@ const Teacher_Student_Award: React.FC = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
- const tableRef = useRef<HTMLTableElement>(null);
+  const tableRef = useRef<HTMLTableElement>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
   const fileRef1 = useRef<HTMLInputElement | null>(null);
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };
-
 
   // Fetch teacherStudentAward data from the backend
   const fetchTeacherStudentAwardData = async () => {
@@ -97,7 +98,7 @@ const Teacher_Student_Award: React.FC = () => {
       // Map API response to Formik values
       const mappedValues = {
         name: response.name || "",
-          stream: response.streamId
+        stream: response.streamId
           ? { value: response.streamId.toString(), label: response.streamName }
           : null,
         department: response.departmentId
@@ -139,6 +140,7 @@ const Teacher_Student_Award: React.FC = () => {
           `/studentAwardExtensionActivity/deleteStudentAwardExtensionActivity?studentAwardExtensionActivityId=${id}`,
           ""
         );
+        setIsModalOpen(false);
         toast.success(
           response.message || "Teacher Student Award  removed successfully!"
         );
@@ -227,8 +229,8 @@ const Teacher_Student_Award: React.FC = () => {
     validationSchema: Yup.object({
       name: Yup.string().required("Please select Presenter Name"),
       stream: Yup.object<{ value: string; label: string }>()
-              .nullable()
-              .required("Please select school"),
+        .nullable()
+        .required("Please select school"),
       department: Yup.object<{ value: string; label: string }>()
         .nullable()
         .required("Please select department"),
@@ -249,7 +251,7 @@ const Teacher_Student_Award: React.FC = () => {
             ["application/pdf", "image/jpeg", "image/png"].includes(value.type)
           );
         }),
-        certificateFile: Yup.mixed()
+      certificateFile: Yup.mixed()
         .required("Please upload a file")
         .test("fileSize", "File size is too large", (value: any) => {
           if (typeof value === "string") return true;
@@ -262,7 +264,6 @@ const Teacher_Student_Award: React.FC = () => {
             ["application/pdf", "image/jpeg", "image/png"].includes(value.type)
           );
         }),
-        
     }),
     onSubmit: async (values, { resetForm }) => {
       // Create FormData object
@@ -283,7 +284,7 @@ const Teacher_Student_Award: React.FC = () => {
       } else if (values.file) {
         formData.append("file", values.file);
       }
-        if (isEditMode && typeof values.certificateFile === "string") {
+      if (isEditMode && typeof values.certificateFile === "string") {
         // Pass an empty Blob instead of null
         formData.append("certificateFile", new Blob([]), "empty.pdf");
       } else if (isEditMode && values.certificateFile === null) {
@@ -331,14 +332,14 @@ const Teacher_Student_Award: React.FC = () => {
     },
   });
 
-   useEffect(() => {
+  useEffect(() => {
     if (teacherStudentAwardData.length === 0) return; // wait until data is loaded
 
     const table = $("#awardId").DataTable({
-      destroy: true, 
-       scrollX: true, 
-       autoWidth: false, 
-     dom: "Bfrtip",
+      destroy: true,
+      scrollX: true,
+      autoWidth: false,
+      dom: "Bfrtip",
       buttons: [
         {
           extend: "copy",
@@ -407,7 +408,7 @@ const Teacher_Student_Award: React.FC = () => {
                       )}
                     </div>
                   </Col>
-                      <Col lg={4}>
+                  <Col lg={4}>
                     <div className="mb-3">
                       <Label>School</Label>
                       <StreamDropdown
@@ -616,7 +617,7 @@ const Teacher_Student_Award: React.FC = () => {
                       )}
                     </div>
                   </Col>
-                   <Col sm={4}>
+                  <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
                         Upload Certificate
@@ -636,7 +637,8 @@ const Teacher_Student_Award: React.FC = () => {
                       </Tooltip>
                       <Input
                         className={`form-control ${
-                          validation.touched.certificateFile && validation.errors.certificateFile
+                          validation.touched.certificateFile &&
+                          validation.errors.certificateFile
                             ? "is-invalid"
                             : ""
                         }`}
@@ -653,11 +655,12 @@ const Teacher_Student_Award: React.FC = () => {
                         }}
                         disabled={isFileUploadDisabled} // Disable the button if a file exists
                       />
-                      {validation.touched.certificateFile && validation.errors.certificateFile && (
-                        <div className="text-danger">
-                          {validation.errors.certificateFile}
-                        </div>
-                      )}
+                      {validation.touched.certificateFile &&
+                        validation.errors.certificateFile && (
+                          <div className="text-danger">
+                            {validation.errors.certificateFile}
+                          </div>
+                        )}
                       {/* Show a message if the file upload button is disabled */}
                       {isFileUploadDisabled && (
                         <div className="text-warning mt-2">
@@ -665,7 +668,8 @@ const Teacher_Student_Award: React.FC = () => {
                         </div>
                       )}
                       {/* Only show the file name if it is a string (from the edit API) */}
-                      {typeof validation.values.certificateFile === "string" && (
+                      {typeof validation.values.certificateFile ===
+                        "string" && (
                         <div className="mt-2 d-flex align-items-center">
                           <span
                             className="me-2"
@@ -729,14 +733,8 @@ const Teacher_Student_Award: React.FC = () => {
             List Teacher Student Award
           </ModalHeader>
           <ModalBody>
-            <Table
-              striped
-              bordered
-              hover
-              id="awardId"
-              innerRef={tableRef}
-            >
-              <thead >
+            <Table striped bordered hover id="awardId" innerRef={tableRef}>
+              <thead className="table-dark">
                 <tr>
                   <th>Sl.No</th>
                   <th>Faculty/Student Name</th>
@@ -759,25 +757,33 @@ const Teacher_Student_Award: React.FC = () => {
                       <td>{award.departmentName}</td>
                       <td>{award.organisation}</td>
                       <td>{award.awardReceivedYear}</td>
-                      <td className="d-none">{award?.filePath?.recognitionCertificate || "N/A"}</td>
-                      <td className="d-none">{award?.filePath?.certificateFile || "N/A"}</td>
+                      <td className="d-none">
+                        {award?.filePath?.recognitionCertificate || "N/A"}
+                      </td>
+                      <td className="d-none">
+                        {award?.filePath?.certificateFile || "N/A"}
+                      </td>
                       <td>
-                        <button
-                          className="btn btn-sm btn-warning me-2"
-                          onClick={() =>
-                            handleEdit(award.studentAwardExtensionActivityId)
-                          }
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="btn btn-sm btn-danger"
-                          onClick={() =>
-                            handleDelete(award.studentAwardExtensionActivityId)
-                          }
-                        >
-                          Delete
-                        </button>
+                        <div className="d-flex justify-content-center gap-2">
+                          <button
+                            className="btn btn-sm btn-warning me-2"
+                            onClick={() =>
+                              handleEdit(award.studentAwardExtensionActivityId)
+                            }
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="btn btn-sm btn-danger"
+                            onClick={() =>
+                              handleDelete(
+                                award.studentAwardExtensionActivityId
+                              )
+                            }
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))

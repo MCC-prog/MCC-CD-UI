@@ -49,13 +49,14 @@ const New_Programs_Introduced: React.FC = () => {
   const [filteredData, setFilteredData] = useState(bosData);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
- const [isMomUploadDisabled, setIsMomUploadDisabled] = useState(false);
-   const [isSyllabusUploadDisabled, setIsSyllabusUploadDisabled] = useState(false);
+  const [isMomUploadDisabled, setIsMomUploadDisabled] = useState(false);
+  const [isSyllabusUploadDisabled, setIsSyllabusUploadDisabled] =
+    useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
-    const [tooltipOpen, setTooltipOpen] = useState(false);
-    const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
+  const [tooltipOpen, setTooltipOpen] = useState(false);
+  const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
 
   const fileRef = useRef<HTMLInputElement | null>(null);
   const sylRef = useRef<HTMLInputElement | null>(null);
@@ -76,8 +77,6 @@ const New_Programs_Introduced: React.FC = () => {
     );
     setFilteredData(filtered);
   };
-
-
 
   // Calculate the paginated data
   const indexOfLastRow = currentPage * rowsPerPage;
@@ -536,10 +535,10 @@ const New_Programs_Introduced: React.FC = () => {
         dom: "Bfrtip",
         buttons: [
           {
-            extend: "copy"
+            extend: "copy",
           },
           {
-            extend: "csv"
+            extend: "csv",
           },
         ],
         columnDefs: [
@@ -909,7 +908,7 @@ const New_Programs_Introduced: React.FC = () => {
                         </div>
                       )}
 
-                       {isMomUploadDisabled &&
+                      {isMomUploadDisabled &&
                         typeof validation.values.file === "string" && (
                           <div className="text-warning mt-2">
                             Please remove the existing file to upload a new one.
@@ -989,7 +988,9 @@ const New_Programs_Introduced: React.FC = () => {
                             ? event.currentTarget.files[0]
                             : null;
                           validation.setFieldValue("syllabusFile", file);
-                           if (typeof validation.values.syllabusFile === "string") {
+                          if (
+                            typeof validation.values.syllabusFile === "string"
+                          ) {
                             setIsSyllabusUploadDisabled(true);
                           } else {
                             setIsSyllabusUploadDisabled(false);
@@ -1004,13 +1005,12 @@ const New_Programs_Introduced: React.FC = () => {
                           </div>
                         )}
 
-                     {isSyllabusUploadDisabled &&
+                      {isSyllabusUploadDisabled &&
                         typeof validation.values.syllabusFile === "string" && (
                           <div className="text-warning mt-2">
                             Please remove the existing file to upload a new one.
                           </div>
                         )}
-
 
                       {typeof validation.values.syllabusFile === "string" && (
                         <div className="mt-2 d-flex align-items-center">

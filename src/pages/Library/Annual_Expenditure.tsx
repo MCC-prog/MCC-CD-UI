@@ -170,6 +170,7 @@ const Annual_Expenditure: React.FC = () => {
           : null,
         amount: response.amount || "",
       });
+      setIsFileUploadDisabled(!!response.file?.AnnualExpenditure); // Disable file upload if a file exists
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();
@@ -194,6 +195,7 @@ const Annual_Expenditure: React.FC = () => {
           `/annualExpenditure/deleteAnnualExpenditure?annualExpenditureId=${id}`,
           ""
         );
+        setIsModalOpen(false);
         toast.success(
           response.message || "Annual Expenditure removed successfully!"
         );
@@ -349,6 +351,7 @@ const Annual_Expenditure: React.FC = () => {
         if (fileRef.current) {
           fileRef.current.value = "";
         }
+        setIsFileUploadDisabled(false);
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         handleListCSWClick();

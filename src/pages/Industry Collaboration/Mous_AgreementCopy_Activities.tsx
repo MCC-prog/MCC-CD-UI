@@ -64,8 +64,15 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
         "/mousAgreementCopyActivities/getAllMousAgreementCopyActivities",
         ""
       );
-      setAgreementData(response.data);
-      setFilteredData(response);
+      const data = response?.data || response; // handle both shapes
+
+      if (Array.isArray(data)) {
+        setAgreementData(data);
+        setFilteredData(data);
+      } else {
+        console.error("Unexpected response format:", response);
+        setAgreementData([]);
+      }
     } catch (error) {
       console.error(
         "Error fetching Mous Agreement Copy & Activities data:",
@@ -113,15 +120,15 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
         academicYear: mapValueToLabel(response.academicYear, academicYearList),
         stream: response.empStreamId
           ? {
-              value: response.empStreamId.toString(),
-              label: response.empStreamName,
-            }
+            value: response.empStreamId.toString(),
+            label: response.empStreamName,
+          }
           : null,
         department: response.departmentId
           ? {
-              value: response.departmentId.toString(),
-              label: response.departmentName,
-            }
+            value: response.departmentId.toString(),
+            label: response.departmentName,
+          }
           : null,
       };
       const streamOption = mapValueToLabel(response.streamId, []); // Replace [] with stream options array if available
@@ -130,17 +137,17 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
       validation.setValues({
         academicYear: mappedValues.academicYear
           ? {
-              ...mappedValues.academicYear,
-              value: String(mappedValues.academicYear.value),
-            }
+            ...mappedValues.academicYear,
+            value: String(mappedValues.academicYear.value),
+          }
           : null,
         stream: mappedValues.stream || null,
         department: mappedValues.department || null,
         centralisedCentres: response.centalizedCentre
           ? {
-              value: response.centalizedCentre,
-              label: response.centalizedCentre,
-            }
+            value: response.centalizedCentre,
+            label: response.centalizedCentre,
+          }
           : null,
         organization: response.orgName || "",
         addessOrganization: response.orgAddress || "",
@@ -150,8 +157,8 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
         targetAudience: response.targetAudiences
           ? Array.isArray(response.targetAudiences)
             ? response.targetAudiences.map((aud: any) =>
-                typeof aud === "object" ? aud : { value: aud, label: aud }
-              )
+              typeof aud === "object" ? aud : { value: aud, label: aud }
+            )
             : []
           : [],
         activity: response.documents?.Activity || null,
@@ -187,7 +194,7 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
         );
         toast.success(
           response.message ||
-            "Mous Agreement Copy & Activities removed successfully!"
+          "Mous Agreement Copy & Activities removed successfully!"
         );
         fetchAgreementData();
       } catch (error) {
@@ -441,7 +448,7 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
           );
           toast.success(
             response.message ||
-              "Mous Agreement Copy & Activities updated successfully!"
+            "Mous Agreement Copy & Activities updated successfully!"
           );
         } else {
           // Call the save API
@@ -451,7 +458,7 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
           );
           toast.success(
             response.message ||
-              "Mous Agreement Copy & Activities added successfully!"
+            "Mous Agreement Copy & Activities added successfully!"
           );
         }
         // Reset the form fields
@@ -618,7 +625,7 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
                         menuPortalTarget={document.body}
                         className={
                           validation.touched.centralisedCentres &&
-                          validation.errors.centralisedCentres
+                            validation.errors.centralisedCentres
                             ? "select-error"
                             : ""
                         }
@@ -636,12 +643,11 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
                       <Label>Collaborating Organization</Label>
                       <Input
                         type="text"
-                        className={`form-control ${
-                          validation.touched.organization &&
-                          validation.errors.organization
+                        className={`form-control ${validation.touched.organization &&
+                            validation.errors.organization
                             ? "is-invalid"
                             : ""
-                        }`}
+                          }`}
                         value={validation.values.organization}
                         onChange={(e) =>
                           validation.setFieldValue(
@@ -664,12 +670,11 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
                       <Label>Address of the Organization</Label>
                       <Input
                         type="textarea"
-                        className={`form-control ${
-                          validation.touched.addessOrganization &&
-                          validation.errors.addessOrganization
+                        className={`form-control ${validation.touched.addessOrganization &&
+                            validation.errors.addessOrganization
                             ? "is-invalid"
                             : ""
-                        }`}
+                          }`}
                         value={validation.values.addessOrganization}
                         onChange={(e) =>
                           validation.setFieldValue(
@@ -692,12 +697,11 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
                       <Label>Year Signing the Mou</Label>
                       <Input
                         type="date"
-                        className={`form-control ${
-                          validation.touched.yearSigningMou &&
-                          validation.errors.yearSigningMou
+                        className={`form-control ${validation.touched.yearSigningMou &&
+                            validation.errors.yearSigningMou
                             ? "is-invalid"
                             : ""
-                        }`}
+                          }`}
                         value={validation.values.yearSigningMou}
                         onChange={(e) =>
                           validation.setFieldValue(
@@ -719,12 +723,11 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
                       <Label>Mou Valid Upto</Label>
                       <Input
                         type="date"
-                        className={`form-control ${
-                          validation.touched.mouValid &&
-                          validation.errors.mouValid
+                        className={`form-control ${validation.touched.mouValid &&
+                            validation.errors.mouValid
                             ? "is-invalid"
                             : ""
-                        }`}
+                          }`}
                         value={validation.values.mouValid}
                         onChange={(e) =>
                           validation.setFieldValue("mouValid", e.target.value)
@@ -743,12 +746,11 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
                       <Label>Type of Activity</Label>
                       <Input
                         type="textarea"
-                        className={`form-control ${
-                          validation.touched.typeActivity &&
-                          validation.errors.typeActivity
+                        className={`form-control ${validation.touched.typeActivity &&
+                            validation.errors.typeActivity
                             ? "is-invalid"
                             : ""
-                        }`}
+                          }`}
                         value={validation.values.typeActivity}
                         onChange={(e) =>
                           validation.setFieldValue(
@@ -784,7 +786,7 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
                         menuPortalTarget={document.body}
                         className={
                           validation.touched.targetAudience &&
-                          validation.errors.targetAudience
+                            validation.errors.targetAudience
                             ? "select-error"
                             : ""
                         }
@@ -820,12 +822,11 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
                         Upload an PDF file. Max size 10MB.
                       </Tooltip>
                       <Input
-                        className={`form-control ${
-                          validation.touched.activity &&
-                          validation.errors.activity
+                        className={`form-control ${validation.touched.activity &&
+                            validation.errors.activity
                             ? "is-invalid"
                             : ""
-                        }`}
+                          }`}
                         type="file"
                         id="formFile"
                         onChange={(event) => {
@@ -902,11 +903,10 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
                         Upload an Excel or PDF file. Max size 10MB.
                       </Tooltip>
                       <Input
-                        className={`form-control ${
-                          validation.touched.mous && validation.errors.mous
+                        className={`form-control ${validation.touched.mous && validation.errors.mous
                             ? "is-invalid"
                             : ""
-                        }`}
+                          }`}
                         type="file"
                         id="formFile"
                         innerRef={fileRef}
@@ -1017,7 +1017,7 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
               id="mousAgreementCopyActivitiesId"
               innerRef={tableRef}
             >
-              <thead>
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
@@ -1057,20 +1057,23 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
                           ))}
                         </ul>
                       </td>
-                       <td className="d-none">{agreement?.filePath?.Mous || "N/A"}</td> {/* Hidden */}
+                      <td className="d-none">{agreement?.filePath?.Mous || "N/A"}</td> {/* Hidden */}
                       <td>
-                        <button
-                          className="btn btn-sm btn-warning me-2"
-                          onClick={() => handleEdit(agreement.id)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="btn btn-sm btn-danger"
-                          onClick={() => handleDelete(agreement.id)}
-                        >
-                          Delete
-                        </button>
+                        <div className="d-flex justify-content-center gap-2">
+
+                          <button
+                            className="btn btn-sm btn-warning me-2"
+                            onClick={() => handleEdit(agreement.id)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="btn btn-sm btn-danger"
+                            onClick={() => handleDelete(agreement.id)}
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))

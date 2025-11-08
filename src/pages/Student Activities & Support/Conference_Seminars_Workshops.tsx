@@ -64,6 +64,7 @@ const Conference_Seminars_Workshops: React.FC = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
+  const [isFile2UploadDisabled, setIsFile2UploadDisabled] = useState(false);
   // State variables for managing selected options in dropdowns
   const [selectedStream, setSelectedStream] = useState<any>(null);
   const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
@@ -179,7 +180,8 @@ const Conference_Seminars_Workshops: React.FC = () => {
       });
       setSelectedStream(streamOption);
       setSelectedDepartment(departmentOption);
-
+      setIsFileUploadDisabled(!!response.documents?.brochure); // Disable brochure upload if a file exists
+      setIsFile2UploadDisabled(!!response.documents?.conference); // Disable conference upload if a file exists
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();
@@ -207,6 +209,7 @@ const Conference_Seminars_Workshops: React.FC = () => {
           `/conference/deleteConference?conferenceId=${id}`,
           ""
         );
+        setIsModalOpen(false);
         toast.success(
           response.message ||
             "Conference, Seminars & Workshops removed successfully!"
@@ -297,10 +300,11 @@ const Conference_Seminars_Workshops: React.FC = () => {
       // Remove the file from the form
       if (docType === "brochure") {
         validation.setFieldValue("brochure", null);
+        setIsFileUploadDisabled(false); // Enable the file upload button
       } else if (docType === "conference") {
         validation.setFieldValue("conference", null);
+        setIsFile2UploadDisabled(false); // Enable the file upload button
       }
-      setIsFileUploadDisabled(false); // Enable the file upload button
     } catch (error) {
       // Show error message
       toast.error("Failed to delete the file. Please try again.");
@@ -501,6 +505,9 @@ const Conference_Seminars_Workshops: React.FC = () => {
         if (conferenceRef.current) {
           conferenceRef.current.value = "";
         }
+        
+        setIsFileUploadDisabled(false); // Enable brochure upload
+        setIsFile2UploadDisabled(false); // Enable conference upload
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         handleListCSWClick();
@@ -1028,7 +1035,7 @@ const Conference_Seminars_Workshops: React.FC = () => {
                               : null
                           );
                         }}
-                        disabled={isFileUploadDisabled} // Disable the button if a file exists
+                        disabled={isFile2UploadDisabled} // Disable the button if a file exists
                       />
                       {validation.touched.conference &&
                         validation.errors.conference && (
@@ -1037,7 +1044,7 @@ const Conference_Seminars_Workshops: React.FC = () => {
                           </div>
                         )}
                       {/* Show a message if the file upload button is disabled */}
-                      {isFileUploadDisabled && (
+                      {isFile2UploadDisabled && (
                         <div className="text-warning mt-2">
                           Please remove the existing file to upload a new one.
                         </div>
@@ -1090,7 +1097,7 @@ const Conference_Seminars_Workshops: React.FC = () => {
                           download
                           className="btn btn-primary btn-sm"
                         >
-                           Template
+                          Template
                         </a>
                       </div>
                     </div>

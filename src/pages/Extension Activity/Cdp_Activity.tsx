@@ -157,6 +157,7 @@ const Cdp_Activites: React.FC = () => {
           `/CDPActivity/deleteCDPActivity?cdpId=${id}`,
           ""
         );
+        setIsModalOpen(false);  
         toast.success(response.message || "CDP  removed successfully!");
         fetchCdpData();
       } catch (error) {
@@ -279,7 +280,7 @@ const Cdp_Activites: React.FC = () => {
       // date: Yup.date()
       //   .typeError("Please select a valid date")
       //   .required("Please select Date"),
-       startDate: Yup.date().required("Please select conducted date"),
+      startDate: Yup.date().required("Please select conducted date"),
       endDate: Yup.date().required("Please select conducted date"),
     }),
     onSubmit: async (values, { resetForm }) => {
@@ -299,10 +300,14 @@ const Cdp_Activites: React.FC = () => {
       formData.append("organisation", values.organisation || "");
       formData.append("location", values.location || "");
       // formData.append("date", moment(values.date).format("DD/MM/YYYY") || "");
-       formData.append("startDate", moment(values.startDate).format("DD/MM/YYYY") || "");
-      formData.append("endDate", moment(values.endDate).format("DD/MM/YYYY") || "");
-      
-     
+      formData.append(
+        "startDate",
+        moment(values.startDate).format("DD/MM/YYYY") || ""
+      );
+      formData.append(
+        "endDate",
+        moment(values.endDate).format("DD/MM/YYYY") || ""
+      );
 
       if (isEditMode && typeof values.file === "string") {
         // Pass an empty Blob instead of null
@@ -833,7 +838,7 @@ const Cdp_Activites: React.FC = () => {
           <ModalHeader toggle={toggleModal}>List CDP Activites</ModalHeader>
           <ModalBody>
             <Table striped bordered hover id="id" innerRef={tableRef}>
-              <thead>
+              <thead className="table-dark">
                 <tr>
                   <th>Sl.No</th>
                   <th>Academic Year</th>
@@ -867,7 +872,7 @@ const Cdp_Activites: React.FC = () => {
                           )}
                         </ul>
                       </td>
-                      
+
                       <td>{cdp.semester}</td>
                       <td>{cdp.noOfParticipants}</td>
                       <td>{cdp.organisation}</td>
@@ -877,24 +882,26 @@ const Cdp_Activites: React.FC = () => {
                       <td>{cdp.endDate}</td>
                       <td className="d-none">{cdp?.filePath.CDP || "N/A"}</td>
                       <td>
-                        <button
-                          className="btn btn-sm btn-warning me-2"
-                          onClick={() => handleEdit(cdp.id)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="btn btn-sm btn-danger"
-                          onClick={() => handleDelete(cdp.id)}
-                        >
-                          Delete
-                        </button>
+                        <div className="d-flex justify-content-center gap-2">
+                          <button
+                            className="btn btn-sm btn-warning me-2"
+                            onClick={() => handleEdit(cdp.id)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="btn btn-sm btn-danger"
+                            onClick={() => handleDelete(cdp.id)}
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={11} className="text-center">
+                    <td colSpan={12} className="text-center">
                       No Cdp data available.
                     </td>
                   </tr>

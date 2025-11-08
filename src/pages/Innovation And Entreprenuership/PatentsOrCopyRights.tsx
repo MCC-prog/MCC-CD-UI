@@ -165,9 +165,9 @@ const PatentsOrCopyRights: React.FC = () => {
           : null,
         department: response.departmentId
           ? {
-              value: response.departmentId.toString(),
-              label: response.departmentName,
-            }
+            value: response.departmentId.toString(),
+            label: response.departmentName,
+          }
           : null,
         abstractFile: response.files?.Patent || null,
       };
@@ -177,9 +177,9 @@ const PatentsOrCopyRights: React.FC = () => {
       validation.setValues({
         academicYear: mappedValues.academicYear
           ? {
-              ...mappedValues.academicYear,
-              value: String(mappedValues.academicYear.value),
-            }
+            ...mappedValues.academicYear,
+            value: String(mappedValues.academicYear.value),
+          }
           : null,
 
         stream: mappedValues.stream,
@@ -204,7 +204,7 @@ const PatentsOrCopyRights: React.FC = () => {
       });
       setSelectedStream(streamOption);
       setSelectedDepartment(departmentOption);
-
+      setIsFileUploadDisabled(!!response.files?.Patent); // Disable file upload if a file exists
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();
@@ -421,6 +421,7 @@ const PatentsOrCopyRights: React.FC = () => {
         if (fileRef.current) {
           fileRef.current.value = "";
         }
+        setIsFileUploadDisabled(false); // Enable file upload for new entries
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         // display the Patents Filed List
@@ -570,12 +571,11 @@ const PatentsOrCopyRights: React.FC = () => {
                         <Label>Specify Department</Label>
                         <Input
                           type="text"
-                          className={`form-control ${
-                            validation.touched.otherDepartment &&
-                            validation.errors.otherDepartment
+                          className={`form-control ${validation.touched.otherDepartment &&
+                              validation.errors.otherDepartment
                               ? "is-invalid"
                               : ""
-                          }`}
+                            }`}
                           value={validation.values.otherDepartment}
                           onChange={(e) =>
                             validation.setFieldValue(
@@ -609,7 +609,7 @@ const PatentsOrCopyRights: React.FC = () => {
                         }
                         className={
                           validation.touched.facultyName &&
-                          validation.errors.facultyName
+                            validation.errors.facultyName
                             ? "is-invalid"
                             : ""
                         }
@@ -637,7 +637,7 @@ const PatentsOrCopyRights: React.FC = () => {
                         }
                         className={
                           validation.touched.titleOfInvention &&
-                          validation.errors.titleOfInvention
+                            validation.errors.titleOfInvention
                             ? "is-invalid"
                             : ""
                         }
@@ -665,7 +665,7 @@ const PatentsOrCopyRights: React.FC = () => {
                         }
                         className={
                           validation.touched.patentNumber &&
-                          validation.errors.patentNumber
+                            validation.errors.patentNumber
                             ? "is-invalid"
                             : ""
                         }
@@ -686,9 +686,9 @@ const PatentsOrCopyRights: React.FC = () => {
                         value={
                           validation.values.filedDate
                             ? moment(
-                                validation.values.filedDate,
-                                "DD/MM/YYYY"
-                              ).format("YYYY-MM-DD")
+                              validation.values.filedDate,
+                              "DD/MM/YYYY"
+                            ).format("YYYY-MM-DD")
                             : ""
                         }
                         onChange={(e) => {
@@ -700,7 +700,7 @@ const PatentsOrCopyRights: React.FC = () => {
                         }}
                         className={
                           validation.touched.filedDate &&
-                          validation.errors.filedDate
+                            validation.errors.filedDate
                             ? "is-invalid"
                             : ""
                         }
@@ -721,9 +721,9 @@ const PatentsOrCopyRights: React.FC = () => {
                         value={
                           validation.values.dateOfPatentGrant
                             ? moment(
-                                validation.values.dateOfPatentGrant,
-                                "DD/MM/YYYY"
-                              ).format("YYYY-MM-DD")
+                              validation.values.dateOfPatentGrant,
+                              "DD/MM/YYYY"
+                            ).format("YYYY-MM-DD")
                             : ""
                         }
                         onChange={(e) => {
@@ -738,7 +738,7 @@ const PatentsOrCopyRights: React.FC = () => {
                         }}
                         className={
                           validation.touched.dateOfPatentGrant &&
-                          validation.errors.dateOfPatentGrant
+                            validation.errors.dateOfPatentGrant
                             ? "is-invalid"
                             : ""
                         }
@@ -766,7 +766,7 @@ const PatentsOrCopyRights: React.FC = () => {
                         }
                         className={
                           validation.touched.assigneeInstitute &&
-                          validation.errors.assigneeInstitute
+                            validation.errors.assigneeInstitute
                             ? "is-invalid"
                             : ""
                         }
@@ -791,7 +791,7 @@ const PatentsOrCopyRights: React.FC = () => {
                         }
                         className={
                           validation.touched.inventors &&
-                          validation.errors.inventors
+                            validation.errors.inventors
                             ? "is-invalid"
                             : ""
                         }
@@ -816,7 +816,7 @@ const PatentsOrCopyRights: React.FC = () => {
                         }
                         className={
                           validation.touched.published &&
-                          validation.errors.published
+                            validation.errors.published
                             ? "is-invalid"
                             : ""
                         }
@@ -845,7 +845,7 @@ const PatentsOrCopyRights: React.FC = () => {
                         }
                         className={
                           validation.touched.abstractFile &&
-                          validation.errors.abstractFile
+                            validation.errors.abstractFile
                             ? "is-invalid"
                             : ""
                         }

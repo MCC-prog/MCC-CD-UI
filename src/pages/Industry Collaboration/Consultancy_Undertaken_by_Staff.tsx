@@ -112,17 +112,17 @@ const Consultancy_Undertaken_by_Staff: React.FC = () => {
         academicYear: mapValueToLabel(response.academicYear, academicYearList),
         stream: response.empStreamId
           ? {
-              value: response.empStreamId.toString(),
-              label: response.empStringName,
-            }
+            value: response.empStreamId.toString(),
+            label: response.empStringName,
+          }
           : null,
         department: response.departmentId
           ? {
-              value: response.departmentId.toString(),
-              label: response.departmentName,
-            }
+            value: response.departmentId.toString(),
+            label: response.departmentName,
+          }
           : null,
-        file: response.documents?.certificate || null,
+        file: response.certificate?.ConsultancyUndertaken || null,
       };
       const streamOption = mapValueToLabel(response.streamId, []); // Replace [] with stream options array if available
       const departmentOption = mapValueToLabel(response.departmentId, []); // Replace [] with department options array if available
@@ -130,9 +130,9 @@ const Consultancy_Undertaken_by_Staff: React.FC = () => {
       validation.setValues({
         academicYear: mappedValues.academicYear
           ? {
-              ...mappedValues.academicYear,
-              value: String(mappedValues.academicYear.value),
-            }
+            ...mappedValues.academicYear,
+            value: String(mappedValues.academicYear.value),
+          }
           : null,
         stream: mappedValues.stream || null,
         department: mappedValues.department || null,
@@ -142,14 +142,14 @@ const Consultancy_Undertaken_by_Staff: React.FC = () => {
         numberTrainees: response.noOfTrainees || "",
         addressAgency: response.addressOfAgency || "",
         revenueGenerated: response.revenueGenerated || "",
-        file: response.certificate?.certificate || null,
+        file: response.certificate?.ConsultancyUndertaken || null,
       });
       setSelectedStream(streamOption);
       setSelectedDepartment(departmentOption);
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       // Disable the file upload button if a file exists
-      setIsFileUploadDisabled(!!response.certificate?.certificate);
+      setIsFileUploadDisabled(!!response.certificate?.ConsultancyUndertaken);
       toggleModal();
     } catch (error) {
       console.error(
@@ -173,7 +173,7 @@ const Consultancy_Undertaken_by_Staff: React.FC = () => {
         );
         toast.success(
           response.message ||
-            "Consultancy Undertaken By Staff removed successfully!"
+          "Consultancy Undertaken By Staff removed successfully!"
         );
         fetchConsultancyUndertakenData();
       } catch (error) {
@@ -284,15 +284,11 @@ const Consultancy_Undertaken_by_Staff: React.FC = () => {
         "Please select Revenue Generated"
       ),
       file: Yup.mixed()
-        .required("Please upload a file")
-        .test("fileSize", "File size is too large", (value: any) => {
-          return value && value.size <= 2 * 1024 * 1024; // 2MB limit
-        })
-        .test("fileType", "Unsupported file format", (value: any) => {
-          return (
-            value &&
-            ["application/pdf", "image/jpeg", "image/png"].includes(value.type)
-          );
+        .required("Please upload abstract file")
+        .test("fileType", "Only PDF allowed", (value) => {
+          if (!value) return false;
+          if (typeof value === "string") return true;
+          return value instanceof File && value.type === "application/pdf";
         }),
     }),
     onSubmit: async (values, { resetForm }) => {
@@ -334,7 +330,7 @@ const Consultancy_Undertaken_by_Staff: React.FC = () => {
           );
           toast.success(
             response.message ||
-              "Consultancy Undertaken By Staff updated successfully!"
+            "Consultancy Undertaken By Staff updated successfully!"
           );
         } else {
           // Call the save API
@@ -344,7 +340,7 @@ const Consultancy_Undertaken_by_Staff: React.FC = () => {
           );
           toast.success(
             response.message ||
-              "Consultancy Undertaken By Staff added successfully!"
+            "Consultancy Undertaken By Staff added successfully!"
           );
         }
         // Reset the form fields
@@ -498,12 +494,11 @@ const Consultancy_Undertaken_by_Staff: React.FC = () => {
                       <Label>Faculty Name</Label>
                       <Input
                         type="text"
-                        className={`form-control ${
-                          validation.touched.facultyName &&
-                          validation.errors.facultyName
+                        className={`form-control ${validation.touched.facultyName &&
+                            validation.errors.facultyName
                             ? "is-invalid"
                             : ""
-                        }`}
+                          }`}
                         value={validation.values.facultyName}
                         onChange={(e) =>
                           validation.setFieldValue(
@@ -526,12 +521,11 @@ const Consultancy_Undertaken_by_Staff: React.FC = () => {
                       <Label>Agency/Institute/Organization Name</Label>
                       <Input
                         type="text"
-                        className={`form-control ${
-                          validation.touched.agencyName &&
-                          validation.errors.agencyName
+                        className={`form-control ${validation.touched.agencyName &&
+                            validation.errors.agencyName
                             ? "is-invalid"
                             : ""
-                        }`}
+                          }`}
                         value={validation.values.agencyName}
                         onChange={(e) =>
                           validation.setFieldValue("agencyName", e.target.value)
@@ -551,12 +545,11 @@ const Consultancy_Undertaken_by_Staff: React.FC = () => {
                       <Label>Title of the Project</Label>
                       <Input
                         type="text"
-                        className={`form-control ${
-                          validation.touched.titleProject &&
-                          validation.errors.titleProject
+                        className={`form-control ${validation.touched.titleProject &&
+                            validation.errors.titleProject
                             ? "is-invalid"
                             : ""
-                        }`}
+                          }`}
                         value={validation.values.titleProject}
                         onChange={(e) =>
                           validation.setFieldValue(
@@ -579,12 +572,11 @@ const Consultancy_Undertaken_by_Staff: React.FC = () => {
                       <Label>Number of Trainees</Label>
                       <Input
                         type="text"
-                        className={`form-control ${
-                          validation.touched.numberTrainees &&
-                          validation.errors.numberTrainees
+                        className={`form-control ${validation.touched.numberTrainees &&
+                            validation.errors.numberTrainees
                             ? "is-invalid"
                             : ""
-                        }`}
+                          }`}
                         value={validation.values.numberTrainees}
                         onChange={(e) =>
                           validation.setFieldValue(
@@ -607,12 +599,11 @@ const Consultancy_Undertaken_by_Staff: React.FC = () => {
                       <Label>Address of the Agency</Label>
                       <Input
                         type="text"
-                        className={`form-control ${
-                          validation.touched.addressAgency &&
-                          validation.errors.addressAgency
+                        className={`form-control ${validation.touched.addressAgency &&
+                            validation.errors.addressAgency
                             ? "is-invalid"
                             : ""
-                        }`}
+                          }`}
                         value={validation.values.addressAgency}
                         onChange={(e) =>
                           validation.setFieldValue(
@@ -635,12 +626,11 @@ const Consultancy_Undertaken_by_Staff: React.FC = () => {
                       <Label>Revenue Generated</Label>
                       <Input
                         type="text"
-                        className={`form-control ${
-                          validation.touched.revenueGenerated &&
-                          validation.errors.revenueGenerated
+                        className={`form-control ${validation.touched.revenueGenerated &&
+                            validation.errors.revenueGenerated
                             ? "is-invalid"
                             : ""
-                        }`}
+                          }`}
                         value={validation.values.revenueGenerated}
                         onChange={(e) =>
                           validation.setFieldValue(
@@ -678,11 +668,10 @@ const Consultancy_Undertaken_by_Staff: React.FC = () => {
                         Upload an Excel or PDF file. Max size 10MB.
                       </Tooltip>
                       <Input
-                        className={`form-control ${
-                          validation.touched.file && validation.errors.file
+                        className={`form-control ${validation.touched.file && validation.errors.file
                             ? "is-invalid"
                             : ""
-                        }`}
+                          }`}
                         type="file"
                         id="formFile"
                         onChange={(event) => {

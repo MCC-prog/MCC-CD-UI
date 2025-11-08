@@ -54,6 +54,13 @@ const NCC: React.FC = () => {
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 10;
+  // Calculate the paginated data
+  const indexOfLastRow = currentPage * rowsPerPage;
+  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
+  const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
+
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };
@@ -155,6 +162,7 @@ const NCC: React.FC = () => {
     if (deleteId) {
       try {
         const response = await api.delete(`/ncc/deleteNCC?nccId=${id}`, "");
+        setIsModalOpen(false);
         toast.success(response.message || "NCC  removed successfully!");
         fetchNccData();
       } catch (error) {
@@ -277,8 +285,16 @@ const NCC: React.FC = () => {
         .required("Please enter number of No Of Participants"),
       organisation: Yup.string().required("Please select Organization"),
       location: Yup.string().required("Please select Location"),
-      startDate: Yup.date().required("Please select conducted date"),
-      endDate: Yup.date().required("Please select conducted date"),
+      startDate: Yup.string()
+        .required("Start date is required")
+        .test("is-valid-date", "Invalid start date", (value) =>
+          moment(value, "DD/MM/YYYY", true).isValid()
+        ),
+      endDate: Yup.string()
+        .required("End date is required")
+        .test("is-valid-date", "Invalid start date", (value) =>
+          moment(value, "DD/MM/YYYY", true).isValid()
+        ),
     }),
     onSubmit: async (values, { resetForm }) => {
       // Create FormData object
@@ -298,13 +314,16 @@ const NCC: React.FC = () => {
       formData.append("location", values.location || "");
       formData.append(
         "startDate",
-        moment(values.startDate).format("DD/MM/YYYY") || ""
+        values.startDate
+          ? moment(values.startDate, "DD/MM/YYYY").format("DD/MM/YYYY")
+          : ""
       );
       formData.append(
         "endDate",
-        moment(values.endDate).format("DD/MM/YYYY") || ""
+        values.endDate
+          ? moment(values.endDate, "DD/MM/YYYY").format("DD/MM/YYYY")
+          : ""
       );
-
       if (isEditMode && typeof values.file === "string") {
         // Pass an empty Blob instead of null
         formData.append("file", new Blob([]), "empty.pdf");
@@ -827,7 +846,7 @@ const NCC: React.FC = () => {
           <ModalHeader toggle={toggleModal}>List NCC</ModalHeader>
           <ModalBody>
             <Table striped bordered hover id="id" innerRef={tableRef}>
-              <thead>
+              <thead className="table-dark">
                 <tr>
                   <th>Sl.No</th>
                   <th>Academic Year</th>
@@ -845,8 +864,8 @@ const NCC: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {nccData.length > 0 ? (
-                  nccData.map((ncc, index) => (
+                {currentRows.length > 0 ? (
+                  currentRows.map((ncc, index) => (
                     <tr key={ncc.id}>
                       <td>{index + 1}</td>
                       <td>{ncc.academicYear}</td>
@@ -869,18 +888,20 @@ const NCC: React.FC = () => {
                       <td>{ncc.endDate}</td>
                       <td className="d-none">{ncc?.filePath.NCC || "N/A"}</td>
                       <td>
-                        <button
-                          className="btn btn-sm btn-warning me-2"
-                          onClick={() => handleEdit(ncc.id)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="btn btn-sm btn-danger"
-                          onClick={() => handleDelete(ncc.id)}
-                        >
-                          Delete
-                        </button>
+                        <div className="d-flex justify-content-center gap-2">
+                          <button
+                            className="btn btn-sm btn-warning me-2"
+                            onClick={() => handleEdit(ncc.id)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="btn btn-sm btn-danger"
+                            onClick={() => handleDelete(ncc.id)}
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))

@@ -230,6 +230,7 @@ const WorkshopsOrSeminars: React.FC = () => {
           : "",
         certificate: response.files?.Workshops || null,
       });
+      setIsFileUploadDisabled(!!response.files?.Workshops); // Disable file upload if a file exists
       setSelectedStream(streamOption);
       setSelectedDepartment(departmentOption);
       setIsEditMode(true); // Set edit mode
@@ -481,6 +482,7 @@ const WorkshopsOrSeminars: React.FC = () => {
         if (fileRef.current) {
           fileRef.current.value = "";
         }
+        setIsFileUploadDisabled(false); // Enable file upload for new entries
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         // display the Workshops Or Seminars Conducted
@@ -907,6 +909,7 @@ const WorkshopsOrSeminars: React.FC = () => {
                             ? "is-invalid"
                             : ""
                         }
+                        disabled={isFileUploadDisabled}
                       />
                       {validation.touched.certificate &&
                         validation.errors.certificate && (

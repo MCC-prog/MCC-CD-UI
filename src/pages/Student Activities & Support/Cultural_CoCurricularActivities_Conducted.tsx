@@ -58,6 +58,7 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
+  const [isFile2UploadDisabled, setIsFile2UploadDisabled] = useState(false);
   // State variables for managing selected options in dropdowns
   const [selectedStream, setSelectedStream] = useState<any>(null);
   const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
@@ -176,7 +177,8 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
       });
       setSelectedStream(streamOption);
       setSelectedDepartment(departmentOption);
-
+      setIsFileUploadDisabled(!!response.documents?.CoCurricularActivities); // Disable file upload if a file exists
+      setIsFile2UploadDisabled(!!response.documents?.studentImage); // Disable file upload if a file exists
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();
@@ -204,6 +206,7 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
           `/cocurricularActivities/deleteCocurricularActivities?cocurricularActivitiesId=${id}`,
           ""
         );
+        setIsModalOpen(false);
         toast.success(
           response.message ||
             "Cultural & Co-Curricular activities conducted in the college removed successfully!"
@@ -272,11 +275,12 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
       toast.success(response.message || "File deleted successfully!");
       if (docType === "CoCurricularActivities") {
         validation.setFieldValue("file", null);
+        setIsFileUploadDisabled(false);
       }
       if (docType === "studentImage") {
         validation.setFieldValue("imageStudent", null);
+        setIsFile2UploadDisabled(false);
       }
-      setIsFileUploadDisabled(false); // Enable the file upload button
     } catch (error) {
       toast.error("Failed to delete the file. Please try again.");
       console.error("Error deleting file:", error);
@@ -455,6 +459,8 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
         if (imgRef.current) {
           imgRef.current.value = "";
         }
+        setIsFileUploadDisabled(false);
+        setIsFile2UploadDisabled(false);
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         handleListCCACClick();
@@ -884,7 +890,7 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
                           );
                         }}
                         accept="image/jpeg" // Accept only image files
-                        disabled={isFileUploadDisabled} // Disable the button if a file exists
+                        disabled={isFile2UploadDisabled} // Disable the button if a file exists
                       />
                       {validation.touched.imageStudent &&
                         validation.errors.imageStudent && (
@@ -893,7 +899,7 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
                           </div>
                         )}
                       {/* Show a message if the file upload button is disabled */}
-                      {isFileUploadDisabled && (
+                      {isFile2UploadDisabled && (
                         <div className="text-warning mt-2">
                           Please remove the existing file to upload a new one.
                         </div>

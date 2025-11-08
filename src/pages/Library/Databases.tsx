@@ -487,7 +487,7 @@ const Databases: React.FC = () => {
   useEffect(() => {
     if (cswData.length === 0) return; // wait until data is loaded
 
-    const table = $("#id").DataTable({
+    const table = $("#DbId").DataTable({
       destroy: true,
       scrollX: true,
       autoWidth: false,
@@ -511,7 +511,7 @@ const Databases: React.FC = () => {
     $(".buttons-copy").addClass("btn btn-success");
     $(".buttons-csv").addClass("btn btn-info");
 
-    $("#id").on(
+    $("#DbId").on(
       "buttons-action.dt",
       function (e, buttonApi, dataTable, node, config) {
         if (buttonApi.text() === "Copy") {
@@ -791,95 +791,6 @@ const Databases: React.FC = () => {
                         )}
                     </div>
                   </Col>
-
-                  {/* <Col sm={4}>
-                    <div className="mb-3">
-                      <Label htmlFor="formFile" className="form-label">
-                        Upload Excel sheets of Details of Subscription
-                      </Label>
-                      <Tooltip
-                        placement="right"
-                        open={tooltipOpen}
-                        onClose={() => setTooltipOpen(false)}
-                        onOpen={() => setTooltipOpen(true)}
-                        title={<span>Upload Excel. Max size 10MB.</span>}
-                        arrow
-                      >
-                        <i
-                          id="infoIcon"
-                          className="bi bi-info-circle ms-2"
-                          style={{ cursor: "pointer", color: "#0d6efd" }}
-                        ></i>
-                      </Tooltip>
-                      <Input
-                        className={`form-control ${
-                          validation.touched.excel && validation.errors.excel
-                            ? "is-invalid"
-                            : ""
-                        }`}
-                        type="file"
-                        innerRef={excelRef}
-                        id="formFile"
-                        onChange={(event) => {
-                          validation.setFieldValue(
-                            "excel",
-                            event.currentTarget.files
-                              ? event.currentTarget.files[0]
-                              : null
-                          );
-                        }}
-                        disabled={isFileUploadDisabled} 
-                      />
-                      {validation.touched.excel && validation.errors.excel && (
-                        <div className="text-danger">
-                          {validation.errors.excel}
-                        </div>
-                      )}
-                  
-                      {isFileUploadDisabled && (
-                        <div className="text-warning mt-2">
-                          Please remove the existing file to upload a new one.
-                        </div>
-                      )}
-                     
-                      {typeof validation.values.excel === "string" && (
-                        <div className="mt-2 d-flex align-items-center">
-                          <span
-                            className="me-2"
-                            style={{ fontWeight: "bold", color: "green" }}
-                          >
-                            {validation.values.excel}
-                          </span>
-                          <Button
-                            color="link"
-                            className="text-primary"
-                            onClick={() =>
-                              handleDownloadFile(
-                                validation.values.excel as string
-                              )
-                            }
-                            title="Download File"
-                          >
-                            <i className="bi bi-download"></i>
-                          </Button>
-                          <Button
-                            color="link"
-                            className="text-danger"
-                            onClick={() =>
-                              handleDeleteFile(
-                                validation.values.excel as string,
-                                "SportsEventsReport"
-                              )
-                            }
-                            title="Delete File"
-                          >
-                            <i className="bi bi-trash"></i>
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  </Col> */}
-                
                   <Row>
                     {validation.values.subscriptionDetails.map((type) => (
                       <Col sm={4} key={type}>
@@ -1008,24 +919,23 @@ const Databases: React.FC = () => {
             List Databases which are Subscribed
           </ModalHeader>
           <ModalBody>
-            <Table striped bordered hover id="id" innerRef={tableRef}>
+            <Table striped bordered hover id="DbId" innerRef={tableRef}>
               <thead className="table-dark">
                 <tr>
                   <th>#</th>
                   <th>Academic Year </th>
                   <th>Number of teachers</th>
                   <th>Number of students</th>
-
                   <th className="d-none">Annual</th>
                   <th className="d-none">Bimonthly</th>
                   <th className="d-none">Monthly</th>
                   <th className="d-none">Fortnightly</th>
                   <th className="d-none">Weekly</th>
+                  <th className="d-none">Daily</th>
                   <th className="d-none">Halfyearly</th>
                   <th className="d-none">Subscription</th>
                   <th className="d-none">DayRegister</th>
                   <th className="d-none">Quarterly</th>
-
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -1037,7 +947,6 @@ const Databases: React.FC = () => {
                       <td>{cds.academicYear}</td>
                       <td>{cds.noOfTeachersUsingLibPerDay}</td>
                       <td>{cds.noOfStudentsUsingLibPerDay}</td>
-
                       <td className="d-none">
                         {cds.filePath?.Annual || "N/A"}
                       </td>

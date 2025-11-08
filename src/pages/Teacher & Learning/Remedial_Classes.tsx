@@ -260,7 +260,7 @@ const Remedial_Classes: React.FC = () => {
     if (deleteId) {
       try {
         const response = await api.delete(
-          `/remidialClasses/deleteRemidialClass?remidialClassId=${id}`,
+          `/remidialClasses/deleteRemidialClass?remidialClassesId=${id}`,
           ""
         );
         toast.success(

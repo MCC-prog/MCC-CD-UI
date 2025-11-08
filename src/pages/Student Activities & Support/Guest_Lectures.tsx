@@ -245,7 +245,7 @@ const Guest_Lectures: React.FC = () => {
       });
       setSelectedStream(streamOption);
       setSelectedDepartment(departmentOption);
-
+      setIsFileUploadDisabled(!!response.documents?.guestLecture); // Disable file upload if a file exists
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();
@@ -267,6 +267,7 @@ const Guest_Lectures: React.FC = () => {
           `/guestLectures/deleteGuestLectures?guestLecturesId=${id}`,
           ""
         );
+        setIsModalOpen(false);
         toast.success(
           response.message || "Guest Lectures removed successfully!"
         );
@@ -502,6 +503,7 @@ const Guest_Lectures: React.FC = () => {
         if (fileRef.current) {
           fileRef.current.value = "";
         }
+        setIsFileUploadDisabled(false); // Reset file upload disabled state
         setIsEditMode(false);
         setEditId(null);
         handleListGLClick();
@@ -1091,7 +1093,8 @@ const Guest_Lectures: React.FC = () => {
                       <td>{gl.noOfParticipants}</td>
                       <td className="d-none">{gl?.filePath.guestLecture}</td>
                       <td>
-                        <button
+                        <div className="d-flex justify-content-center gap-2">
+                          <button
                             className="btn btn-sm btn-warning me-2"
                             onClick={() => handleEdit(gl.guestLectureId)}
                           >
@@ -1103,7 +1106,8 @@ const Guest_Lectures: React.FC = () => {
                           >
                             Delete
                           </button>
-                       </td>
+                        </div>
+                      </td>
                     </tr>
                   ))
                 ) : (

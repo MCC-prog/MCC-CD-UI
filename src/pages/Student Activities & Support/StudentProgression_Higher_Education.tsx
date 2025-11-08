@@ -61,6 +61,8 @@ const StudentProgression_Higher_Education: React.FC = () => {
   const toggleTooltipHigherEducation = () =>
     setTooltipOpenHigherEducation(!tooltipOpenHigherEducation);
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
+  const [isFile2UploadDisabled, setIsFile2UploadDisabled] = useState(false);
+  const [isFile3UploadDisabled, setIsFile3UploadDisabled] = useState(false);
   const [filters, setFilters] = useState({
     academicYear: null,
     studentName: "",
@@ -179,7 +181,7 @@ const StudentProgression_Higher_Education: React.FC = () => {
         location: response.location || "",
         icalepal: response.enrollmentProof || "",
         courseDuration: response.courseDuration || "",
-        file: response.documents.higherEducation || null, // Assuming 'file' is a string or null
+        file: response.documents.excel || null, // Assuming 'file' is a string or null
         idProof: response.documents?.idProof || null,
         higherEducation: response.documents?.higherEducation || null,
       };
@@ -209,10 +211,13 @@ const StudentProgression_Higher_Education: React.FC = () => {
         location: response.location || "",
         icalepal: response.enrollmentProof || "",
         courseDuration: response.courseDuration || "",
-        file: response.documents.higherEducation || null, // Assuming 'file' is a string or null
+        file: response.documents.excel || null, // Assuming 'file' is a string or null
         idProof: response.documents?.idProof || null,
         higherEducation: response.documents?.higherEducation || null,
       });
+      setIsFileUploadDisabled(!!response.documents?.excel); // Disable file upload if a file exists
+      setIsFile2UploadDisabled(!!response.documents?.idProof); // Disable file upload if a file exists
+      setIsFile3UploadDisabled(!!response.documents?.higherEducation); // Disable file upload if a file exists
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();
@@ -237,6 +242,7 @@ const StudentProgression_Higher_Education: React.FC = () => {
           `/studentProgressionHigherEducation/deleteHigherEducation?higherEducationId=${id}`,
           ""
         );
+        setIsModalOpen(false);
         toast.success(
           response.message ||
             "Student Progression - Higher Education removed successfully!"
@@ -304,10 +310,16 @@ const StudentProgression_Higher_Education: React.FC = () => {
         ""
       );
       toast.success(response.message || "File deleted successfully!");
-      if (docType === "higherEducation") {
+      if (docType === "excel") {
         validation.setFieldValue("file", null);
+        setIsFileUploadDisabled(false); // Enable the file upload button
+      } else if (docType === "idProof") {
+        validation.setFieldValue("idProof", null);
+        setIsFile2UploadDisabled(false); // Enable the file upload button
+      } else if (docType === "higherEducation") {
+        validation.setFieldValue("higherEducation", null);
+        setIsFile3UploadDisabled(false); // Enable the file upload button
       }
-      setIsFileUploadDisabled(false); // Enable the file upload button
     } catch (error) {
       toast.error("Failed to delete the file. Please try again.");
       console.error("Error deleting file:", error);
@@ -542,6 +554,9 @@ const StudentProgression_Higher_Education: React.FC = () => {
         if (fileRef2.current) {
           fileRef2.current.value = "";
         }
+        setIsFileUploadDisabled(false); // Enable the file upload button
+        setIsFile2UploadDisabled(false); // Enable the file upload button
+        setIsFile3UploadDisabled(false); // Enable the file upload button
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         // display the Student Progression - Higher EducationList
@@ -1075,7 +1090,7 @@ const StudentProgression_Higher_Education: React.FC = () => {
                               : null
                           );
                         }}
-                        disabled={isFileUploadDisabled} // Disable the button if a file exists
+                        disabled={isFile2UploadDisabled} // Disable the button if a file exists
                       />
                       {validation.touched.idProof &&
                         validation.errors.idProof && (
@@ -1084,7 +1099,7 @@ const StudentProgression_Higher_Education: React.FC = () => {
                           </div>
                         )}
                       {/* Show a message if the file upload button is disabled */}
-                      {isFileUploadDisabled && (
+                      {isFile2UploadDisabled && (
                         <div className="text-warning mt-2">
                           Please remove the existing file to upload a new one.
                         </div>
@@ -1164,7 +1179,7 @@ const StudentProgression_Higher_Education: React.FC = () => {
                               : null
                           );
                         }}
-                        disabled={isFileUploadDisabled} // Disable the button if a file exists
+                        disabled={isFile3UploadDisabled} // Disable the button if a file exists
                       />
                       {validation.touched.higherEducation &&
                         validation.errors.higherEducation && (
@@ -1173,7 +1188,7 @@ const StudentProgression_Higher_Education: React.FC = () => {
                           </div>
                         )}
                       {/* Show a message if the file upload button is disabled */}
-                      {isFileUploadDisabled && (
+                      {isFile3UploadDisabled && (
                         <div className="text-warning mt-2">
                           Please remove the existing file to upload a new one.
                         </div>

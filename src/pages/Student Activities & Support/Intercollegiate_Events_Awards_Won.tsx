@@ -56,6 +56,7 @@ const Intercollegiate_Events_Awards_Won: React.FC = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
+  const [isFile2UploadDisabled, setIsFile2UploadDisabled] = useState(false);
   // State variables for managing selected options in dropdowns
   const [selectedStream, setSelectedStream] = useState<any>(null);
   const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
@@ -203,7 +204,8 @@ const Intercollegiate_Events_Awards_Won: React.FC = () => {
       });
       setSelectedStream(streamOption);
       setSelectedDepartment(departmentOption);
-
+      setIsFileUploadDisabled(!!response.documents?.participationCertificate); // Disable file upload if a file exists
+      setIsFile2UploadDisabled(!!response.documents?.studentImage); // Disable file upload if a file exists
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();
@@ -231,6 +233,7 @@ const Intercollegiate_Events_Awards_Won: React.FC = () => {
           `/intercollegiateEvents/deleteIntercollegiateEvents?intercollegiateEventsId=${id}`,
           ""
         );
+        setIsModalOpen(false);
         toast.success(
           response.message ||
             "Intercollegiate events and awards won removed successfully!"
@@ -329,11 +332,12 @@ const Intercollegiate_Events_Awards_Won: React.FC = () => {
       toast.success(response.message || "File deleted successfully!");
       if (docType === "participationCertificate") {
         validation.setFieldValue("file", null);
+        setIsFileUploadDisabled(false);
       }
       if (docType === "studentImage") {
         validation.setFieldValue("imageStudent", null);
+        setIsFile2UploadDisabled(false);
       }
-      setIsFileUploadDisabled(false); // Enable the file upload button
     } catch (error) {
       toast.error("Failed to delete the file. Please try again.");
       console.error("Error deleting file:", error);
@@ -370,7 +374,9 @@ const Intercollegiate_Events_Awards_Won: React.FC = () => {
         .nullable()
         .required("Please select department"),
       level: Yup.object().nullable().required("Please select level"),
-      actype: Yup.object().nullable().required("Please select type of activity"),
+      actype: Yup.object()
+        .nullable()
+        .required("Please select type of activity"),
       awtype: Yup.object().nullable().required("Please select award type"),
       eventtype: Yup.object().nullable().required("Please select event type"),
       studentName: Yup.string().required("Please enter industry experience"),
@@ -553,6 +559,8 @@ const Intercollegiate_Events_Awards_Won: React.FC = () => {
         if (imgRef.current) {
           imgRef.current.value = "";
         }
+        setIsFileUploadDisabled(false); 
+        setIsFile2UploadDisabled(false);
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         handleListIEAWClick();
@@ -1150,7 +1158,7 @@ const Intercollegiate_Events_Awards_Won: React.FC = () => {
                           );
                         }}
                         accept="image/jpeg" // Accept only image files
-                        disabled={isFileUploadDisabled} // Disable the button if a file exists
+                        disabled={isFile2UploadDisabled} // Disable the button if a file exists
                       />
                       {validation.touched.imageStudent &&
                         validation.errors.imageStudent && (
@@ -1159,7 +1167,7 @@ const Intercollegiate_Events_Awards_Won: React.FC = () => {
                           </div>
                         )}
                       {/* Show a message if the file upload button is disabled */}
-                      {isFileUploadDisabled && (
+                      {isFile2UploadDisabled && (
                         <div className="text-warning mt-2">
                           Please remove the existing file to upload a new one.
                         </div>
@@ -1300,22 +1308,24 @@ const Intercollegiate_Events_Awards_Won: React.FC = () => {
                         {cds.filePath?.participationCertificate || "N/A"}
                       </td>
                       <td>
-                        <button
-                          className="btn btn-sm btn-warning"
-                          onClick={() =>
-                            handleEdit(cds.intercollegiateEventsId)
-                          }
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="btn btn-sm btn-danger"
-                          onClick={() =>
-                            handleDelete(cds.intercollegiateEventsId)
-                          }
-                        >
-                          Delete
-                        </button>
+                        <div className="d-flex justify-content-center gap-2">
+                          <button
+                            className="btn btn-sm btn-warning"
+                            onClick={() =>
+                              handleEdit(cds.intercollegiateEventsId)
+                            }
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="btn btn-sm btn-danger"
+                            onClick={() =>
+                              handleDelete(cds.intercollegiateEventsId)
+                            }
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))

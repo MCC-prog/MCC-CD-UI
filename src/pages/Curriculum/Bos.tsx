@@ -42,7 +42,7 @@ import "datatables.net-buttons/js/buttons.print.js";
 import "jszip";
 import "pdfmake/build/pdfmake";
 import "pdfmake/build/vfs_fonts";
-import { set } from "lodash";
+
 
 const api = new APIClient();
 

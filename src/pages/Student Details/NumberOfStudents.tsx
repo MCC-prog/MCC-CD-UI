@@ -207,9 +207,9 @@ const NumberOfStudents: React.FC = () => {
         ...mappedValues,
         academicYear: mappedValues.academicYear
           ? {
-              ...mappedValues.academicYear,
-              value: String(mappedValues.academicYear.value),
-            }
+            ...mappedValues.academicYear,
+            value: String(mappedValues.academicYear.value),
+          }
           : null,
         ugFile: response.ugFile || null,
         pgFile: response.pgFile || null,
@@ -240,7 +240,7 @@ const NumberOfStudents: React.FC = () => {
         );
         toast.success(
           response.message ||
-            "Number of Students Enrolled removed successfully!"
+          "Number of Students Enrolled removed successfully!"
         );
         fetchNOSData();
       } catch (error) {
@@ -348,36 +348,62 @@ const NumberOfStudents: React.FC = () => {
       ),
     }),
     onSubmit: async (values, { resetForm }) => {
-      const payload = {
-        academicYear: values.academicYear?.value || "",
-        pg: values.NumberOfPg,
-        ug: values.NumberOfUg,
-      };
-
-      // If editing, include the ID
-      if (isEditMode && editId) {
-        payload["studentEnrolledId"] = editId;
+      const formData = new FormData();
+      formData.append("studentEnrolledId", editId || "");
+      formData.append("academicYear", values.academicYear?.value || "");
+      formData.append("pg", values.NumberOfPg || "");
+      formData.append("ug", values.NumberOfUg || "");
+      if (isEditMode && typeof values.pgFile === "string") {
+        formData.append(
+          "pgFile",
+          new Blob([], { type: "application/pdf" }),
+          "empty.pdf"
+        );
+      } else if (isEditMode && values.pgFile === null) {
+        formData.append(
+          "pgFile",
+          new Blob([], { type: "application/pdf" }),
+          "empty.pdf"
+        );
+      } else if (values.pgFile) {
+        formData.append("pgFile", values.pgFile);
       }
+      if (isEditMode && typeof values.ugFile === "string") {
+        formData.append(
+          "ugFile",
+          new Blob([], { type: "application/pdf" }),
+          "empty.pdf"
+        );
+      } else if (isEditMode && values.ugFile === null) {
+        formData.append(
+          "ugFile",
+          new Blob([], { type: "application/pdf" }),
+          "empty.pdf"
+        );
+      } else if (values.ugFile) {
+        formData.append("ugFile", values.ugFile);
+      }
+
 
       try {
         if (isEditMode && editId) {
           // Call the update API
-          const response = await api.put(`/studentsEnrolled/update`, payload);
+          const response = await api.put(`/studentsEnrolled/update`, formData);
           toast.success(
             response.message ||
-              "Number of Students Enrolled updated successfully!"
+            "Number of Students Enrolled updated successfully!"
           );
         } else {
           // Call the save API
-          const response = await api.create("/studentsEnrolled/save", payload);
+          const response = await api.create("/studentsEnrolled/save", formData);
           toast.success(
             response.message ||
-              "Number of Students Enrolled added successfully!"
+            "Number of Students Enrolled added successfully!"
           );
         }
         // Reset the form fields
         resetForm();
-        
+
 
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
@@ -477,12 +503,11 @@ const NumberOfStudents: React.FC = () => {
                       <Label>Total count of UG</Label>
                       <Input
                         type="text"
-                        className={`form-control ${
-                          validation.touched.NumberOfUg &&
+                        className={`form-control ${validation.touched.NumberOfUg &&
                           validation.errors.NumberOfUg
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         value={validation.values.NumberOfUg}
                         onChange={(e) =>
                           validation.setFieldValue("NumberOfUg", e.target.value)
@@ -504,11 +529,10 @@ const NumberOfStudents: React.FC = () => {
                         Upload Report of Ug
                       </Label>
                       <Input
-                        className={`form-control ${
-                          validation.touched.ugFile && validation.errors.ugFile
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                        className={`form-control ${validation.touched.ugFile && validation.errors.ugFile
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         type="file"
                         id="formFile"
                         innerRef={fileRefUg}
@@ -574,12 +598,11 @@ const NumberOfStudents: React.FC = () => {
                       <Label>Total count of PG</Label>
                       <Input
                         type="text"
-                        className={`form-control ${
-                          validation.touched.NumberOfPg &&
+                        className={`form-control ${validation.touched.NumberOfPg &&
                           validation.errors.NumberOfPg
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         value={validation.values.NumberOfPg}
                         onChange={(e) =>
                           validation.setFieldValue("NumberOfPg", e.target.value)
@@ -600,11 +623,10 @@ const NumberOfStudents: React.FC = () => {
                         Upload Report of Pg
                       </Label>
                       <Input
-                        className={`form-control ${
-                          validation.touched.pgFile && validation.errors.pgFile
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                        className={`form-control ${validation.touched.pgFile && validation.errors.pgFile
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         type="file"
                         id="formFile"
                         innerRef={fileRefPg}

@@ -54,12 +54,16 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
   const [tooltipOpen, setTooltipOpen] = useState(false);
-   const [tooltipOpenIdProof, setTooltipOpenIdProof] = useState(false);
-   const [tooltipOpenCompetitiveExam, setTooltipOpenCompetitiveExam] = useState(false);
+  const [tooltipOpenIdProof, setTooltipOpenIdProof] = useState(false);
+  const [tooltipOpenCompetitiveExam, setTooltipOpenCompetitiveExam] =
+    useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
   const toggleTooltipIdProof = () => setTooltipOpenIdProof(!tooltipOpenIdProof);
-  const toggleTooltipCompetitiveExam = () => setTooltipOpenCompetitiveExam(!tooltipOpenCompetitiveExam);
+  const toggleTooltipCompetitiveExam = () =>
+    setTooltipOpenCompetitiveExam(!tooltipOpenCompetitiveExam);
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
+  const [isFile2UploadDisabled, setIsFile2UploadDisabled] = useState(false);
+  const [isFile3UploadDisabled, setIsFile3UploadDisabled] = useState(false);
   const [filters, setFilters] = useState({
     academicYear: null,
     noOfStaff: "",
@@ -186,7 +190,7 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
         status: response.status
           ? { value: response.status, label: response.status }
           : null,
-        excel: response.documents?.competitiveExam || null,
+        excel: response.documents?.excel || null,
         idProof: response.documents?.idProof || null,
         competitiveExam: response.documents?.competitiveExam || null,
       };
@@ -224,13 +228,15 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
               value: String(mappedValues.status.value),
             }
           : null,
-        excel: response.documents?.competitiveExam || null, // Use the file from the response
-         idProof: response.documents?.idProof || null,
+        excel: response.documents?.excel || null, // Use the file from the response
+        idProof: response.documents?.idProof || null,
         competitiveExam: response.documents?.competitiveExam || null,
       });
       setSelectedStream(streamOption);
       setSelectedDepartment(departmentOption);
-
+      setIsFileUploadDisabled(!!response.documents?.excel);
+      setIsFile2UploadDisabled(!!response.documents?.idProof);
+      setIsFile3UploadDisabled(!!response.documents?.competitiveExam);
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();
@@ -255,6 +261,7 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
           `/studentProgressionCompetitiveExam/deleteCompetitiveExam?competitiveExamId=${id}`,
           ""
         );
+        setIsModalOpen(false);
         toast.success(
           response.message ||
             "Student Progression - Competitive Exams removed successfully!"
@@ -283,6 +290,7 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
             responseType: "blob",
           }
         );
+        // Check if the response is valid
 
         // Create a Blob from the response data
         const blob = new Blob([response], { type: "*/*" });
@@ -319,10 +327,16 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
         ""
       );
       toast.success(response.message || "File deleted successfully!");
-      if (docType === "competitiveExam") {
+      if (docType === "excel") {
         validation.setFieldValue("excel", null);
+        setIsFileUploadDisabled(false);
+      } else if (docType === "idProof") {
+        validation.setFieldValue("idProof", null);
+        setIsFile2UploadDisabled(false); // Enable the file upload button
+      } else if (docType === "competitiveExam") {
+        validation.setFieldValue("competitiveExam", null);
+        setIsFile3UploadDisabled(false); // Enable the file upload button
       }
-      setIsFileUploadDisabled(false); // Enable the file upload button
     } catch (error) {
       toast.error("Failed to delete the file. Please try again.");
       console.error("Error deleting file:", error);
@@ -384,7 +398,7 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
             ].includes(value.type)
           );
         }),
-        idProof: Yup.mixed()
+      idProof: Yup.mixed()
         .required("Please upload a file")
         .test("fileSize", "File size is too large", (value: any) => {
           // Skip size validation if file is a string (from existing data)
@@ -402,7 +416,7 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
             ].includes(value.type)
           );
         }),
-        competitiveExam: Yup.mixed()
+      competitiveExam: Yup.mixed()
         .required("Please upload a file")
         .test("fileSize", "File size is too large", (value: any) => {
           // Skip size validation if file is a string (from existing data)
@@ -461,8 +475,7 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
           formData.append("excel", values.excel);
         }
 
-
-         if (isEditMode && typeof values.idProof === "string") {
+        if (isEditMode && typeof values.idProof === "string") {
           formData.append(
             "idProof",
             new Blob([], {
@@ -482,7 +495,7 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
           formData.append("idProof", values.idProof);
         }
 
-         if (isEditMode && typeof values.competitiveExam === "string") {
+        if (isEditMode && typeof values.competitiveExam === "string") {
           formData.append(
             "competitiveExam",
             new Blob([], {
@@ -532,12 +545,15 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
         if (fileRef.current) {
           fileRef.current.value = "";
         }
-        if (fileRef1.current) { 
+        if (fileRef1.current) {
           fileRef1.current.value = "";
         }
         if (fileRef2.current) {
           fileRef2.current.value = "";
-        } 
+        }
+        setIsFileUploadDisabled(false);
+        setIsFile2UploadDisabled(false);
+        setIsFile3UploadDisabled(false);
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         // display the BOS List
@@ -703,7 +719,7 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
                         )}
                     </div>
                   </Col>
-                   <Col sm={4}>
+                  <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
                         Student Name
@@ -898,7 +914,7 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
                             onClick={() =>
                               handleDeleteFile(
                                 validation.values.excel as string,
-                                "competitiveExam"
+                                "excel"
                               )
                             }
                             title="Delete File"
@@ -929,7 +945,8 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
                       </Tooltip>
                       <Input
                         className={`form-control ${
-                          validation.touched.idProof && validation.errors.idProof
+                          validation.touched.idProof &&
+                          validation.errors.idProof
                             ? "is-invalid"
                             : ""
                         }`}
@@ -944,15 +961,16 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
                               : null
                           );
                         }}
-                        disabled={isFileUploadDisabled} // Disable the button if a file exists
+                        disabled={isFile2UploadDisabled} // Disable the button if a file exists
                       />
-                      {validation.touched.idProof && validation.errors.idProof && (
-                        <div className="text-danger">
-                          {validation.errors.idProof}
-                        </div>
-                      )}
+                      {validation.touched.idProof &&
+                        validation.errors.idProof && (
+                          <div className="text-danger">
+                            {validation.errors.idProof}
+                          </div>
+                        )}
                       {/* Show a message if the file upload button is disabled */}
-                      {isFileUploadDisabled && (
+                      {isFile2UploadDisabled && (
                         <div className="text-warning mt-2">
                           Please remove the existing file to upload a new one.
                         </div>
@@ -995,7 +1013,7 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
                       )}
                     </div>
                   </Col>
-                   <Col sm={4}>
+                  <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
                         Upload student Details Competitive Exam
@@ -1015,7 +1033,8 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
                       </Tooltip>
                       <Input
                         className={`form-control ${
-                          validation.touched.competitiveExam && validation.errors.competitiveExam
+                          validation.touched.competitiveExam &&
+                          validation.errors.competitiveExam
                             ? "is-invalid"
                             : ""
                         }`}
@@ -1030,21 +1049,23 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
                               : null
                           );
                         }}
-                        disabled={isFileUploadDisabled} // Disable the button if a file exists
+                        disabled={isFile3UploadDisabled} // Disable the button if a file exists
                       />
-                      {validation.touched.competitiveExam && validation.errors.competitiveExam && (
-                        <div className="text-danger">
-                          {validation.errors.competitiveExam}
-                        </div>
-                      )}
+                      {validation.touched.competitiveExam &&
+                        validation.errors.competitiveExam && (
+                          <div className="text-danger">
+                            {validation.errors.competitiveExam}
+                          </div>
+                        )}
                       {/* Show a message if the file upload button is disabled */}
-                      {isFileUploadDisabled && (
+                      {isFile3UploadDisabled && (
                         <div className="text-warning mt-2">
                           Please remove the existing file to upload a new one.
                         </div>
                       )}
                       {/* Only show the file name if it is a string (from the edit API) */}
-                      {typeof validation.values.competitiveExam === "string" && (
+                      {typeof validation.values.competitiveExam ===
+                        "string" && (
                         <div className="mt-2 d-flex align-items-center">
                           <span
                             className="me-2"
@@ -1081,7 +1102,7 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
                       )}
                     </div>
                   </Col>
-                   <Col lg={4}>
+                  <Col lg={4}>
                     <div className="mb-3">
                       <Label>Excel Template</Label>
                       <div>
@@ -1173,23 +1194,21 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
                       <td className="d-none">
                         {bos.filePath?.idProof || "N/A"}
                       </td>
-                      <td className="d-none">
-                        {bos.filePath?.excel || "N/A"}
-                      </td>
+                      <td className="d-none">{bos.filePath?.excel || "N/A"}</td>
                       <td>
-                       <button
-                            className="btn btn-sm btn-warning me-2"
-                            onClick={() => handleEdit(bos.competitiveExamId)}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            className="btn btn-sm btn-danger"
-                            onClick={() => handleDelete(bos.competitiveExamId)}
-                          >
-                            Delete
-                          </button>
-                     </td>
+                        <button
+                          className="btn btn-sm btn-warning me-2"
+                          onClick={() => handleEdit(bos.competitiveExamId)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="btn btn-sm btn-danger"
+                          onClick={() => handleDelete(bos.competitiveExamId)}
+                        >
+                          Delete
+                        </button>
+                      </td>
                     </tr>
                   ))
                 ) : (

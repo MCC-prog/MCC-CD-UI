@@ -51,9 +51,15 @@ const Nss_Yrc: React.FC = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 10;
   const tableRef = useRef<HTMLTableElement>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
+
+  // Calculate the paginated data
+  const indexOfLastRow = currentPage * rowsPerPage;
+  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
+  const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
 
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
@@ -155,10 +161,8 @@ const Nss_Yrc: React.FC = () => {
   const confirmDelete = async (id: string) => {
     if (deleteId) {
       try {
-        const response = await api.delete(
-          `/nss/deleteNSSActivity?nssId=${id}`,
-          ""
-        );
+        const response = await api.delete(`/nss/deleteNSS?nssId=${id}`, "");
+        setIsModalOpen(false);
         toast.success(response.message || "NSS/YRC  removed successfully!");
         fetchNssData();
       } catch (error) {
@@ -211,7 +215,10 @@ const Nss_Yrc: React.FC = () => {
   const handleDeleteFile = async () => {
     try {
       // Call the delete API
-      const response = await api.delete(`/nss/deleteNSS?nssId=${editId}`, "");
+      const response = await api.delete(
+        `/nss/deleteNSSDocument?nssId=${editId}`,
+        ""
+      );
       // Show success message
       toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
@@ -281,8 +288,16 @@ const Nss_Yrc: React.FC = () => {
         .required("Please enter number of No Of Participants"),
       organisation: Yup.string().required("Please select Organization"),
       location: Yup.string().required("Please select Location"),
-      startDate: Yup.date().required("Please select conducted date"),
-      endDate: Yup.date().required("Please select conducted date"),
+      startDate: Yup.string()
+        .required("Start date is required")
+        .test("is-valid-date", "Invalid start date", (value) =>
+          moment(value, "DD/MM/YYYY", true).isValid()
+        ),
+      endDate: Yup.string()
+        .required("End date is required")
+        .test("is-valid-date", "Invalid start date", (value) =>
+          moment(value, "DD/MM/YYYY", true).isValid()
+        ),
     }),
     onSubmit: async (values, { resetForm }) => {
       // Create FormData object
@@ -302,11 +317,15 @@ const Nss_Yrc: React.FC = () => {
       formData.append("location", values.location || "");
       formData.append(
         "startDate",
-        moment(values.startDate).format("DD/MM/YYYY") || ""
+        values.startDate
+          ? moment(values.startDate, "DD/MM/YYYY").format("DD/MM/YYYY")
+          : ""
       );
       formData.append(
         "endDate",
-        moment(values.endDate).format("DD/MM/YYYY") || ""
+        values.endDate
+          ? moment(values.endDate, "DD/MM/YYYY").format("DD/MM/YYYY")
+          : ""
       );
 
       if (isEditMode && typeof values.file === "string") {
@@ -446,7 +465,7 @@ const Nss_Yrc: React.FC = () => {
                         )}
                     </div>
                   </Col>
-                   <Col lg={4}>
+                  <Col lg={4}>
                     <div className="mb-3">
                       <Label>Department</Label>
                       <DepartmentDropdown
@@ -850,8 +869,8 @@ const Nss_Yrc: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {nssData.length > 0 ? (
-                  nssData.map((nss, index) => (
+                {currentRows.length > 0 ? (
+                  currentRows.map((nss, index) => (
                     <tr key={nss.id}>
                       <td>{index + 1}</td>
                       <td>{nss.academicYear}</td>
@@ -874,18 +893,20 @@ const Nss_Yrc: React.FC = () => {
                       <td>{nss.endDate}</td>
                       <td className="d-none">{nss?.filePath.NSS || "N/A"}</td>
                       <td>
-                        <button
-                          className="btn btn-sm btn-warning me-2"
-                          onClick={() => handleEdit(nss.id)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="btn btn-sm btn-danger"
-                          onClick={() => handleDelete(nss.id)}
-                        >
-                          Delete
-                        </button>
+                        <div className="d-flex justify-content-center gap-2">
+                          <button
+                            className="btn btn-sm btn-warning me-2"
+                            onClick={() => handleEdit(nss.id)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="btn btn-sm btn-danger"
+                            onClick={() => handleDelete(nss.id)}
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))

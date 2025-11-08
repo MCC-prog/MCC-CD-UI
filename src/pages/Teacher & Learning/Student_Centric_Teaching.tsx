@@ -46,6 +46,7 @@ import "jszip";
 import "pdfmake/build/pdfmake";
 import "pdfmake/build/vfs_fonts";
 
+
 const api = new APIClient();
 // Helper: Check if any field in the current tab is filled
 const getTabValidationSchema = (tab: number | null) => {
@@ -202,47 +203,6 @@ const getTabValidationSchema = (tab: number | null) => {
   }
 };
 
-// Helper: Clear fields for a tab
-const clearTabFields = (validation: any, tab: number | null) => {
-  switch (tab) {
-    case 1:
-      validation.setFieldValue("caseStudyEL", "");
-      validation.setFieldValue("indVisitEL", "");
-      validation.setFieldValue("workShopEL", "");
-      validation.setFieldValue("simulationtEL", "");
-      validation.setFieldValue("ojtInternEL", "");
-      validation.setFieldValue("exhibitionEL", "");
-      validation.setFieldValue("awarenesDriveEL", "");
-      validation.setFieldValue("streetPlaysEL", "");
-      validation.setFieldValue("fileEL", null);
-      break;
-    case 2:
-      validation.setFieldValue("caseStudyPL", "");
-      validation.setFieldValue("indVisitPL", "");
-      validation.setFieldValue("workShopPL", "");
-      validation.setFieldValue("simulationtPL", "");
-      validation.setFieldValue("ojtInternPL", "");
-      validation.setFieldValue("exhibitionPL", "");
-      validation.setFieldValue("awarenesDrivePL", "");
-      validation.setFieldValue("streetPlaysPL", "");
-      validation.setFieldValue("filePL", null);
-      break;
-    case 3:
-      validation.setFieldValue("caseStudyProblemLg", "");
-      validation.setFieldValue("indVisitProblemLg", "");
-      validation.setFieldValue("workShopProblemLg", "");
-      validation.setFieldValue("simulationtProblemLg", "");
-      validation.setFieldValue("ojtInternProblemLg", "");
-      validation.setFieldValue("exhibitionProblemLg", "");
-      validation.setFieldValue("awarenesDriveProblemLg", "");
-      validation.setFieldValue("streetPlaysProblemLg", "");
-      validation.setFieldValue("fileProblemLg", null);
-      break;
-    default:
-      break;
-  }
-};
-
 const Student_Centric_Teaching: React.FC = () => {
   const [activeTab, setActiveTab] = useState<number | null>(null);
   const [showWizard, setShowWizard] = useState(false);
@@ -257,15 +217,91 @@ const Student_Centric_Teaching: React.FC = () => {
   const [CWFData, setCWFData] = useState<any[]>([]);
   const [filteredData, setFilteredData] = useState(CWFData);
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
+  const [isFile2UploadDisabled, setIsFile2UploadDisabled] = useState(false);
+  const [isFile3UploadDisabled, setIsFile3UploadDisabled] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
+  const [editResData, setEditResData] = useState<any>(null);
 
   const fileRef = useRef<HTMLInputElement | null>(null);
   const file2Ref = useRef<HTMLInputElement | null>(null);
   const file3Ref = useRef<HTMLInputElement | null>(null);
 
   const tableRef = useRef<HTMLTableElement>(null);
+
+  // Helper: Clear fields for a tab
+  const clearTabFields = async (validation: any, tab: number | null) => {
+    try {
+      let deleteId = null;
+
+      if (
+        tab === 1 &&
+        editResData?.experientialLearningDto.experientialLearningId
+      ) {
+        deleteId = editResData.experientialLearningDto.experientialLearningId;
+      } else if (
+        tab === 2 &&
+        editResData?.participativeLearningDto.participativeLearningId
+      ) {
+        deleteId = editResData.participativeLearningDto.participativeLearningId;
+      } else if (
+        tab === 3 &&
+        editResData?.problemLearningDto.problemLearningId
+      ) {
+        deleteId = editResData.problemLearningDto.problemLearningId;
+      }
+
+      if (deleteId) {
+        await api.delete(
+          `/studentCentricMethodology/deleteStudentCentricMethodologyAddTabAndDoc?studentCentricMethodologyAddTabId=${deleteId}`,
+          ""
+        );
+      }
+      switch (tab) {
+        case 1:
+          validation.setFieldValue("caseStudyEL", "");
+          validation.setFieldValue("indVisitEL", "");
+          validation.setFieldValue("workShopEL", "");
+          validation.setFieldValue("simulationtEL", "");
+          validation.setFieldValue("ojtInternEL", "");
+          validation.setFieldValue("exhibitionEL", "");
+          validation.setFieldValue("awarenesDriveEL", "");
+          validation.setFieldValue("streetPlaysEL", "");
+          validation.setFieldValue("fileEL", null);
+          setIsFileUploadDisabled(false);
+          break;
+        case 2:
+          validation.setFieldValue("caseStudyPL", "");
+          validation.setFieldValue("indVisitPL", "");
+          validation.setFieldValue("workShopPL", "");
+          validation.setFieldValue("simulationtPL", "");
+          validation.setFieldValue("ojtInternPL", "");
+          validation.setFieldValue("exhibitionPL", "");
+          validation.setFieldValue("awarenesDrivePL", "");
+          validation.setFieldValue("streetPlaysPL", "");
+          validation.setFieldValue("filePL", null);
+          setIsFile2UploadDisabled(false);
+          break;
+        case 3:
+          validation.setFieldValue("caseStudyProblemLg", "");
+          validation.setFieldValue("indVisitProblemLg", "");
+          validation.setFieldValue("workShopProblemLg", "");
+          validation.setFieldValue("simulationtProblemLg", "");
+          validation.setFieldValue("ojtInternProblemLg", "");
+          validation.setFieldValue("exhibitionProblemLg", "");
+          validation.setFieldValue("awarenesDriveProblemLg", "");
+          validation.setFieldValue("streetPlaysProblemLg", "");
+          validation.setFieldValue("fileProblemLg", null);
+          setIsFile3UploadDisabled(false);
+          break;
+        default:
+          break;
+      }
+    } catch (error) {
+      toast.error("Failed to clear tab data. Please try again.");
+    }
+  };
 
   // Calculate the paginated data
   const indexOfLastRow = currentPage * rowsPerPage;
@@ -328,7 +364,7 @@ const Student_Centric_Teaching: React.FC = () => {
         `/studentCentricMethodology/edit?studentCentricMethodologyId=${id}`,
         ""
       );
-
+      setEditResData(response);
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
       const filteredAcademicYearList = academicYearOptions.filter(
         (year: any) => year.isCurrent || year.isCurrentForAdmission
@@ -411,7 +447,7 @@ const Student_Centric_Teaching: React.FC = () => {
           "fileEL",
           el.documents?.ExperientialLearning || null
         );
-
+        setIsFileUploadDisabled(!!el.documents?.ExperientialLearning);
         setActiveTab(1);
         matchedTab = true;
       }
@@ -431,7 +467,7 @@ const Student_Centric_Teaching: React.FC = () => {
           "filePL",
           pl.documents?.ParticipativeLearning || null
         );
-
+        setIsFile2UploadDisabled(!!pl.documents?.ParticipativeLearning);
         setActiveTab(2);
         matchedTab = true;
       }
@@ -452,9 +488,9 @@ const Student_Centric_Teaching: React.FC = () => {
         validation.setFieldValue("streetPlaysProblemLg", pr.streetPlays || "");
         validation.setFieldValue(
           "fileProblemLg",
-          pr.documents?.ProblemBasedLearning || null
+          pr.documents?.ProblemLearning || null
         );
-
+        setIsFile3UploadDisabled(!!pr.documents?.ProblemLearning);
         setActiveTab(3);
         matchedTab = true;
       }
@@ -544,7 +580,7 @@ const Student_Centric_Teaching: React.FC = () => {
       try {
         // Ensure you set responseType to 'blob' to handle binary data
         const response = await axios.get(
-          `/CoursesWithFocus/download/${fileName}`,
+          `/studentCentricMethodology/download/${fileName}`,
           {
             responseType: "blob",
           }
@@ -579,23 +615,22 @@ const Student_Centric_Teaching: React.FC = () => {
 
   // Handle file deletion
   // Clear the file from the form and show success message
-  const handleDeleteFile = async (tabKey: string) => {
-    const fileId = validation.values[tabKey + "Id"];
-    if (!fileId) {
-      toast.error("No file to delete.");
-      return;
-    }
+  const handleDeleteFile = async (tabKey: string, docType: string) => {
     try {
       // Call the delete API
       const response = await api.delete(
-        `/CoursesWithFocus/deleteCoursesWithFocusDocument?coursesWithFocusDocumentId=${fileId}`,
+        `/studentCentricMethodology/deleteStudentCentricMethodologyDocument?studentCentricMethodologyId=${editId}&docType=${docType}`,
         ""
       );
       // Show success message
       toast.success(response.message || "File deleted successfully!");
-      // Remove the file from the form
-      validation.setFieldValue(tabKey, null); // Clear the file from Formik state
-      validation.setFieldValue(tabKey + "Id", null);
+      if (docType === "projectSanctionLetter") {
+        setIsFileUploadDisabled(false);
+      } else if (docType === "synopsisReport") {
+        setIsFile2UploadDisabled(false);
+      } else if (docType === "peerTeaching") {
+        setIsFile3UploadDisabled(false);
+      }
     } catch (error) {
       // Show error message
       toast.error("Failed to delete the file. Please try again.");
@@ -754,6 +789,7 @@ const Student_Centric_Teaching: React.FC = () => {
 
       // Build additionalDto based on methodologyTab and activeTab
       let additionalDto: null | {
+        additionalTabId: string;
         caseStudy: string;
         industrialVisit: string;
         workShop: string;
@@ -766,6 +802,7 @@ const Student_Centric_Teaching: React.FC = () => {
 
       if (methodologyTab === "ExperientialLearning" && activeTab === 1) {
         additionalDto = {
+          additionalTabId: editResData?.experientialLearningDto?.experientialLearningId || null,
           caseStudy: values.caseStudyEL,
           industrialVisit: values.indVisitEL,
           workShop: values.workShopEL,
@@ -780,6 +817,7 @@ const Student_Centric_Teaching: React.FC = () => {
         activeTab === 2
       ) {
         additionalDto = {
+          additionalTabId: editResData?.participativeLearningDto?.participativeLearningId || null,
           caseStudy: values.caseStudyPL,
           industrialVisit: values.indVisitPL,
           workShop: values.workShopPL,
@@ -791,6 +829,7 @@ const Student_Centric_Teaching: React.FC = () => {
         };
       } else if (methodologyTab === "ProblemLearning" && activeTab === 3) {
         additionalDto = {
+          additionalTabId: editResData?.problemLearningDto?.problemLearningId || null,
           caseStudy: values.caseStudyProblemLg,
           industrialVisit: values.indVisitProblemLg,
           workShop: values.workShopProblemLg,
@@ -865,7 +904,9 @@ const Student_Centric_Teaching: React.FC = () => {
         [fileRef, file2Ref, file3Ref].forEach((ref) => {
           if (ref.current) ref.current.value = "";
         });
-
+        setIsFileUploadDisabled(false);
+        setIsFile2UploadDisabled(false);
+        setIsFile3UploadDisabled(false);
         setIsEditMode(false);
         setEditId(null);
       } catch (error) {
@@ -1430,6 +1471,7 @@ const Student_Centric_Teaching: React.FC = () => {
                                     );
                                   }}
                                   innerRef={fileRef}
+                                  disabled={isFileUploadDisabled}
                                 />
                                 {showTabError(
                                   1,
@@ -1473,7 +1515,15 @@ const Student_Centric_Teaching: React.FC = () => {
                                     <Button
                                       color="link"
                                       className="text-danger"
-                                      onClick={() => handleDeleteFile("fileEL")}
+                                      onClick={() =>
+                                        handleDeleteFile(
+                                          typeof validation.values.fileEL ===
+                                            "string"
+                                            ? validation.values.fileEL
+                                            : "",
+                                          "fileEL"
+                                        )
+                                      }
                                       title="Delete File"
                                     >
                                       <i className="bi bi-trash"></i>
@@ -1710,28 +1760,30 @@ const Student_Centric_Teaching: React.FC = () => {
                                         ? event.currentTarget.files[0]
                                         : null
                                     );
+                                    if (
+                                      typeof validation.values.filePL ===
+                                      "string"
+                                    ) {
+                                      setIsFile2UploadDisabled(true);
+                                    } else {
+                                      setIsFile2UploadDisabled(false);
+                                    }
                                   }}
                                   innerRef={file2Ref}
+                                  disabled={isFile2UploadDisabled}
                                 />
                                 {showTabError(
                                   2,
                                   validation.touched.filePL,
                                   validation.errors.filePL
                                 )}
-                                {isFileUploadDisabled && (
+                                {isFile2UploadDisabled && (
                                   <div className="text-warning mt-2">
                                     Please remove the existing file to upload a
                                     new one.
                                   </div>
                                 )}
-                                {/* Show a message if the file upload button is disabled */}
-                                {typeof validation.values.filePL ===
-                                  "string" && (
-                                  <div className="text-warning mt-2">
-                                    Please remove the existing file to upload a
-                                    new one.
-                                  </div>
-                                )}
+
                                 {/* Only show the file name if it is a string (from the edit API) */}
                                 {typeof validation.values.filePL === "string" &&
                                   validation.values.filePL && (
@@ -1763,7 +1815,13 @@ const Student_Centric_Teaching: React.FC = () => {
                                         color="link"
                                         className="text-danger"
                                         onClick={() =>
-                                          handleDeleteFile("filePL")
+                                          handleDeleteFile(
+                                            typeof validation.values.filePL ===
+                                              "string"
+                                              ? validation.values.filePL
+                                              : "",
+                                            "filePL"
+                                          )
                                         }
                                         title="Delete File"
                                       >
@@ -1998,25 +2056,29 @@ const Student_Centric_Teaching: React.FC = () => {
                                   id="gender"
                                   onChange={(event) => {
                                     validation.setFieldValue(
-                                      "fileG",
+                                      "fileProblemLg",
                                       event.currentTarget.files
                                         ? event.currentTarget.files[0]
                                         : null
                                     );
+                                    if (
+                                      typeof validation.values.fileProblemLg ===
+                                      "string"
+                                    ) {
+                                      setIsFile3UploadDisabled(true);
+                                    } else {
+                                      setIsFile3UploadDisabled(false);
+                                    }
                                   }}
                                   innerRef={file3Ref}
-                                  disabled={
-                                    typeof validation.values.fileProblemLg ===
-                                      "string" &&
-                                    validation.values.fileProblemLg
-                                  }
+                                  disabled={isFile3UploadDisabled}
                                 />
                                 {showTabError(
                                   3,
                                   validation.touched.fileProblemLg,
                                   validation.errors.fileProblemLg
                                 )}
-                                {isFileUploadDisabled && (
+                                {isFile3UploadDisabled && (
                                   <div className="text-warning mt-2">
                                     Please remove the existing file to upload a
                                     new one.
@@ -2053,7 +2115,13 @@ const Student_Centric_Teaching: React.FC = () => {
                                       color="link"
                                       className="text-danger"
                                       onClick={() =>
-                                        handleDeleteFile("fileProblemLg")
+                                        handleDeleteFile(
+                                          typeof validation.values
+                                            .fileProblemLg === "string"
+                                            ? validation.values.fileProblemLg
+                                            : "",
+                                          "fileProblemLg"
+                                        )
                                       }
                                       title="Delete File"
                                     >

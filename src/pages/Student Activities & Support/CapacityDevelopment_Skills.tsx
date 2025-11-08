@@ -176,6 +176,7 @@ const CapacityDevelopment_Skills: React.FC = () => {
         lifeSkills: mapValueToLabel(response.lifeSkills, lifeSkills),
         type: mapValueToLabel(response.type, capType),
       });
+      setIsFileUploadDisabled(!!response.document?.capacityDevelopment); // Disable file upload if a file exists
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();
@@ -203,6 +204,7 @@ const CapacityDevelopment_Skills: React.FC = () => {
           `/capacityDevelopment/deleteCapacityDevelopment?capacityDevelopmentId=${id}`,
           ""
         );
+        setIsModalOpen(false);
         toast.success(
           response.message ||
             "Capacity development & Skills enhancement removed successfully!"
@@ -424,6 +426,7 @@ const CapacityDevelopment_Skills: React.FC = () => {
         if (fileRef.current) {
           fileRef.current.value = "";
         }
+        setIsFileUploadDisabled(false); // Enable file upload for new entries
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         handleListTeachersClick();

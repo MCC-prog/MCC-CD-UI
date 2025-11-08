@@ -59,7 +59,7 @@ const Skill_Development_Workshop: React.FC = () => {
   };
 
 
-      const ModeType = [
+  const ModeType = [
     { value: "ONLINE", label: "ONLINE" },
     { value: "OFFLINE", label: "OFFLINE" },
     { value: "HYBRID", label: "HYBRID" },
@@ -72,8 +72,14 @@ const Skill_Development_Workshop: React.FC = () => {
         "/skillDevelopmentWorkshop/getAllSkillDevelopmentWorkshop",
         ""
       );
-      setSkillDevelopmentData(response.data);
-      setFilteredData(response);
+      const data = response?.data || response;
+      if (Array.isArray(data)) {
+        setSkillDevelopmentData(data);
+        setFilteredData(data);
+      } else {
+        console.error("Unexpected response format:", response);
+        setSkillDevelopmentData([]);
+      }
     } catch (error) {
       console.error("Error fetching Skill Development Workshop data:", error);
     }
@@ -116,19 +122,19 @@ const Skill_Development_Workshop: React.FC = () => {
       // Map API response to Formik values
       const mappedValues = {
         academicYear: mapValueToLabel(response.academicYear, academicYearList),
-        stream: response.empStreamId
+        stream: response.streamId
           ? {
-              value: response.empStreamId.toString(),
-              label: response.empStreamName,
-            }
+            value: response.streamId.toString(),
+            label: response.streamName,
+          }
           : null,
         department: response.departmentId
           ? {
-              value: response.departmentId.toString(),
-              label: response.departmentName,
-            }
+            value: response.departmentId.toString(),
+            label: response.departmentName,
+          }
           : null,
-          
+
       };
       const streamOption = mapValueToLabel(response.streamId, []); // Replace [] with stream options array if available
       const departmentOption = mapValueToLabel(response.departmentId, []); // Replace [] with department options array if available
@@ -136,17 +142,17 @@ const Skill_Development_Workshop: React.FC = () => {
       validation.setValues({
         academicYear: mappedValues.academicYear
           ? {
-              ...mappedValues.academicYear,
-              value: String(mappedValues.academicYear.value),
-            }
+            ...mappedValues.academicYear,
+            value: String(mappedValues.academicYear.value),
+          }
           : null,
         stream: mappedValues.stream || null,
         department: mappedValues.department || null,
         staffEnhancementProgramType: response.staffEnhProgramType
           ? {
-              value: response.staffEnhProgramType,
-              label: response.staffEnhProgramType,
-            }
+            value: response.staffEnhProgramType,
+            label: response.staffEnhProgramType,
+          }
           : null,
         facultyName: response.facultyName || "",
         title: response.title || "",
@@ -155,9 +161,9 @@ const Skill_Development_Workshop: React.FC = () => {
         toDate: response.toDate || "",
         mode: response.mode
           ? {
-              value: response.mode,
-              label: response.mode,
-            }
+            value: response.mode,
+            label: response.mode,
+          }
           : null,
         skillDevelopmentDoc: response.documents?.skillDevelopmentDoc || null,
         skillDevelopmentDetails:
@@ -329,9 +335,9 @@ const Skill_Development_Workshop: React.FC = () => {
       organizedBy: Yup.string().required("Please select Organized By"),
       fromDate: Yup.date().required("Please select From Date"),
       toDate: Yup.date().required("Please select To Date"),
-       mode: Yup.object<{ value: string; label: string }>()
-              .nullable()
-              .required("Please select Mode"),
+      mode: Yup.object<{ value: string; label: string }>()
+        .nullable()
+        .required("Please select Mode"),
       skillDevelopmentDoc: Yup.mixed()
         .required("Please upload a file")
         .test("fileSize", "File size is too large", (value: any) => {
@@ -403,7 +409,7 @@ const Skill_Development_Workshop: React.FC = () => {
           const response = await api.put(`/skillDevelopmentWorkshop`, formData);
           toast.success(
             response.message ||
-              "Skill Development Workshop updated successfully!"
+            "Skill Development Workshop updated successfully!"
           );
         } else {
           // Call the save API
@@ -568,12 +574,11 @@ const Skill_Development_Workshop: React.FC = () => {
                       <Label>Faculty Name</Label>
                       <Input
                         type="text"
-                        className={`form-control ${
-                          validation.touched.facultyName &&
-                          validation.errors.facultyName
+                        className={`form-control ${validation.touched.facultyName &&
+                            validation.errors.facultyName
                             ? "is-invalid"
                             : ""
-                        }`}
+                          }`}
                         value={validation.values.facultyName}
                         onChange={(e) =>
                           validation.setFieldValue(
@@ -608,7 +613,7 @@ const Skill_Development_Workshop: React.FC = () => {
                         menuPortalTarget={document.body}
                         className={
                           validation.touched.staffEnhancementProgramType &&
-                          validation.errors.staffEnhancementProgramType
+                            validation.errors.staffEnhancementProgramType
                             ? "select-error"
                             : ""
                         }
@@ -626,11 +631,10 @@ const Skill_Development_Workshop: React.FC = () => {
                       <Label>Title</Label>
                       <Input
                         type="text"
-                        className={`form-control ${
-                          validation.touched.title && validation.errors.title
+                        className={`form-control ${validation.touched.title && validation.errors.title
                             ? "is-invalid"
                             : ""
-                        }`}
+                          }`}
                         value={validation.values.title}
                         onChange={(e) =>
                           validation.setFieldValue("title", e.target.value)
@@ -649,12 +653,11 @@ const Skill_Development_Workshop: React.FC = () => {
                       <Label>Collaborating Organization / Department</Label>
                       <Input
                         type="text"
-                        className={`form-control ${
-                          validation.touched.organizedBy &&
-                          validation.errors.organizedBy
+                        className={`form-control ${validation.touched.organizedBy &&
+                            validation.errors.organizedBy
                             ? "is-invalid"
                             : ""
-                        }`}
+                          }`}
                         value={validation.values.organizedBy}
                         onChange={(e) =>
                           validation.setFieldValue(
@@ -677,12 +680,11 @@ const Skill_Development_Workshop: React.FC = () => {
                       <Label>From Date</Label>
                       <Input
                         type="date"
-                        className={`form-control ${
-                          validation.touched.fromDate &&
-                          validation.errors.fromDate
+                        className={`form-control ${validation.touched.fromDate &&
+                            validation.errors.fromDate
                             ? "is-invalid"
                             : ""
-                        }`}
+                          }`}
                         value={validation.values.fromDate}
                         onChange={(e) =>
                           validation.setFieldValue("fromDate", e.target.value)
@@ -701,11 +703,10 @@ const Skill_Development_Workshop: React.FC = () => {
                       <Label>To Date</Label>
                       <Input
                         type="date"
-                        className={`form-control ${
-                          validation.touched.toDate && validation.errors.toDate
+                        className={`form-control ${validation.touched.toDate && validation.errors.toDate
                             ? "is-invalid"
                             : ""
-                        }`}
+                          }`}
                         value={validation.values.toDate}
                         onChange={(e) =>
                           validation.setFieldValue("toDate", e.target.value)
@@ -719,7 +720,7 @@ const Skill_Development_Workshop: React.FC = () => {
                         )}
                     </div>
                   </Col>
-                    <Col lg={4}>
+                  <Col lg={4}>
                     <div className="mb-3">
                       <Label>Mode Type</Label>
                       <Select
@@ -736,7 +737,7 @@ const Skill_Development_Workshop: React.FC = () => {
                         menuPortalTarget={document.body}
                         className={
                           validation.touched.mode &&
-                          validation.errors.mode
+                            validation.errors.mode
                             ? "select-error"
                             : ""
                         }
@@ -768,12 +769,11 @@ const Skill_Development_Workshop: React.FC = () => {
                         Upload an Excel or PDF file. Max size 10MB.
                       </Tooltip>
                       <Input
-                        className={`form-control ${
-                          validation.touched.skillDevelopmentDoc &&
-                          validation.errors.skillDevelopmentDoc
+                        className={`form-control ${validation.touched.skillDevelopmentDoc &&
+                            validation.errors.skillDevelopmentDoc
                             ? "is-invalid"
                             : ""
-                        }`}
+                          }`}
                         type="file"
                         id="formFile"
                         innerRef={fileRef}
@@ -802,35 +802,35 @@ const Skill_Development_Workshop: React.FC = () => {
                       {/* Only show the file name if it is a string (from the edit API) */}
                       {typeof validation.values.skillDevelopmentDoc ===
                         "string" && (
-                        <div className="mt-2 d-flex align-items-center">
-                          <span
-                            className="me-2"
-                            style={{ fontWeight: "bold", color: "green" }}
-                          >
-                            {validation.values.skillDevelopmentDoc}
-                          </span>
-                          <Button
-                            color="link"
-                            className="text-primary"
-                            onClick={() =>
-                              handleDownloadFile(
-                                validation.values.skillDevelopmentDoc as string
-                              )
-                            }
-                            title="Download File"
-                          >
-                            <i className="bi bi-download"></i>
-                          </Button>
-                          <Button
-                            color="link"
-                            className="text-danger"
-                            onClick={() => handleDeleteFile()}
-                            title="Delete File"
-                          >
-                            <i className="bi bi-trash"></i>
-                          </Button>
-                        </div>
-                      )}
+                          <div className="mt-2 d-flex align-items-center">
+                            <span
+                              className="me-2"
+                              style={{ fontWeight: "bold", color: "green" }}
+                            >
+                              {validation.values.skillDevelopmentDoc}
+                            </span>
+                            <Button
+                              color="link"
+                              className="text-primary"
+                              onClick={() =>
+                                handleDownloadFile(
+                                  validation.values.skillDevelopmentDoc as string
+                                )
+                              }
+                              title="Download File"
+                            >
+                              <i className="bi bi-download"></i>
+                            </Button>
+                            <Button
+                              color="link"
+                              className="text-danger"
+                              onClick={() => handleDeleteFile()}
+                              title="Delete File"
+                            >
+                              <i className="bi bi-trash"></i>
+                            </Button>
+                          </div>
+                        )}
                     </div>
                   </Col>
                   <Col sm={4}>
@@ -852,12 +852,11 @@ const Skill_Development_Workshop: React.FC = () => {
                         Upload an Excel or PDF file. Max size 10MB.
                       </Tooltip>
                       <Input
-                        className={`form-control ${
-                          validation.touched.skillDevelopmentDetails &&
-                          validation.errors.skillDevelopmentDetails
+                        className={`form-control ${validation.touched.skillDevelopmentDetails &&
+                            validation.errors.skillDevelopmentDetails
                             ? "is-invalid"
                             : ""
-                        }`}
+                          }`}
                         type="file"
                         id="formFile"
                         innerRef={fileRef1}
@@ -886,36 +885,36 @@ const Skill_Development_Workshop: React.FC = () => {
                       {/* Only show the file name if it is a string (from the edit API) */}
                       {typeof validation.values.skillDevelopmentDoc ===
                         "string" && (
-                        <div className="mt-2 d-flex align-items-center">
-                          <span
-                            className="me-2"
-                            style={{ fontWeight: "bold", color: "green" }}
-                          >
-                            {validation.values.skillDevelopmentDetails}
-                          </span>
-                          <Button
-                            color="link"
-                            className="text-primary"
-                            onClick={() =>
-                              handleDownloadFile(
-                                validation.values
-                                  .skillDevelopmentDetails as string
-                              )
-                            }
-                            title="Download File"
-                          >
-                            <i className="bi bi-download"></i>
-                          </Button>
-                          <Button
-                            color="link"
-                            className="text-danger"
-                            onClick={() => handleDeleteFile()}
-                            title="Delete File"
-                          >
-                            <i className="bi bi-trash"></i>
-                          </Button>
-                        </div>
-                      )}
+                          <div className="mt-2 d-flex align-items-center">
+                            <span
+                              className="me-2"
+                              style={{ fontWeight: "bold", color: "green" }}
+                            >
+                              {validation.values.skillDevelopmentDetails}
+                            </span>
+                            <Button
+                              color="link"
+                              className="text-primary"
+                              onClick={() =>
+                                handleDownloadFile(
+                                  validation.values
+                                    .skillDevelopmentDetails as string
+                                )
+                              }
+                              title="Download File"
+                            >
+                              <i className="bi bi-download"></i>
+                            </Button>
+                            <Button
+                              color="link"
+                              className="text-danger"
+                              onClick={() => handleDeleteFile()}
+                              title="Delete File"
+                            >
+                              <i className="bi bi-trash"></i>
+                            </Button>
+                          </div>
+                        )}
                     </div>
                   </Col>
                   <Col lg={4}>
@@ -971,7 +970,7 @@ const Skill_Development_Workshop: React.FC = () => {
               id="skillDevelopmentDataId"
               innerRef={tableRef}
             >
-              <thead>
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>

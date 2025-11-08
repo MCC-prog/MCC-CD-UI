@@ -183,7 +183,7 @@ const Books: React.FC = () => {
       });
       setSelectedStream(streamOption);
       // setSelectedDepartment(departmentOption);
-
+      setIsFileUploadDisabled(!!response.file?.Book); // Disable file upload if a file exists
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();
@@ -357,6 +357,7 @@ const Books: React.FC = () => {
         if (fileRef.current) {
           fileRef.current.value = "";
         }
+        setIsFileUploadDisabled(false);
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         handleListCSWClick();
@@ -676,6 +677,7 @@ const Books: React.FC = () => {
                       <td className="d-none">{cds.filePath.Book || "N/A"}</td>
 
                       <td>
+
                         <button
                           className="btn btn-sm btn-warning me-2"
                           onClick={() => handleEdit(cds.id)}

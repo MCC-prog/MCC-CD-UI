@@ -137,7 +137,7 @@ const DetailsOfStudents_MOOC: React.FC = () => {
       // Map API response to Formik values
       const mappedValues = {
         academicYear: mapValueToLabel(response.academicYear, academicYearList),
-          stream: response.streamId
+        stream: response.streamId
           ? { value: response.streamId.toString(), label: response.streamName }
           : null,
         department: response.departmentId
@@ -171,7 +171,7 @@ const DetailsOfStudents_MOOC: React.FC = () => {
               value: String(mappedValues.academicYear.value),
             }
           : null,
-          stream: mappedValues.stream
+        stream: mappedValues.stream
           ? { ...mappedValues.stream, value: String(mappedValues.stream.value) }
           : null,
         department: mappedValues.department
@@ -191,6 +191,7 @@ const DetailsOfStudents_MOOC: React.FC = () => {
         file: response.documents.moocCertificate || null, // Assuming 'file' is a string or null
         courses: mappedValues.courses || [],
       });
+      setIsFileUploadDisabled(!!response.documents.moocCertificate); // Disable file upload if a file exists
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();
@@ -215,6 +216,7 @@ const DetailsOfStudents_MOOC: React.FC = () => {
           `/studentsEnrolledForMooc/deleteStudentsEnrolledForMooc?competitiveExamId=${id}`,
           ""
         );
+        setIsModalOpen(false);
         toast.success(
           response.message ||
             "Details of Students Enrolled for MOOC removed successfully!"
@@ -312,12 +314,8 @@ const DetailsOfStudents_MOOC: React.FC = () => {
       academicYear: Yup.object()
         .nullable()
         .required("Please select academic year"),
-      stream: Yup.object()
-        .nullable()
-        .required("Please select school"),
-      department: Yup.object()
-        .nullable()
-        .required("Please select department"),
+      stream: Yup.object().nullable().required("Please select school"),
+      department: Yup.object().nullable().required("Please select department"),
       mccRegNo: Yup.string().required("Please enter MCC Register number"),
       studentName: Yup.string().required("Please enter student name"),
       offeredBy: Yup.string().required("Please enter Mooc Offering Institute"),
@@ -423,6 +421,7 @@ const DetailsOfStudents_MOOC: React.FC = () => {
         if (fileRef.current) {
           fileRef.current.value = "";
         }
+        setIsFileUploadDisabled(false); 
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         // display the Details of Students Enrolled for MOOC
@@ -518,7 +517,7 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                         )}
                     </div>
                   </Col>
-                   <Col lg={4}>
+                  <Col lg={4}>
                     <div className="mb-3">
                       <Label>School</Label>
                       <StreamDropdown
@@ -945,22 +944,24 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                         {dosm?.filePath.moocCertificate}
                       </td>
                       <td>
-                        <button
-                          className="btn btn-sm btn-warning me-2"
-                          onClick={() =>
-                            handleEdit(dosm.studentsEnrolledForMoocId)
-                          }
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="btn btn-sm btn-danger"
-                          onClick={() =>
-                            handleDelete(dosm.studentsEnrolledForMoocId)
-                          }
-                        >
-                          Delete
-                        </button>
+                        <div className="d-flex justify-content-center gap-2">
+                          <button
+                            className="btn btn-sm btn-warning me-2"
+                            onClick={() =>
+                              handleEdit(dosm.studentsEnrolledForMoocId)
+                            }
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="btn btn-sm btn-danger"
+                            onClick={() =>
+                              handleDelete(dosm.studentsEnrolledForMoocId)
+                            }
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
