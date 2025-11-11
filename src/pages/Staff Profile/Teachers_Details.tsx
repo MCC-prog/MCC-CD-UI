@@ -120,6 +120,7 @@ const Teachers_Details: React.FC = () => {
         qualification: response.qualification || "",
         dateOfJoining: response.joiningDate ? response.joiningDate : "",
         vidwaanId: response.vidwanId || "",
+        industryExpNonMcc: response.industrialExperienceNonMcc || "",
       };
       const streamOption = mapValueToLabel(response.streamId, []); // Replace [] with stream options array if available
       const departmentOption = mapValueToLabel(response.departmentId, []); // Replace [] with department options array if available
@@ -137,7 +138,7 @@ const Teachers_Details: React.FC = () => {
         otherDepartment: response.otherDepartment || "",
         academicExp: response.academicExperience || "",
         industryExp: response.industrialExperience || "",
-        industryExpNonMcc: response.industryExpNonMcc || "",
+        industryExpNonMcc: response.industrialExperienceNonMcc || "",
         name: response.name || "",
         qualification: response.qualification || "",
         vidwaanId: response.vidwanId || "",

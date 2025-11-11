@@ -254,6 +254,8 @@ const Program_Wise_Exam_Result: React.FC = () => {
           `/programWiseExamReport/deleteProgramWiseExamReport?programWiseExamReportId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(
           response.message || "Program –wise Exam Results removed successfully!"
         );
@@ -319,7 +321,7 @@ const Program_Wise_Exam_Result: React.FC = () => {
         ""
       );
       // Show success message
-      toast.success(response.message || "File deleted successfully!");
+toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
       validation.setFieldValue("file", null); // Clear the file from Formik state
       setIsFileUploadDisabled(false); // Enable the file upload button

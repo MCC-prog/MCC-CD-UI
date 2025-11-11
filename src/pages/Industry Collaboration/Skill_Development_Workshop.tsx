@@ -165,17 +165,14 @@ const Skill_Development_Workshop: React.FC = () => {
             label: response.mode,
           }
           : null,
-        skillDevelopmentDoc: response.documents?.skillDevelopmentDoc || null,
-        skillDevelopmentDetails:
-          response.documents?.skillDevelopmentDetails || null,
+        skillDevelopmentDoc: response.skillDevelopmentDoc?.SkillDevelopment || null,
       });
       setSelectedStream(streamOption);
       setSelectedDepartment(departmentOption);
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       // Disable the file upload button if a file exists
-      setIsFileUploadDisabled(!!response.documents?.mous);
-      setIsFileUploadDisabled(!!response.documents?.activity);
+      setIsFileUploadDisabled(!!response.skillDevelopmentDoc?.SkillDevelopment);
       toggleModal();
     } catch (error) {
       console.error(
@@ -197,6 +194,8 @@ const Skill_Development_Workshop: React.FC = () => {
           `/skillDevelopmentWorkshop/deleteSkillDevelopmentWorkshop?skillDevelopmentWorkshopId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(
           response.message || "Skill Development Workshop removed successfully!"
         );
@@ -253,18 +252,20 @@ const Skill_Development_Workshop: React.FC = () => {
 
   // Handle file deletion
   // Clear the file from the form and show success message
-  const handleDeleteFile = async () => {
+  const handleDeleteFile = async (fileName: string) => {
     try {
       // Call the delete API
       const response = await api.delete(
-        `/skillDevelopmentWorkshop/deleteSkillDevelopmentWorkshopDocument?skillDevelopmentWorkshopDocumentId=${editId}`,
+        `/skillDevelopmentWorkshop/deleteSkillDevelopmentWorkshopDocument?fileName=${fileName}`,
         ""
       );
       // Show success message
       toast.success(response.message || "File deleted successfully!");
-      // Remove the file from the form
-      validation.setFieldValue("file", null); // Clear the file from Formik state
-      setIsFileUploadDisabled(false); // Enable the file upload button
+      if (isEditMode) {
+        // Clear the file field in edit mode
+        validation.setFieldValue("skillDevelopmentDoc", null);
+        setIsFileUploadDisabled(false); // Enable the file upload button
+      }
     } catch (error) {
       // Show error message
       toast.error("Failed to delete the file. Please try again.");
@@ -312,7 +313,7 @@ const Skill_Development_Workshop: React.FC = () => {
       toDate: "",
       mode: null as { value: string; label: string } | null,
       skillDevelopmentDoc: null as string | null,
-      skillDevelopmentDetails: null as string | null,
+      // skillDevelopmentDetails: null as string | null,
     },
     validationSchema: Yup.object({
       academicYear: Yup.object<{ value: string; label: string }>()
@@ -338,28 +339,41 @@ const Skill_Development_Workshop: React.FC = () => {
       mode: Yup.object<{ value: string; label: string }>()
         .nullable()
         .required("Please select Mode"),
-      skillDevelopmentDoc: Yup.mixed()
-        .required("Please upload a file")
-        .test("fileSize", "File size is too large", (value: any) => {
-          return value && value.size <= 2 * 1024 * 1024; // 2MB limit
-        })
-        .test("fileType", "Unsupported file format", (value: any) => {
-          return (
-            value &&
-            ["application/pdf", "image/jpeg", "image/png"].includes(value.type)
-          );
-        }),
-      skillDevelopmentDetails: Yup.mixed()
-        .required("Please upload a file")
-        .test("fileSize", "File size is too large", (value: any) => {
-          return value && value.size <= 2 * 1024 * 1024; // 2MB limit
-        })
-        .test("fileType", "Unsupported file format", (value: any) => {
-          return (
-            value &&
-            ["application/pdf", "image/jpeg", "image/png"].includes(value.type)
-          );
-        }),
+      skillDevelopmentDoc: Yup.mixed().test(
+        "fileValidation",
+        "Please upload a valid file",
+        function (value) {
+          // Skip validation if the file upload is disabled (file exists)
+          if (isFileUploadDisabled) {
+            return true;
+          }
+          // Perform validation if the file upload is enabled (file doesn't exist)
+          if (!value) {
+            return this.createError({ message: "Please upload a file" });
+          }
+          // Check file size (2MB limit)
+          if (value instanceof File && value.size > 2 * 1024 * 1024) {
+            return this.createError({ message: "File size is too large" });
+          }
+          // Check file type
+          const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
+          if (value instanceof File && !allowedTypes.includes(value.type)) {
+            return this.createError({ message: "Unsupported file format" });
+          }
+          return true;
+        }
+      ),
+      // skillDevelopmentDetails: Yup.mixed()
+      //   .required("Please upload a file")
+      //   .test("fileSize", "File size is too large", (value: any) => {
+      //     return value && value.size <= 2 * 1024 * 1024; // 2MB limit
+      //   })
+      //   .test("fileType", "Unsupported file format", (value: any) => {
+      //     return (
+      //       value &&
+      //       ["application/pdf", "image/jpeg", "image/png"].includes(value.type)
+      //     );
+      //   }),
     }),
 
     onSubmit: async (values, { resetForm }) => {
@@ -389,16 +403,16 @@ const Skill_Development_Workshop: React.FC = () => {
       } else if (values.skillDevelopmentDoc) {
         formData.append("skillDevelopmentDoc", values.skillDevelopmentDoc);
       }
-      if (isEditMode && typeof values.skillDevelopmentDetails === "string") {
-        formData.append("skillDevelopmentDetails", new Blob([]), "empty.pdf");
-      } else if (isEditMode && values.skillDevelopmentDetails === null) {
-        formData.append("skillDevelopmentDetails", new Blob([]), "empty.pdf");
-      } else if (values.skillDevelopmentDetails) {
-        formData.append(
-          "skillDevelopmentDetails",
-          values.skillDevelopmentDetails
-        );
-      }
+      // if (isEditMode && typeof values.skillDevelopmentDetails === "string") {
+      //   formData.append("skillDevelopmentDetails", new Blob([]), "empty.pdf");
+      // } else if (isEditMode && values.skillDevelopmentDetails === null) {
+      //   formData.append("skillDevelopmentDetails", new Blob([]), "empty.pdf");
+      // } else if (values.skillDevelopmentDetails) {
+      //   formData.append(
+      //     "skillDevelopmentDetails",
+      //     values.skillDevelopmentDetails
+      //   );
+      // }
 
       if (isEditMode && editId) {
         formData.append("id", editId);
@@ -575,9 +589,9 @@ const Skill_Development_Workshop: React.FC = () => {
                       <Input
                         type="text"
                         className={`form-control ${validation.touched.facultyName &&
-                            validation.errors.facultyName
-                            ? "is-invalid"
-                            : ""
+                          validation.errors.facultyName
+                          ? "is-invalid"
+                          : ""
                           }`}
                         value={validation.values.facultyName}
                         onChange={(e) =>
@@ -632,8 +646,8 @@ const Skill_Development_Workshop: React.FC = () => {
                       <Input
                         type="text"
                         className={`form-control ${validation.touched.title && validation.errors.title
-                            ? "is-invalid"
-                            : ""
+                          ? "is-invalid"
+                          : ""
                           }`}
                         value={validation.values.title}
                         onChange={(e) =>
@@ -654,9 +668,9 @@ const Skill_Development_Workshop: React.FC = () => {
                       <Input
                         type="text"
                         className={`form-control ${validation.touched.organizedBy &&
-                            validation.errors.organizedBy
-                            ? "is-invalid"
-                            : ""
+                          validation.errors.organizedBy
+                          ? "is-invalid"
+                          : ""
                           }`}
                         value={validation.values.organizedBy}
                         onChange={(e) =>
@@ -681,9 +695,9 @@ const Skill_Development_Workshop: React.FC = () => {
                       <Input
                         type="date"
                         className={`form-control ${validation.touched.fromDate &&
-                            validation.errors.fromDate
-                            ? "is-invalid"
-                            : ""
+                          validation.errors.fromDate
+                          ? "is-invalid"
+                          : ""
                           }`}
                         value={validation.values.fromDate}
                         onChange={(e) =>
@@ -704,8 +718,8 @@ const Skill_Development_Workshop: React.FC = () => {
                       <Input
                         type="date"
                         className={`form-control ${validation.touched.toDate && validation.errors.toDate
-                            ? "is-invalid"
-                            : ""
+                          ? "is-invalid"
+                          : ""
                           }`}
                         value={validation.values.toDate}
                         onChange={(e) =>
@@ -770,9 +784,9 @@ const Skill_Development_Workshop: React.FC = () => {
                       </Tooltip>
                       <Input
                         className={`form-control ${validation.touched.skillDevelopmentDoc &&
-                            validation.errors.skillDevelopmentDoc
-                            ? "is-invalid"
-                            : ""
+                          validation.errors.skillDevelopmentDoc
+                          ? "is-invalid"
+                          : ""
                           }`}
                         type="file"
                         id="formFile"
@@ -824,7 +838,7 @@ const Skill_Development_Workshop: React.FC = () => {
                             <Button
                               color="link"
                               className="text-danger"
-                              onClick={() => handleDeleteFile()}
+                              onClick={() => handleDeleteFile(validation.values.skillDevelopmentDoc as string)}
                               title="Delete File"
                             >
                               <i className="bi bi-trash"></i>
@@ -833,90 +847,7 @@ const Skill_Development_Workshop: React.FC = () => {
                         )}
                     </div>
                   </Col>
-                  <Col sm={4}>
-                    <div className="mb-3">
-                      <Label htmlFor="formFile" className="form-label">
-                        Upload Details
-                        <i
-                          id="infoIcon"
-                          className="bi bi-info-circle ms-2"
-                          style={{ cursor: "pointer", color: "#0d6efd" }}
-                        ></i>
-                      </Label>
-                      <Tooltip
-                        placement="right"
-                        isOpen={tooltipOpen}
-                        target="infoIcon"
-                        toggle={toggleTooltip}
-                      >
-                        Upload an Excel or PDF file. Max size 10MB.
-                      </Tooltip>
-                      <Input
-                        className={`form-control ${validation.touched.skillDevelopmentDetails &&
-                            validation.errors.skillDevelopmentDetails
-                            ? "is-invalid"
-                            : ""
-                          }`}
-                        type="file"
-                        id="formFile"
-                        innerRef={fileRef1}
-                        onChange={(event) => {
-                          validation.setFieldValue(
-                            "skillDevelopmentDetails",
-                            event.currentTarget.files
-                              ? event.currentTarget.files[0]
-                              : null
-                          );
-                        }}
-                        disabled={isFileUploadDisabled} // Disable the button if a file exists
-                      />
-                      {validation.touched.skillDevelopmentDetails &&
-                        validation.errors.skillDevelopmentDetails && (
-                          <div className="text-danger">
-                            {validation.errors.skillDevelopmentDetails}
-                          </div>
-                        )}
-                      {/* Show a message if the file upload button is disabled */}
-                      {isFileUploadDisabled && (
-                        <div className="text-warning mt-2">
-                          Please remove the existing file to upload a new one.
-                        </div>
-                      )}
-                      {/* Only show the file name if it is a string (from the edit API) */}
-                      {typeof validation.values.skillDevelopmentDoc ===
-                        "string" && (
-                          <div className="mt-2 d-flex align-items-center">
-                            <span
-                              className="me-2"
-                              style={{ fontWeight: "bold", color: "green" }}
-                            >
-                              {validation.values.skillDevelopmentDetails}
-                            </span>
-                            <Button
-                              color="link"
-                              className="text-primary"
-                              onClick={() =>
-                                handleDownloadFile(
-                                  validation.values
-                                    .skillDevelopmentDetails as string
-                                )
-                              }
-                              title="Download File"
-                            >
-                              <i className="bi bi-download"></i>
-                            </Button>
-                            <Button
-                              color="link"
-                              className="text-danger"
-                              onClick={() => handleDeleteFile()}
-                              title="Delete File"
-                            >
-                              <i className="bi bi-trash"></i>
-                            </Button>
-                          </div>
-                        )}
-                    </div>
-                  </Col>
+                  
                   <Col lg={4}>
                     <div className="mb-3">
                       <Label>Report Template</Label>

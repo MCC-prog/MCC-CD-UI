@@ -66,7 +66,7 @@ import PatentsOrCopyRights from "pages/Innovation And Entreprenuership/PatentsOr
 import Activities_Conducted_MCCIE from "pages/Innovation And Entreprenuership/Activities_Conducted_MCCIE";
 import OffCampus from "pages/Placement/OffCampus";
 import Internships from "pages/Placement/Internships";
-import CareerFair from "pages/Placement/CareerFair";
+// import CareerFair from "pages/Placement/CareerFair";
 import OnCampus from "pages/Placement/OnCampus";
 import TrainingsAndWorkshops from "pages/Placement/TrainingsAndWorkshops";
 import ClassRooms from "pages/Infrastructure/ClassRooms";
@@ -262,7 +262,7 @@ const authProtectedRoutes = [
     component: <TrainingsAndWorkshops />,
   },
   { path: "/placement/Internships", component: <Internships /> },
-  { path: "/placement/careerFair", component: <CareerFair /> },
+  // { path: "/placement/careerFair", component: <CareerFair /> },
 
   //_____________Infrastructure_____________//
   { path: "/infrastructure/classroom", component: <ClassRooms /> },

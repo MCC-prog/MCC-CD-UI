@@ -214,7 +214,7 @@ const SportsEvents_Conducted_College: React.FC = () => {
         `/sportsEvents/deleteSportsEventsDocument?sportsEventsId=${editId}&docType=${docType}`,
         ""
       );
-      toast.success(response.message || "File deleted successfully!");
+toast.success(response.message || "File deleted successfully!");
       if (docType === "SportsEventsReport") {
         validation.setFieldValue("file", null);
       }

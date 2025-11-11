@@ -344,7 +344,7 @@ const Guest_Lectures: React.FC = () => {
         ""
       );
       // Show success message
-      toast.success(response.message || "File deleted successfully!");
+toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
       if (docType === "guestLecture") {
         validation.setFieldValue("guestLecture", null);

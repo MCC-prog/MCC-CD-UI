@@ -361,6 +361,8 @@ const Research_Publications = () => {
           `/researchPublication/delete?researchPublicationId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(
           response.message ||
             "Research Publication record removed successfully!"
@@ -427,7 +429,7 @@ const Research_Publications = () => {
         ""
       );
       // Show success message
-      toast.success(response.message || "File deleted successfully!");
+toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
       validation.setFieldValue("researchPublication", null); // Clear the file from Formik state
       setIsFrontPageFileUploadDisabled(false); // Enable the file upload button

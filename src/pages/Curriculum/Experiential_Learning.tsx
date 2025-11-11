@@ -668,6 +668,8 @@ const Experiential_Learning: React.FC = () => {
           `/experientialLearning/deleteCoursesWithFocus?experientialLearningId=${deleteId}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(
           response.message ||
             "Experiential Learning record removed successfully!"

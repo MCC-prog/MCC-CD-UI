@@ -30,6 +30,7 @@ import "datatables.net-buttons/js/buttons.html5.js";
 import "jszip";
 import "pdfmake/build/pdfmake";
 import "pdfmake/build/vfs_fonts";
+import NumberOfStudents from "pages/Student Details/NumberOfStudents";
 
 const api = new APIClient();
 
@@ -190,15 +191,15 @@ const Research_Guides = () => {
         const response =
           isEditMode && editId
             ? await api.put(`/researchGuide/update`, formData, {
-                headers: {
-                  "Content-Type": "multipart/form-data",
-                },
-              })
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            })
             : await api.create(`/researchGuide/save`, formData, {
-                headers: {
-                  "Content-Type": "multipart/form-data",
-                },
-              });
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            });
 
         toast.success(
           response.message || "Research Guide record saved successfully!"
@@ -211,6 +212,7 @@ const Research_Guides = () => {
         if (file2Ref.current) {
           file2Ref.current.value = "";
         }
+        setStudents([]);
         setIsFileUploadDisabled(false); // Enable file upload for new entries
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
@@ -380,9 +382,9 @@ const Research_Guides = () => {
           : null,
         department: response.departmentId
           ? {
-              value: response.departmentId.toString(),
-              label: response.departmentName,
-            }
+            value: response.departmentId.toString(),
+            label: response.departmentName,
+          }
           : null,
         guideName: response.guideName || "",
         guideAffiliation: response.guidesAffiliation || "",
@@ -400,24 +402,24 @@ const Research_Guides = () => {
         ...mappedValues,
         academicYear: mappedValues.academicYear
           ? {
-              ...mappedValues.academicYear,
-              value: String(mappedValues.academicYear.value),
-            }
+            ...mappedValues.academicYear,
+            value: String(mappedValues.academicYear.value),
+          }
           : null,
         stream: mappedValues.stream
           ? { ...mappedValues.stream, value: String(mappedValues.stream.value) }
           : null,
         department: mappedValues.department
           ? {
-              ...mappedValues.department,
-              value: String(mappedValues.department.value),
-            }
+            ...mappedValues.department,
+            value: String(mappedValues.department.value),
+          }
           : null,
         status: mappedValues.status
           ? {
-              ...mappedValues.status,
-              value: String(mappedValues.status.value),
-            }
+            ...mappedValues.status,
+            value: String(mappedValues.status.value),
+          }
           : null,
       });
 
@@ -459,6 +461,8 @@ const Research_Guides = () => {
           `/researchGuide/deleteResearchGuide?researchGuideId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(
           response.message || "Research Guide record removed successfully!"
         );
@@ -627,12 +631,11 @@ const Research_Guides = () => {
                         <Label>Specify Department</Label>
                         <Input
                           type="text"
-                          className={`form-control ${
-                            validation.touched.otherDepartment &&
+                          className={`form-control ${validation.touched.otherDepartment &&
                             validation.errors.otherDepartment
-                              ? "is-invalid"
-                              : ""
-                          }`}
+                            ? "is-invalid"
+                            : ""
+                            }`}
                           value={validation.values.otherDepartment}
                           onChange={(e) =>
                             validation.setFieldValue(
@@ -661,12 +664,11 @@ const Research_Guides = () => {
                         onChange={(e) =>
                           validation.setFieldValue("guideName", e.target.value)
                         }
-                        className={`form-control ${
-                          validation.touched.guideName &&
+                        className={`form-control ${validation.touched.guideName &&
                           validation.errors.guideName
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         placeholder="Enter Guide Name"
                       />
                       {validation.touched.guideName &&
@@ -691,12 +693,11 @@ const Research_Guides = () => {
                             e.target.value
                           )
                         }
-                        className={`form-control ${
-                          validation.touched.guideAffiliation &&
+                        className={`form-control ${validation.touched.guideAffiliation &&
                           validation.errors.guideAffiliation
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         placeholder="Enter Guide Affiliation"
                       />
                       {validation.touched.guideAffiliation &&
@@ -720,11 +721,10 @@ const Research_Guides = () => {
                             label: e.target.value,
                           })
                         }
-                        className={`form-control ${
-                          validation.touched.status && validation.errors.status
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                        className={`form-control ${validation.touched.status && validation.errors.status
+                          ? "is-invalid"
+                          : ""
+                          }`}
                       >
                         <option value="">Select Status</option>
                         <option value="Awarded">Awarded</option>
@@ -747,12 +747,11 @@ const Research_Guides = () => {
                         type="number"
                         value={validation.values.numberOfStudents}
                         onChange={handleNumberOfStudentsChange}
-                        className={`form-control ${
-                          validation.touched.numberOfStudents &&
+                        className={`form-control ${validation.touched.numberOfStudents &&
                           validation.errors.numberOfStudents
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         placeholder="Enter Number of Students"
                       />
                       {validation.touched.numberOfStudents &&
@@ -783,28 +782,27 @@ const Research_Guides = () => {
                                 e.target.value
                               )
                             }
-                            className={`form-control ${
-                              validation.touched.studentDetails?.[index]
-                                ?.name &&
+                            className={`form-control ${validation.touched.studentDetails?.[index]
+                              ?.name &&
                               typeof validation.errors.studentDetails?.[
-                                index
+                              index
                               ] === "object" &&
                               validation.errors.studentDetails?.[index]?.name
-                                ? "is-invalid"
-                                : ""
-                            }`}
+                              ? "is-invalid"
+                              : ""
+                              }`}
                             placeholder="Enter Student Name"
                           />
                           {validation.touched.studentDetails?.[index]?.name &&
                             typeof validation.errors.studentDetails?.[index] ===
-                              "object" &&
+                            "object" &&
                             validation.errors.studentDetails?.[index]?.name && (
                               <div className="text-danger">
                                 {typeof validation.errors.studentDetails?.[
                                   index
                                 ]?.name === "string"
                                   ? validation.errors.studentDetails?.[index]
-                                      ?.name
+                                    ?.name
                                   : ""}
                               </div>
                             )}
@@ -823,23 +821,22 @@ const Research_Guides = () => {
                                 e.target.value
                               )
                             }
-                            className={`form-control ${
-                              validation.touched.studentDetails?.[index]
-                                ?.joiningYear &&
+                            className={`form-control ${validation.touched.studentDetails?.[index]
+                              ?.joiningYear &&
                               typeof validation.errors.studentDetails?.[
-                                index
+                              index
                               ] === "object" &&
                               validation.errors.studentDetails?.[index]
                                 ?.joiningYear
-                                ? "is-invalid"
-                                : ""
-                            }`}
+                              ? "is-invalid"
+                              : ""
+                              }`}
                             placeholder="Enter Year of Joining"
                           />
                           {validation.touched.studentDetails?.[index]
                             ?.joiningYear &&
                             typeof validation.errors.studentDetails?.[index] ===
-                              "object" &&
+                            "object" &&
                             validation.errors.studentDetails?.[index]
                               ?.joiningYear && (
                               <div className="text-danger">
@@ -847,7 +844,7 @@ const Research_Guides = () => {
                                   index
                                 ]?.joiningYear === "string"
                                   ? validation.errors.studentDetails?.[index]
-                                      ?.joiningYear
+                                    ?.joiningYear
                                   : ""}
                               </div>
                             )}
@@ -866,21 +863,20 @@ const Research_Guides = () => {
                                 e.target.value
                               )
                             }
-                            className={`form-control ${
-                              validation.touched.studentDetails?.[index]
-                                ?.title &&
+                            className={`form-control ${validation.touched.studentDetails?.[index]
+                              ?.title &&
                               typeof validation.errors.studentDetails?.[
-                                index
+                              index
                               ] === "object" &&
                               validation.errors.studentDetails?.[index]?.title
-                                ? "is-invalid"
-                                : ""
-                            }`}
+                              ? "is-invalid"
+                              : ""
+                              }`}
                             placeholder="Enter Title"
                           />
                           {validation.touched.studentDetails?.[index]?.title &&
                             typeof validation.errors.studentDetails?.[index] ===
-                              "object" &&
+                            "object" &&
                             validation.errors.studentDetails?.[index]
                               ?.title && (
                               <div className="text-danger">
@@ -888,7 +884,7 @@ const Research_Guides = () => {
                                   index
                                 ]?.title === "string"
                                   ? validation.errors.studentDetails?.[index]
-                                      ?.title
+                                    ?.title
                                   : ""}
                               </div>
                             )}
@@ -907,23 +903,22 @@ const Research_Guides = () => {
                                 e.target.value
                               )
                             }
-                            className={`form-control ${
-                              validation.touched.studentDetails?.[index]
-                                ?.fundingRecieved &&
+                            className={`form-control ${validation.touched.studentDetails?.[index]
+                              ?.fundingRecieved &&
                               typeof validation.errors.studentDetails?.[
-                                index
+                              index
                               ] === "object" &&
                               validation.errors.studentDetails?.[index]
                                 ?.fundingRecieved
-                                ? "is-invalid"
-                                : ""
-                            }`}
+                              ? "is-invalid"
+                              : ""
+                              }`}
                             placeholder="Enter Funding Received"
                           />
                           {validation.touched.studentDetails?.[index]
                             ?.fundingRecieved &&
                             typeof validation.errors.studentDetails?.[index] ===
-                              "object" &&
+                            "object" &&
                             validation.errors.studentDetails?.[index]
                               ?.fundingRecieved && (
                               <div className="text-danger">
@@ -931,7 +926,7 @@ const Research_Guides = () => {
                                   index
                                 ]?.fundingRecieved === "string"
                                   ? validation.errors.studentDetails?.[index]
-                                      ?.fundingRecieved
+                                    ?.fundingRecieved
                                   : ""}
                               </div>
                             )}
@@ -950,23 +945,22 @@ const Research_Guides = () => {
                                 e.target.value
                               )
                             }
-                            className={`form-control ${
-                              validation.touched.studentDetails?.[index]
-                                ?.scholarship &&
+                            className={`form-control ${validation.touched.studentDetails?.[index]
+                              ?.scholarship &&
                               typeof validation.errors.studentDetails?.[
-                                index
+                              index
                               ] === "object" &&
                               validation.errors.studentDetails?.[index]
                                 ?.scholarship
-                                ? "is-invalid"
-                                : ""
-                            }`}
+                              ? "is-invalid"
+                              : ""
+                              }`}
                             placeholder="Enter Scholarship"
                           />
                           {validation.touched.studentDetails?.[index]
                             ?.scholarship &&
                             typeof validation.errors.studentDetails?.[index] ===
-                              "object" &&
+                            "object" &&
                             validation.errors.studentDetails?.[index]
                               ?.scholarship && (
                               <div className="text-danger">
@@ -974,7 +968,7 @@ const Research_Guides = () => {
                                   index
                                 ]?.scholarship === "string"
                                   ? validation.errors.studentDetails?.[index]
-                                      ?.scholarship
+                                    ?.scholarship
                                   : ""}
                               </div>
                             )}
@@ -991,12 +985,11 @@ const Research_Guides = () => {
                         Upload Letter
                       </Label>
                       <Input
-                        className={`form-control ${
-                          validation.touched.uploadLetter &&
+                        className={`form-control ${validation.touched.uploadLetter &&
                           validation.errors.uploadLetter
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         type="file"
                         id="formFile"
                         innerRef={fileRef} // Use ref to access the file input

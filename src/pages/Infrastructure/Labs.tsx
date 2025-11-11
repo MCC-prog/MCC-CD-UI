@@ -42,7 +42,7 @@ const Labs: React.FC = () => {
   const [labData, setLabData] = useState<any[]>([]);
   const [filteredData, setFilteredData] = useState(labData);
   const fileRef = useRef<HTMLInputElement | null>(null);
- const tableRef = useRef<HTMLTableElement>(null);
+  const tableRef = useRef<HTMLTableElement>(null);
   // Toggle the modal for listing Labs Data
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
@@ -110,6 +110,7 @@ const Labs: React.FC = () => {
     if (deleteId) {
       try {
         const response = await api.delete(`/labs/deleteLabs?labsId=${id}`, "");
+        setIsModalOpen(false);
         toast.success(response.message || "Labs Data removed successfully!");
         fetchLabsData();
       } catch (error) {
@@ -167,7 +168,7 @@ const Labs: React.FC = () => {
         `/labs/deleteLabsDocument?fileName=${fileName}`,
         ""
       );
-      // Show success message
+
       toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
       validation.setFieldValue("file", null); // Clear the file from Formik state
@@ -244,15 +245,15 @@ const Labs: React.FC = () => {
         const response =
           isEditMode && editId
             ? await api.put(`/labs`, formData, {
-                headers: {
-                  "Content-Type": "multipart/form-data",
-                },
-              })
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            })
             : await api.create(`/labs`, formData, {
-                headers: {
-                  "Content-Type": "multipart/form-data",
-                },
-              });
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            });
 
         toast.success(response.message || "Labs Data updated successfully!");
         // Reset the form fields
@@ -260,6 +261,7 @@ const Labs: React.FC = () => {
         if (fileRef.current) {
           fileRef.current.value = "";
         }
+        setIsFileUploadDisabled(false); // Enable the file upload button
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         // display the Labs Data List
@@ -271,13 +273,13 @@ const Labs: React.FC = () => {
       }
     },
   });
-    useEffect(() => {
+  useEffect(() => {
     if (labData.length === 0) return; // wait until data is loaded
 
     const table = $("#id").DataTable({
       destroy: true, // destroy existing instance if re-rendered
-      scrollX: true, 
-       autoWidth: false, 
+      scrollX: true,
+      autoWidth: false,
       dom: "Bfrtip",
       buttons: [
         {
@@ -336,7 +338,7 @@ const Labs: React.FC = () => {
                         }
                         className={
                           validation.touched.blockName &&
-                          validation.errors?.blockName
+                            validation.errors?.blockName
                             ? "is-invalid"
                             : ""
                         }
@@ -373,7 +375,7 @@ const Labs: React.FC = () => {
                         placeholder="Enter number of classrooms"
                         className={
                           validation.touched.noOfLabs &&
-                          validation.errors?.noOfLabs
+                            validation.errors?.noOfLabs
                             ? "is-invalid"
                             : ""
                         }
@@ -392,11 +394,10 @@ const Labs: React.FC = () => {
                         Upload Photos
                       </Label>
                       <Input
-                        className={`form-control ${
-                          validation.touched.file && validation.errors.file
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                        className={`form-control ${validation.touched.file && validation.errors.file
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         type="file"
                         id="formFile"
                         innerRef={fileRef}

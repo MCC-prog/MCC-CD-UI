@@ -623,7 +623,7 @@ const Student_Centric_Teaching: React.FC = () => {
         ""
       );
       // Show success message
-      toast.success(response.message || "File deleted successfully!");
+toast.success(response.message || "File deleted successfully!");
       if (docType === "projectSanctionLetter") {
         setIsFileUploadDisabled(false);
       } else if (docType === "synopsisReport") {
@@ -650,6 +650,8 @@ const Student_Centric_Teaching: React.FC = () => {
           `/studentCentricMethodology/deleteStudentCentricMethodology?studentCentricMethodologyId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(
           response.message ||
             "Student Centric Teaching Methodology removed successfully!"

@@ -42,7 +42,7 @@ const Seminar_Halls: React.FC = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [filteredData, setFilteredData] = useState(seminarHallsData);
   const fileRef = useRef<HTMLInputElement | null>(null);
- const tableRef = useRef<HTMLTableElement>(null);
+  const tableRef = useRef<HTMLTableElement>(null);
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
 
@@ -110,15 +110,15 @@ const Seminar_Halls: React.FC = () => {
         ...mappedValues,
         academicYear: mappedValues.academicYear
           ? {
-              ...mappedValues.academicYear,
-              value: String(mappedValues.academicYear.value),
-            }
+            ...mappedValues.academicYear,
+            value: String(mappedValues.academicYear.value),
+          }
           : null,
       });
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       // Disable the file upload button if a file exists
-      setIsFileUploadDisabled(!!response.document?.aaa);
+      setIsFileUploadDisabled(!!response.document?.seminarHalls);
       toggleModal();
     } catch (error) {
       console.error("Error fetching Board Room data by ID:", error);
@@ -141,6 +141,7 @@ const Seminar_Halls: React.FC = () => {
           `/infrastructureSeminarHalls/deleteSeminarHalls?seminarHallsId=${id}`,
           ""
         );
+        setIsModalOpen(false);
         toast.success(response.message || "Seminar Hall removed successfully!");
         fetchSeminarHallsData();
       } catch (error) {
@@ -201,6 +202,7 @@ const Seminar_Halls: React.FC = () => {
         `/infrastructureSeminarHalls/deleteSeminarHallsDocument?seminarHallsId=${editId}`,
         ""
       );
+
       // Show success message
       toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
@@ -304,8 +306,8 @@ const Seminar_Halls: React.FC = () => {
 
     const table = $("#seminarHallsId").DataTable({
       destroy: true, // destroy existing instance if re-rendered
-      scrollX: true, 
-       autoWidth: false, 
+      scrollX: true,
+      autoWidth: false,
       dom: "Bfrtip",
       buttons: [
         {
@@ -339,7 +341,7 @@ const Seminar_Halls: React.FC = () => {
       table.destroy(); // clean up
     };
   }, [seminarHallsData]);
-  
+
 
   return (
     <React.Fragment>
@@ -395,7 +397,7 @@ const Seminar_Halls: React.FC = () => {
                         placeholder="Enter number of seminar halls"
                         className={
                           validation.touched.noOfSeminarHalls &&
-                          validation.errors?.noOfSeminarHalls
+                            validation.errors?.noOfSeminarHalls
                             ? "is-invalid"
                             : ""
                         }
@@ -428,11 +430,10 @@ const Seminar_Halls: React.FC = () => {
                         Current Year geo-tagged Photos Only.
                       </Tooltip>
                       <Input
-                        className={`form-control ${
-                          validation.touched.file && validation.errors.file
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                        className={`form-control ${validation.touched.file && validation.errors.file
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         type="file"
                         id="formFile"
                         innerRef={fileRef}
@@ -520,7 +521,7 @@ const Seminar_Halls: React.FC = () => {
               striped
               bordered
               hover
-               id="seminarHallsId"
+              id="seminarHallsId"
               innerRef={tableRef}
             >
               <thead className="table-dark">
@@ -529,7 +530,7 @@ const Seminar_Halls: React.FC = () => {
                   <th>Academic Year</th>
                   <th>No. of Board Rooms</th>
                   <th>Documents</th>
-                   <th className="d-none">File Path</th> {/* Hidden */}
+                  <th className="d-none">File Path</th> {/* Hidden */}
                   <th>Actions</th>
                 </tr>
               </thead>

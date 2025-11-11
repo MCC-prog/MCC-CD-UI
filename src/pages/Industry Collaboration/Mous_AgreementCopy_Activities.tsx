@@ -45,6 +45,7 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
   const [editId, setEditId] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
+  const [isFile2UploadDisabled, setIsFile2UploadDisabled] = useState(false);
   const [filteredData, setFilteredData] = useState(agreementData);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -52,6 +53,7 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
   const tableRef = React.useRef<HTMLTableElement>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const file2Ref = useRef<HTMLInputElement | null>(null);
 
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
@@ -169,8 +171,8 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       // Disable the file upload button if a file exists
-      setIsFileUploadDisabled(!!response.documents?.mous);
-      setIsFileUploadDisabled(!!response.documents?.activity);
+      setIsFileUploadDisabled(!!response.documents?.Mous);
+      setIsFile2UploadDisabled(!!response.documents?.Activity);
       toggleModal();
     } catch (error) {
       console.error(
@@ -192,6 +194,8 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
           `/mousAgreementCopyActivities/deleteMousAgreementCopyActivities?mousAgreementCopyActivitiesId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(
           response.message ||
           "Mous Agreement Copy & Activities removed successfully!"
@@ -252,18 +256,24 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
 
   // Handle file deletion
   // Clear the file from the form and show success message
-  const handleDeleteFile = async () => {
+  const handleDeleteFile = async (fileName: string) => {
     try {
       // Call the delete API
       const response = await api.delete(
-        `/mousAgreementCopyActivities/deleteMousAgreementCopyActivitiesDocument?mousAgreementCopyActivitiesDocumentId=${editId}`,
+        `/mousAgreementCopyActivities/deleteMousAgreementCopyActivitiesDocument?fileName=${fileName}`,
         ""
       );
       // Show success message
       toast.success(response.message || "File deleted successfully!");
-      // Remove the file from the form
-      validation.setFieldValue("file", null); // Clear the file from Formik state
-      setIsFileUploadDisabled(false); // Enable the file upload button
+      // Clear the file from the form
+      if (validation.values.activity === fileName) {
+        validation.setFieldValue("activity", null);
+        setIsFile2UploadDisabled(false); // Enable the file upload button
+      }
+      if (validation.values.mous === fileName) {
+        validation.setFieldValue("mous", null);
+        setIsFileUploadDisabled(false); // Enable the file upload button
+      }
     } catch (error) {
       // Show error message
       toast.error("Failed to delete the file. Please try again.");
@@ -346,7 +356,7 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
         "Please upload a valid file",
         function (value) {
           // Skip validation if the file upload is disabled (file exists)
-          if (isFileUploadDisabled) {
+          if (isFile2UploadDisabled) {
             return true;
           }
           // Perform validation if the file upload is enabled (file doesn't exist)
@@ -436,7 +446,7 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
 
       // If editing, include ID
       if (isEditMode && editId) {
-        formData.append("mousAgreementCopyActivitiesId", editId);
+        formData.append("id", editId);
       }
 
       try {
@@ -466,9 +476,13 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
         if (fileRef.current) {
           fileRef.current.value = "";
         }
+        if (file2Ref.current) {
+          file2Ref.current.value = "";
+        }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         setIsFileUploadDisabled(false); // Enable the file upload button
+        setIsFile2UploadDisabled(false); // Enable the file upload button
         handleListAgreementClick();
       } catch (error) {
         // Display error message
@@ -644,9 +658,9 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
                       <Input
                         type="text"
                         className={`form-control ${validation.touched.organization &&
-                            validation.errors.organization
-                            ? "is-invalid"
-                            : ""
+                          validation.errors.organization
+                          ? "is-invalid"
+                          : ""
                           }`}
                         value={validation.values.organization}
                         onChange={(e) =>
@@ -671,9 +685,9 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
                       <Input
                         type="textarea"
                         className={`form-control ${validation.touched.addessOrganization &&
-                            validation.errors.addessOrganization
-                            ? "is-invalid"
-                            : ""
+                          validation.errors.addessOrganization
+                          ? "is-invalid"
+                          : ""
                           }`}
                         value={validation.values.addessOrganization}
                         onChange={(e) =>
@@ -698,9 +712,9 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
                       <Input
                         type="date"
                         className={`form-control ${validation.touched.yearSigningMou &&
-                            validation.errors.yearSigningMou
-                            ? "is-invalid"
-                            : ""
+                          validation.errors.yearSigningMou
+                          ? "is-invalid"
+                          : ""
                           }`}
                         value={validation.values.yearSigningMou}
                         onChange={(e) =>
@@ -724,9 +738,9 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
                       <Input
                         type="date"
                         className={`form-control ${validation.touched.mouValid &&
-                            validation.errors.mouValid
-                            ? "is-invalid"
-                            : ""
+                          validation.errors.mouValid
+                          ? "is-invalid"
+                          : ""
                           }`}
                         value={validation.values.mouValid}
                         onChange={(e) =>
@@ -747,9 +761,9 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
                       <Input
                         type="textarea"
                         className={`form-control ${validation.touched.typeActivity &&
-                            validation.errors.typeActivity
-                            ? "is-invalid"
-                            : ""
+                          validation.errors.typeActivity
+                          ? "is-invalid"
+                          : ""
                           }`}
                         value={validation.values.typeActivity}
                         onChange={(e) =>
@@ -823,9 +837,9 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
                       </Tooltip>
                       <Input
                         className={`form-control ${validation.touched.activity &&
-                            validation.errors.activity
-                            ? "is-invalid"
-                            : ""
+                          validation.errors.activity
+                          ? "is-invalid"
+                          : ""
                           }`}
                         type="file"
                         id="formFile"
@@ -837,7 +851,8 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
                               : null
                           );
                         }}
-                        disabled={isFileUploadDisabled} // Disable the button if a file exists
+                        innerRef={file2Ref}
+                        disabled={isFile2UploadDisabled} // Disable the button if a file exists
                       />
                       {validation.touched.activity &&
                         validation.errors.activity && (
@@ -846,7 +861,7 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
                           </div>
                         )}
                       {/* Show a message if the file upload button is disabled */}
-                      {isFileUploadDisabled && (
+                      {isFile2UploadDisabled && (
                         <div className="text-warning mt-2">
                           Please remove the existing file to upload a new one.
                         </div>
@@ -875,7 +890,7 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
-                            onClick={() => handleDeleteFile()}
+                            onClick={() => handleDeleteFile(validation.values.activity as string)}
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>
@@ -904,8 +919,8 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
                       </Tooltip>
                       <Input
                         className={`form-control ${validation.touched.mous && validation.errors.mous
-                            ? "is-invalid"
-                            : ""
+                          ? "is-invalid"
+                          : ""
                           }`}
                         type="file"
                         id="formFile"
@@ -955,7 +970,7 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
-                            onClick={() => handleDeleteFile()}
+                            onClick={() => handleDeleteFile(validation.values.mous as string)}
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>

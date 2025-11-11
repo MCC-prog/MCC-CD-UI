@@ -199,6 +199,8 @@ const EquityPrograms: React.FC = () => {
           `/institutionalValues/deleteInstitutionalValues?institutionalValuesId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(
           response.message || "Equity Program removed successfully!"
         );
@@ -264,7 +266,7 @@ const EquityPrograms: React.FC = () => {
         ""
       );
       // Show success message
-      toast.success(response.message || "File deleted successfully!");
+toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
       validation.setFieldValue("file", null); // Clear the file from Formik state
       setIsFileUploadDisabled(false); // Enable the file upload button

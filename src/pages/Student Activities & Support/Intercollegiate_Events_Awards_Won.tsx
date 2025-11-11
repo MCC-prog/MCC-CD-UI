@@ -329,7 +329,7 @@ const Intercollegiate_Events_Awards_Won: React.FC = () => {
         `/intercollegiateEvents/deleteIntercollegiateEventsDocument?intercollegiateEventsId=${editId}&docType=${docType}`,
         ""
       );
-      toast.success(response.message || "File deleted successfully!");
+toast.success(response.message || "File deleted successfully!");
       if (docType === "participationCertificate") {
         validation.setFieldValue("file", null);
         setIsFileUploadDisabled(false);

@@ -162,6 +162,7 @@ const Number_OfBooks_Dept: React.FC = () => {
           `/numberOfBooksInDeptLibrary/deleteNumberOfBooksInDeptLibrary?numberOfBooksInDeptLibraryId=${id}`,
           ""
         );
+        setIsModalOpen(false);
         toast.success(
           response.message ||
             "Number of books in the department library removed successfully!"

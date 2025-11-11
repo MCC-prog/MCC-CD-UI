@@ -188,6 +188,8 @@ const StudentStrengthProgram: React.FC = () => {
           `/studentStrengthProgramWise/deleteTotalStudentStrength?totalStudentStrengthId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(
           response.message ||
             "Student Strength Program-wise removed successfully!"
@@ -254,7 +256,7 @@ const StudentStrengthProgram: React.FC = () => {
         ""
       );
       // Show success message
-      toast.success(response.message || "File deleted successfully!");
+toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
       validation.setFieldValue("file", null); // Clear the file from Formik state
       setIsFileUploadDisabled(false); // Enable the file upload button
@@ -281,7 +283,12 @@ const StudentStrengthProgram: React.FC = () => {
       })
         .nullable()
         .required("Please select academic year"),
-      programType: Yup.string().required("Please select program type"),
+      programType: Yup.object({
+        value: Yup.string().required(),
+        label: Yup.string().required(),
+      })
+        .nullable()
+        .required("Please select Program Type"),
       file: Yup.mixed()
         .required("Please upload a file")
         .test("fileSize", "File size is too large", (value: any) => {
@@ -663,7 +670,7 @@ const StudentStrengthProgram: React.FC = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={4} className="text-center">
+                    <td colSpan={6} className="text-center">
                       No Student Strength Program-wise data available.
                     </td>
                   </tr>

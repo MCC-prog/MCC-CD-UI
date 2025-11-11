@@ -106,9 +106,9 @@ const AAA: React.FC = () => {
         ...mappedValues,
         academicYear: mappedValues.academicYear
           ? {
-              ...mappedValues.academicYear,
-              value: String(mappedValues.academicYear.value),
-            }
+            ...mappedValues.academicYear,
+            value: String(mappedValues.academicYear.value),
+          }
           : null,
       });
       setIsEditMode(true); // Set edit mode
@@ -137,6 +137,7 @@ const AAA: React.FC = () => {
           `/governanceAAA/deleteAAA?aaaId=${id}`,
           ""
         );
+        setIsModalOpen(false);
         toast.success(response.message || "AAA removed successfully!");
         fetchAAAData();
       } catch (error) {
@@ -283,44 +284,44 @@ const AAA: React.FC = () => {
     },
   });
 
-useEffect(() => {
-  if (aaaData.length === 0) return; // wait until data is loaded
+  useEffect(() => {
+    if (aaaData.length === 0) return; // wait until data is loaded
 
-  const table = $("#aaaId").DataTable({
-    destroy: true, // destroy existing instance if re-rendered
-     scrollX: true, 
-       autoWidth: false, 
-    dom: "Bfrtip",
-    buttons: [
-      {
-        extend: "copy",
-        exportOptions: {
-          columns: ":not(:last-child)", // skip Actions column
+    const table = $("#aaaId").DataTable({
+      destroy: true, // destroy existing instance if re-rendered
+      scrollX: true,
+      autoWidth: false,
+      dom: "Bfrtip",
+      buttons: [
+        {
+          extend: "copy",
+          exportOptions: {
+            columns: ":not(:last-child)", // skip Actions column
+          },
+
         },
-        
-      },
-      {
-        extend: "csv",
-        exportOptions: {
-          columns: ":not(:last-child)",
+        {
+          extend: "csv",
+          exportOptions: {
+            columns: ":not(:last-child)",
+          },
         },
-      },
-    ],
-  });
-  $(".dt-buttons").addClass("mb-3 gap-2");
-  $(".buttons-copy").addClass("btn btn-success");
-  $(".buttons-csv").addClass("btn btn-info");
+      ],
+    });
+    $(".dt-buttons").addClass("mb-3 gap-2");
+    $(".buttons-copy").addClass("btn btn-success");
+    $(".buttons-csv").addClass("btn btn-info");
 
-  $("#aaaId").on("buttons-action.dt", function (e, buttonApi, dataTable, node, config) {
-    if (buttonApi.text() === "Copy") {
-      toast.success("Copied to clipboard!");
-    }
-  });
+    $("#aaaId").on("buttons-action.dt", function (e, buttonApi, dataTable, node, config) {
+      if (buttonApi.text() === "Copy") {
+        toast.success("Copied to clipboard!");
+      }
+    });
 
-  return () => {
-    table.destroy(); // clean up
-  };
-}, [aaaData]);
+    return () => {
+      table.destroy(); // clean up
+    };
+  }, [aaaData]);
 
 
   return (
@@ -377,11 +378,10 @@ useEffect(() => {
                         Upload an PDF file. Max size 10MB.
                       </Tooltip>
                       <Input
-                        className={`form-control ${
-                          validation.touched.file && validation.errors.file
+                        className={`form-control ${validation.touched.file && validation.errors.file
                             ? "is-invalid"
                             : ""
-                        }`}
+                          }`}
                         type="file"
                         id="formFile"
                         innerRef={fileRef}

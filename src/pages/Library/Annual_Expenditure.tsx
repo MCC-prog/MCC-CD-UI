@@ -257,7 +257,7 @@ const Annual_Expenditure: React.FC = () => {
         `/annualExpenditure/deleteAnnualExpenditureDocument?fileName=${fileName}`,
         ""
       );
-      toast.success(response.message || "File deleted successfully!");
+toast.success(response.message || "File deleted successfully!");
       if (docType === "AnnualExpenditure") {
         validation.setFieldValue("file", null);
       }

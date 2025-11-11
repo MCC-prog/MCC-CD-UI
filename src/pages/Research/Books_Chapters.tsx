@@ -250,7 +250,7 @@ const Books_Chapters = () => {
         isbn: response.isbn || "",
         dateOfPublication: response.publicationDate || "",
         publisher: response.publisher || "",
-         indexation: response.indexation
+        indexation: response.indexation
           ? {
               value: response.indexation.toString(),
               label: response.indexation,
@@ -319,6 +319,8 @@ const Books_Chapters = () => {
           `/bookChapter/deleteBookChapter?bookChapterId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(
           response.message || "Book Chapter record removed successfully!"
         );
@@ -381,7 +383,7 @@ const Books_Chapters = () => {
         ""
       );
       // Show success message
-      toast.success(response.message || "File deleted successfully!");
+toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
       validation.setFieldValue("bookChapter", null); // Clear the file from Formik state
       setIsFrontPageFileUploadDisabled(false); // Enable the file upload button

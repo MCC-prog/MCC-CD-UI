@@ -239,7 +239,7 @@ const Research_Journals: React.FC = () => {
         `/researchJournals/deleteResearchJournalsDocument?fileName=${fileName}`,
         ""
       );
-      toast.success(response.message || "File deleted successfully!");
+toast.success(response.message || "File deleted successfully!");
       if (docType === "ResearchJournal") {
         validation.setFieldValue("file", null);
       }

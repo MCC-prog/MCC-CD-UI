@@ -241,6 +241,8 @@ const Value_Added_Program: React.FC = () => {
           `/valueAddedCourse/deleteValueAddedCourse?valueAddedCourseId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(
           response.message || "Value Added Program removed successfully!"
         );
@@ -303,7 +305,7 @@ const Value_Added_Program: React.FC = () => {
         `/valueAddedCourse/deleteNewProgramDocument?valueAddedCourseId=${editId}&docType=${docType}`,
         ""
       );
-       toast.success(response.message || "File deleted successfully!");
+ toast.success(response.message || "File deleted successfully!");
       // Show success message
       if (docType === "valueAddedCourse") {
         validation.setFieldValue("file", null);

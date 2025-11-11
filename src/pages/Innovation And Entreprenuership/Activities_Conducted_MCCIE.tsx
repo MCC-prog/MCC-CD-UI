@@ -203,6 +203,8 @@ const Activities_Conducted_MCCIE: React.FC = () => {
           `/activitiesConductedByMCCIE/deleteActivitiesConductedByMCCIE?activitiesConductedByMCCIEId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(
           response.message ||
           "Activities Conducted MCCIIE removed successfully!"
@@ -269,7 +271,7 @@ const Activities_Conducted_MCCIE: React.FC = () => {
         ""
       );
       // Show success message
-      toast.success(response.message || "File deleted successfully!");
+toast.success(response.message || "File deleted successfully!");
       if (docType === "activityPhoto") {
         validation.setFieldValue("activityPhoto", null);
         setIsFileUploadDisabled(false); // Enable the file upload button

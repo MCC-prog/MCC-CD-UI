@@ -129,6 +129,7 @@ const ClassRooms: React.FC = () => {
           `/classRooms/deleteClassRooms?classRoomsId=${id}`,
           ""
         );
+        setIsModalOpen(false);
         toast.success(
           response.message || "Classrooms data removed successfully!"
         );
@@ -188,6 +189,7 @@ const ClassRooms: React.FC = () => {
         `/classRooms/deleteClassRoomsDocument?fileName=${fileName}`,
         ""
       );
+
       // Show success message
       toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
@@ -272,15 +274,15 @@ const ClassRooms: React.FC = () => {
         const response =
           isEditMode && editId
             ? await api.put(`/classRooms`, formData, {
-                headers: {
-                  "Content-Type": "multipart/form-data",
-                },
-              })
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            })
             : await api.create(`/classRooms`, formData, {
-                headers: {
-                  "Content-Type": "multipart/form-data",
-                },
-              });
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            });
 
         toast.success(
           response.message || "Classrooms data updated successfully!"
@@ -290,6 +292,7 @@ const ClassRooms: React.FC = () => {
         if (fileRef.current) {
           fileRef.current.value = "";
         }
+        setIsFileUploadDisabled(false); // Enable the file upload button
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         // display the Classrooms data List
@@ -301,13 +304,13 @@ const ClassRooms: React.FC = () => {
       }
     },
   });
-      useEffect(() => {
+  useEffect(() => {
     if (classroomData.length === 0) return; // wait until data is loaded
 
     const table = $("#id").DataTable({
       destroy: true, // destroy existing instance if re-rendered
-      scrollX: true, 
-       autoWidth: false, 
+      scrollX: true,
+      autoWidth: false,
       dom: "Bfrtip",
       buttons: [
         {
@@ -366,7 +369,7 @@ const ClassRooms: React.FC = () => {
                         }
                         className={
                           validation.touched.blockName &&
-                          validation.errors?.blockName
+                            validation.errors?.blockName
                             ? "is-invalid"
                             : ""
                         }
@@ -406,7 +409,7 @@ const ClassRooms: React.FC = () => {
                         placeholder="Enter number of classrooms"
                         className={
                           validation.touched.noOfClassrooms &&
-                          validation.errors?.noOfClassrooms
+                            validation.errors?.noOfClassrooms
                             ? "is-invalid"
                             : ""
                         }
@@ -438,7 +441,7 @@ const ClassRooms: React.FC = () => {
                         placeholder="Enter number of smartboards"
                         className={
                           validation.touched.noOfSmartboards &&
-                          validation.errors?.noOfSmartboards
+                            validation.errors?.noOfSmartboards
                             ? "is-invalid"
                             : ""
                         }
@@ -456,13 +459,13 @@ const ClassRooms: React.FC = () => {
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
                         Upload Photos
-                         <i
+                        <i
                           id="infoIcon"
                           className="bi bi-info-circle ms-2"
                           style={{ cursor: "pointer", color: "#0d6efd" }}
                         ></i>
                       </Label>
-                         <Tooltip
+                      <Tooltip
                         placement="right"
                         isOpen={tooltipOpen}
                         target="infoIcon"
@@ -471,11 +474,10 @@ const ClassRooms: React.FC = () => {
                         Current Year geo-tagged Photos Only.
                       </Tooltip>
                       <Input
-                        className={`form-control ${
-                          validation.touched.file && validation.errors.file
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                        className={`form-control ${validation.touched.file && validation.errors.file
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         type="file"
                         id="formFile"
                         innerRef={fileRef}
@@ -592,7 +594,7 @@ const ClassRooms: React.FC = () => {
                       <td>{campus.blockName}</td>
                       <td>{campus.noOfClassRooms}</td>
                       <td>{campus.noOfSmartClassRooms}</td>
-                       <td className="d-none">{campus?.filePath?.ClassRooms || "N/A"}</td> {/* Hidden */}
+                      <td className="d-none">{campus?.filePath?.ClassRooms || "N/A"}</td> {/* Hidden */}
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button

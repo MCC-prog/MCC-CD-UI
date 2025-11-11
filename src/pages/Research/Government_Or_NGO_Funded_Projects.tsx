@@ -292,6 +292,8 @@ const GovernmentOrNGOFundedProjects = () => {
           `/governmentFundProject/deleteGovernmentFundedProject?governmentFundProjectId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(response.message || "GFP record removed successfully!");
         fetchGFPData();
       } catch (error) {
@@ -402,7 +404,7 @@ const GovernmentOrNGOFundedProjects = () => {
         `/governmentFundProject/deleteGovernmentFundedProjectDocument?GovernmentFundProjectId=${editId}&docType=${docType}`,
         ""
       );
-      toast.success(response.message || "File deleted successfully!");
+toast.success(response.message || "File deleted successfully!");
       if (docType === "sanctionOrder") {
         validation.setFieldValue(
           "principalInvestigator.sanctionOrderFile",

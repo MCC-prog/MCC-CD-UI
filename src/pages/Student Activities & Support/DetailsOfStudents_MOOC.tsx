@@ -55,6 +55,7 @@ const DetailsOfStudents_MOOC: React.FC = () => {
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
+  const [isFile2UploadDisabled, setIsFile2UploadDisabled] = useState(false);
   const [filters, setFilters] = useState({
     academicYear: null,
     mccRegNo: "",
@@ -67,6 +68,7 @@ const DetailsOfStudents_MOOC: React.FC = () => {
   });
 
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const file2Ref = useRef<HTMLInputElement | null>(null);
   const tableRef = useRef<HTMLTableElement>(null);
 
   // Calculate the paginated data
@@ -142,15 +144,15 @@ const DetailsOfStudents_MOOC: React.FC = () => {
           : null,
         department: response.departmentId
           ? {
-              value: response.departmentId.toString(),
-              label: response.departmentName,
-            }
+            value: response.departmentId.toString(),
+            label: response.departmentName,
+          }
           : null,
         courses: response.courses
           ? Object.entries(response.courses).map(([key, value]) => ({
-              value: key,
-              label: String(value),
-            }))
+            value: key,
+            label: String(value),
+          }))
           : [],
         noOfStaff: response.noOfStaff || "",
         mccRegNo: response.mccRegisterNo || "",
@@ -161,24 +163,25 @@ const DetailsOfStudents_MOOC: React.FC = () => {
         duration: response.duration || "",
         courseDuration: response.courseDuration || "",
         file: response.documents.moocCertificate || null, // Assuming 'file' is a string or null
+        excel: response.documents.excel || null, // Assuming 'file' is a string or null
       };
 
       // Update Formik values
       validation.setValues({
         academicYear: mappedValues.academicYear
           ? {
-              ...mappedValues.academicYear,
-              value: String(mappedValues.academicYear.value),
-            }
+            ...mappedValues.academicYear,
+            value: String(mappedValues.academicYear.value),
+          }
           : null,
         stream: mappedValues.stream
           ? { ...mappedValues.stream, value: String(mappedValues.stream.value) }
           : null,
         department: mappedValues.department
           ? {
-              ...mappedValues.department,
-              value: String(mappedValues.department.value),
-            }
+            ...mappedValues.department,
+            value: String(mappedValues.department.value),
+          }
           : null,
         noOfStaff: response.noOfStaff || "",
         mccRegNo: response.mccRegisterNo || "",
@@ -189,9 +192,11 @@ const DetailsOfStudents_MOOC: React.FC = () => {
         duration: response.duration || "",
         courseDuration: response.courseDuration || "",
         file: response.documents.moocCertificate || null, // Assuming 'file' is a string or null
+        excel: response.documents.excel || null, // Assuming 'file' is a string or null
         courses: mappedValues.courses || [],
       });
       setIsFileUploadDisabled(!!response.documents.moocCertificate); // Disable file upload if a file exists
+      setIsFile2UploadDisabled(!!response.documents.excel); // Disable file upload if a file exists
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();
@@ -219,7 +224,7 @@ const DetailsOfStudents_MOOC: React.FC = () => {
         setIsModalOpen(false);
         toast.success(
           response.message ||
-            "Details of Students Enrolled for MOOC removed successfully!"
+          "Details of Students Enrolled for MOOC removed successfully!"
         );
         fetchDOSMData();
       } catch (error) {
@@ -286,8 +291,12 @@ const DetailsOfStudents_MOOC: React.FC = () => {
       toast.success(response.message || "File deleted successfully!");
       if (docType === "moocCertificate") {
         validation.setFieldValue("file", null);
+        setIsFileUploadDisabled(false); // Enable the file upload button
+
+      } else if (docType === "excel") {
+        validation.setFieldValue("excel", null);  
+        setIsFile2UploadDisabled(false); // Enable the file upload button
       }
-      setIsFileUploadDisabled(false); // Enable the file upload button
     } catch (error) {
       toast.error("Failed to delete the file. Please try again.");
       console.error("Error deleting file:", error);
@@ -308,6 +317,7 @@ const DetailsOfStudents_MOOC: React.FC = () => {
       duration: "",
       courseDuration: "",
       file: null as File | string | null,
+      excel: null as File | string | null,
       courses: [] as { value: string; label: string }[],
     },
     validationSchema: Yup.object({
@@ -343,6 +353,24 @@ const DetailsOfStudents_MOOC: React.FC = () => {
       moocCoursePursued: Yup.string().required(
         "Please enter Mooc Course Title"
       ),
+      excel: Yup.mixed()
+        .required("Please upload a file")
+        .test("fileSize", "File size is too large", (value: any) => {
+          // Skip size validation if file is a string (from existing data)
+          if (typeof value === "string") return true;
+          return value && value.size <= 50 * 1024 * 1024; // 50MB
+        })
+        .test("fileType", "Unsupported file format", (value: any) => {
+          // Skip type validation if file is a string
+          if (typeof value === "string") return true;
+          return (
+            value &&
+            [
+              "application/vnd.ms-excel",
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            ].includes(value.type)
+          );
+        }),
       duration: Yup.string().required("Please enter Duration"),
       courses: Yup.array()
         .of(
@@ -358,8 +386,8 @@ const DetailsOfStudents_MOOC: React.FC = () => {
       try {
         const formData = new FormData();
         formData.append("academicYear", values.academicYear?.value || "");
-        formData.append("stream", values.stream?.value || "");
-        formData.append("department", values.department?.value || "");
+        formData.append("streamId", values.stream?.value || "");
+        formData.append("departmentId", values.department?.value || "");
         formData.append("studentName", values.studentName);
         formData.append("mccRegisterNo", values.mccRegNo);
         formData.append("offeredBy", values.offeredBy);
@@ -390,6 +418,25 @@ const DetailsOfStudents_MOOC: React.FC = () => {
           formData.append("file", values.file);
         }
 
+        if (isEditMode && typeof values.excel === "string") {
+          formData.append(
+            "excel",
+            new Blob([], {
+              type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            }),
+            "empty.xlsx"
+          );
+        } else if (isEditMode && values.excel === null) {
+          formData.append(
+            "excel",
+            new Blob([], {
+              type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            }),
+            "empty.xlsx"
+          );
+        } else if (values.excel) {
+          formData.append("excel", values.excel);
+        }
         // If in edit mode, append the edit ID
         if (isEditMode && editId) {
           formData.append("studentsEnrolledForMoocId", editId);
@@ -403,7 +450,7 @@ const DetailsOfStudents_MOOC: React.FC = () => {
           );
           toast.success(
             response.message ||
-              "Details of Students Enrolled for MOOC updated successfully!"
+            "Details of Students Enrolled for MOOC updated successfully!"
           );
         } else {
           // Call the save API
@@ -413,7 +460,7 @@ const DetailsOfStudents_MOOC: React.FC = () => {
           );
           toast.success(
             response.message ||
-              "Details of Students Enrolled for MOOC added successfully!"
+            "Details of Students Enrolled for MOOC added successfully!"
           );
         }
         // Reset the form fields
@@ -421,7 +468,11 @@ const DetailsOfStudents_MOOC: React.FC = () => {
         if (fileRef.current) {
           fileRef.current.value = "";
         }
-        setIsFileUploadDisabled(false); 
+        if (file2Ref.current) {
+          file2Ref.current.value = "";
+        }
+        setIsFileUploadDisabled(false);
+        setIsFile2UploadDisabled(false);
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         // display the Details of Students Enrolled for MOOC
@@ -574,12 +625,11 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                         MCC Register number
                       </Label>
                       <Input
-                        className={`form-control ${
-                          validation.touched.mccRegNo &&
+                        className={`form-control ${validation.touched.mccRegNo &&
                           validation.errors.mccRegNo
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         type="text"
                         id="mccRegNo"
                         onChange={(e) =>
@@ -603,12 +653,11 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                         Student Name
                       </Label>
                       <Input
-                        className={`form-control ${
-                          validation.touched.studentName &&
+                        className={`form-control ${validation.touched.studentName &&
                           validation.errors.studentName
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         type="text"
                         id="studentName"
                         onChange={(e) =>
@@ -659,12 +708,11 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                         Mooc Offering Institute
                       </Label>
                       <Input
-                        className={`form-control ${
-                          validation.touched.offeredBy &&
+                        className={`form-control ${validation.touched.offeredBy &&
                           validation.errors.offeredBy
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         type="text"
                         id="offeredBy"
                         onChange={(e) =>
@@ -688,12 +736,11 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                         Mooc Course Id/Registration Number
                       </Label>
                       <Input
-                        className={`form-control ${
-                          validation.touched.moocCourseRegId &&
+                        className={`form-control ${validation.touched.moocCourseRegId &&
                           validation.errors.moocCourseRegId
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         type="text"
                         id="moocCourseRegId"
                         onChange={(e) =>
@@ -720,12 +767,11 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                         Mooc Course Title
                       </Label>
                       <Input
-                        className={`form-control ${
-                          validation.touched.moocCoursePursued &&
+                        className={`form-control ${validation.touched.moocCoursePursued &&
                           validation.errors.moocCoursePursued
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         type="text"
                         id="moocCoursePursued"
                         onChange={(e) =>
@@ -752,12 +798,11 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                         Duration
                       </Label>
                       <Input
-                        className={`form-control ${
-                          validation.touched.duration &&
+                        className={`form-control ${validation.touched.duration &&
                           validation.errors.duration
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         type="text"
                         id="duration"
                         onChange={(e) =>
@@ -795,11 +840,10 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                         ></i>
                       </Tooltip>
                       <Input
-                        className={`form-control ${
-                          validation.touched.file && validation.errors.file
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                        className={`form-control ${validation.touched.file && validation.errors.file
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         type="file"
                         id="formFile"
                         innerRef={fileRef}
@@ -852,6 +896,93 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                               handleDeleteFile(
                                 validation.values.file as string,
                                 "moocCertificate"
+                              )
+                            }
+                            title="Delete File"
+                          >
+                            <i className="bi bi-trash"></i>
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </Col>
+
+                  <Col sm={4}>
+                    <div className="mb-3">
+                      <Label htmlFor="formFile" className="form-label">
+                        Upload Excel
+                      </Label>
+                      <Tooltip
+                        placement="right"
+                        open={tooltipOpen}
+                        onClose={() => setTooltipOpen(false)}
+                        onOpen={() => setTooltipOpen(true)}
+                        title={<span>Upload file. Max size 10MB.</span>}
+                        arrow
+                      >
+                        <i
+                          id="infoIcon"
+                          className="bi bi-info-circle ms-2"
+                          style={{ cursor: "pointer", color: "#0d6efd" }}
+                        ></i>
+                      </Tooltip>
+                      <Input
+                        className={`form-control ${validation.touched.excel && validation.errors.excel
+                          ? "is-invalid"
+                          : ""
+                          }`}
+                        type="file"
+                        id="formFile"
+                        innerRef={file2Ref}
+                        onChange={(event) => {
+                          validation.setFieldValue(
+                            "excel",
+                            event.currentTarget.files
+                              ? event.currentTarget.files[0]
+                              : null
+                          );
+                        }}
+                        disabled={isFile2UploadDisabled} // Disable the button if a file exists
+                      />
+                      {validation.touched.excel && validation.errors.excel && (
+                        <div className="text-danger">
+                          {validation.errors.excel}
+                        </div>
+                      )}
+                      {/* Show a message if the file upload button is disabled */}
+                      {isFile2UploadDisabled && (
+                        <div className="text-warning mt-2">
+                          Please remove the existing file to upload a new one.
+                        </div>
+                      )}
+                      {/* Only show the file name if it is a string (from the edit API) */}
+                      {typeof validation.values.excel === "string" && (
+                        <div className="mt-2 d-flex align-items-center">
+                          <span
+                            className="me-2"
+                            style={{ fontWeight: "bold", color: "green" }}
+                          >
+                            {validation.values.excel}
+                          </span>
+                          <Button
+                            color="link"
+                            className="text-primary"
+                            onClick={() =>
+                              handleDownloadFile(
+                                validation.values.excel as string
+                              )
+                            }
+                            title="Download File"
+                          >
+                            <i className="bi bi-download"></i>
+                          </Button>
+                          <Button
+                            color="link"
+                            className="text-danger"
+                            onClick={() =>
+                              handleDeleteFile(
+                                validation.values.excel as string,
+                                "excel"
                               )
                             }
                             title="Delete File"
@@ -928,7 +1059,7 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                             (courseName, idx) => (
                               <li key={idx}>
                                 {typeof courseName === "string" ||
-                                typeof courseName === "number"
+                                  typeof courseName === "number"
                                   ? courseName
                                   : String(courseName)}
                               </li>

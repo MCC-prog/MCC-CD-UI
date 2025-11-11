@@ -113,9 +113,9 @@ const Amphitheatre: React.FC = () => {
         ...mappedValues,
         academicYear: mappedValues.academicYear
           ? {
-              ...mappedValues.academicYear,
-              value: String(mappedValues.academicYear.value),
-            }
+            ...mappedValues.academicYear,
+            value: String(mappedValues.academicYear.value),
+          }
           : null,
       });
       if (response.document?.amphitheatre) {
@@ -151,6 +151,7 @@ const Amphitheatre: React.FC = () => {
           `/infrastructureAmphitheatre/deleteAmphitheatre?amphitheatreId=${id}`,
           ""
         );
+        setIsModalOpen(false);
         toast.success(response.message || "Amphitheatre removed successfully!");
         fetchAmphitheatreData();
       } catch (error) {
@@ -212,6 +213,7 @@ const Amphitheatre: React.FC = () => {
         ""
       );
       // Show success message
+      setIsModalOpen(false);
       toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
       validation.setFieldValue("file", null); // Clear the file from Formik state
@@ -314,8 +316,8 @@ const Amphitheatre: React.FC = () => {
 
     const table = $("#amphitheatreId").DataTable({
       destroy: true, // destroy existing instance if re-rendered
-      scrollX: true, 
-       autoWidth: false, 
+      scrollX: true,
+      autoWidth: false,
       dom: "Bfrtip",
       buttons: [
         {
@@ -403,7 +405,7 @@ const Amphitheatre: React.FC = () => {
                         placeholder="Enter number of amphitheatres"
                         className={
                           validation.touched.noOfAmphitheatre &&
-                          validation.errors?.noOfAmphitheatre
+                            validation.errors?.noOfAmphitheatre
                             ? "is-invalid"
                             : ""
                         }
@@ -436,11 +438,10 @@ const Amphitheatre: React.FC = () => {
                         Current Year geo-tagged Photos Only.
                       </Tooltip>
                       <Input
-                        className={`form-control ${
-                          validation.touched.file && validation.errors.file
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                        className={`form-control ${validation.touched.file && validation.errors.file
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         type="file"
                         id="formFile"
                         innerRef={fileRef}
@@ -551,7 +552,7 @@ const Amphitheatre: React.FC = () => {
                       <td>
                         {amphitheatre.document?.amphitheatre || "No file uploaded"}
                       </td>
-                       <td className="d-none">{amphitheatre?.filePath?.amphitheatre || "N/A"}</td> {/* Hidden */}
+                      <td className="d-none">{amphitheatre?.filePath?.amphitheatre || "N/A"}</td> {/* Hidden */}
                       <td>
                         <button
                           className="btn btn-sm btn-warning me-2"

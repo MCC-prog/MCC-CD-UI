@@ -235,6 +235,8 @@ const New_Courses_Introduced: React.FC = () => {
           `/newCoursesIntroduced/deleteNewCoursesIntroduced?newCoursesIntroducedId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(
           response.message || "New Courses Introduced removed successfully!"
         );
@@ -300,7 +302,7 @@ const New_Courses_Introduced: React.FC = () => {
         ""
       );
       // Show success message
-      toast.success(response.message || "File deleted successfully!");
+toast.success(response.message || "File deleted successfully!");
       if (docType === "Mom") {
         validation.setFieldValue("file", null);
         setIsMomUploadDisabled(false); // Re-enable only MOM upload

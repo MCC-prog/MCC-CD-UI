@@ -205,7 +205,7 @@ const Skill_Development_Work: React.FC = () => {
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       // Disable the file upload button if a file exists
-      setIsFileUploadDisabled(!!response.documents?.mom);
+      setIsFileUploadDisabled(!!fileName);
       toggleModal();
     } catch (error) {
       console.error("Error fetching BOS data by ID:", error);
@@ -228,12 +228,14 @@ const Skill_Development_Work: React.FC = () => {
           `/fdpsMoocsSkillDevelopmentWorkshop/deleteFdpsMoocsSkillDevelopmentWorkshop?fdpsMoocsSkillDevelopmentWorkshopId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(
-          response.message || "Curriculum BOS removed successfully!"
+          response.message || "Skill Development Workshop removed successfully!"
         );
         fetchSWDData();
       } catch (error) {
-        toast.error("Failed to remove Curriculum BOS. Please try again.");
+        toast.error("Failed to remove Skill Development Workshop. Please try again.");
         console.error("Error deleting BOS:", error);
       } finally {
         setIsDeleteModalOpen(false);
@@ -291,7 +293,7 @@ const Skill_Development_Work: React.FC = () => {
         ""
       );
       // Show success message
-      toast.success(response.message || "File deleted successfully!");
+toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
       validation.setFieldValue("file", null); // Clear the file from Formik state
       setIsFileUploadDisabled(false); // Enable the file upload button
@@ -416,7 +418,7 @@ const Skill_Development_Work: React.FC = () => {
             formData
           );
           toast.success(
-            response.message || "Curriculum BOS updated successfully!"
+            response.message || "Skill Development Workshop updated successfully!"
           );
         } else {
           // Call the save API
@@ -425,7 +427,7 @@ const Skill_Development_Work: React.FC = () => {
             formData
           );
           toast.success(
-            response.message || "Curriculum BOS added successfully!"
+            response.message || "Skill Development Workshop added successfully!"
           );
         }
         // Reset the form fields
@@ -435,11 +437,12 @@ const Skill_Development_Work: React.FC = () => {
         }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
+        setIsFileUploadDisabled(false); // Enable the file upload button
         // display the BOS List
         handleListSDWClick();
       } catch (error) {
         // Display error message
-        toast.error("Failed to save Curriculum BOS. Please try again.");
+        toast.error("Failed to save Skill Development Workshop. Please try again.");
         console.error("Error creating BOS:", error);
       }
     },

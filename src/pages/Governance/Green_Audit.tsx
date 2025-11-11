@@ -36,6 +36,8 @@ const GreenAudit: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [greenAuditData, setGreenAuditData] = useState<any[]>([]);
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
+  const [isFile2UploadDisabled, setIsFile2UploadDisabled] = useState(false);
+  const [isFile3UploadDisabled, setIsFile3UploadDisabled] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
@@ -114,15 +116,17 @@ const GreenAudit: React.FC = () => {
         ...mappedValues,
         academicYear: mappedValues.academicYear
           ? {
-              ...mappedValues.academicYear,
-              value: String(mappedValues.academicYear.value),
-            }
+            ...mappedValues.academicYear,
+            value: String(mappedValues.academicYear.value),
+          }
           : null,
       });
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       // Disable the file upload button if a file exists
       setIsFileUploadDisabled(!!response.document?.greenAudit);
+      setIsFile2UploadDisabled(!!response.document?.certificateFile);
+      setIsFile3UploadDisabled(!!response.document?.geoTaggedPhotos);
       toggleModal();
     } catch (error) {
       console.error("Error fetching green audit data by ID:", error);
@@ -145,6 +149,8 @@ const GreenAudit: React.FC = () => {
           `/governanceGreenAudit/deleteGreenAudit?greenAuditId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(response.message || "Green Audit removed successfully!");
         fetchGreenAuditData();
       } catch (error) {
@@ -198,18 +204,25 @@ const GreenAudit: React.FC = () => {
 
   // Handle file deletion
   // Clear the file from the form and show success message
-  const handleDeleteFile = async () => {
+  const handleDeleteFile = async (docType: string) => {
     try {
       // Call the delete API
       const response = await api.delete(
-        `/governanceGreenAudit/deleteGreenAuditDocument?greenAuditId=${editId}`,
+        `/governanceGreenAudit/deleteGreenAuditDocument?greenAuditId=${editId}&docType=${docType}`,
         ""
       );
       // Show success message
       toast.success(response.message || "File deleted successfully!");
-      // Remove the file from the form
-      validation.setFieldValue("file", null); // Clear the file from Formik state
-      setIsFileUploadDisabled(false); // Enable the file upload button
+      if (docType === "greenAudit") {
+        validation.setFieldValue("file", null);
+        setIsFileUploadDisabled(false); // Enable the file upload button
+      } else if (docType === "certificateFile") {
+        validation.setFieldValue("certificateFile", null);
+        setIsFile2UploadDisabled(false); // Enable the file upload button
+      } else if (docType === "geoTaggedPhotos") {
+        validation.setFieldValue("geoTaggedPhotos", null);
+        setIsFile3UploadDisabled(false); // Enable the file upload button
+      }
     } catch (error) {
       // Show error message
       toast.error("Failed to delete the file. Please try again.");
@@ -246,7 +259,7 @@ const GreenAudit: React.FC = () => {
             ["application/pdf", "image/jpeg", "image/png"].includes(value.type)
           );
         }),
-          certificateFile: Yup.mixed()
+      certificateFile: Yup.mixed()
         .required("Please upload a file")
         .test("fileSize", "File size is too large", (value: any) => {
           if (typeof value === "string") return true;
@@ -259,7 +272,7 @@ const GreenAudit: React.FC = () => {
             ["application/pdf", "image/jpeg", "image/png"].includes(value.type)
           );
         }),
-          geoTaggedPhotos: Yup.mixed()
+      geoTaggedPhotos: Yup.mixed()
         .required("Please upload a file")
         .test("fileSize", "File size is too large", (value: any) => {
           if (typeof value === "string") return true;
@@ -272,7 +285,7 @@ const GreenAudit: React.FC = () => {
             ["application/pdf", "image/jpeg", "image/png"].includes(value.type)
           );
         }),
-        
+
     }),
     onSubmit: async (values, { resetForm }) => {
       const formData = new FormData();
@@ -288,15 +301,15 @@ const GreenAudit: React.FC = () => {
       } else if (values.file) {
         formData.append("file", values.file);
       }
-        if (isEditMode && typeof values.certificateFile === "string") {
+      if (isEditMode && typeof values.certificateFile === "string") {
         // Pass an empty Blob instead of null
         formData.append("certificateFile", new Blob([]), "empty.pdf");
       } else if (isEditMode && values.certificateFile === null) {
         formData.append("certificateFile", new Blob([]), "empty.pdf");
       } else if (values.certificateFile) {
-        formData.append("file", values.certificateFile);
+        formData.append("certificateFile", values.certificateFile);
       }
-        if (isEditMode && typeof values.geoTaggedPhotos === "string") {
+      if (isEditMode && typeof values.geoTaggedPhotos === "string") {
         // Pass an empty Blob instead of null
         formData.append("geoTaggedPhotos", new Blob([]), "empty.pdf");
       } else if (isEditMode && values.geoTaggedPhotos === null) {
@@ -332,9 +345,19 @@ const GreenAudit: React.FC = () => {
         if (fileRef.current) {
           fileRef.current.value = "";
         }
+        if (fileRef1.current) {
+          fileRef1.current.value = "";
+        }
+        if (fileRef2.current) {
+          fileRef2.current.value = "";
+        }
+
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         setIsFileUploadDisabled(false); // Enable the file upload button
+        setIsFile2UploadDisabled(false); // Enable the file upload button
+        setIsFile3UploadDisabled(false); // Enable the file upload button
+        // Refresh the list
         handleListGreenAuditClick();
       } catch (error) {
         // Display error message
@@ -438,11 +461,10 @@ const GreenAudit: React.FC = () => {
                         Upload an PDF file. Max size 10MB.
                       </Tooltip>
                       <Input
-                        className={`form-control ${
-                          validation.touched.file && validation.errors.file
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                        className={`form-control ${validation.touched.file && validation.errors.file
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         type="file"
                         id="formFile"
                         innerRef={fileRef}
@@ -491,7 +513,7 @@ const GreenAudit: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
-                            onClick={() => handleDeleteFile()}
+                            onClick={() => handleDeleteFile("greenAudit")}
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>
@@ -500,7 +522,7 @@ const GreenAudit: React.FC = () => {
                       )}
                     </div>
                   </Col>
-                  
+
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
@@ -520,11 +542,10 @@ const GreenAudit: React.FC = () => {
                         Upload an PDF file. Max size 10MB.
                       </Tooltip>
                       <Input
-                        className={`form-control ${
-                          validation.touched.file && validation.errors.file
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                        className={`form-control ${validation.touched.file && validation.errors.file
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         type="file"
                         id="formFile"
                         innerRef={fileRef1}
@@ -536,7 +557,7 @@ const GreenAudit: React.FC = () => {
                               : null
                           );
                         }}
-                        disabled={isFileUploadDisabled} // Disable the button if a file exists
+                        disabled={isFile2UploadDisabled} // Disable the button if a file exists
                       />
                       {validation.touched.certificateFile && validation.errors.certificateFile && (
                         <div className="text-danger">
@@ -544,7 +565,7 @@ const GreenAudit: React.FC = () => {
                         </div>
                       )}
                       {/* Show a message if the file upload button is disabled */}
-                      {isFileUploadDisabled && (
+                      {isFile2UploadDisabled && (
                         <div className="text-warning mt-2">
                           Please remove the existing file to upload a new one.
                         </div>
@@ -573,7 +594,7 @@ const GreenAudit: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
-                            onClick={() => handleDeleteFile()}
+                            onClick={() => handleDeleteFile("certificateFile")}
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>
@@ -582,7 +603,7 @@ const GreenAudit: React.FC = () => {
                       )}
                     </div>
                   </Col>
-                  
+
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
@@ -602,11 +623,10 @@ const GreenAudit: React.FC = () => {
                         Upload an PDF file. Max size 10MB.
                       </Tooltip>
                       <Input
-                        className={`form-control ${
-                          validation.touched.file && validation.errors.file
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                        className={`form-control ${validation.touched.file && validation.errors.file
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         type="file"
                         id="formFile"
                         innerRef={fileRef2}
@@ -618,7 +638,7 @@ const GreenAudit: React.FC = () => {
                               : null
                           );
                         }}
-                        disabled={isFileUploadDisabled} // Disable the button if a file exists
+                        disabled={isFile3UploadDisabled} // Disable the button if a file exists
                       />
                       {validation.touched.geoTaggedPhotos && validation.errors.geoTaggedPhotos && (
                         <div className="text-danger">
@@ -626,7 +646,7 @@ const GreenAudit: React.FC = () => {
                         </div>
                       )}
                       {/* Show a message if the file upload button is disabled */}
-                      {isFileUploadDisabled && (
+                      {isFile3UploadDisabled && (
                         <div className="text-warning mt-2">
                           Please remove the existing file to upload a new one.
                         </div>
@@ -655,7 +675,7 @@ const GreenAudit: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
-                            onClick={() => handleDeleteFile()}
+                            onClick={() => handleDeleteFile("geoTaggedPhotos")}
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>
@@ -703,7 +723,7 @@ const GreenAudit: React.FC = () => {
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
-                 <th>Green Audit Report</th>
+                  <th>Green Audit Report</th>
                   <th>Geo Tagged Photos</th>
                   <th>Certificate</th>
                   <th className="d-none">FilePath(Green Audit Report)</th> {/* Hidden */}
@@ -721,12 +741,12 @@ const GreenAudit: React.FC = () => {
                       <td>
                         {greenAudit.document?.greenAudit || "No file uploaded"}
                       </td>
-                         <td>
+                      <td>
                         {greenAudit.document?.geoTaggedPhotos ||
-                          "No file uploaded"} 
+                          "No file uploaded"}
                       </td>
-                        <td>
-                        {greenAudit.document?.certificate || "No file uploaded"}
+                      <td>
+                        {greenAudit.document?.certificateFile || "No file uploaded"}
                       </td>
                       <td className="d-none">{greenAudit.filePath?.greenAudit || "N/A"}</td> {/* Hidden */}
                       <td className="d-none">{greenAudit.filePath?.geoTaggedPhotos || "N/A"}</td> {/* Hidden */}

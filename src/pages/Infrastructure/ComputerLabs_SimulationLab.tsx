@@ -45,7 +45,7 @@ const ComputerLabs_SimulationLab: React.FC = () => {
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
-       
+
   const tableRef = useRef<HTMLTableElement>(null);
 
 
@@ -140,9 +140,10 @@ const ComputerLabs_SimulationLab: React.FC = () => {
           `/infrastructureComputerLabs/deleteComputerLabs?computerLabsId=${id}`,
           ""
         );
+        setIsModalOpen(false);
         toast.success(
           response.message ||
-            "ComputerLabs and SimulationLab data removed successfully!"
+          "ComputerLabs and SimulationLab data removed successfully!"
         );
         fetchComputerLabs_SimulationLabData();
       } catch (error) {
@@ -208,6 +209,7 @@ const ComputerLabs_SimulationLab: React.FC = () => {
         `/infrastructureComputerLabs/deleteComputerLabsDocument?computerLabsId=${editId}`,
         ""
       );
+
       // Show success message
       toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
@@ -237,20 +239,20 @@ const ComputerLabs_SimulationLab: React.FC = () => {
         "Please enter number of computer labs"
       ),
       noOfComputers: Yup.number().required("Please enter number of computers"),
-          file: Yup.mixed()
-            .required("Please upload a file")
-            .test("fileSize", "File size is too large", (value: any) => {
-              if (typeof value === "string") return true;
-              return value && value.size <= 2 * 1024 * 1024; // 2MB limit
-            })
-            .test("fileType", "Unsupported file format", (value: any) => {
-              if (typeof value === "string") return true;
-              return (
-                value &&
-                ["application/pdf", "image/jpeg", "image/png"].includes(value.type)
-              );
-            }),
+      file: Yup.mixed()
+        .required("Please upload a file")
+        .test("fileSize", "File size is too large", (value: any) => {
+          if (typeof value === "string") return true;
+          return value && value.size <= 2 * 1024 * 1024; // 2MB limit
+        })
+        .test("fileType", "Unsupported file format", (value: any) => {
+          if (typeof value === "string") return true;
+          return (
+            value &&
+            ["application/pdf", "image/jpeg", "image/png"].includes(value.type)
+          );
         }),
+    }),
     onSubmit: async (values, { resetForm }) => {
       // Create FormData object
       const formData = new FormData();
@@ -259,7 +261,7 @@ const ComputerLabs_SimulationLab: React.FC = () => {
       formData.append("blockName", values.blockName);
       formData.append("noOfComputerLabs", String(values.noOfComputerLabs));
       formData.append("noOfComputers", String(values.noOfComputers));
-       if (isEditMode && typeof values.file === "string") {
+      if (isEditMode && typeof values.file === "string") {
         // Pass an empty Blob instead of null
         formData.append("file", new Blob([]), "empty.pdf");
       } else if (isEditMode && values.file === null) {
@@ -299,7 +301,7 @@ const ComputerLabs_SimulationLab: React.FC = () => {
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         setIsFileUploadDisabled(false); // Enable the file upload button
-       handleListComputerLabs_SimulationLabClick();
+        handleListComputerLabs_SimulationLabClick();
       } catch (error) {
         // Display error message
         toast.error("Failed to save ComputerLabs details. Please try again.");
@@ -307,13 +309,13 @@ const ComputerLabs_SimulationLab: React.FC = () => {
       }
     },
   });
-    useEffect(() => {
+  useEffect(() => {
     if (computerLabsData.length === 0) return; // wait until data is loaded
 
     const table = $("#computerLabsId").DataTable({
       destroy: true, // destroy existing instance if re-rendered
-      scrollX: true, 
-       autoWidth: false, 
+      scrollX: true,
+      autoWidth: false,
       dom: "Bfrtip",
       buttons: [
         {
@@ -374,7 +376,7 @@ const ComputerLabs_SimulationLab: React.FC = () => {
                         }
                         className={
                           validation.touched.blockName &&
-                          validation.errors?.blockName
+                            validation.errors?.blockName
                             ? "is-invalid"
                             : ""
                         }
@@ -414,7 +416,7 @@ const ComputerLabs_SimulationLab: React.FC = () => {
                         placeholder="Enter number of computers"
                         className={
                           validation.touched.noOfComputers &&
-                          validation.errors?.noOfComputers
+                            validation.errors?.noOfComputers
                             ? "is-invalid"
                             : ""
                         }
@@ -446,7 +448,7 @@ const ComputerLabs_SimulationLab: React.FC = () => {
                         placeholder="Enter number of computer labs"
                         className={
                           validation.touched.noOfComputerLabs &&
-                          validation.errors?.noOfComputerLabs
+                            validation.errors?.noOfComputerLabs
                             ? "is-invalid"
                             : ""
                         }
@@ -479,11 +481,10 @@ const ComputerLabs_SimulationLab: React.FC = () => {
                         Current Year geo-tagged Photos Only.
                       </Tooltip>
                       <Input
-                        className={`form-control ${
-                          validation.touched.file && validation.errors.file
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                        className={`form-control ${validation.touched.file && validation.errors.file
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         type="file"
                         id="formFile"
                         innerRef={fileRef}
@@ -534,7 +535,7 @@ const ComputerLabs_SimulationLab: React.FC = () => {
                               className="text-danger"
                               onClick={() =>
                                 handleDeleteFile(
-                               
+
                                 )
                               }
                               title="Delete File"
@@ -602,7 +603,7 @@ const ComputerLabs_SimulationLab: React.FC = () => {
                       <td>{campus.blockName}</td>
                       <td>{campus.noOfComputerLabs}</td>
                       <td>{campus.noOfComputers}</td>
-                       <td className="d-none">{campus?.filePath?.computerLabs || "N/A"}</td> {/* Hidden */}
+                      <td className="d-none">{campus?.filePath?.computerLabs || "N/A"}</td> {/* Hidden */}
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button

@@ -152,6 +152,8 @@ const Program_By_Dept: React.FC = () => {
           `/programsOfferedByDept/deleteNewCoursesIntroduced?programsOfferedByDeptId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(
           response.message ||
             "Program offered by the dept removed successfully!"

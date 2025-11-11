@@ -242,6 +242,8 @@ const Innovation: React.FC = () => {
           `/innovation/deleteInnovation?innovationId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(response.message || "Innovation removed successfully!");
         fetchInovData();
       } catch (error) {
@@ -300,7 +302,7 @@ const Innovation: React.FC = () => {
         ""
       );
       // Show success message
-      toast.success(response.message || "File deleted successfully!");
+toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
       validation.setFieldValue("file", null); // Clear the file from Formik state
       setIsFileUploadDisabled(false); // Enable the file upload button

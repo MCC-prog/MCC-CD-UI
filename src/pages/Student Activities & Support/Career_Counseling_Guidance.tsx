@@ -213,7 +213,8 @@ const Career_Counseling_Guidance: React.FC = () => {
         const response = await api.delete(
           `/careerCounseling/deleteCareerCounseling?careerCounselingId=${id}`,
           ""
-        );setIsModalOpen(false);
+        );
+        setIsModalOpen(false);
 
         toast.success(
           response.message ||
@@ -278,7 +279,7 @@ const Career_Counseling_Guidance: React.FC = () => {
         `/careerCounseling/deleteCareerCounselingDocument?careerCounselingId=${editId}&docType=${docType}`,
         ""
       );
-      toast.success(response.message || "File deleted successfully!");
+toast.success(response.message || "File deleted successfully!");
       if (docType === "careerCounseling") {
         validation.setFieldValue("careerCounseling", null);
       }

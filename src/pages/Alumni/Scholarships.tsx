@@ -173,6 +173,8 @@ const Scholarships: React.FC = () => {
           `/scholorshipProvidedByAlumni/deleteScholorshipProvidedByAlumni?scholorshipProvidedByAlumniId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(
           response.message || "Scholarship Data removed successfully!"
         );
@@ -316,24 +318,32 @@ const Scholarships: React.FC = () => {
         "totalScholarshipAmount",
         values.totalScholarshipAmount || ""
       );
-
-      // Append the file with the key `file`
-      if (values.scholarshipFile instanceof File) {
+      if (isEditMode) {
+        if (
+          typeof values.scholarshipFile === "string" || // still the original file path
+          values.scholarshipFile === null // or explicitly cleared
+        ) {
+          formData.append("scholorship", new Blob([]), "empty.txt");
+        } else if (values.scholarshipFile instanceof File) {
+          formData.append("scholorship", values.scholarshipFile);
+        }
+      } else if (values.scholarshipFile instanceof File) {
         formData.append("scholorship", values.scholarshipFile);
       }
+
       try {
         const response =
           isEditMode && editId
             ? await api.put(`/scholorshipProvidedByAlumni`, formData, {
-                headers: {
-                  "Content-Type": "multipart/form-data",
-                },
-              })
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            })
             : await api.create(`/scholorshipProvidedByAlumni`, formData, {
-                headers: {
-                  "Content-Type": "multipart/form-data",
-                },
-              });
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            });
 
         toast.success(
           response.message || "scholarshipFile record saved successfully!"
@@ -343,6 +353,9 @@ const Scholarships: React.FC = () => {
         resetForm();
         setIsEditMode(false);
         setEditId(null);
+        if (fileRef.current) {
+          fileRef.current.value = "";
+        }
         setIsFileUploadDisabled(false);
       } catch (error) {
         toast.error("Failed to save scholarshipFile. Please try again.");
@@ -391,12 +404,11 @@ const Scholarships: React.FC = () => {
                       <Label>Total Scholarship Amount</Label>
                       <Input
                         type="number"
-                        className={`form-control ${
-                          validation.touched.totalScholarshipAmount &&
+                        className={`form-control ${validation.touched.totalScholarshipAmount &&
                           validation.errors.totalScholarshipAmount
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         value={validation.values.totalScholarshipAmount}
                         onChange={(e) =>
                           validation.setFieldValue(
@@ -419,19 +431,19 @@ const Scholarships: React.FC = () => {
                       <Label>Scholarship Details</Label>
                       <Input
                         type="file"
-                        
+
                         onChange={(e) =>
                           validation.setFieldValue(
                             "scholarshipFile",
                             e.target.files?.[0] || null
                           )
                         }
-                        className={`form-control ${
-                          validation.touched.scholarshipFile &&
+                        className={`form-control ${validation.touched.scholarshipFile &&
                           validation.errors.scholarshipFile
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                          ? "is-invalid"
+                          : ""
+                          }`}
+                          innerRef={fileRef}
                         disabled={isFileUploadDisabled} // Disable the button if a file exists
                       />
                       {validation.touched.scholarshipFile &&
@@ -449,40 +461,40 @@ const Scholarships: React.FC = () => {
                       {/* Only show the file name if it is a string (from the edit API) */}
                       {typeof validation.values.scholarshipFile ===
                         "string" && (
-                        <div className="mt-2 d-flex align-items-center">
-                          <span
-                            className="me-2"
-                            style={{ fontWeight: "bold", color: "green" }}
-                          >
-                            {validation.values.scholarshipFile}
-                          </span>
-                          <Button
-                            color="link"
-                            className="text-primary"
-                            onClick={() => {
-                              if (
-                                typeof validation.values.scholarshipFile ===
-                                "string"
-                              ) {
-                                handleDownloadFile(
-                                  validation.values.scholarshipFile
-                                );
-                              }
-                            }}
-                            title="Download File"
-                          >
-                            <i className="bi bi-download"></i>
-                          </Button>
-                          <Button
-                            color="link"
-                            className="text-danger"
-                            onClick={() => setShowDeleteModal(true)}
-                            title="Delete File"
-                          >
-                            <i className="bi bi-trash"></i>
-                          </Button>
-                        </div>
-                      )}
+                          <div className="mt-2 d-flex align-items-center">
+                            <span
+                              className="me-2"
+                              style={{ fontWeight: "bold", color: "green" }}
+                            >
+                              {validation.values.scholarshipFile}
+                            </span>
+                            <Button
+                              color="link"
+                              className="text-primary"
+                              onClick={() => {
+                                if (
+                                  typeof validation.values.scholarshipFile ===
+                                  "string"
+                                ) {
+                                  handleDownloadFile(
+                                    validation.values.scholarshipFile
+                                  );
+                                }
+                              }}
+                              title="Download File"
+                            >
+                              <i className="bi bi-download"></i>
+                            </Button>
+                            <Button
+                              color="link"
+                              className="text-danger"
+                              onClick={() => setShowDeleteModal(true)}
+                              title="Delete File"
+                            >
+                              <i className="bi bi-trash"></i>
+                            </Button>
+                          </div>
+                        )}
                     </div>
                   </Col>
                   <Col lg={4}>
@@ -494,7 +506,7 @@ const Scholarships: React.FC = () => {
                           download
                           className="btn btn-primary btn-sm"
                         >
-                         Template
+                          Template
                         </a>
                       </div>
                     </div>

@@ -208,6 +208,8 @@ const Books: React.FC = () => {
           `/books/deleteBooks?booksId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(response.message || "Books removed successfully!");
         fetchCSWData();
       } catch (error) {
@@ -264,7 +266,7 @@ const Books: React.FC = () => {
         `/books/deleteBooksDocument?fileName=${fileName}`,
         ""
       );
-      toast.success(response.message || "File deleted successfully!");
+toast.success(response.message || "File deleted successfully!");
       if (docType === "Book") {
         validation.setFieldValue("file", null);
       }

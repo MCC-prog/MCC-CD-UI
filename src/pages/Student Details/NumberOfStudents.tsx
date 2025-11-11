@@ -55,50 +55,38 @@ const NumberOfStudents: React.FC = () => {
   const tableRef = useRef<HTMLTableElement>(null);
 
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
+  const [isFile2UploadDisabled, setIsFile2UploadDisabled] = useState(false);
 
   const fileRefUg = useRef<HTMLInputElement | null>(null);
   const fileRefPg = useRef<HTMLInputElement | null>(null);
 
-  // Handle global search
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toLowerCase();
-    setSearchTerm(value);
-
-    const filtered = nosData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
 
   // Calculate the paginated data
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
   const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
 
-  // Handle page change
-  const handlePageChange = (pageNumber: number) => {
-    setCurrentPage(pageNumber);
-  };
-
-  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
-
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };
 
-  const handleDeleteFile = async () => {
+  const handleDeleteFile = async (docType: string) => {
     try {
       // Call the delete API
       const response = await api.delete(
-        `/studentsEnrolled/deletestudentsEnrolledDocument?studentEnrolledId=${editId}`,
+        `/studentsEnrolled/deleteStudentsEnrolledDocument?studentEnrolledId=${editId}&docType=${docType}`,
         ""
       );
       // Show success message
       toast.success(response.message || "File deleted successfully!");
+      if (docType === "ugFile") {
+        validation.setFieldValue("ugFile", null); // Clear the file from Formik state
+        setIsFileUploadDisabled(false); // Enable the file upload button for UG
+      }
+      if (docType === "pgFile") {
+        validation.setFieldValue("pgFile", null); // Clear the file from Formik state
+        setIsFile2UploadDisabled(false); // Enable the file upload button for PG
+      }
       // Remove the file from the form
       validation.setFieldValue("file", null); // Clear the file from Formik state
       setIsFileUploadDisabled(false); // Enable the file upload button
@@ -200,6 +188,7 @@ const NumberOfStudents: React.FC = () => {
         academicYear: mapValueToLabel(response.academicYear, academicYearList),
         NumberOfUg: response.ug || "",
         NumberOfPg: response.pg || "",
+
       };
 
       // Update Formik values
@@ -211,9 +200,11 @@ const NumberOfStudents: React.FC = () => {
             value: String(mappedValues.academicYear.value),
           }
           : null,
-        ugFile: response.ugFile || null,
-        pgFile: response.pgFile || null,
+        ugFile: response.document?.ugFile || null,
+        pgFile: response.document?.pgFile || null,
       });
+      setIsFileUploadDisabled(!!response.document?.ugFile);
+      setIsFile2UploadDisabled(!!response.document?.pgFile);
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();
@@ -238,6 +229,7 @@ const NumberOfStudents: React.FC = () => {
           `/studentsEnrolled/deleteStudentsEnrolled?studentEnrolledId=${id}`,
           ""
         );
+        setIsModalOpen(false);
         toast.success(
           response.message ||
           "Number of Students Enrolled removed successfully!"
@@ -403,8 +395,10 @@ const NumberOfStudents: React.FC = () => {
         }
         // Reset the form fields
         resetForm();
-
-
+        if (fileRefUg.current) fileRefUg.current.value = "";
+        if (fileRefPg.current) fileRefPg.current.value = "";
+        setIsFileUploadDisabled(false);
+        setIsFile2UploadDisabled(false);
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         // display the BOS List
@@ -583,7 +577,7 @@ const NumberOfStudents: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
-                            onClick={() => handleDeleteFile()}
+                            onClick={() => handleDeleteFile("ugFile")}
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>
@@ -639,7 +633,7 @@ const NumberOfStudents: React.FC = () => {
                               : null
                           );
                         }}
-                        disabled={isFileUploadDisabled} // Disable the button if a file exists
+                        disabled={isFile2UploadDisabled} // Disable the button if a file exists
                       />
                       {validation.touched.pgFile &&
                         validation.errors.pgFile && (
@@ -648,7 +642,7 @@ const NumberOfStudents: React.FC = () => {
                           </div>
                         )}
                       {/* Show a message if the file upload button is disabled */}
-                      {isFileUploadDisabled && (
+                      {isFile2UploadDisabled && (
                         <div className="text-warning mt-2">
                           Please remove the existing file to upload a new one.
                         </div>
@@ -677,7 +671,7 @@ const NumberOfStudents: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
-                            onClick={() => handleDeleteFile()}
+                            onClick={() => handleDeleteFile("pgFile")}
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>
@@ -772,7 +766,7 @@ const NumberOfStudents: React.FC = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className="text-center">
+                    <td colSpan={7} className="text-center">
                       No Number of Students Enrolled data available.
                     </td>
                   </tr>

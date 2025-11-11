@@ -780,7 +780,7 @@ const Courses_With_Focus: React.FC = () => {
         ""
       );
       // Show success message
-      toast.success(response.message || "File deleted successfully!");
+toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
       validation.setFieldValue(tabKey, null); // Clear the file from Formik state
       validation.setFieldValue(tabKey + "Id", null);
@@ -798,6 +798,7 @@ const Courses_With_Focus: React.FC = () => {
           `/CoursesWithFocus/deleteCoursesWithFocus?coursesWithFocusId=${id}`,
           ""
         );
+        setIsModalOpen(false);
         toast.success(
           response.message || "Courses With Focus removed successfully!"
         );

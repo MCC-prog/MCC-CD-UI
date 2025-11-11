@@ -115,15 +115,15 @@ const Nss_Yrc: React.FC = () => {
           : null,
         department: response.departmentId
           ? {
-              value: response.departmentId.toString(),
-              label: response.departmentName,
-            }
+            value: response.departmentId.toString(),
+            label: response.departmentName,
+          }
           : null,
         program: response.courses
           ? Object.entries(response.courses).map(([key, value]) => ({
-              value: key,
-              label: String(value),
-            }))
+            value: key,
+            label: String(value),
+          }))
           : [],
         noOfParticipants: response.noOfParticipants || "",
         startDate: response.startDate ? response.startDate : "",
@@ -138,9 +138,9 @@ const Nss_Yrc: React.FC = () => {
         file: response.documents?.NSS || null,
         academicYear: mappedValues.academicYear
           ? {
-              ...mappedValues.academicYear,
-              value: String(mappedValues.academicYear.value),
-            }
+            ...mappedValues.academicYear,
+            value: String(mappedValues.academicYear.value),
+          }
           : null,
       });
 
@@ -582,9 +582,9 @@ const Nss_Yrc: React.FC = () => {
                         value={
                           validation.values.startDate
                             ? moment(
-                                validation.values.startDate,
-                                "DD/MM/YYYY"
-                              ).format("YYYY-MM-DD")
+                              validation.values.startDate,
+                              "DD/MM/YYYY"
+                            ).format("YYYY-MM-DD")
                             : ""
                         }
                         onChange={(e) => {
@@ -596,7 +596,7 @@ const Nss_Yrc: React.FC = () => {
                         }}
                         className={
                           validation.touched.startDate &&
-                          validation.errors.startDate
+                            validation.errors.startDate
                             ? "is-invalid"
                             : ""
                         }
@@ -617,9 +617,9 @@ const Nss_Yrc: React.FC = () => {
                         value={
                           validation.values.endDate
                             ? moment(
-                                validation.values.endDate,
-                                "DD/MM/YYYY"
-                              ).format("YYYY-MM-DD")
+                              validation.values.endDate,
+                              "DD/MM/YYYY"
+                            ).format("YYYY-MM-DD")
                             : ""
                         }
                         onChange={(e) => {
@@ -631,7 +631,7 @@ const Nss_Yrc: React.FC = () => {
                         }}
                         className={
                           validation.touched.endDate &&
-                          validation.errors.endDate
+                            validation.errors.endDate
                             ? "is-invalid"
                             : ""
                         }
@@ -649,12 +649,11 @@ const Nss_Yrc: React.FC = () => {
                       <Label>No Of Participants</Label>
                       <Input
                         type="number"
-                        className={`form-control ${
-                          validation.touched.noOfParticipants &&
-                          validation.errors.noOfParticipants
+                        className={`form-control ${validation.touched.noOfParticipants &&
+                            validation.errors.noOfParticipants
                             ? "is-invalid"
                             : ""
-                        }`}
+                          }`}
                         value={validation.values.noOfParticipants}
                         onChange={(e) =>
                           validation.setFieldValue(
@@ -677,12 +676,11 @@ const Nss_Yrc: React.FC = () => {
                       <Label>Organization</Label>
                       <Input
                         type="text"
-                        className={`form-control ${
-                          validation.touched.organisation &&
-                          validation.errors.organisation
+                        className={`form-control ${validation.touched.organisation &&
+                            validation.errors.organisation
                             ? "is-invalid"
                             : ""
-                        }`}
+                          }`}
                         value={validation.values.organisation}
                         onChange={(e) =>
                           validation.setFieldValue(
@@ -705,12 +703,11 @@ const Nss_Yrc: React.FC = () => {
                       <Label>Location</Label>
                       <Input
                         type="text"
-                        className={`form-control ${
-                          validation.touched.location &&
-                          validation.errors.location
+                        className={`form-control ${validation.touched.location &&
+                            validation.errors.location
                             ? "is-invalid"
                             : ""
-                        }`}
+                          }`}
                         value={validation.values.location}
                         onChange={(e) =>
                           validation.setFieldValue("location", e.target.value)
@@ -744,11 +741,10 @@ const Nss_Yrc: React.FC = () => {
                         Upload an Excel or PDF file. Max size 10MB.
                       </Tooltip>
                       <Input
-                        className={`form-control ${
-                          validation.touched.file && validation.errors.file
+                        className={`form-control ${validation.touched.file && validation.errors.file
                             ? "is-invalid"
                             : ""
-                        }`}
+                          }`}
                         type="file"
                         id="formFile"
                         innerRef={fileRef}

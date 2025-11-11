@@ -269,6 +269,8 @@ const Exam_Action_Taken: React.FC = () => {
           `/studentGrievance/deleteStudentGrievance?studentGrievanceId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(
           response.message ||
             "Student Grievances w.r.t Exam & Action taken removed successfully!"

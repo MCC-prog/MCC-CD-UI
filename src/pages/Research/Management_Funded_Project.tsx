@@ -316,6 +316,8 @@ const Management_Funded_Project: React.FC = () => {
           `/managementFundProject/deleteManagementFundedProject?managementFundProjectId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(response.message || "MFP record removed successfully!");
         fetchMFAData();
       } catch (error) {
@@ -429,7 +431,7 @@ const Management_Funded_Project: React.FC = () => {
         ""
       );
       // Show success message
-      toast.success(response.message || "File deleted successfully!");
+toast.success(response.message || "File deleted successfully!");
       if (docType === "sanctionOrder") {
         validation.setFieldValue(
           "principalInvestigator.sanctionOrderFile",
@@ -1345,7 +1347,7 @@ const Management_Funded_Project: React.FC = () => {
               id="managementFundProjectId"
               innerRef={tableRef}
             >
-              <thead>
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>

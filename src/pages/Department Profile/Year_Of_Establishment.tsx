@@ -148,38 +148,27 @@ const Year_Of_Establishment: React.FC = () => {
         department: response.departmentId
           ? { value: response.departmentId.toString(), label: response.departmentName }
           : null,
-        program: response.programId
-          ? [{ value: response.programId.toString(), label: response.programName }]
+        program: response.courses
+          ? Object.entries(response.courses).map(([key, value]) => ({
+            value: key,
+            label: String(value),
+          }))
           : [],
       };
 
       // Update Formik values
       validation.setValues({
         ...mappedValues,
-        // academicYear: mappedValues.academicYear
-        //   ? {
-        //       ...mappedValues.academicYear,
-        //       value: String(mappedValues.academicYear.value),
-        //     }
-        //   : null,
-        // stream: mappedValues.stream
-        //   ? {
-        //       value: String(mappedValues.stream.value),
-        //       label: mappedValues.stream.label || "",
-        //     }
-        //   : null,
         department: mappedValues.department
           ? {
             value: String(mappedValues.department.value),
             label: mappedValues.department.label || "",
           }
           : null,
-        program: mappedValues.program
-          ? mappedValues.program.map((p: any) => ({
-            value: String(p.value),
-            label: p.label || "",
-          }))
-          : [],
+        program: mappedValues.program.map((p) => ({
+          value: String(p.value),
+          label: p.label,
+        })),
       });
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
@@ -205,6 +194,8 @@ const Year_Of_Establishment: React.FC = () => {
           `/establishmentYear/deleteEstablishmentYear?establishmentYearId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(
           response.message || "Year of establishment removed successfully!"
         );
@@ -239,10 +230,10 @@ const Year_Of_Establishment: React.FC = () => {
       const payload = {
         yearOfEstablishment: values.yearOfEst || "",
         departmentId: values.department?.value || "",
-        programId: values.program.map((p) => p.value) || [],
+        courseIds: values.program.map((p) => p.value) || [],
       };
 
-      if (isEditMode && editId) payload["establishmentYearId"] = editId;
+      if (isEditMode && editId) payload["establismentYearId"] = editId;
 
       try {
         const response = isEditMode

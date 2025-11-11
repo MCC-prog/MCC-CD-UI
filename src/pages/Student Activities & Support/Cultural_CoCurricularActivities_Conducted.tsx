@@ -272,7 +272,7 @@ const Cultural_CoCurricularActivities_Conducted: React.FC = () => {
         `/cocurricularActivities/deleteCocurricularActivitiesDocument?cocurricularActivitiesId=${editId}&docType=${docType}`,
         ""
       );
-      toast.success(response.message || "File deleted successfully!");
+toast.success(response.message || "File deleted successfully!");
       if (docType === "CoCurricularActivities") {
         validation.setFieldValue("file", null);
         setIsFileUploadDisabled(false);

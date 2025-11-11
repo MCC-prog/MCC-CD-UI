@@ -182,8 +182,8 @@ const StudentProgression_Higher_Education: React.FC = () => {
         icalepal: response.enrollmentProof || "",
         courseDuration: response.courseDuration || "",
         file: response.documents.excel || null, // Assuming 'file' is a string or null
-        idProof: response.documents?.idProof || null,
-        higherEducation: response.documents?.higherEducation || null,
+        idCard: response.documents?.idCard || null,
+        // higherEducation: response.documents?.higherEducation || null,
       };
 
       // Update Formik values
@@ -212,12 +212,12 @@ const StudentProgression_Higher_Education: React.FC = () => {
         icalepal: response.enrollmentProof || "",
         courseDuration: response.courseDuration || "",
         file: response.documents.excel || null, // Assuming 'file' is a string or null
-        idProof: response.documents?.idProof || null,
-        higherEducation: response.documents?.higherEducation || null,
+        idCard: response.documents?.idCard || null,
+        // higherEducation: response.documents?.higherEducation || null,
       });
       setIsFileUploadDisabled(!!response.documents?.excel); // Disable file upload if a file exists
-      setIsFile2UploadDisabled(!!response.documents?.idProof); // Disable file upload if a file exists
-      setIsFile3UploadDisabled(!!response.documents?.higherEducation); // Disable file upload if a file exists
+      setIsFile2UploadDisabled(!!response.documents?.idCard); // Disable file upload if a file exists
+      // setIsFile3UploadDisabled(!!response.documents?.higherEducation); // Disable file upload if a file exists
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();
@@ -309,17 +309,18 @@ const StudentProgression_Higher_Education: React.FC = () => {
         `/studentProgressionHigherEducation/deleteHigherEducationDocument?higherEducationId=${editId}&docType=${docType}`,
         ""
       );
-      toast.success(response.message || "File deleted successfully!");
+toast.success(response.message || "File deleted successfully!");
       if (docType === "excel") {
         validation.setFieldValue("file", null);
         setIsFileUploadDisabled(false); // Enable the file upload button
-      } else if (docType === "idProof") {
-        validation.setFieldValue("idProof", null);
+      } else if (docType === "idCard") {
+        validation.setFieldValue("idCard", null);
         setIsFile2UploadDisabled(false); // Enable the file upload button
-      } else if (docType === "higherEducation") {
-        validation.setFieldValue("higherEducation", null);
-        setIsFile3UploadDisabled(false); // Enable the file upload button
       }
+      // } else if (docType === "higherEducation") {
+      //   validation.setFieldValue("higherEducation", null);
+      //   setIsFile3UploadDisabled(false); // Enable the file upload button
+      // }
     } catch (error) {
       toast.error("Failed to delete the file. Please try again.");
       console.error("Error deleting file:", error);
@@ -340,8 +341,8 @@ const StudentProgression_Higher_Education: React.FC = () => {
       icalepal: "",
       courseDuration: "",
       file: null as File | string | null,
-      idProof: null as File | string | null,
-      higherEducation: null as File | string | null,
+      idCard: null as File | string | null,
+      // higherEducation: null as File | string | null,
     },
     validationSchema: Yup.object({
       academicYear: Yup.object()
@@ -376,25 +377,7 @@ const StudentProgression_Higher_Education: React.FC = () => {
             ].includes(value.type)
           );
         }),
-      idProof: Yup.mixed()
-        .required("Please upload a file")
-        .test("fileSize", "File size is too large", (value: any) => {
-          // Skip size validation if file is a string (from existing data)
-          if (typeof value === "string") return true;
-          return value && value.size <= 50 * 1024 * 1024; // 50MB
-        })
-        .test("fileType", "Unsupported file format", (value: any) => {
-          // Skip type validation if file is a string
-          if (typeof value === "string") return true;
-          return (
-            value &&
-            [
-              "application/vnd.ms-excel",
-              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            ].includes(value.type)
-          );
-        }),
-      higherEducation: Yup.mixed()
+      idCard: Yup.mixed()
         .required("Please upload a file")
         .test("fileSize", "File size is too large", (value: any) => {
           // Skip size validation if file is a string (from existing data)
@@ -424,6 +407,8 @@ const StudentProgression_Higher_Education: React.FC = () => {
       try {
         const formData = new FormData();
         formData.append("academicYear", values.academicYear?.value || "");
+        formData.append("streamId", values.stream?.value || "");
+        formData.append("departmentId", values.department?.value || "");
         formData.append("studentName", values.studentName);
         formData.append("mccRegisterNo", values.mccRegNo);
         formData.append("coursePursuedInMcc", values.coursePurused);
@@ -477,44 +462,24 @@ const StudentProgression_Higher_Education: React.FC = () => {
           formData.append("excel", values.file);
         }
 
-        if (isEditMode && typeof values.idProof === "string") {
+        if (isEditMode && typeof values.idCard === "string") {
           formData.append(
-            "idProof",
+            "idCard",
             new Blob([], {
               type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             }),
             "empty.xlsx"
           );
-        } else if (isEditMode && values.idProof === null) {
+        } else if (isEditMode && values.idCard === null) {
           formData.append(
-            "idProof",
+            "idCard",
             new Blob([], {
               type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             }),
             "empty.xlsx"
           );
-        } else if (values.idProof) {
-          formData.append("idProof", values.idProof);
-        }
-
-        if (isEditMode && typeof values.higherEducation === "string") {
-          formData.append(
-            "higherEducation",
-            new Blob([], {
-              type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            }),
-            "empty.xlsx"
-          );
-        } else if (isEditMode && values.higherEducation === null) {
-          formData.append(
-            "higherEducation",
-            new Blob([], {
-              type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            }),
-            "empty.xlsx"
-          );
-        } else if (values.higherEducation) {
-          formData.append("higherEducation", values.higherEducation);
+        } else if (values.idCard) {
+          formData.append("idCard", values.idCard);
         }
 
         // If in edit mode, append the edit ID
@@ -551,12 +516,9 @@ const StudentProgression_Higher_Education: React.FC = () => {
         if (fileRef1.current) {
           fileRef1.current.value = "";
         }
-        if (fileRef2.current) {
-          fileRef2.current.value = "";
-        }
+        
         setIsFileUploadDisabled(false); // Enable the file upload button
         setIsFile2UploadDisabled(false); // Enable the file upload button
-        setIsFile3UploadDisabled(false); // Enable the file upload button
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         // display the Student Progression - Higher EducationList
@@ -1074,8 +1036,8 @@ const StudentProgression_Higher_Education: React.FC = () => {
                       </Tooltip>
                       <Input
                         className={`form-control ${
-                          validation.touched.idProof &&
-                          validation.errors.idProof
+                          validation.touched.idCard &&
+                          validation.errors.idCard
                             ? "is-invalid"
                             : ""
                         }`}
@@ -1084,7 +1046,7 @@ const StudentProgression_Higher_Education: React.FC = () => {
                         innerRef={fileRef1}
                         onChange={(event) => {
                           validation.setFieldValue(
-                            "idProof",
+                            "idCard",
                             event.currentTarget.files
                               ? event.currentTarget.files[0]
                               : null
@@ -1092,10 +1054,10 @@ const StudentProgression_Higher_Education: React.FC = () => {
                         }}
                         disabled={isFile2UploadDisabled} // Disable the button if a file exists
                       />
-                      {validation.touched.idProof &&
-                        validation.errors.idProof && (
+                      {validation.touched.idCard &&
+                        validation.errors.idCard && (
                           <div className="text-danger">
-                            {validation.errors.idProof}
+                            {validation.errors.idCard}
                           </div>
                         )}
                       {/* Show a message if the file upload button is disabled */}
@@ -1105,20 +1067,20 @@ const StudentProgression_Higher_Education: React.FC = () => {
                         </div>
                       )}
                       {/* Only show the file name if it is a string (from the edit API) */}
-                      {typeof validation.values.idProof === "string" && (
+                      {typeof validation.values.idCard === "string" && (
                         <div className="mt-2 d-flex align-items-center">
                           <span
                             className="me-2"
                             style={{ fontWeight: "bold", color: "green" }}
                           >
-                            {validation.values.idProof}
+                            {validation.values.idCard}
                           </span>
                           <Button
                             color="link"
                             className="text-primary"
                             onClick={() =>
                               handleDownloadFile(
-                                validation.values.idProof as string
+                                validation.values.idCard as string
                               )
                             }
                             title="Download File"
@@ -1130,8 +1092,8 @@ const StudentProgression_Higher_Education: React.FC = () => {
                             className="text-danger"
                             onClick={() =>
                               handleDeleteFile(
-                                validation.values.idProof as string,
-                                "idProof"
+                                validation.values.idCard as string,
+                                "idCard"
                               )
                             }
                             title="Delete File"
@@ -1142,7 +1104,7 @@ const StudentProgression_Higher_Education: React.FC = () => {
                       )}
                     </div>
                   </Col>
-                  <Col sm={4}>
+                  {/* <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
                         Upload student Details Higher Education
@@ -1187,13 +1149,11 @@ const StudentProgression_Higher_Education: React.FC = () => {
                             {validation.errors.higherEducation}
                           </div>
                         )}
-                      {/* Show a message if the file upload button is disabled */}
                       {isFile3UploadDisabled && (
                         <div className="text-warning mt-2">
                           Please remove the existing file to upload a new one.
                         </div>
                       )}
-                      {/* Only show the file name if it is a string (from the edit API) */}
                       {typeof validation.values.higherEducation ===
                         "string" && (
                         <div className="mt-2 d-flex align-items-center">
@@ -1231,7 +1191,7 @@ const StudentProgression_Higher_Education: React.FC = () => {
                         </div>
                       )}
                     </div>
-                  </Col>
+                  </Col> */}
 
                   <Col lg={4}>
                     <div className="mb-3">
@@ -1314,7 +1274,7 @@ const StudentProgression_Higher_Education: React.FC = () => {
                         {she.filePath.higherEducation || "N/A"}
                       </td>
                       <td className="d-none">
-                        {she.filePath.idProof || "N/A"}
+                        {she.filePath.idCard || "N/A"}
                       </td>
                       <td className="d-none">
                         {she.filePath.excel || "N/A"}

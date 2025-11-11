@@ -225,7 +225,7 @@ const Fdps: React.FC = () => {
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       // Disable the file upload button if a file exists
-      setIsFileUploadDisabled(!!response.documents?.mom);
+      setIsFileUploadDisabled(!!fileName);
       toggleModal();
     } catch (error) {
       console.error("Error fetching FDPS data by ID:", error);
@@ -248,6 +248,8 @@ const Fdps: React.FC = () => {
           `/fdpsMoocsSkillDevelopmentWorkshop/deleteFdpsMoocsSkillDevelopmentWorkshop?fdpsMoocsSkillDevelopmentWorkshopId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(response.message || "FDPS removed successfully!");
         fetchFDPSData();
       } catch (error) {
@@ -309,7 +311,7 @@ const Fdps: React.FC = () => {
         ""
       );
       // Show success message
-      toast.success(response.message || "File deleted successfully!");
+toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
       validation.setFieldValue("file", null); // Clear the file from Formik state
       setIsFileUploadDisabled(false); // Enable the file upload button
@@ -447,6 +449,7 @@ const Fdps: React.FC = () => {
         if (fileRef.current) {
           fileRef.current.value = "";
         }
+        setIsFileUploadDisabled(false); // Enable the file upload button
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         // display the FDPS List

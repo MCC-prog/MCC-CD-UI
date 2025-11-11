@@ -152,10 +152,10 @@ const Details_of_Programs_offered: React.FC = () => {
             label: response.programTypeName,
           }
           : null,
-        degree: response.programId
+        degree: response.programs
           ? {
-            value: response.programId.toString(),
-            label: response.programName,
+            value: String(Object.keys(response.programs)[0]),
+            label: String(Object.values(response.programs)[0]),
           }
           : null,
         program: response.courses
@@ -167,7 +167,12 @@ const Details_of_Programs_offered: React.FC = () => {
         agencyName: response.agencyName || "",
         numberOfStudent: response.noOfStudent || "",
         duration: response.duration || "",
-        mode: response.mode || null,
+        mode: response.mode
+          ? {
+            value: response.mode,
+            label: response.mode,
+          }
+          : null,
         file: response.mous?.ProgramOffered || null,
       };
 
@@ -211,6 +216,8 @@ const Details_of_Programs_offered: React.FC = () => {
           `/detailsOfProgramsOffered/deleteDetailsOfProgramsOffered?detailsOfProgramsOfferedId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(
           response.message ||
           "Details of Programs Offered removed successfully!"
@@ -346,7 +353,7 @@ const Details_of_Programs_offered: React.FC = () => {
       formData.append("departmentId", values.department?.value || "");
       formData.append("programTypeId", values.programType?.value || "");
       formData.append("programId", values.degree?.value || "");
-      formData.append("courseId", "1,2");
+      formData.append("coursesId", values.program.map((p) => p.value).join(","));
       formData.append("agencyName", values.agencyName || "");
       formData.append("noOfStudent", values.numberOfStudent || "");
       formData.append("duration", values.duration || "");
@@ -355,11 +362,11 @@ const Details_of_Programs_offered: React.FC = () => {
       // Append the file
       if (isEditMode && typeof values.file === "string") {
         // Pass an empty Blob instead of null
-        formData.append("file", new Blob([]), "empty.pdf");
+        formData.append("mou", new Blob([]), "empty.pdf");
       } else if (isEditMode && values.file === null) {
-        formData.append("file", new Blob([]), "empty.pdf");
+        formData.append("mou", new Blob([]), "empty.pdf");
       } else if (values.file) {
-        formData.append("file", values.file);
+        formData.append("mou", values.file);
       }
 
       if (isEditMode && editId) {

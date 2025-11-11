@@ -157,9 +157,9 @@ const UsageOf_Ict_Tools: React.FC = () => {
           : null,
         department: response.departmentId
           ? {
-              value: response.departmentId.toString(),
-              label: response.departmentName,
-            }
+            value: response.departmentId.toString(),
+            label: response.departmentName,
+          }
           : null,
         nameOfTool: response.toolName || "",
       };
@@ -173,9 +173,9 @@ const UsageOf_Ict_Tools: React.FC = () => {
           : null,
         department: response.departmentId
           ? {
-              value: response.departmentId.toString(),
-              label: response.departmentName,
-            }
+            value: response.departmentId.toString(),
+            label: response.departmentName,
+          }
           : null,
 
         nameOfTool: response.toolName || "",
@@ -202,6 +202,8 @@ const UsageOf_Ict_Tools: React.FC = () => {
           `/classRoomTools/deleteClassRoomTools?classRoomToolId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(
           response.message || "Usage of Ict tools removed successfully!"
         );
@@ -397,12 +399,11 @@ const UsageOf_Ict_Tools: React.FC = () => {
                       <Label>Name of the tool</Label>
                       <Input
                         type="text"
-                        className={`form-control ${
-                          validation.touched.nameOfTool &&
-                          validation.errors.nameOfTool
+                        className={`form-control ${validation.touched.nameOfTool &&
+                            validation.errors.nameOfTool
                             ? "is-invalid"
                             : ""
-                        }`}
+                          }`}
                         value={validation.values.nameOfTool}
                         onChange={(e) =>
                           validation.setFieldValue("nameOfTool", e.target.value)

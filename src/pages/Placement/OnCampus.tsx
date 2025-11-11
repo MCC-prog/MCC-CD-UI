@@ -191,6 +191,8 @@ const OnCampus: React.FC = () => {
           `/onOffCampusPlacementData/deleteOnOffCampusPlacementData?onOffCampusPlacementDataId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(
           response.message || "On-Campus placement removed successfully!"
         );
@@ -254,7 +256,7 @@ const OnCampus: React.FC = () => {
         ""
       );
       // Show success message
-      toast.success(response.message || "File deleted successfully!");
+toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
       validation.setFieldValue("file", null); // Clear the file from Formik state
       setIsFileUploadDisabled(false); // Enable the file upload button
@@ -397,6 +399,7 @@ const OnCampus: React.FC = () => {
         if (fileRef.current) {
           fileRef.current.value = "";
         }
+        setIsFileUploadDisabled(false); 
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         // display the On-Campus placement List

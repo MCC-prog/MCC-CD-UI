@@ -263,6 +263,8 @@ const Remedial_Classes: React.FC = () => {
           `/remidialClasses/deleteRemidialClass?remidialClassesId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(
           response.message || "Remedial Classes removed successfully!"
         );
@@ -327,7 +329,7 @@ const Remedial_Classes: React.FC = () => {
         ""
       );
       // Show success message
-      toast.success(response.message || "File deleted successfully!");
+toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
       validation.setFieldValue(docType, null); // Clear the file from Formik state
       if (docType === "attendanceEntry") {

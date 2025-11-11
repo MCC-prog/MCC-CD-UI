@@ -44,8 +44,8 @@ const Auditorium: React.FC = () => {
   const [filteredData, setFilteredData] = useState(auditoriumData);
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
-const tableRef = useRef<HTMLTableElement>(null);  
-   const fileRef = useRef<HTMLInputElement | null>(null);
+  const tableRef = useRef<HTMLTableElement>(null);
+  const fileRef = useRef<HTMLInputElement | null>(null);
 
 
   // Toggle the modal for listing ComputerLabs_SimulationLab data
@@ -134,6 +134,7 @@ const tableRef = useRef<HTMLTableElement>(null);
           `/infrastructureAuditorium/deleteAuditorium?auditoriumId=${id}`,
           ""
         );
+        setIsModalOpen(false);
         toast.success(
           response.message || "Auditorium data removed successfully!"
         );
@@ -196,6 +197,7 @@ const tableRef = useRef<HTMLTableElement>(null);
         `/infrastructureAuditorium/deleteAuditoriumDocument?auditoriumId=${editId}`,
         ""
       );
+
       // Show success message
       toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
@@ -302,13 +304,13 @@ const tableRef = useRef<HTMLTableElement>(null);
       }
     },
   });
-    useEffect(() => {
+  useEffect(() => {
     if (auditoriumData.length === 0) return; // wait until data is loaded
 
     const table = $("#auditoriumId").DataTable({
       destroy: true, // destroy existing instance if re-rendered
-      scrollX: true, 
-       autoWidth: false, 
+      scrollX: true,
+      autoWidth: false,
       dom: "Bfrtip",
       buttons: [
         {
@@ -347,7 +349,7 @@ const tableRef = useRef<HTMLTableElement>(null);
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <Breadcrumb title="Infrastructure" breadcrumbItem="Auditorium"/>
+          <Breadcrumb title="Infrastructure" breadcrumbItem="Auditorium" />
           <Card>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
@@ -367,7 +369,7 @@ const tableRef = useRef<HTMLTableElement>(null);
                         }
                         className={
                           validation.touched.blockName &&
-                          validation.errors?.blockName
+                            validation.errors?.blockName
                             ? "is-invalid"
                             : ""
                         }
@@ -407,7 +409,7 @@ const tableRef = useRef<HTMLTableElement>(null);
                         placeholder="Enter seating capacity"
                         className={
                           validation.touched.seatingCapacity &&
-                          validation.errors?.seatingCapacity
+                            validation.errors?.seatingCapacity
                             ? "is-invalid"
                             : ""
                         }
@@ -440,11 +442,10 @@ const tableRef = useRef<HTMLTableElement>(null);
                         Current Year geo-tagged Photos Only.
                       </Tooltip>
                       <Input
-                        className={`form-control ${
-                          validation.touched.file && validation.errors.file
+                        className={`form-control ${validation.touched.file && validation.errors.file
                             ? "is-invalid"
                             : ""
-                        }`}
+                          }`}
                         type="file"
                         id="formFile"
                         innerRef={fileRef}
@@ -537,7 +538,7 @@ const tableRef = useRef<HTMLTableElement>(null);
               striped
               bordered
               hover
-                id="auditoriumId"
+              id="auditoriumId"
               innerRef={tableRef}
             >
               <thead>
@@ -556,7 +557,7 @@ const tableRef = useRef<HTMLTableElement>(null);
                       <td>{index + 1}</td>
                       <td>{campus.blockName}</td>
                       <td>{campus.seatingCapacity}</td>
-                       <td className="d-none">{campus?.filePath?.auditorium || "N/A"}</td> {/* Hidden */}
+                      <td className="d-none">{campus?.filePath?.auditorium || "N/A"}</td> {/* Hidden */}
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button

@@ -230,6 +230,7 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
         "fellowshipAwardedRequestDto",
         new Blob([JSON.stringify(dtoPayload)], { type: "application/json" })
       );
+      // console.log("API PAYLOAD CHECK ==>>",formData)
 
       // Append the file with the key `file`
       if (isMultidisciplinary === "Yes") {
@@ -250,7 +251,6 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
       if (values.fellowship instanceof File) {
         formData.append("fellowship", values.fellowship as Blob);
       }
-
       try {
         const response =
           isEditMode && editId
@@ -306,6 +306,8 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
           `/fellowshipAwarded/deleteFellowshipAwarded?fellowshipAwardedId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(response.message || "FWL record removed successfully!");
         fetchMFAData();
       } catch (error) {
@@ -418,7 +420,7 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
         `/fellowshipAwarded/deleteFellowshipAwardedDocument?fellowshipAwardedId=${editId}&docType=${fileType}`,
         ""
       );
-      toast.success(response.message || "File deleted successfully!");
+toast.success(response.message || "File deleted successfully!");
 
       if (fileType === "fellowship") {
         validation.setFieldValue("fellowship", null);

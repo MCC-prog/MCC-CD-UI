@@ -260,6 +260,8 @@ const WorkshopsOrSeminars: React.FC = () => {
           `/workshopsConducted/deleteWorkshopsConducted?workshopsConductedId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(
           response.message ||
             "Workshops Or Seminars Conducted removed successfully!"
@@ -334,7 +336,7 @@ const WorkshopsOrSeminars: React.FC = () => {
         ""
       );
       // Show success message
-      toast.success(response.message || "File deleted successfully!");
+toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
       if (docType === "certificate") {
         validation.setFieldValue("certificate", null);

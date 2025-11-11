@@ -336,7 +336,7 @@ const FP_And_Presentation_Research_Papers = () => {
         ""
       );
       // Show success message
-      toast.success(response.message || "File deleted successfully!");
+toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
       validation.setFieldValue("facultyCertificate", null); // Clear the file from Formik state
       setIsFileUploadDisabled(false); // Enable the file upload button
@@ -371,6 +371,8 @@ const FP_And_Presentation_Research_Papers = () => {
           `/facultyParticipation/deleteFacultyParticipation?facultyParticipationId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(
           response.message ||
             "Faculty Participation record removed successfully!"

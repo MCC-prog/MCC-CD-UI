@@ -326,6 +326,8 @@ const Malpractice_committee_Report: React.FC = () => {
           `/malpracticeCommitteeReport/deleteMalpracticeCommitteeReport?malpracticeCommitteeReportId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(
           response.message ||
           "Malpractice Committee report removed successfully!"
@@ -393,7 +395,7 @@ const Malpractice_committee_Report: React.FC = () => {
         ""
       );
       // Show success message
-      toast.success(response.message || "File deleted successfully!");
+toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
       if (docType === "file") {
         validation.setFieldValue("file", null);

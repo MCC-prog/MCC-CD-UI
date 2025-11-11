@@ -62,8 +62,9 @@ const TrainingsAndWorkshops: React.FC = () => {
   const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
   // State variable for managing search term and pagination
   const [filteredData, setFilteredData] = useState(bosData);
-const tableRef = useRef<HTMLTableElement>(null);  
+  const tableRef = useRef<HTMLTableElement>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const file2Ref = useRef<HTMLInputElement | null>(null);
 
   // Toggle the modal for listing BOS
   const toggleModal = () => {
@@ -124,18 +125,18 @@ const tableRef = useRef<HTMLTableElement>(null);
         academicYear: mapValueToLabel(response.academicYear, academicYearList),
         academicTraining: response.academicTraining
           ? {
-              value: response.academicTraining,
-              label: response.academicTraining,
-            }
+            value: response.academicTraining,
+            label: response.academicTraining,
+          }
           : null,
         stream: response.streamId
           ? { value: response.streamId.toString(), label: response.streamName }
           : null,
         department: response.departmentId
           ? {
-              value: response.departmentId.toString(),
-              label: response.departmentName,
-            }
+            value: response.departmentId.toString(),
+            label: response.departmentName,
+          }
           : null,
         program: response.programName
           ? { value: response.programName, label: response.programName }
@@ -161,9 +162,9 @@ const tableRef = useRef<HTMLTableElement>(null);
         ...mappedValues,
         academicYear: mappedValues.academicYear
           ? {
-              ...mappedValues.academicYear,
-              value: String(mappedValues.academicYear.value),
-            }
+            ...mappedValues.academicYear,
+            value: String(mappedValues.academicYear.value),
+          }
           : null,
       });
       setIsEditMode(true); // Set edit mode
@@ -194,9 +195,10 @@ const tableRef = useRef<HTMLTableElement>(null);
           `/trainingProgramsWorkshop/deleteTrainingProgramsWorkshop?trainingProgramsWorkshopId=${id}`,
           ""
         );
+        setIsModalOpen(false);
         toast.success(
           response.message ||
-            "Training and Workshop record removed successfully!"
+          "Training and Workshop record removed successfully!"
         );
         fetchTrainingAndWorkshopsData();
       } catch (error) {
@@ -385,21 +387,36 @@ const tableRef = useRef<HTMLTableElement>(null);
       formData.append("partneringOrganization", values.partnerOrganization);
       formData.append("id", editId || "");
       // Attendance file: if string (existing file), send null; if File, send file
-      if (typeof values.attendance === "string" && values.attendance) {
-        formData.append("attendance", "");
+      if (isEditMode && typeof values.attendance === "string") {
+        formData.append(
+          "attendance",
+          new Blob([], { type: "application/pdf" }),
+          "empty.pdf"
+        );
+      } else if (isEditMode && values.attendance === null) {
+        formData.append(
+          "attendance",
+          new Blob([], { type: "application/pdf" }),
+          "empty.pdf"
+        );
       } else if (values.attendance) {
         formData.append("attendance", values.attendance);
-      } else {
-        formData.append("attendance", "");
       }
-
       // Report file: if string (existing file), send null; if File, send file
-      if (typeof values.report === "string" && values.report) {
-        formData.append("report", "null");
+      if (isEditMode && typeof values.report === "string") {
+        formData.append(
+          "report",
+          new Blob([], { type: "application/pdf" }),
+          "empty.pdf"
+        );
+      } else if (isEditMode && values.report === null) {
+        formData.append(
+          "report",
+          new Blob([], { type: "application/pdf" }),
+          "empty.pdf"
+        );
       } else if (values.report) {
         formData.append("report", values.report);
-      } else {
-        formData.append("report", "null");
       }
 
       try {
@@ -414,6 +431,10 @@ const tableRef = useRef<HTMLTableElement>(null);
         if (fileRef.current) {
           fileRef.current.value = "";
         }
+        if (file2Ref.current) {
+          file2Ref.current.value = "";
+        }
+        setIsFileUploadDisabled({ attendance: false, report: false });
         setIsEditMode(false);
         setEditId(null);
         fetchTrainingAndWorkshopsData();
@@ -422,13 +443,13 @@ const tableRef = useRef<HTMLTableElement>(null);
       }
     },
   });
-   useEffect(() => {
+  useEffect(() => {
     if (bosData.length === 0) return; // wait until data is loaded
 
     const table = $("#id").DataTable({
       destroy: true, // destroy existing instance if re-rendered
-      scrollX: true, 
-       autoWidth: false, 
+      scrollX: true,
+      autoWidth: false,
       dom: "Bfrtip",
       buttons: [
         {
@@ -538,12 +559,11 @@ const tableRef = useRef<HTMLTableElement>(null);
                             label: e.target.value,
                           })
                         }
-                        className={`form-control ${
-                          validation.touched.program &&
+                        className={`form-control ${validation.touched.program &&
                           validation.errors.program
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                          ? "is-invalid"
+                          : ""
+                          }`}
                       >
                         <option value="">Select Program</option>
                         <option value="UG">UG</option>
@@ -573,7 +593,7 @@ const tableRef = useRef<HTMLTableElement>(null);
                         }
                         className={
                           validation.touched.academicTraining &&
-                          validation.errors.academicTraining
+                            validation.errors.academicTraining
                             ? "is-invalid"
                             : ""
                         }
@@ -605,18 +625,17 @@ const tableRef = useRef<HTMLTableElement>(null);
                       <Label>Start Date</Label>
                       <Input
                         type="date" // Use native date input
-                        className={`form-control ${
-                          validation.touched.startDate &&
+                        className={`form-control ${validation.touched.startDate &&
                           validation.errors.startDate
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         value={
                           validation.values.startDate
                             ? moment(
-                                validation.values.startDate,
-                                "DD/MM/YYYY"
-                              ).format("YYYY-MM-DD") // Convert to yyyy-mm-dd for the input
+                              validation.values.startDate,
+                              "DD/MM/YYYY"
+                            ).format("YYYY-MM-DD") // Convert to yyyy-mm-dd for the input
                             : ""
                         }
                         onChange={(e) => {
@@ -641,18 +660,17 @@ const tableRef = useRef<HTMLTableElement>(null);
                       <Label>End Date</Label>
                       <Input
                         type="date" // Use native date input
-                        className={`form-control ${
-                          validation.touched.endDate &&
+                        className={`form-control ${validation.touched.endDate &&
                           validation.errors.endDate
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         value={
                           validation.values.endDate
                             ? moment(
-                                validation.values.endDate,
-                                "DD/MM/YYYY"
-                              ).format("YYYY-MM-DD") // Convert to yyyy-mm-dd for the input
+                              validation.values.endDate,
+                              "DD/MM/YYYY"
+                            ).format("YYYY-MM-DD") // Convert to yyyy-mm-dd for the input
                             : ""
                         }
                         onChange={(e) => {
@@ -688,7 +706,7 @@ const tableRef = useRef<HTMLTableElement>(null);
                         placeholder="Enter Target Audience"
                         className={
                           validation.touched.targetAudience &&
-                          validation.errors.targetAudience
+                            validation.errors.targetAudience
                             ? "is-invalid"
                             : ""
                         }
@@ -717,7 +735,7 @@ const tableRef = useRef<HTMLTableElement>(null);
                         placeholder="Enter No. of Participants"
                         className={
                           validation.touched.no_ofParticipants &&
-                          validation.errors.no_ofParticipants
+                            validation.errors.no_ofParticipants
                             ? "is-invalid"
                             : ""
                         }
@@ -743,7 +761,7 @@ const tableRef = useRef<HTMLTableElement>(null);
                         placeholder="Enter total number of hours"
                         className={
                           validation.touched.totalHours &&
-                          validation.errors.totalHours
+                            validation.errors.totalHours
                             ? "is-invalid"
                             : ""
                         }
@@ -772,7 +790,7 @@ const tableRef = useRef<HTMLTableElement>(null);
                         placeholder="Enter resource persons"
                         className={
                           validation.touched.resourcePersons &&
-                          validation.errors.resourcePersons
+                            validation.errors.resourcePersons
                             ? "is-invalid"
                             : ""
                         }
@@ -801,7 +819,7 @@ const tableRef = useRef<HTMLTableElement>(null);
                         placeholder="Enter partnering organisation"
                         className={
                           validation.touched.partnerOrganization &&
-                          validation.errors.partnerOrganization
+                            validation.errors.partnerOrganization
                             ? "is-invalid"
                             : ""
                         }
@@ -820,12 +838,11 @@ const tableRef = useRef<HTMLTableElement>(null);
                         Upload Attendance Report
                       </Label>
                       <Input
-                        className={`form-control ${
-                          validation.touched.attendance &&
+                        className={`form-control ${validation.touched.attendance &&
                           validation.errors.attendance
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         type="file"
                         id="attendance"
                         onChange={(event) => {
@@ -841,6 +858,7 @@ const tableRef = useRef<HTMLTableElement>(null);
                           validation.setFieldTouched("attendance", true, true);
                         }}
                         disabled={isFileUploadDisabled.attendance}
+                        innerRef={fileRef}
                       />
                       {validation.touched.attendance &&
                         validation.errors.attendance && (
@@ -905,11 +923,10 @@ const tableRef = useRef<HTMLTableElement>(null);
                         Upload Report
                       </Label>
                       <Input
-                        className={`form-control ${
-                          validation.touched.report && validation.errors.report
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                        className={`form-control ${validation.touched.report && validation.errors.report
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         type="file"
                         id="report"
                         onChange={(event) => {
@@ -925,6 +942,7 @@ const tableRef = useRef<HTMLTableElement>(null);
                           validation.setFieldTouched("report", true, true);
                         }}
                         disabled={isFileUploadDisabled.report}
+                        innerRef={file2Ref}
                       />
                       {validation.touched.report &&
                         validation.errors.report && (
@@ -1033,8 +1051,8 @@ const tableRef = useRef<HTMLTableElement>(null);
                   <th>Total Hours</th>
                   <th>Resource Persons</th>
                   <th>Partner Organization</th>
-                   <th className="d-none">Attendance Report File Path</th> {/* Hidden */}
-                   <th className="d-none">Report File Path</th> {/* Hidden */}
+                  <th className="d-none">Attendance Report File Path</th> {/* Hidden */}
+                  <th className="d-none">Report File Path</th> {/* Hidden */}
                   <th>Actions</th>
                 </tr>
               </thead>

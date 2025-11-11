@@ -296,7 +296,7 @@ const Conference_Seminars_Workshops: React.FC = () => {
         ""
       );
       // Show success message
-      toast.success(response.message || "File deleted successfully!");
+toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
       if (docType === "brochure") {
         validation.setFieldValue("brochure", null);

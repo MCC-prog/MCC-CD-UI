@@ -40,7 +40,6 @@ const Board_Rooms: React.FC = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [filteredData, setFilteredData] = useState(boardRoomsData);
   const fileRef = useRef<HTMLInputElement | null>(null);
   const tableRef = useRef<HTMLTableElement>(null);
   const [tooltipOpen, setTooltipOpen] = useState(false);
@@ -56,8 +55,8 @@ const Board_Rooms: React.FC = () => {
       const response = await axios.get(
         "/infrastructureBoardRooms/getAllBoardRooms"
       ); // Replace with your backend API endpoint
-      setBoardRoomsData(response);
-      setFilteredData(response);
+      const data = response;
+      setBoardRoomsData(data);
     } catch (error) {
       console.error("Error fetching Board Rooms data:", error);
     }
@@ -109,15 +108,15 @@ const Board_Rooms: React.FC = () => {
         ...mappedValues,
         academicYear: mappedValues.academicYear
           ? {
-              ...mappedValues.academicYear,
-              value: String(mappedValues.academicYear.value),
-            }
+            ...mappedValues.academicYear,
+            value: String(mappedValues.academicYear.value),
+          }
           : null,
       });
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       // Disable the file upload button if a file exists
-      setIsFileUploadDisabled(!!response.document?.aaa);
+      setIsFileUploadDisabled(!!response.document?.boardRooms);
       toggleModal();
     } catch (error) {
       console.error("Error fetching Board Room data by ID:", error);
@@ -140,6 +139,7 @@ const Board_Rooms: React.FC = () => {
           `/infrastructureBoardRooms/deleteBoardRooms?boardRoomsId=${id}`,
           ""
         );
+        setIsModalOpen(false);
         toast.success(response.message || "Board Room removed successfully!");
         fetchBoardRoomsData();
       } catch (error) {
@@ -200,6 +200,7 @@ const Board_Rooms: React.FC = () => {
         `/infrastructureBoardRooms/deleteBoardRoomsDocument?boardRoomsId=${editId}`,
         ""
       );
+
       // Show success message
       toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
@@ -296,53 +297,53 @@ const Board_Rooms: React.FC = () => {
       }
     },
   });
-      useEffect(() => {
-      if (boardRoomsData.length === 0) return; // wait until data is loaded
+  useEffect(() => {
+    if (boardRoomsData.length === 0) return; // wait until data is loaded
 
-      const table = $("#boardRoomsId").DataTable({
-        destroy: true, // destroy existing instance if re-rendered
-        scrollX: true, 
-         autoWidth: false, 
-        dom: "Bfrtip",
-        buttons: [
-          {
-            extend: "copy",
-            exportOptions: {
-              columns: ":not(:last-child)", // skip Actions column
-            },
+    const table = $("#boardRoomsId").DataTable({
+      destroy: true, // destroy existing instance if re-rendered
+      scrollX: true,
+      autoWidth: false,
+      dom: "Bfrtip",
+      buttons: [
+        {
+          extend: "copy",
+          exportOptions: {
+            columns: ":not(:last-child)", // skip Actions column
           },
-          {
-            extend: "csv",
-            exportOptions: {
-              columns: ":not(:last-child)",
-            },
+        },
+        {
+          extend: "csv",
+          exportOptions: {
+            columns: ":not(:last-child)",
           },
-        ],
-      });
-      $(".dt-buttons").addClass("mb-3 gap-2");
-      $(".buttons-copy").addClass("btn btn-success");
-      $(".buttons-csv").addClass("btn btn-info");
+        },
+      ],
+    });
+    $(".dt-buttons").addClass("mb-3 gap-2");
+    $(".buttons-copy").addClass("btn btn-success");
+    $(".buttons-csv").addClass("btn btn-info");
 
-      $("#boardRoomsId").on(
-        "buttons-action.dt",
-        function (e, buttonApi, dataTable, node, config) {
-          if (buttonApi.text() === "Copy") {
-            toast.success("Copied to clipboard!");
-          }
+    $("#boardRoomsId").on(
+      "buttons-action.dt",
+      function (e, buttonApi, dataTable, node, config) {
+        if (buttonApi.text() === "Copy") {
+          toast.success("Copied to clipboard!");
         }
-      );
-  
-      return () => {
-        table.destroy(); // clean up
-      };
-    }, [boardRoomsData]);
+      }
+    );
+
+    return () => {
+      table.destroy(); // clean up
+    };
+  }, [boardRoomsData]);
 
   return (
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
           <Breadcrumb title="Infrastructure" breadcrumbItem="Board Rooms" />
-          <Card>
+          <Card style={{ height: "350px" }}>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
                 <Row>
@@ -391,7 +392,7 @@ const Board_Rooms: React.FC = () => {
                         placeholder="Enter number of board rooms"
                         className={
                           validation.touched.noOfBoardrooms &&
-                          validation.errors?.noOfBoardrooms
+                            validation.errors?.noOfBoardrooms
                             ? "is-invalid"
                             : ""
                         }
@@ -400,10 +401,10 @@ const Board_Rooms: React.FC = () => {
                         validation.errors?.noOfBoardrooms && (
                           <div className="text-danger">
                             {validation.errors.noOfBoardrooms}
-                                            </div>
-                                          )}
-                                      </div>
-                                    </Col>
+                          </div>
+                        )}
+                    </div>
+                  </Col>
 
                   <Col sm={4}>
                     <div className="mb-3">
@@ -424,11 +425,10 @@ const Board_Rooms: React.FC = () => {
                         Current Year geo-tagged Photos Only.
                       </Tooltip>
                       <Input
-                        className={`form-control ${
-                          validation.touched.file && validation.errors.file
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                        className={`form-control ${validation.touched.file && validation.errors.file
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         type="file"
                         id="formFile"
                         innerRef={fileRef}
@@ -519,25 +519,25 @@ const Board_Rooms: React.FC = () => {
               id="boardRoomsId"
               innerRef={tableRef}
             >
-              <thead>
+              <thead className="table-dark">
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
                   <th>No. of Board Rooms</th>
                   <th>Photos</th>
-                   <th className="d-none">File Path</th> {/* Hidden */}
+                  <th className="d-none">File Path</th> {/* Hidden */}
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {boardRoomsData.length > 0 ? (
+                {Array.isArray(boardRoomsData) && boardRoomsData.length > 0 ? (
                   boardRoomsData.map((boardRoom, index) => (
                     <tr key={boardRoom.boardRoomsId}>
                       <td>{index + 1}</td>
                       <td>{boardRoom.academicYear}</td>
                       <td>{boardRoom.noOfBoardrooms}</td>
                       <td>{boardRoom.document?.boardRooms || "No file uploaded"}</td>
-                       <td className="d-none">{boardRoom?.filePath || "N/A"}</td> {/* Hidden */}
+                      <td className="d-none">{boardRoom.filePath?.boardRooms || "N/A"}</td> {/* Hidden */}
                       <td>
                         <button
                           className="btn btn-sm btn-warning me-2"
@@ -556,7 +556,7 @@ const Board_Rooms: React.FC = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={4} className="text-center">
+                    <td colSpan={5} className="text-center">
                       No Board Room data available.
                     </td>
                   </tr>

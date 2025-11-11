@@ -664,6 +664,8 @@ const Advanced_Learners: React.FC = () => {
           `/advanceLearners/deleteAdvanceLearner?advanceLearnerId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(
           response.message || "Advanced Learners removed successfully!"
         );
@@ -727,7 +729,7 @@ const Advanced_Learners: React.FC = () => {
         ""
       );
       // Show success message
-      toast.success(response.message || "File deleted successfully!");
+toast.success(response.message || "File deleted successfully!");
       if (docType === "projectSanctionLetter") {
         formik.setFieldValue("file", null);
         setIsFileProjUploadDisabled(false);

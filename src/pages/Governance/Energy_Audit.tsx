@@ -35,6 +35,8 @@ const EnergyAudit: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [energyAuditData, setEnergyAuditData] = useState<any[]>([]);
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
+  const [isFile2UploadDisabled, setIsFile2UploadDisabled] = useState(false);
+  const [isFile3UploadDisabled, setIsFile3UploadDisabled] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
@@ -114,15 +116,17 @@ const EnergyAudit: React.FC = () => {
         ...mappedValues,
         academicYear: mappedValues.academicYear
           ? {
-              ...mappedValues.academicYear,
-              value: String(mappedValues.academicYear.value),
-            }
+            ...mappedValues.academicYear,
+            value: String(mappedValues.academicYear.value),
+          }
           : null,
       });
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       // Disable the file upload button if a file exists
       setIsFileUploadDisabled(!!response.document?.energyAudit);
+      setIsFile2UploadDisabled(!!response.document?.certificateFile);
+      setIsFile3UploadDisabled(!!response.document?.geoTaggedPhotos);
       toggleModal();
     } catch (error) {
       console.error("Error fetching energy audit data by ID:", error);
@@ -145,6 +149,7 @@ const EnergyAudit: React.FC = () => {
           `/governanceEnergyAudit/deleteEnergyAudit?energyAuditId=${id}`,
           ""
         );
+        setIsModalOpen(false);
         toast.success(response.message || "Energy Audit removed successfully!");
         fetchEnergyAuditData();
       } catch (error) {
@@ -198,18 +203,26 @@ const EnergyAudit: React.FC = () => {
 
   // Handle file deletion
   // Clear the file from the form and show success message
-  const handleDeleteFile = async () => {
+  const handleDeleteFile = async (docType: string) => {
     try {
       // Call the delete API
       const response = await api.delete(
-        `/governanceEnergyAudit/deleteEnergyAuditDocument?energyAuditId=${editId}`,
+        `/governanceEnergyAudit/deleteEnergyAuditDocument?energyAuditId=${editId}&docType=${docType}`,
         ""
       );
       // Show success message
       toast.success(response.message || "File deleted successfully!");
-      // Remove the file from the form
-      validation.setFieldValue("file", null); // Clear the file from Formik state
-      setIsFileUploadDisabled(false); // Enable the file upload button
+      // Clear the file from the form
+      if (docType === "energyAudit" && validation.values.file) {
+        validation.setFieldValue("file", null);
+        setIsFileUploadDisabled(false); // Enable the file upload button
+      } if (docType === "certificateFile" && validation.values.certificateFile) {
+        validation.setFieldValue("certificateFile", null);
+        setIsFile2UploadDisabled(false); // Enable the file upload button
+      } if (docType === "geoTaggedPhotos" && validation.values.geoTaggedPhotos) {
+        validation.setFieldValue("geoTaggedPhotos", null);
+        setIsFile3UploadDisabled(false); // Enable the file upload button
+      }
     } catch (error) {
       // Show error message
       toast.error("Failed to delete the file. Please try again.");
@@ -287,13 +300,14 @@ const EnergyAudit: React.FC = () => {
       } else if (values.file) {
         formData.append("file", values.file);
       }
+
       if (isEditMode && typeof values.certificateFile === "string") {
         // Pass an empty Blob instead of null
         formData.append("certificateFile", new Blob([]), "empty.pdf");
       } else if (isEditMode && values.certificateFile === null) {
         formData.append("certificateFile", new Blob([]), "empty.pdf");
       } else if (values.certificateFile) {
-        formData.append("file", values.certificateFile);
+        formData.append("certificateFile", values.certificateFile);
       }
       if (isEditMode && typeof values.geoTaggedPhotos === "string") {
         // Pass an empty Blob instead of null
@@ -331,9 +345,17 @@ const EnergyAudit: React.FC = () => {
         if (fileRef.current) {
           fileRef.current.value = "";
         }
+        if (fileRef1.current) {
+          fileRef1.current.value = "";
+        }
+        if (fileRef2.current) {
+          fileRef2.current.value = "";
+        }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         setIsFileUploadDisabled(false); // Enable the file upload button
+        setIsFile2UploadDisabled(false); // Enable the file2 upload button
+        setIsFile3UploadDisabled(false); // Enable the file3 upload button
         handleListEnergyAuditClick();
       } catch (error) {
         // Display error message
@@ -438,11 +460,10 @@ const EnergyAudit: React.FC = () => {
                         Upload an PDF file. Max size 10MB.
                       </Tooltip>
                       <Input
-                        className={`form-control ${
-                          validation.touched.file && validation.errors.file
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                        className={`form-control ${validation.touched.file && validation.errors.file
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         type="file"
                         id="formFile"
                         innerRef={fileRef}
@@ -491,7 +512,7 @@ const EnergyAudit: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
-                            onClick={() => handleDeleteFile()}
+                            onClick={() => handleDeleteFile("energyAudit")}
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>
@@ -519,11 +540,10 @@ const EnergyAudit: React.FC = () => {
                         Upload an PDF file. Max size 10MB.
                       </Tooltip>
                       <Input
-                        className={`form-control ${
-                          validation.touched.file && validation.errors.file
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                        className={`form-control ${validation.touched.file && validation.errors.file
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         type="file"
                         id="formFile"
                         innerRef={fileRef1}
@@ -535,7 +555,7 @@ const EnergyAudit: React.FC = () => {
                               : null
                           );
                         }}
-                        disabled={isFileUploadDisabled} // Disable the button if a file exists
+                        disabled={isFile2UploadDisabled} // Disable the button if a file exists
                       />
                       {validation.touched.certificateFile &&
                         validation.errors.certificateFile && (
@@ -544,7 +564,7 @@ const EnergyAudit: React.FC = () => {
                           </div>
                         )}
                       {/* Show a message if the file upload button is disabled */}
-                      {isFileUploadDisabled && (
+                      {isFile2UploadDisabled && (
                         <div className="text-warning mt-2">
                           Please remove the existing file to upload a new one.
                         </div>
@@ -552,35 +572,35 @@ const EnergyAudit: React.FC = () => {
                       {/* Only show the file name if it is a string (from the edit API) */}
                       {typeof validation.values.certificateFile ===
                         "string" && (
-                        <div className="mt-2 d-flex align-items-center">
-                          <span
-                            className="me-2"
-                            style={{ fontWeight: "bold", color: "green" }}
-                          >
-                            {validation.values.certificateFile}
-                          </span>
-                          <Button
-                            color="link"
-                            className="text-primary"
-                            onClick={() =>
-                              handleDownloadFile(
-                                validation.values.certificateFile as string
-                              )
-                            }
-                            title="Download File"
-                          >
-                            <i className="bi bi-download"></i>
-                          </Button>
-                          <Button
-                            color="link"
-                            className="text-danger"
-                            onClick={() => handleDeleteFile()}
-                            title="Delete File"
-                          >
-                            <i className="bi bi-trash"></i>
-                          </Button>
-                        </div>
-                      )}
+                          <div className="mt-2 d-flex align-items-center">
+                            <span
+                              className="me-2"
+                              style={{ fontWeight: "bold", color: "green" }}
+                            >
+                              {validation.values.certificateFile}
+                            </span>
+                            <Button
+                              color="link"
+                              className="text-primary"
+                              onClick={() =>
+                                handleDownloadFile(
+                                  validation.values.certificateFile as string
+                                )
+                              }
+                              title="Download File"
+                            >
+                              <i className="bi bi-download"></i>
+                            </Button>
+                            <Button
+                              color="link"
+                              className="text-danger"
+                              onClick={() => handleDeleteFile("certificateFile")}
+                              title="Delete File"
+                            >
+                              <i className="bi bi-trash"></i>
+                            </Button>
+                          </div>
+                        )}
                     </div>
                   </Col>
 
@@ -603,11 +623,10 @@ const EnergyAudit: React.FC = () => {
                         Upload an PDF file. Max size 10MB.
                       </Tooltip>
                       <Input
-                        className={`form-control ${
-                          validation.touched.file && validation.errors.file
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                        className={`form-control ${validation.touched.file && validation.errors.file
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         type="file"
                         id="formFile"
                         innerRef={fileRef2}
@@ -619,7 +638,7 @@ const EnergyAudit: React.FC = () => {
                               : null
                           );
                         }}
-                        disabled={isFileUploadDisabled} // Disable the button if a file exists
+                        disabled={isFile3UploadDisabled} // Disable the button if a file exists
                       />
                       {validation.touched.geoTaggedPhotos &&
                         validation.errors.geoTaggedPhotos && (
@@ -628,7 +647,7 @@ const EnergyAudit: React.FC = () => {
                           </div>
                         )}
                       {/* Show a message if the file upload button is disabled */}
-                      {isFileUploadDisabled && (
+                      {isFile3UploadDisabled && (
                         <div className="text-warning mt-2">
                           Please remove the existing file to upload a new one.
                         </div>
@@ -636,35 +655,35 @@ const EnergyAudit: React.FC = () => {
                       {/* Only show the file name if it is a string (from the edit API) */}
                       {typeof validation.values.geoTaggedPhotos ===
                         "string" && (
-                        <div className="mt-2 d-flex align-items-center">
-                          <span
-                            className="me-2"
-                            style={{ fontWeight: "bold", color: "green" }}
-                          >
-                            {validation.values.geoTaggedPhotos}
-                          </span>
-                          <Button
-                            color="link"
-                            className="text-primary"
-                            onClick={() =>
-                              handleDownloadFile(
-                                validation.values.geoTaggedPhotos as string
-                              )
-                            }
-                            title="Download File"
-                          >
-                            <i className="bi bi-download"></i>
-                          </Button>
-                          <Button
-                            color="link"
-                            className="text-danger"
-                            onClick={() => handleDeleteFile()}
-                            title="Delete File"
-                          >
-                            <i className="bi bi-trash"></i>
-                          </Button>
-                        </div>
-                      )}
+                          <div className="mt-2 d-flex align-items-center">
+                            <span
+                              className="me-2"
+                              style={{ fontWeight: "bold", color: "green" }}
+                            >
+                              {validation.values.geoTaggedPhotos}
+                            </span>
+                            <Button
+                              color="link"
+                              className="text-primary"
+                              onClick={() =>
+                                handleDownloadFile(
+                                  validation.values.geoTaggedPhotos as string
+                                )
+                              }
+                              title="Download File"
+                            >
+                              <i className="bi bi-download"></i>
+                            </Button>
+                            <Button
+                              color="link"
+                              className="text-danger"
+                              onClick={() => handleDeleteFile("geoTaggedPhotos")}
+                              title="Delete File"
+                            >
+                              <i className="bi bi-trash"></i>
+                            </Button>
+                          </div>
+                        )}
                     </div>
                   </Col>
                 </Row>
@@ -721,21 +740,20 @@ const EnergyAudit: React.FC = () => {
                     <tr key={energyAudit.energyAuditId}>
                       <td>{index + 1}</td>
                       <td>{energyAudit.academicYear}</td>
-                      <td>
-                        {energyAudit.document?.energyAudit ||
-                          "No file uploaded"}
-                      </td>
-                      <td>
-                        {energyAudit.document?.geoTaggedPhotos ||
-                          "No file uploaded"}
-                      </td>
-                      <td>
-                        {energyAudit.document?.certificate || "No file uploaded"}
-                      </td>
+                      <td>{energyAudit.document?.energyAudit || "No file uploaded"}</td>
+                      <td>{energyAudit.document?.geoTaggedPhotos || "No file uploaded"}</td>
+                      <td>{energyAudit.document?.certificateFile || "No file uploaded"}</td>
+
                       <td className="d-none">
                         {energyAudit?.filePath?.energyAudit || "N/A"}
                       </td>{" "}
-                      {/* Hidden */}
+                      <td className="d-none">
+                        {energyAudit?.filePath?.geoTaggedPhotos || "N/A"}
+                      </td>{" "}
+                      <td className="d-none">
+                        {energyAudit?.filePath?.certificate || "N/A"}
+                      </td>{" "}
+
                       <td>
                         <button
                           className="btn btn-sm btn-warning me-2"

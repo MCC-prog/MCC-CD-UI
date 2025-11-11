@@ -41,6 +41,8 @@ const Internships: React.FC = () => {
     const [filteredData, setFilteredData] = useState(bosData);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const fileRef = useRef<HTMLInputElement | null>(null);
+    const file2Ref = useRef<HTMLInputElement | null>(null);
+    const file3Ref = useRef<HTMLInputElement | null>(null);
     // State variable for managing delete confirmation modal
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -210,6 +212,8 @@ const Internships: React.FC = () => {
                     `/internship/deleteInternship?internshipId=${id}`,
                     ""
                 );
+                setIsModalOpen(false);
+
                 toast.success(
                     response.message || "Scholarship Data removed successfully!"
                 );
@@ -369,6 +373,15 @@ const Internships: React.FC = () => {
                     });
                     toast.success("Internship added successfully!");
                 }
+                if (fileRef.current) {
+                    fileRef.current.value = "";
+                }
+                if (file2Ref.current) {
+                    file2Ref.current.value = "";
+                }
+                if (file3Ref.current) {
+                    file3Ref.current.value = "";
+                }
                 handleListAssoClick();
                 resetForm();
                 setIsEditMode(false);
@@ -432,7 +445,7 @@ const Internships: React.FC = () => {
                                                     }`}
                                                 type="file"
                                                 id="placementFile"
-                                                innerRef={fileRefs.placementFile}
+                                                innerRef={fileRef}
                                                 onChange={(event) => {
                                                     validation.setFieldValue(
                                                         "placementFile",
@@ -498,7 +511,7 @@ const Internships: React.FC = () => {
                                                     }`}
                                                 type="file"
                                                 id="departmentFile"
-                                                innerRef={fileRefs.departmentFile}
+                                                innerRef={file2Ref}
                                                 onChange={(event) => {
                                                     validation.setFieldValue(
                                                         "departmentFile",
@@ -564,7 +577,7 @@ const Internships: React.FC = () => {
                                                     }`}
                                                 type="file"
                                                 id="personalFile"
-                                                innerRef={fileRefs.personalFile}
+                                                innerRef={file3Ref}
                                                 onChange={(event) => {
                                                     validation.setFieldValue(
                                                         "personalFile",

@@ -243,6 +243,7 @@ const Bos: React.FC = () => {
     if (deleteId) {
       try {
         const response = await api.delete(`/bos/deleteBos?bosId=${id}`, "");
+        setIsModalOpen(false);
         toast.success(
           response.message || "Curriculum BOS removed successfully!"
         );
@@ -303,7 +304,7 @@ const Bos: React.FC = () => {
         ""
       );
       // Show success message
-      toast.success(response.message || "File deleted successfully!");
+toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
       validation.setFieldValue("file", null); // Clear the file from Formik state
       setIsFileUploadDisabled(false); // Enable the file upload button

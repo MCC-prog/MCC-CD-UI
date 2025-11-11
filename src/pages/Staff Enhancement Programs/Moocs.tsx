@@ -227,11 +227,9 @@ const Moocs: React.FC = () => {
       });
       setSelectedStream(streamOption);
       setSelectedDepartment(departmentOption);
-
+      setIsFileUploadDisabled(!!fileName);
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
-      // Disable the file upload button if a file exists
-      setIsFileUploadDisabled(!!response.documents?.mom);
       toggleModal();
     } catch (error) {
       console.error("Error fetching BOS data by ID:", error);
@@ -254,6 +252,8 @@ const Moocs: React.FC = () => {
           `/fdpsMoocsSkillDevelopmentWorkshop/deleteFdpsMoocsSkillDevelopmentWorkshop?fdpsMoocsSkillDevelopmentWorkshopId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(
           response.message || "Curriculum BOS removed successfully!"
         );
@@ -317,7 +317,7 @@ const Moocs: React.FC = () => {
         ""
       );
       // Show success message
-      toast.success(response.message || "File deleted successfully!");
+toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
       validation.setFieldValue("file", null); // Clear the file from Formik state
       setIsFileUploadDisabled(false); // Enable the file upload button
@@ -461,6 +461,7 @@ const Moocs: React.FC = () => {
         }
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
+        setIsFileUploadDisabled(false); // Enable the file upload button
         // display the BOS List
         handleListBosClick();
       } catch (error) {

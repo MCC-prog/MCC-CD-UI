@@ -109,9 +109,9 @@ const PolicyDocument: React.FC = () => {
         ...mappedValues,
         academicYear: mappedValues.academicYear
           ? {
-              ...mappedValues.academicYear,
-              value: String(mappedValues.academicYear.value),
-            }
+            ...mappedValues.academicYear,
+            value: String(mappedValues.academicYear.value),
+          }
           : null,
       });
       setIsEditMode(true); // Set edit mode
@@ -140,9 +140,11 @@ const PolicyDocument: React.FC = () => {
           `/governancePolicy/deletePolicy?policyId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(
           response.message ||
-            "Student Strength Program-wise removed successfully!"
+          "Student Strength Program-wise removed successfully!"
         );
         fetchPolicyData();
       } catch (error) {
@@ -382,7 +384,7 @@ const PolicyDocument: React.FC = () => {
                         }
                         className={
                           validation.touched.policyName &&
-                          validation.errors?.policyName
+                            validation.errors?.policyName
                             ? "is-invalid"
                             : ""
                         }
@@ -428,11 +430,10 @@ const PolicyDocument: React.FC = () => {
                         Upload an PDF file. Max size 10MB.
                       </Tooltip>
                       <Input
-                        className={`form-control ${
-                          validation.touched.file && validation.errors.file
+                        className={`form-control ${validation.touched.file && validation.errors.file
                             ? "is-invalid"
                             : ""
-                        }`}
+                          }`}
                         type="file"
                         id="formFile"
                         innerRef={fileRef}

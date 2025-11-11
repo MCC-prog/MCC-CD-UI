@@ -187,6 +187,8 @@ const Databases: React.FC = () => {
           `/dataBasesSubscribed/deleteDataBasesSubscribed?dataBasesSubscribedId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(
           response.message ||
             "Databases which are Subscribed removed successfully!"
@@ -258,7 +260,7 @@ const Databases: React.FC = () => {
         `/dataBasesSubscribed/deleteDataBasesSubscribedDocument?fileName=${fileName}`,
         ""
       );
-      toast.success(response.message || "File deleted successfully!");
+toast.success(response.message || "File deleted successfully!");
       if (docType === "DayRegister") {
         validation.setFieldValue("file", null);
       }

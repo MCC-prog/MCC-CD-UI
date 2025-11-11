@@ -106,9 +106,9 @@ const Softwares: React.FC = () => {
           : null,
         department: response.departmentId
           ? {
-              value: response.departmentId.toString(),
-              label: response.departmentName,
-            }
+            value: response.departmentId.toString(),
+            label: response.departmentName,
+          }
           : null,
         file: response.document?.softwares || null,
         nameOfSoftware: response.nameOfSoftware ? response.nameOfSoftware : "",
@@ -122,9 +122,9 @@ const Softwares: React.FC = () => {
         file: response.document?.softwares || null,
         academicYear: mappedValues.academicYear
           ? {
-              ...mappedValues.academicYear,
-              value: String(mappedValues.academicYear.value),
-            }
+            ...mappedValues.academicYear,
+            value: String(mappedValues.academicYear.value),
+          }
           : null,
       });
       setSelectedStream(streamOption);
@@ -155,6 +155,7 @@ const Softwares: React.FC = () => {
           `/infrastructureSoftwares/deleteSoftwares?softwaresId=${id}`,
           ""
         );
+        setIsModalOpen(false);
         toast.success(response.message || " Software removed successfully!");
         fetchSoftwareData();
       } catch (error) {
@@ -216,6 +217,7 @@ const Softwares: React.FC = () => {
         ""
       );
       // Show success message
+      setIsModalOpen(false);
       toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
       validation.setFieldValue("file", null); // Clear the file from Formik state
@@ -331,13 +333,13 @@ const Softwares: React.FC = () => {
       }
     },
   });
-    useEffect(() => {
+  useEffect(() => {
     if (softwareData.length === 0) return; // wait until data is loaded
 
     const table = $("#softwareId").DataTable({
       destroy: true, // destroy existing instance if re-rendered
-      scrollX: true, 
-       autoWidth: false, 
+      scrollX: true,
+      autoWidth: false,
       dom: "Bfrtip",
       buttons: [
         {
@@ -475,7 +477,7 @@ const Softwares: React.FC = () => {
                         placeholder="Enter name of software"
                         className={
                           validation.touched.nameOfSoftware &&
-                          validation.errors?.nameOfSoftware
+                            validation.errors?.nameOfSoftware
                             ? "is-invalid"
                             : ""
                         }
@@ -507,7 +509,7 @@ const Softwares: React.FC = () => {
                         placeholder="Enter number of licenses"
                         className={
                           validation.touched.noOfLicenses &&
-                          validation.errors?.noOfLicenses
+                            validation.errors?.noOfLicenses
                             ? "is-invalid"
                             : ""
                         }
@@ -527,14 +529,14 @@ const Softwares: React.FC = () => {
                         Upload Scanned Bills
                       </Label>
                       <Input
-                        className={`form-control ${
-                          validation.touched.file && validation.errors.file
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                        className={`form-control ${validation.touched.file && validation.errors.file
+                          ? "is-invalid"
+                          : ""
+                          }`}
                         type="file"
                         id="software"
                         innerRef={fileRef}
+                        disabled={isFileUploadDisabled}
                         onChange={(event) => {
                           validation.setFieldValue(
                             "file",
@@ -624,7 +626,7 @@ const Softwares: React.FC = () => {
               striped
               bordered
               hover
-               id="softwareId"
+              id="softwareId"
               innerRef={tableRef}
             >
               <thead className="table-dark">
@@ -635,7 +637,7 @@ const Softwares: React.FC = () => {
                   <th>Department</th>
                   <th>Name of Software</th>
                   <th>No of Licenses</th>
-                   <th className="d-none">File Path</th> {/* Hidden */}
+                  <th className="d-none">File Path</th> {/* Hidden */}
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -649,7 +651,7 @@ const Softwares: React.FC = () => {
                       <td>{software.departmentName}</td>
                       <td>{software.nameOfSoftware}</td>
                       <td>{software.noOfLicenses}</td>
-                       <td className="d-none">{software?.filePath?.softwares || "N/A"}</td> {/* Hidden */}
+                      <td className="d-none">{software?.filePath?.softwares || "N/A"}</td> {/* Hidden */}
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button

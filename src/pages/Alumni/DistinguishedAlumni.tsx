@@ -229,6 +229,8 @@ const tableRef = useRef<HTMLTableElement>(null);
           `/distinguishAlumniOfTheLastFiveYears/deleteDistinguishAlumniOfTheLastFiveYears?distinguishAlumniOfTheLastFiveYearsId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(
           response.message || "Curriculum Alumini removed successfully!"
         );

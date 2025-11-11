@@ -143,22 +143,22 @@ const NationalInternationalDays: React.FC = () => {
           : null,
         department: response.departmentId
           ? {
-              value: response.departmentId.toString(),
-              label: response.departmentName,
-            }
+            value: response.departmentId.toString(),
+            label: response.departmentName,
+          }
           : null,
         otherDepartment: "",
         association: response.associationId
           ? {
-              value: response.associationId.toString(),
-              label: response.associationName,
-            }
+            value: response.associationId.toString(),
+            label: response.associationName,
+          }
           : null,
         objective: response.eventObjective
           ? {
-              value: response.eventObjective.toString(),
-              label: response.eventObjective,
-            }
+            value: response.eventObjective.toString(),
+            label: response.eventObjective,
+          }
           : null,
         file: response.file?.Institutional || null,
       };
@@ -168,9 +168,9 @@ const NationalInternationalDays: React.FC = () => {
         ...mappedValues,
         academicYear: mappedValues.academicYear
           ? {
-              ...mappedValues.academicYear,
-              value: String(mappedValues.academicYear.value),
-            }
+            ...mappedValues.academicYear,
+            value: String(mappedValues.academicYear.value),
+          }
           : null,
       });
       setIsEditMode(true); // Set edit mode
@@ -200,9 +200,11 @@ const NationalInternationalDays: React.FC = () => {
           `/institutionalValues/deleteInstitutionalValues?institutionalValuesId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(
           response.message ||
-            "National International Days removed successfully!"
+          "National International Days removed successfully!"
         );
         fetchActivitiesData();
       } catch (error) {
@@ -378,18 +380,18 @@ const NationalInternationalDays: React.FC = () => {
         const response =
           isEditMode && editId
             ? await api.put(`/institutionalValues`, formData, {
-                headers: {
-                  "Content-Type": "multipart/form-data",
-                },
-              })
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            })
             : await api.create(`/institutionalValues`, formData, {
-                headers: {
-                  "Content-Type": "multipart/form-data",
-                },
-              });
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            });
         toast.success(
           response.message ||
-            "National International Days updated successfully!"
+          "National International Days updated successfully!"
         );
         // Reset the form fields
         resetForm();
@@ -504,7 +506,7 @@ const NationalInternationalDays: React.FC = () => {
                         }}
                         className={
                           validation.touched.semesterNo &&
-                          validation.errors.semesterNo
+                            validation.errors.semesterNo
                             ? "is-invalid"
                             : ""
                         }
@@ -585,12 +587,11 @@ const NationalInternationalDays: React.FC = () => {
                         <Label>Specify Department</Label>
                         <Input
                           type="text"
-                          className={`form-control ${
-                            validation.touched.otherDepartment &&
-                            validation.errors.otherDepartment
+                          className={`form-control ${validation.touched.otherDepartment &&
+                              validation.errors.otherDepartment
                               ? "is-invalid"
                               : ""
-                          }`}
+                            }`}
                           value={validation.values.otherDepartment}
                           onChange={(e) =>
                             validation.setFieldValue(
@@ -625,7 +626,7 @@ const NationalInternationalDays: React.FC = () => {
                         }}
                         className={
                           validation.touched.association &&
-                          validation.errors.association
+                            validation.errors.association
                             ? "is-invalid"
                             : ""
                         }
@@ -667,7 +668,7 @@ const NationalInternationalDays: React.FC = () => {
                         }}
                         className={
                           validation.touched.objective &&
-                          validation.errors?.objective
+                            validation.errors?.objective
                             ? "is-invalid"
                             : ""
                         }
@@ -706,11 +707,10 @@ const NationalInternationalDays: React.FC = () => {
                         Upload Report
                       </Label>
                       <Input
-                        className={`form-control ${
-                          validation.touched.file && validation.errors.file
+                        className={`form-control ${validation.touched.file && validation.errors.file
                             ? "is-invalid"
                             : ""
-                        }`}
+                          }`}
                         type="file"
                         id="formFile"
                         innerRef={fileRef}

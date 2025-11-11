@@ -210,6 +210,8 @@ const Innovative_Teaching_Methodologies: React.FC = () => {
           `/innovativeTeachingMethodology/deleteInnovativeMethod?innovativeMethodologyId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(
           response.message ||
             "Innovative Teaching Methodologies removed successfully!"
@@ -281,7 +283,7 @@ const Innovative_Teaching_Methodologies: React.FC = () => {
         ""
       );
       // Show success message
-      toast.success(response.message || "File deleted successfully!");
+toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
       validation.setFieldValue("file", null); // Clear the file from Formik state
       setIsFileUploadDisabled(false); // Enable the file upload button

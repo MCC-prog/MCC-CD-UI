@@ -46,17 +46,9 @@ const CapacityDevelopment_Skills: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
-   const [selectedStream, setSelectedStream] = useState<any>(null);
-    const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
+  const [selectedStream, setSelectedStream] = useState<any>(null);
+  const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
   const [filteredData, setFilteredData] = useState(cdsData);
-  const [filters, setFilters] = useState({
-    academicYear: "",
-    lifeSkills: "",
-    type: "",
-    qualification: "",
-    LanguageAndCommunication: "",
-    awarenessOfTrends: "",
-  });
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
@@ -141,29 +133,23 @@ const CapacityDevelopment_Skills: React.FC = () => {
 
       // Map API response to Formik values
       const mappedValues = {
-        lifeSkills: mapValueToLabel(
-          response.lifeSkills,
-          lifeSkills // Assuming you have a lifeSkills options array
-        ),
+       
         type: mapValueToLabel(
           response.type,
           capType // Assuming you have a capType options array
         ),
-        LanguageAndCommunication: response.languageAndCommunicationSkills || "",
-        awarenessOfTrends: response.awarenessOfTrends || "",
-        qualification: response.softSkills || "",
         file: response.document?.capacityDevelopment || null,
         academicYear: response.academicYear
           ? { value: response.academicYear, label: response.academicYear }
           : null,
-           stream: response.streamId
+        stream: response.streamId
           ? { value: response.streamId.toString(), label: response.streamName }
           : null,
         department: response.departmentId
           ? {
-              value: response.departmentId.toString(),
-              label: response.departmentName,
-            }
+            value: response.departmentId.toString(),
+            label: response.departmentName,
+          }
           : null,
         softSkills: response.softSkills || "",
         activityName: response.activityName || "",
@@ -173,7 +159,6 @@ const CapacityDevelopment_Skills: React.FC = () => {
       // Update Formik values
       validation.setValues({
         ...mappedValues,
-        lifeSkills: mapValueToLabel(response.lifeSkills, lifeSkills),
         type: mapValueToLabel(response.type, capType),
       });
       setIsFileUploadDisabled(!!response.document?.capacityDevelopment); // Disable file upload if a file exists
@@ -207,7 +192,7 @@ const CapacityDevelopment_Skills: React.FC = () => {
         setIsModalOpen(false);
         toast.success(
           response.message ||
-            "Capacity development & Skills enhancement removed successfully!"
+          "Capacity development & Skills enhancement removed successfully!"
         );
         fetchCDSData();
       } catch (error) {
@@ -231,13 +216,6 @@ const CapacityDevelopment_Skills: React.FC = () => {
     }),
     menuPortal: (base: any) => ({ ...base, zIndex: 9999 }), // Ensure the menu is above other elements
   };
-
-  const lifeSkills = [
-    { value: "Yoga", label: "Yoga" },
-    { value: "Physical fitness", label: "Physical fitness" },
-    { value: "Health", label: "Health" },
-    { value: "Hygiene", label: "Hygiene" },
-  ];
 
   const capType = [
     { value: "Digital Literacy", label: "Digital Literacy" },
@@ -310,36 +288,22 @@ const CapacityDevelopment_Skills: React.FC = () => {
       academicYear: null as { value: string; label: string } | null,
       stream: null as { value: string; label: string } | null,
       department: null as { value: string; label: string } | null,
-      lifeSkills: null as { value: string | number; label: string } | null,
       activityName: "",
       type: null as { value: string | number; label: string } | null,
-      LanguageAndCommunication: "",
-      awarenessOfTrends: "",
-      qualification: "",
       file: null as File | string | null,
     },
     validationSchema: Yup.object({
       academicYear: Yup.object()
         .nullable()
         .required("Please select an academic year"),
-        stream: Yup.object<{ value: string; label: string }>()
-                .nullable()
-                .required("Please select school"),
-              department: Yup.object<{ value: string; label: string }>()
-                .nullable()
-                .required("Please select department"),
-                activityName: Yup.string().required("Please enter Activity name"),
-      lifeSkills: Yup.object()
+      stream: Yup.object<{ value: string; label: string }>()
         .nullable()
-        .required("Please select faculty type"),
+        .required("Please select school"),
+      department: Yup.object<{ value: string; label: string }>()
+        .nullable()
+        .required("Please select department"),
+      activityName: Yup.string().required("Please enter Activity name"),
       type: Yup.object().nullable().required("Please select Type"),
-      awarenessOfTrends: Yup.string().required(
-        "Please enter awareness of trends in technology"
-      ),
-      LanguageAndCommunication: Yup.string().required(
-        "Please enter Language And Communication skills"
-      ),
-      qualification: Yup.string().required("Please enter qualification"),
       file: Yup.mixed().test(
         "fileValidation",
         "Please upload a valid file",
@@ -372,23 +336,11 @@ const CapacityDevelopment_Skills: React.FC = () => {
         formData.append("academicYear", values.academicYear?.value || "");
         formData.append("streamId", values.stream?.value || "");
         formData.append("departmentId", values.department?.value || "");
-        formData.append("softSkills", values.qualification || "");
         formData.append("activityName", values.activityName || "");
-        formData.append(
-          "languageAndCommunicationSkills",
-          values.LanguageAndCommunication || ""
-        );
-        formData.append(
-          "lifeSkills",
-          values.lifeSkills?.value !== undefined
-            ? String(values.lifeSkills?.value)
-            : ""
-        );
         formData.append(
           "type",
           values.type?.value !== undefined ? String(values.type?.value) : ""
         );
-        formData.append("awarenessOfTrends", values.awarenessOfTrends || "");
 
         // Only append if it's a File
         if (values.file instanceof File) {
@@ -408,7 +360,7 @@ const CapacityDevelopment_Skills: React.FC = () => {
           );
           toast.success(
             response.message ||
-              "Capacity development & Skills enhancement updated successfully!"
+            "Capacity development & Skills enhancement updated successfully!"
           );
         } else {
           // Call the save API
@@ -418,7 +370,7 @@ const CapacityDevelopment_Skills: React.FC = () => {
           );
           toast.success(
             response.message ||
-              "Capacity development & Skills enhancement added successfully!"
+            "Capacity development & Skills enhancement added successfully!"
           );
         }
         // Reset the form fields
@@ -519,7 +471,7 @@ const CapacityDevelopment_Skills: React.FC = () => {
                         )}
                     </div>
                   </Col>
-                    {/* Stream Dropdown */}
+                  {/* Stream Dropdown */}
                   <Col lg={4}>
                     <div className="mb-3">
                       <Label>School</Label>
@@ -574,43 +526,14 @@ const CapacityDevelopment_Skills: React.FC = () => {
 
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>Soft skills</Label>
-                      <Input
-                        type="text"
-                        className={`form-control ${
-                          validation.touched.qualification &&
-                          validation.errors.qualification
-                            ? "is-invalid"
-                            : ""
-                        }`}
-                        value={validation.values.qualification}
-                        onChange={(e) =>
-                          validation.setFieldValue(
-                            "qualification",
-                            e.target.value
-                          )
-                        }
-                        placeholder="Enter soft skills"
-                      />
-                      {validation.touched.qualification &&
-                        validation.errors.qualification && (
-                          <div className="text-danger">
-                            {validation.errors.qualification}
-                          </div>
-                        )}
-                    </div>
-                  </Col>
-                    <Col lg={4}>
-                    <div className="mb-3">
                       <Label>Activity Name</Label>
                       <Input
                         type="text"
-                        className={`form-control ${
-                          validation.touched.activityName &&
-                          validation.errors.activityName
+                        className={`form-control ${validation.touched.activityName &&
+                            validation.errors.activityName
                             ? "is-invalid"
                             : ""
-                        }`}
+                          }`}
                         value={validation.values.activityName}
                         onChange={(e) =>
                           validation.setFieldValue(
@@ -624,67 +547,6 @@ const CapacityDevelopment_Skills: React.FC = () => {
                         validation.errors.activityName && (
                           <div className="text-danger">
                             {validation.errors.activityName}
-                          </div>
-                        )}
-                    </div>
-                  </Col>
-
-
-                  <Col lg={4}>
-                    <div className="mb-3">
-                      <Label>Language and communication skills</Label>
-                      <Input
-                        type="text"
-                        className={`form-control ${
-                          validation.touched.LanguageAndCommunication &&
-                          validation.errors.LanguageAndCommunication
-                            ? "is-invalid"
-                            : ""
-                        }`}
-                        value={validation.values.LanguageAndCommunication}
-                        onChange={(e) =>
-                          validation.setFieldValue(
-                            "LanguageAndCommunication",
-                            e.target.value
-                          )
-                        }
-                        placeholder="Enter Language and communication skills"
-                      />
-                      {validation.touched.LanguageAndCommunication &&
-                        validation.errors.LanguageAndCommunication && (
-                          <div className="text-danger">
-                            {validation.errors.LanguageAndCommunication}
-                          </div>
-                        )}
-                    </div>
-                  </Col>
-
-                  <Col lg={4}>
-                    <div className="mb-3">
-                      <Label>Life Skills</Label>
-                      <Select
-                        options={lifeSkills}
-                        value={validation.values.lifeSkills}
-                        onChange={(selectedOptions) =>
-                          validation.setFieldValue(
-                            "lifeSkills",
-                            selectedOptions
-                          )
-                        }
-                        placeholder="Select Life Skills"
-                        styles={dropdownStyles}
-                        menuPortalTarget={document.body}
-                        className={
-                          validation.touched.lifeSkills &&
-                          validation.errors.lifeSkills
-                            ? "select-error"
-                            : ""
-                        }
-                      />
-                      {validation.touched.lifeSkills &&
-                        validation.errors.lifeSkills && (
-                          <div className="text-danger">
-                            {validation.errors.lifeSkills}
                           </div>
                         )}
                     </div>
@@ -716,34 +578,6 @@ const CapacityDevelopment_Skills: React.FC = () => {
                     </div>
                   </Col>
 
-                  <Col lg={4}>
-                    <div className="mb-3">
-                      <Label>Awareness of trends in technology</Label>
-                      <Input
-                        type="text"
-                        className={`form-control ${
-                          validation.touched.awarenessOfTrends &&
-                          validation.errors.awarenessOfTrends
-                            ? "is-invalid"
-                            : ""
-                        }`}
-                        value={validation.values.awarenessOfTrends}
-                        onChange={(e) =>
-                          validation.setFieldValue(
-                            "awarenessOfTrends",
-                            e.target.value
-                          )
-                        }
-                        placeholder="Enter awareness of trends in technology"
-                      />
-                      {validation.touched.awarenessOfTrends &&
-                        validation.errors.awarenessOfTrends && (
-                          <div className="text-danger">
-                            {validation.errors.awarenessOfTrends}
-                          </div>
-                        )}
-                    </div>
-                  </Col>
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
@@ -763,11 +597,10 @@ const CapacityDevelopment_Skills: React.FC = () => {
                         Upload an Excel or PDF file. Max size 10MB.
                       </Tooltip>
                       <Input
-                        className={`form-control ${
-                          validation.touched.file && validation.errors.file
+                        className={`form-control ${validation.touched.file && validation.errors.file
                             ? "is-invalid"
                             : ""
-                        }`}
+                          }`}
                         type="file"
                         id="formFile"
                         innerRef={fileRef}
@@ -876,11 +709,9 @@ const CapacityDevelopment_Skills: React.FC = () => {
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
-                  <th>Soft Skills</th>
-                  <th>Language and Communication Skills</th>
-                  <th>Life Skills</th>
+                  <th>Department</th>
+                  <th>Activity Name</th>
                   <th>Type</th>
-                  <th>Awareness of trends in technology</th>
                   <th className="d-none">File</th>
                   <th>Actions</th>
                 </tr>
@@ -891,11 +722,9 @@ const CapacityDevelopment_Skills: React.FC = () => {
                     <tr key={cds.capacityDevelopmentId}>
                       <td>{index + 1}</td>
                       <td>{cds.academicYear}</td>
-                      <td>{cds.softSkills}</td>
-                      <td>{cds.languageAndCommunicationSkills}</td>
-                      <td>{cds.lifeSkills}</td>
+                      <td>{cds.departmentName}</td>
+                      <td>{cds.activityName}</td>
                       <td>{cds.type}</td>
-                      <td>{cds.awarenessOfTrends}</td>
                       <td className="d-none">
                         {cds.filePath?.capacityDevelopment || "N/A"}
                       </td>

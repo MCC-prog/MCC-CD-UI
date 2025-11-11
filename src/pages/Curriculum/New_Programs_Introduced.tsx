@@ -272,6 +272,8 @@ const New_Programs_Introduced: React.FC = () => {
           `/newProgram/deleteNewProgram?newProgramId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(
           response.message || "New Program Introduced removed successfully!"
         );
@@ -334,7 +336,7 @@ const New_Programs_Introduced: React.FC = () => {
         ""
       );
       // Show success message
-      toast.success(response.message || "File deleted successfully!");
+toast.success(response.message || "File deleted successfully!");
       if (docType === "mom") {
         validation.setFieldValue("file", null);
         setIsMomUploadDisabled(false); // Re-enable only MOM upload

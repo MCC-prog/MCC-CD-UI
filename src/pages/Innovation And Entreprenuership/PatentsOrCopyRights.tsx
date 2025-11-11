@@ -229,6 +229,8 @@ const PatentsOrCopyRights: React.FC = () => {
           `/patent/deletePatent?patentId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(
           response.message || "Patents Filed removed successfully!"
         );
@@ -289,7 +291,7 @@ const PatentsOrCopyRights: React.FC = () => {
         ""
       );
       // Show success message
-      toast.success(response.message || "File deleted successfully!");
+toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
       if (docType === "Patent") {
         validation.setFieldValue("abstractFile", null);

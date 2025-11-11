@@ -165,6 +165,8 @@ const Staff_Profile: React.FC = () => {
           `/staffProfile/deleteStaffProfile?staffProfileId=${id}`,
           ""
         );
+        setIsModalOpen(false);
+
         toast.success(
           response.message || "Staff Profile removed successfully!"
         );
