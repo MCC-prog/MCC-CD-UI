@@ -139,6 +139,12 @@ const Research_Journals: React.FC = () => {
               label: response.journalType,
             }
           : null,
+        typeOfPublish: response.typeOfPublish
+          ? {
+              value: response.typeOfPublish, 
+              label: response.typeOfPublish,
+            }
+          : null,
       };
 
       // Update Formik values
@@ -255,12 +261,14 @@ toast.success(response.message || "File deleted successfully!");
 
   const validation = useFormik<{
     academicYear: SelectOption | null;
+    typeOfPublish: SelectOption | null;
     level: SelectOption | null;
     file: File | string | null;
   }>({
     initialValues: {
       academicYear: null as { value: string; label: string } | null,
       level: null,
+      typeOfPublish: null,
       file: null,
     },
     validationSchema: Yup.object({
@@ -292,12 +300,19 @@ toast.success(response.message || "File deleted successfully!");
         }
       ),
       level: Yup.object().nullable().required("Please select mentorship"),
+      typeOfPublish: Yup.object()
+        .nullable()
+        .required("Please select Type of publishing"),
     }),
     onSubmit: async (values, { resetForm }) => {
       try {
         const formData = new FormData();
         formData.append("academicYear", values.academicYear?.value || "");
         formData.append("journalType", values.level?.value || "");
+        formData.append(
+          "typeOfPublish",
+          values.typeOfPublish?.value || ""
+        );
         if (isEditMode && typeof values.file === "string") {
           // Pass an empty PDF instead of null
           formData.append(
@@ -430,23 +445,23 @@ toast.success(response.message || "File deleted successfully!");
                       <Label>Type Of Publishing</Label>
                       <Select
                         options={TypePublishing}
-                        value={validation.values.level}
+                        value={validation.values.typeOfPublish}
                         onChange={(selectedOption) =>
-                          validation.setFieldValue("level", selectedOption)
+                          validation.setFieldValue("typeOfPublish", selectedOption)
                         }
                         placeholder="Select Type Of Publishing"
                         styles={dropdownStyles}
                         menuPortalTarget={document.body}
                         className={
-                          validation.touched.level && validation.errors.level
+                          validation.touched.typeOfPublish && validation.errors.typeOfPublish
                             ? "select-error"
                             : ""
                         }
                       />
-                      {validation.touched.level && validation.errors.level && (
+                      {validation.touched.typeOfPublish && validation.errors.typeOfPublish && (
                         <div className="text-danger">
-                          {typeof validation.errors.level === "string"
-                            ? validation.errors.level
+                          {typeof validation.errors.typeOfPublish === "string"
+                            ? validation.errors.typeOfPublish
                             : ""}
                         </div>
                       )}
@@ -617,7 +632,7 @@ toast.success(response.message || "File deleted successfully!");
                     <tr key={cds.id}>
                       <td>{index + 1}</td>
                       <td>{cds.academicYear}</td>
-                      <td>{cds.typeOfPublishing}</td>
+                      <td>{cds.typeOfPublish}</td>
                       <td>{cds.journalType}</td>
                       <td className="d-none">
                         {cds?.filePath.ResearchJournal || "N/A"}

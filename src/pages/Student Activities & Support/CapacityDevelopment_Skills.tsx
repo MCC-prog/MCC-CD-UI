@@ -133,7 +133,7 @@ const CapacityDevelopment_Skills: React.FC = () => {
 
       // Map API response to Formik values
       const mappedValues = {
-       
+
         type: mapValueToLabel(
           response.type,
           capType // Assuming you have a capType options array
@@ -151,9 +151,14 @@ const CapacityDevelopment_Skills: React.FC = () => {
             label: response.departmentName,
           }
           : null,
-        softSkills: response.softSkills || "",
         activityName: response.activityName || "",
-        capacityDevelopmentId: response.capacityDevelopmentId || "",
+        semNo:  mapValueToLabel(
+          String(response.semNo),
+          SemNo
+        ) as { value: string; label: string } | null,
+        // softSkills: response.softSkills || "",
+        // activityName: response.activityName || "",
+        // capacityDevelopmentId: response.capacityDevelopmentId || "",
       };
 
       // Update Formik values
@@ -218,9 +223,20 @@ const CapacityDevelopment_Skills: React.FC = () => {
   };
 
   const capType = [
-    { value: "Digital Literacy", label: "Digital Literacy" },
-    { value: "Data Literacy", label: "Data Literacy" },
-    { value: "AI Literacy", label: "AI Literacy" },
+    { value: "Soft skills", label: "Soft skills" },
+    { value: "Language and communication skills", label: "Language and communication skills" },
+    { value: "Life skills (Yoga, physical fitness, health, and hygiene) ", label: "Life skills (Yoga, physical fitness, health, and hygiene)" },
+    { value: "Digital Literacy/Data Literacy/AI Literacy", label: "Digital Literacy/Data Literacy/AI Literacy" },
+    { value: "Awareness of trends in technology", label: "Awareness of trends in technology" },
+  ];
+
+  const SemNo = [
+    { value: "1", label: "I" },
+    { value: "2", label: "II" },
+    { value: "3", label: "III" },
+    { value: "4", label: "IV" },
+    { value: "5", label: "V" },
+    { value: "6", label: "VI" }
   ];
 
   // Handle file download actions
@@ -289,6 +305,7 @@ const CapacityDevelopment_Skills: React.FC = () => {
       stream: null as { value: string; label: string } | null,
       department: null as { value: string; label: string } | null,
       activityName: "",
+      semNo: null as { value: string | number; label: string } | null,
       type: null as { value: string | number; label: string } | null,
       file: null as File | string | null,
     },
@@ -304,6 +321,7 @@ const CapacityDevelopment_Skills: React.FC = () => {
         .required("Please select department"),
       activityName: Yup.string().required("Please enter Activity name"),
       type: Yup.object().nullable().required("Please select Type"),
+      semNo: Yup.object().nullable().required("Please select Semester No"),
       file: Yup.mixed().test(
         "fileValidation",
         "Please upload a valid file",
@@ -340,6 +358,10 @@ const CapacityDevelopment_Skills: React.FC = () => {
         formData.append(
           "type",
           values.type?.value !== undefined ? String(values.type?.value) : ""
+        );
+        formData.append(
+          "semNo",
+          values.semNo?.value !== undefined ? String(values.semNo?.value) : ""
         );
 
         // Only append if it's a File
@@ -523,6 +545,31 @@ const CapacityDevelopment_Skills: React.FC = () => {
                         )}
                     </div>
                   </Col>
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Semester No</Label>
+                      <Select
+                        options={SemNo}
+                        value={validation.values.semNo}
+                        onChange={(selectedOptions) =>
+                          validation.setFieldValue("semNo", selectedOptions)
+                        }
+                        placeholder="Select Semester No"
+                        styles={dropdownStyles}
+                        menuPortalTarget={document.body}
+                        className={
+                          validation.touched.semNo && validation.errors.semNo
+                            ? "select-error"
+                            : ""
+                        }
+                      />
+                      {validation.touched.semNo && validation.errors.semNo && (
+                        <div className="text-danger">
+                          {validation.errors.semNo}
+                        </div>
+                      )}
+                    </div>
+                  </Col>
 
                   <Col lg={4}>
                     <div className="mb-3">
@@ -530,9 +577,9 @@ const CapacityDevelopment_Skills: React.FC = () => {
                       <Input
                         type="text"
                         className={`form-control ${validation.touched.activityName &&
-                            validation.errors.activityName
-                            ? "is-invalid"
-                            : ""
+                          validation.errors.activityName
+                          ? "is-invalid"
+                          : ""
                           }`}
                         value={validation.values.activityName}
                         onChange={(e) =>
@@ -598,8 +645,8 @@ const CapacityDevelopment_Skills: React.FC = () => {
                       </Tooltip>
                       <Input
                         className={`form-control ${validation.touched.file && validation.errors.file
-                            ? "is-invalid"
-                            : ""
+                          ? "is-invalid"
+                          : ""
                           }`}
                         type="file"
                         id="formFile"
