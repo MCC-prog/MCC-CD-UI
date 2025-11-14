@@ -1060,7 +1060,7 @@ const Courses_With_Focus: React.FC = () => {
               key,
               new Blob([], { type: "application/pdf" }),
               "empty.pdf"
-            );
+            ); 
           }
         } else {
           // For inactive tabs, send empty Blob

@@ -90,9 +90,9 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
         return false;
     }
   };
-
+ 
   const tabName: Record<number, string> = {
-  1: "PrincipleInvestigatorDetails",
+  1: "PrincipleInvestigatorDetails", 
   2: "CoInvestigatorDetails",
 };
 
