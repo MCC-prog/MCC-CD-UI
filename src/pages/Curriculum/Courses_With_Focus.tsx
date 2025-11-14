@@ -42,9 +42,9 @@ import "pdfmake/build/vfs_fonts";
 const api = new APIClient();
 
 const courseType = [
-  { value: "T", label: "Core" },
-  { value: "P", label: "Elective" },
-  { value: "A", label: "Allied" },
+  { value: "Core", label: "Core" },
+  { value: "Elective", label: "Elective" },
+  { value: "Allied", label: "Allied" },
 ];
 
 const dropdownStyles = {
@@ -270,47 +270,6 @@ const isTabFilled = (validation: any, tab: number | null) => {
 };
 
 // Helper: Clear fields for a tab
-const clearTabFields = (validation: any, tab: number | null) => {
-  switch (tab) {
-    case 1:
-      validation.setFieldValue("courseTitileG", "");
-      validation.setFieldValue("courseTypeG", null);
-      validation.setFieldValue("fileG", null);
-      break;
-    case 2:
-      validation.setFieldValue("courseTitileES", "");
-      validation.setFieldValue("courseTypeES", null);
-      validation.setFieldValue("fileES", null);
-      break;
-    case 3:
-      validation.setFieldValue("courseTitileIK", "");
-      validation.setFieldValue("courseTypeIK", null);
-      validation.setFieldValue("fileIK", null);
-      break;
-    case 4:
-      validation.setFieldValue("courseTitileEM", "");
-      validation.setFieldValue("courseTypeEM", null);
-      validation.setFieldValue("fileEM", null);
-      break;
-    case 5:
-      validation.setFieldValue("courseTitileSE", "");
-      validation.setFieldValue("courseTypeSE", null);
-      validation.setFieldValue("fileSE", null);
-      break;
-    case 6:
-      validation.setFieldValue("courseTitileEN", "");
-      validation.setFieldValue("courseTypeEN", null);
-      validation.setFieldValue("fileEN", null);
-      break;
-    case 7:
-      validation.setFieldValue("courseTitileET", "");
-      validation.setFieldValue("courseTypeET", null);
-      validation.setFieldValue("fileET", null);
-      break;
-    default:
-      break;
-  }
-};
 
 const Courses_With_Focus: React.FC = () => {
   // State
@@ -343,8 +302,130 @@ const Courses_With_Focus: React.FC = () => {
     yearOfIntroduction: "",
     percentage: "",
   });
+  const fileRef = useRef<HTMLInputElement>(null);
+  const file2Ref = useRef<HTMLInputElement>(null);
+  const file3Ref = useRef<HTMLInputElement>(null);
+  const file4Ref = useRef<HTMLInputElement>(null);
+  const file5Ref = useRef<HTMLInputElement>(null);
+  const file6Ref = useRef<HTMLInputElement>(null);
+  const file7Ref = useRef<HTMLInputElement>(null);
+
+  const [editResData, setEditResData] = useState<any>(null);
 
   const tableRef = useRef<HTMLTableElement>(null);
+
+  const clearTabFields = async (validation: any, tab: number | null) => {
+    try {
+      // console.log("clearTabFields called with tab:", tab);
+      // console.log("editResData:", editResData);
+      let deleteId = null;
+
+      if (tab === 1 && editResData?.ecoGenderC?.coursesWithFocusAddOnFieldID) {
+        deleteId = editResData.ecoGenderC.coursesWithFocusAddOnFieldID;
+      } else if (
+        tab === 2 &&
+        editResData?.ecoEnvironmentalC?.coursesWithFocusAddOnFieldID
+      ) {
+        deleteId = editResData.ecoEnvironmentalC.coursesWithFocusAddOnFieldID;
+      } else if (
+        tab === 3 &&
+        editResData?.ecoIKSC?.coursesWithFocusAddOnFieldID
+      ) {
+        deleteId = editResData.ecoIKSC.coursesWithFocusAddOnFieldID;
+      } else if (
+        tab === 4 &&
+        editResData?.ecoEmployC?.coursesWithFocusAddOnFieldID
+      ) {
+        deleteId = editResData.ecoEmployC.coursesWithFocusAddOnFieldID;
+      } else if (
+        tab === 5 &&
+        editResData?.ecoSkillC?.coursesWithFocusAddOnFieldID
+      ) {
+        deleteId = editResData.ecoSkillC.coursesWithFocusAddOnFieldID;
+      } else if (
+        tab === 6 &&
+        editResData?.ecoEntreC?.coursesWithFocusAddOnFieldID
+      ) {
+        deleteId = editResData.ecoEntreC.coursesWithFocusAddOnFieldID;
+      } else if (
+        tab === 7 &&
+        editResData?.ecoEthicsC?.coursesWithFocusAddOnFieldID
+      ) {
+        deleteId = editResData.ecoEthicsC.coursesWithFocusAddOnFieldID;
+      }
+      // console.log("Delete ID:", deleteId);
+      if (deleteId) {
+        console.log("Hitting API...");
+        await api.delete(
+          `/CoursesWithFocus/deleteCoursesWithFocusTabsAndDoc?coursesWithFocusAddOnFieldId=${deleteId}`,
+          ""
+        );
+      }
+      switch (tab) {
+        case 1:
+          validation.setFieldValue("courseTitileG", "");
+          validation.setFieldValue("courseTypeG", null);
+          validation.setFieldValue("fileG", null);
+          if (fileRef.current) {
+            fileRef.current.value = "";
+          }
+          break;
+        case 2:
+          validation.setFieldValue("courseTitileES", "");
+          validation.setFieldValue("courseTypeES", null);
+          validation.setFieldValue("fileES", null);
+          if (file2Ref.current) {
+            file2Ref.current.value = "";
+          }
+          break;
+        case 3:
+          validation.setFieldValue("courseTitileIK", "");
+          validation.setFieldValue("courseTypeIK", null);
+          validation.setFieldValue("fileIK", null);
+          if (file3Ref.current) {
+            file3Ref.current.value = "";
+          }
+          break;
+        case 4:
+          validation.setFieldValue("courseTitileEM", "");
+          validation.setFieldValue("courseTypeEM", null);
+          validation.setFieldValue("fileEM", null);
+          if (file4Ref.current) {
+            file4Ref.current.value = "";
+          }
+          break;
+        case 5:
+          validation.setFieldValue("courseTitileSE", "");
+          validation.setFieldValue("courseTypeSE", null);
+          validation.setFieldValue("fileSE", null);
+          if (file5Ref.current) {
+            file5Ref.current.value = "";
+          }
+          break;
+        case 6:
+          validation.setFieldValue("courseTitileEN", "");
+          validation.setFieldValue("courseTypeEN", null);
+          validation.setFieldValue("fileEN", null);
+          if (file6Ref.current) {
+            file6Ref.current.value = "";
+          }
+          break;
+        case 7:
+          validation.setFieldValue("courseTitileET", "");
+          validation.setFieldValue("courseTypeET", null);
+          validation.setFieldValue("fileET", null);
+          if (file7Ref.current) {
+            file7Ref.current.value = "";
+          }
+          break;
+        default:
+          break;
+      }
+    } catch (error) {
+      toast.error("Failed to clear tab data. Please try again.");
+      console.error("Error clearing tab data:", error);
+    }
+  };
 
   // Utility
   const mapValueToLabel = (
@@ -388,24 +469,6 @@ const Courses_With_Focus: React.FC = () => {
     setIsModalOpen(!isModalOpen);
   };
 
-  const handleFilterChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    column: string
-  ) => {
-    const value = e.target.value.toLowerCase();
-    const updatedFilters = { ...filters, [column]: value };
-    setFilters(updatedFilters);
-
-    const filtered = CWFData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
   const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
@@ -441,6 +504,7 @@ const Courses_With_Focus: React.FC = () => {
       );
 
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
+      setEditResData(response);
       // Filter the response where isCurrent or isCurrentForAdmission is true
       const filteredAcademicYearList = academicYearOptions.filter(
         (year: any) => year.isCurrent || year.isCurrentForAdmission
@@ -574,7 +638,7 @@ const Courses_With_Focus: React.FC = () => {
         );
         validation.setFieldValue(
           "courseTypeES",
-          getCourseTypeOption(response.ecoEnvironmentalC.courseTypeES)
+          getCourseTypeOption(response.ecoEnvironmentalC.courseType)
         );
         validation.setFieldValue(
           "fileES",
@@ -780,10 +844,10 @@ const Courses_With_Focus: React.FC = () => {
         ""
       );
       // Show success message
-toast.success(response.message || "File deleted successfully!");
+      toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
       validation.setFieldValue(tabKey, null); // Clear the file from Formik state
-      validation.setFieldValue(tabKey + "Id", null);
+      // validation.setFieldValue(tabKey + "Id", null);
     } catch (error) {
       // Show error message
       toast.error("Failed to delete the file. Please try again.");
@@ -859,8 +923,8 @@ toast.success(response.message || "File deleted successfully!");
     },
     validationSchema: getTabValidationSchema(activeTab),
     enableReinitialize: true,
+    
     onSubmit: async (values, { resetForm, setErrors, setSubmitting }) => {
-      // Block submit if no Focus Area tab is active
       if (!activeTab) {
         validation.setStatus(
           "Please select a Focus Area and fill at least one focus area type."
@@ -869,35 +933,11 @@ toast.success(response.message || "File deleted successfully!");
         return;
       }
 
+      console.log("Submit triggered with values:", values);
       const formData = new FormData();
-      // Determine focusArea based on activeTab
-      let focusArea = "";
-      switch (activeTab) {
-        case 1:
-          focusArea = "Gender";
-          break;
-        case 2:
-          focusArea = "Environment & Sustainability";
-          break;
-        case 3:
-          focusArea = "Indian Knowledge System";
-          break;
-        case 4:
-          focusArea = "Employability";
-          break;
-        case 5:
-          focusArea = "Skill Enhancement";
-          break;
-        case 6:
-          focusArea = "Entrepreneurship";
-          break;
-        case 7:
-          focusArea = "Ethics";
-          break;
-        default:
-          focusArea = "";
-      }
-      const coursesWithFocusRequestDto: any = {
+
+      const coursesWithFocusRequestDto = {
+        coursesWithFocusId: isEditMode && editId ? Number(editId) : null,
         academicYear: Number(values.academicYear?.value) || null,
         semType: values.semesterType?.value || null,
         semNumber: Number(values.semesterNo?.value) || null,
@@ -905,47 +945,91 @@ toast.success(response.message || "File deleted successfully!");
         departmentId: Number(values.department?.value) || null,
         programTypeId: Number(values.programType?.value) || null,
         programId: Number(values.degree?.value) || null,
-        focusArea: focusArea,
         courseId: Array.isArray(values.program)
           ? values.program.map((option: any) => Number(option.value))
           : [],
-        ecoEntreC: {
-          coursesWithFocusAddOnFieldsId: values.fileENId || null,
-          courseTitle: values.courseTitileEN || null,
-          courseType: values.courseTypeEN?.value || null,
-        },
-        ecoEmployC: {
-          coursesWithFocusAddOnFieldsId: values.fileEMId || null,
-          courseTitle: values.courseTitileEM || null,
-          courseType: values.courseTypeEM?.value || null,
-        },
-        ecoSkillC: {
-          coursesWithFocusAddOnFieldsId: values.fileSEId || null,
-          courseTitle: values.courseTitileSE || null,
-          courseType: values.courseTypeSE?.value || null,
-        },
-        ecoGenderC: {
-          coursesWithFocusAddOnFieldsId: values.fileGId || null,
-          courseTitle: values.courseTitileG || null,
-          courseType: values.courseTypeG?.value || null,
-        },
-        ecoEnvironmentalC: {
-          coursesWithFocusAddOnFieldsId: values.fileESId || null,
-          courseTitle: values.courseTitileES || null,
-          courseType: values.courseTypeES?.value || null,
-        },
-        ecoIKSC: {
-          coursesWithFocusAddOnFieldsId: values.fileIKId || null,
-          courseTitle: values.courseTitileIK || null,
-          courseType: values.courseTypeIK?.value || null,
-        },
-        ecoEthicsC: {
-          coursesWithFocusAddOnFieldsId: values.fileETId || null,
-          courseTitle: values.courseTitileET || null,
-          courseType: values.courseTypeET?.value || null,
-        },
-        coursesWithFocusId: isEditMode && editId ? Number(editId) : null,
+        focusArea:
+          activeTab === 1
+            ? "Gender"
+            : activeTab === 2
+            ? "Environment & Sustainability"
+            : activeTab === 3
+            ? "Indian Knowledge System"
+            : activeTab === 4
+            ? "Employability"
+            : activeTab === 5
+            ? "Skill Enhancement"
+            : activeTab === 6
+            ? "Entrepreneurship"
+            : activeTab === 7
+            ? "Ethics"
+            : null,
+
+        ecoGenderC:
+          activeTab === 1
+            ? {
+                coursesWithFocusAddOnFieldsId: values.fileGId || null,
+                courseTitle: values.courseTitileG || "",
+                courseType: values.courseTypeG?.value || "",
+              }
+            : null,
+
+        ecoEnvironmentalC:
+          activeTab === 2
+            ? {
+                coursesWithFocusAddOnFieldsId: values.fileESId || null,
+                courseTitle: values.courseTitileES || "",
+                courseType: values.courseTypeES?.value || "",
+              }
+            : null,
+
+        ecoIKSC:
+          activeTab === 3
+            ? {
+                coursesWithFocusAddOnFieldsId: values.fileIKId || null,
+                courseTitle: values.courseTitileIK || "",
+                courseType: values.courseTypeIK?.value || "",
+              }
+            : null,
+
+        ecoEmployC:
+          activeTab === 4
+            ? {
+                coursesWithFocusAddOnFieldsId: values.fileEMId || null,
+                courseTitle: values.courseTitileEM || "",
+                courseType: values.courseTypeEM?.value || "",
+              }
+            : null,
+
+        ecoSkillC:
+          activeTab === 5
+            ? {
+                coursesWithFocusAddOnFieldsId: values.fileSEId || null,
+                courseTitle: values.courseTitileSE || "",
+                courseType: values.courseTypeSE?.value || "",
+              }
+            : null,
+
+        ecoEntreC:
+          activeTab === 6
+            ? {
+                coursesWithFocusAddOnFieldsId: values.fileENId || null,
+                courseTitle: values.courseTitileEN || "",
+                courseType: values.courseTypeEN?.value || "",
+              }
+            : null,
+
+        ecoEthicsC:
+          activeTab === 7
+            ? {
+                coursesWithFocusAddOnFieldsId: values.fileETId || null,
+                courseTitle: values.courseTitileET || "",
+                courseType: values.courseTypeET?.value || "",
+              }
+            : null,
       };
+
+      console.log("Request DTO:", coursesWithFocusRequestDto);
 
       formData.append(
         "coursesWithFocusRequestDto",
@@ -954,39 +1038,94 @@ toast.success(response.message || "File deleted successfully!");
         })
       );
 
-      formData.append("ecoGenderC", values.fileG || new Blob());
-      formData.append("ecoIKSC", values.fileIK || new Blob());
-      formData.append("ecoEmployC", values.fileEM || new Blob());
-      formData.append("ecoSkillC", values.fileSE || new Blob());
-      formData.append("ecoEntreC", values.fileEN || new Blob());
-
-      try {
-        if (isEditMode && editId) {
-          const response = await api.put(`/CoursesWithFocus`, formData, {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          });
-          toast.success(
-            response.message || "Courses With Focus updated successfully!"
-          );
+      // Helper for file appending (only active tab sends file)
+      const appendFile = (key: string, file: any, tabNumber: number) => {
+        if (activeTab === tabNumber) {
+          if (isEditMode && typeof file === "string") {
+            formData.append(
+              key,
+              new Blob([], { type: "application/pdf" }),
+              "empty.pdf"
+            );
+          } else if (isEditMode && file === null) {
+            formData.append(
+              key,
+              new Blob([], { type: "application/pdf" }),
+              "empty.pdf"
+            );
+          } else if (file) {
+            formData.append(key, file);
+          } else {
+            formData.append(
+              key,
+              new Blob([], { type: "application/pdf" }),
+              "empty.pdf"
+            );
+          }
         } else {
-          const response = await api.create("/CoursesWithFocus", formData, {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          });
-          toast.success(
-            response.message || "Courses With Focus added successfully!"
+          // For inactive tabs, send empty Blob
+          formData.append(
+            key,
+            new Blob([], { type: "application/pdf" }),
+            "empty.pdf"
           );
         }
+      };
+
+      appendFile("ecoGenderC", values.fileG, 1);
+      appendFile("ecoEnvironmentalC", values.fileES, 2);
+      appendFile("ecoIKSC", values.fileIK, 3);
+      appendFile("ecoEmployC", values.fileEM, 4);
+      appendFile("ecoSkillC", values.fileSE, 5);
+      appendFile("ecoEntreC", values.fileEN, 6);
+      appendFile("ecoEthicsC", values.fileET, 7);
+
+      try {
+        const response =
+          isEditMode && editId
+            ? await api.put(`/CoursesWithFocus`, formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+              })
+            : await api.create(`/CoursesWithFocus`, formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+              });
+
+        toast.success(
+          response.message ||
+            (isEditMode
+              ? "Courses With Focus updated successfully!"
+              : "Courses With Focus added successfully!")
+        );
+
         resetForm();
+        if (fileRef.current) {
+          fileRef.current.value = "";
+        }
+        if (file2Ref.current) {
+          file2Ref.current.value = "";
+        }
+        if (file3Ref.current) {
+          file3Ref.current.value = "";
+        }
+        if (file4Ref.current) {
+          file4Ref.current.value = "";
+        }
+        if (file5Ref.current) {
+          file5Ref.current.value = "";
+        }
+        if (file6Ref.current) {
+          file6Ref.current.value = "";
+        }
+        if (file7Ref.current) {
+          file7Ref.current.value = "";
+        }
 
         setIsEditMode(false);
         setEditId(null);
         handleListCWFClick();
       } catch (error) {
-        toast.error("Failed to save Courses With Focus. Please try again.");
+        toast.error("Failed to save/update Courses With Focus. Please try again.");
+        console.error("Form submission error:", error);
       }
     },
   });
@@ -1428,6 +1567,7 @@ toast.success(response.message || "File deleted successfully!");
                                         : null
                                     );
                                   }}
+                                  innerRef={fileRef}
                                   disabled={
                                     typeof validation.values.fileG ===
                                       "string" && validation.values.fileG
@@ -1575,6 +1715,7 @@ toast.success(response.message || "File deleted successfully!");
                                         : null
                                     );
                                   }}
+                                  innerRef={file2Ref}
                                   disabled={
                                     typeof validation.values.fileES ===
                                       "string" && validation.values.fileES
@@ -1722,6 +1863,7 @@ toast.success(response.message || "File deleted successfully!");
                                         : null
                                     );
                                   }}
+                                  innerRef={file3Ref}
                                   disabled={
                                     typeof validation.values.fileIK ===
                                       "string" && validation.values.fileIK
@@ -1869,6 +2011,7 @@ toast.success(response.message || "File deleted successfully!");
                                         : null
                                     );
                                   }}
+                                  innerRef={file4Ref}
                                   disabled={
                                     typeof validation.values.fileEM ===
                                       "string" && validation.values.fileEM
@@ -2016,6 +2159,7 @@ toast.success(response.message || "File deleted successfully!");
                                         : null
                                     );
                                   }}
+                                  innerRef={file5Ref}
                                   disabled={
                                     typeof validation.values.fileSE ===
                                       "string" && validation.values.fileSE
@@ -2163,6 +2307,7 @@ toast.success(response.message || "File deleted successfully!");
                                         : null
                                     );
                                   }}
+                                  innerRef={file6Ref}
                                   disabled={
                                     typeof validation.values.fileEN ===
                                       "string" && validation.values.fileEN
@@ -2310,6 +2455,7 @@ toast.success(response.message || "File deleted successfully!");
                                         : null
                                     );
                                   }}
+                                  innerRef={file7Ref}
                                   disabled={
                                     typeof validation.values.fileET ===
                                       "string" && validation.values.fileET
@@ -2452,7 +2598,7 @@ toast.success(response.message || "File deleted successfully!");
                   <th>Course Type(Sustainability)</th>
                   <th>File Path(Sustainability)</th>
 
-                   <th>Course Title(Indian Knowledge System)</th>
+                  <th>Course Title(Indian Knowledge System)</th>
                   <th>Course Type(Indian Knowledge System)</th>
                   <th>File Path(Indian Knowledge System)</th>
 

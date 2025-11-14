@@ -103,8 +103,118 @@ const Experiential_Learning: React.FC = () => {
 
   const tableRef = useRef<HTMLTableElement>(null);
 
+  const [editResData, setEditResData] = useState<any>(null);
+
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
+
+  const clearTabFields = async (validation: any, tab: number | null) => {
+    try {
+      // console.log("clearTabFields called with tab:", tab);
+      // console.log("editResData:", editResData);
+      let deleteId = null;
+
+      if (tab === 1 && editResData?.internship?.addOnFieldId) {
+        deleteId = editResData.internship.addOnFieldId;
+      } else if (tab === 2 && editResData?.fieldProject?.addOnFieldId) {
+        deleteId = editResData.fieldProject.addOnFieldId;
+      } else if (tab === 3 && editResData?.dissertations?.addOnFieldId) {
+        deleteId = editResData.dissertations.addOnFieldId;
+      } else if (tab === 4 && editResData?.fellowship?.addOnFieldId) {
+        deleteId = editResData.fellowship.addOnFieldId;
+      } else if (tab === 5 && editResData?.bootcamp?.addOnFieldId) {
+        deleteId = editResData.bootcamp.addOnFieldId;
+      }
+      // console.log("Delete ID:", deleteId);
+      if (deleteId) {
+        console.log("Hitting API...");
+        await api.delete(
+          `/experientialLearning/deleteExperientialLearningTabsAndDoc?experientialLearningAddTabId=${deleteId}`,
+          ""
+        );
+      }
+      switch (tab) {
+        case 1:
+          validation.setFieldValue("internship", {
+            totalJoiningStudentsOfIntern: "",
+            orgNameOfIntern: "",
+            locationOfIntern: "",
+            internshipFile: null,
+            internshipFileName: "",
+            internshipFileKey: "",
+          });
+          if (internshipFileRef.current) internshipFileRef.current.value = "";
+          break;
+        case 2:
+          validation.setFieldValue("fieldProject", {
+            totalParticipatingStudents: "",
+            fieldProjectStartDate: "",
+            fieldProjectEndDate: "",
+            locationOfOrganisation: "",
+            fieldProjectFile: null,
+            fieldProjectFileName: "",
+            fieldProjectFileKey: "",
+            communicationLetter: null,
+            communicationLetterFileName: "",
+            communicationLetterFileKey: "",
+            // studentExcelSheet: null,
+            // studentExcelSheetFileName: "",
+            // studentExcelSheetFileKey: "",
+          });
+          if (fieldProjectFileRef.current)
+            fieldProjectFileRef.current.value = "";
+          if (communicationLetterRef.current)
+            communicationLetterRef.current.value = "";
+          // if (fieldStudentExcelRef.current)
+          //   fieldStudentExcelRef.current.value = "";
+          break;
+        case 3:
+          validation.setFieldValue("dissertation", {
+            totalParticipatingStudentsdissertation: "",
+            dissertationsStartDate: "",
+            dissertationsEndDate: "",
+            dissertationTitleOfTheProject: "",
+            dissertationFile: null,
+            dissertationFileName: "",
+            dissertationFileKey: "",
+          });
+          if (dissertationFileRef.current)
+            dissertationFileRef.current.value = "";
+          break;
+        case 4:
+          validation.setFieldValue("fellowship", {
+            studentExcelSheet: null,
+            studentExcelSheetFileName: "",
+            studentExcelSheetFileKey: "",
+            fellowshipFile: null,
+            fellowshipFileName: "",
+            fellowshipFileKey: "",
+          });
+          if (fellowshipStudentExcelRef.current)
+            fellowshipStudentExcelRef.current.value = "";
+          if (fellowshipFileRef.current) fellowshipFileRef.current.value = "";
+          break;
+        case 5:
+          validation.setFieldValue("bootcamp", {
+            studentExcelSheet: null,
+            studentExcelSheetFileName: "",
+            studentExcelSheetFileKey: "",
+            bootcampFile: null,
+            bootcampFileName: "",
+            bootcampFileKey: "",
+          });
+          if (bootcampStudentExcelRef.current)
+            bootcampStudentExcelRef.current.value = "";
+          if (bootcampFileRef.current) bootcampFileRef.current.value = "";
+          break;
+        default:
+          break;
+      }
+    } catch (error) {
+      toast.error("Failed to clear tab data. Please try again.");
+      console.error("Error clearing tab data:", error);
+    }
+  };
 
   // Search/filter logic
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -251,6 +361,7 @@ const Experiential_Learning: React.FC = () => {
         ""
       );
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
+      setEditResData(response);
       const filteredAcademicYearList = academicYearOptions.filter(
         (year: any) => year.isCurrent || year.isCurrentForAdmission
       );
@@ -296,7 +407,7 @@ const Experiential_Learning: React.FC = () => {
       //   response.fieldProject?.file,
       //   "StudentExcelSheet"
       // );
-        const dissertationFileInfo = getFileInfoByFolder(
+      const dissertationFileInfo = getFileInfoByFolder(
         response.dissertations?.file,
         "Dissertation"
       );
@@ -411,7 +522,8 @@ const Experiential_Learning: React.FC = () => {
           dissertationFile: null,
           dissertationFileName: dissertationFileInfo.fileName || "",
           dissertationFileKey: dissertationFileInfo.fileKey || "",
-          dissertationTitleOfTheProject: response.dissertations?.dissertationTitleOfTheProject || "",
+          dissertationTitleOfTheProject:
+            response.dissertations?.dissertationTitleOfTheProject || "",
         },
         fellowship: {
           addOnFieldId: response.fellowship?.addOnFieldId || "",
@@ -537,7 +649,8 @@ const Experiential_Learning: React.FC = () => {
           dissertationFile: null,
           dissertationFileName: dissertationFileInfo.fileName || "",
           dissertationFileKey: dissertationFileInfo.fileKey || "",
-          dissertationTitleOfTheProject: response.dissertations?.dissertationTitleOfTheProject || "",
+          dissertationTitleOfTheProject:
+            response.dissertations?.dissertationTitleOfTheProject || "",
         },
 
         fellowship: {
@@ -867,16 +980,17 @@ const Experiential_Learning: React.FC = () => {
           return end.isSameOrAfter(start);
         }
       ),
-      dissertationTitleOfTheProject: Yup.string().required(
-        "Enter the title of the dissertation project"
-      ),
-       dissertationFile: Yup.mixed().test(
+    dissertationTitleOfTheProject: Yup.string().required(
+      "Enter the title of the dissertation project"
+    ),
+    dissertationFile: Yup.mixed().test(
       "fileValidation",
       "Please upload a valid file",
       function (value) {
         if (
           isEditMode &&
-          (this.parent?.dissertationFileName || this.parent?.dissertationFileKey)
+          (this.parent?.dissertationFileName ||
+            this.parent?.dissertationFileKey)
         )
           return true;
         if (!value)
@@ -1278,7 +1392,8 @@ const Experiential_Learning: React.FC = () => {
                 "DD-MM-YYYY"
               ).format("YYYY-MM-DD")
             : null,
-          dissertationTitleOfTheProject: values.dissertation.dissertationTitleOfTheProject || null,
+          dissertationTitleOfTheProject:
+            values.dissertation.dissertationTitleOfTheProject || null,
           addOnFieldId: values.dissertation.addOnFieldId || null,
         };
       }
@@ -1352,9 +1467,12 @@ const Experiential_Learning: React.FC = () => {
           formData.append("i_certificates", values.internship.internshipFile);
       }
 
-       if (activeTab1 === "dissertation") {
+      if (activeTab1 === "dissertation") {
         if (values.dissertation?.dissertationFile)
-          formData.append("d_dissertation", values.dissertation.dissertationFile);
+          formData.append(
+            "d_dissertation",
+            values.dissertation.dissertationFile
+          );
       }
 
       try {
@@ -1382,6 +1500,166 @@ const Experiential_Learning: React.FC = () => {
         console.error("Error creating/updating Experiential Learning:", error);
       }
     },
+//     onSubmit: async (values, { resetForm }) => {
+//   console.log("Submit triggered with values:", values);
+//   console.log("activeTab1:", activeTab1);
+//   console.log("isFilled(currentTab):", isFilled(values[activeTab1 || ""]));
+//   console.log("isAnyTabFilled:", isAnyTabFilled(values));
+//   console.log("validation errors:", validation.errors);
+
+//   await validation.validateForm();
+
+//   if (Object.keys(validation.errors).length) {
+//     toast.error("Fix validation errors (see console)");
+//     return;
+//   }
+
+//   if (!isAnyTabFilled(values)) {
+//     toast.warning("You must fill at least one experiential tab.");
+//     return;
+//   }
+
+//   const formData = new FormData();
+
+//   const dtoPayload: any = {
+//     id: isEditMode && editId ? editId : null,
+//     academicYear: values.academicYear?.value || "",
+//     semType: values.semType?.value || "",
+//     semNumber: values.semNumber?.value || "",
+//     streamId: values.stream?.value || "",
+//     departmentId: values.department?.value || "",
+//     programTypeId: values.programType?.value || "",
+//     programId: values.degree?.value || "",
+//     programName: values.degree?.label || "",
+//     programTitle: values.programTitle,
+//     courseTitle: values.courseTitle,
+//     courseType: values.courseType?.value || "",
+//   };
+
+//   // ====== Decide which tab is filled and attach object ======
+//   const mapTab = {
+//     internship: values.internship,
+//     fieldProject: values.fieldProject,
+//     dissertation: values.dissertation,
+//     fellowship: values.fellowship,
+//     bootcamp: values.bootcamp,
+//   };
+
+//   // build DTO for only that tab
+//   if (activeTab1 === "internship") {
+//     dtoPayload.internship = {
+//       totalInternStudents: values.internship.totalJoiningStudentsOfIntern || null,
+//       internOrgName: values.internship.orgNameOfIntern || null,
+//       internOrgLocation: values.internship.locationOfIntern || null,
+//       addOnFieldId: values.internship.addOnFieldId || null,
+//     };
+//   }
+
+//   if (activeTab1 === "fieldProject") {
+//     dtoPayload.fieldProject = {
+//       totalFieldProjectStudents: values.fieldProject.totalParticipatingStudents || null,
+//       fieldProjectStratDate: values.fieldProject.fieldProjectStartDate
+//         ? moment(values.fieldProject.fieldProjectStartDate, "DD-MM-YYYY").format("YYYY-MM-DD")
+//         : null,
+//       fieldProjectEndDate: values.fieldProject.fieldProjectEndDate
+//         ? moment(values.fieldProject.fieldProjectEndDate, "DD-MM-YYYY").format("YYYY-MM-DD")
+//         : null,
+//       fielsProjectOrgLocation: values.fieldProject.locationOfOrganisation || null,
+//       addOnFieldId: values.fieldProject.addOnFieldId || null,
+//     };
+//   }
+
+//   if (activeTab1 === "dissertation") {
+//     dtoPayload.dissertations = {
+//       totalDissertationsStudents: values.dissertation.totalParticipatingStudentsdissertation || null,
+//       dissertationsStartDate: values.dissertation.dissertationsStartDate
+//         ? moment(values.dissertation.dissertationsStartDate, "DD-MM-YYYY").format("YYYY-MM-DD")
+//         : null,
+//       dissertationsEndDate: values.dissertation.dissertationsEndDate
+//         ? moment(values.dissertation.dissertationsEndDate, "DD-MM-YYYY").format("YYYY-MM-DD")
+//         : null,
+//       dissertationTitleOfTheProject: values.dissertation.dissertationTitleOfTheProject || null,
+//       addOnFieldId: values.dissertation.addOnFieldId || null,
+//     };
+//   }
+
+//   if (activeTab1 === "fellowship") {
+//     dtoPayload.fellowship = {
+//       addOnFieldId: values.fellowship.addOnFieldId || null,
+//     };
+//   }
+
+//   if (activeTab1 === "bootcamp") {
+//     dtoPayload.bootcamp = {
+//       addOnFieldId: values.bootcamp.addOnFieldId || null,
+//     };
+//   }
+
+//   // ===========================================
+//   //        APPEND DTO JSON
+//   // ===========================================
+//   formData.append(
+//     "experientialLearningRequestDto",
+//     new Blob([JSON.stringify(dtoPayload)], { type: "application/json" })
+//   );
+
+  
+
+//   // ===========================================
+//   //        FILE APPEND LOGIC (WORKS LIKE YOUR CWF FORM)
+//   // ===========================================
+//   const safeAppend = (key: string, file: any, tab: string) => {
+//     if (activeTab1 === tab) {
+//       if (isEditMode && file === null) {
+//         // send empty file so backend keeps old file
+//         formData.append(key, new Blob([], { type: "application/pdf" }), "empty.pdf");
+//       } else if (file instanceof File) {
+//         formData.append(key, file);
+//       } else {
+//         formData.append(key, new Blob([], { type: "application/pdf" }), "empty.pdf");
+//       }
+//     } else {
+//       // inactive tabs → send empty file
+//       formData.append(key, new Blob([], { type: "application/pdf" }), "empty.pdf");
+//     }
+//   };
+
+//   safeAppend("i_certificates", values.internship?.internshipFile, "internship");
+//   safeAppend("fP_fieldProject", values.fieldProject?.fieldProjectFile, "fieldProject");
+//   safeAppend("fP_communicationLetter", values.fieldProject?.communicationLetter, "fieldProject");
+//   safeAppend("d_dissertation", values.dissertation?.dissertationFile, "dissertation");
+//   safeAppend("f_fellowship", values.fellowship?.fellowshipFile, "fellowship");
+//   safeAppend("f_studentExcelSheet", values.fellowship?.studentExcelSheet, "fellowship");
+//   safeAppend("b_bootcamp", values.bootcamp?.bootcampFile, "bootcamp");
+//   safeAppend("b_studentExcelSheet", values.bootcamp?.studentExcelSheet, "bootcamp");
+
+//   // ===========================================
+//   //      CALL API
+//   // ===========================================
+//   try {
+//     const response =
+//       isEditMode && editId
+//         ? await api.put(`/experientialLearning`, formData, {
+//             headers: { "Content-Type": "multipart/form-data" },
+//           })
+//         : await api.create(`/experientialLearning`, formData, {
+//             headers: { "Content-Type": "multipart/form-data" },
+//           });
+
+//     toast.success(
+//       response.message ||
+//         (isEditMode ? "Experiential Learning updated!" : "Experiential Learning created!")
+//     );
+
+//     resetForm();
+//     setIsEditMode(false);
+//     setEditId(null);
+//   } catch (err) {
+//     console.error(err);
+//     toast.error("Failed to save/update. Try again.");
+//   }
+// }
+
   });
 
   useEffect(() => {
@@ -1645,7 +1923,7 @@ const Experiential_Learning: React.FC = () => {
                         )}
                     </div>
                   </Col>
-                    <Col lg={4}>
+                  <Col lg={4}>
                     <div className="mb-3">
                       <Label>Course Type</Label>
                       <Select
@@ -1698,7 +1976,7 @@ const Experiential_Learning: React.FC = () => {
                         )}
                     </div>
                   </Col>
-                
+
                   <div className="mb-3 mt-3 d-grid">
                     <Button
                       className="btn btn-tabs toggle-wizard-button"
@@ -2086,47 +2364,19 @@ const Experiential_Learning: React.FC = () => {
 
                             <Row className="mt-3">
                               <Col className="d-flex justify-content-center">
-                                <button
-                                  type="button"
-                                  className="btn btn-danger"
-                                  onClick={async () => {
-                                    // In edit mode, delete backend files if keys exist
-                                    if (isEditMode) {
-                                      try {
-                                        if (
-                                          validation.values.internship
-                                            ?.internshipFileKey
-                                        ) {
-                                          await handleDeleteFileWithKey(
-                                            "internship",
-                                            "internshipFile",
-                                            "internshipFileName",
-                                            validation.values.internship
-                                              .internshipFileKey
-                                          );
-                                        }
-                                      } catch (err) {
-                                        /* handleDeleteFileWithKey shows toast on error */
+                                <div className="mb-2 mt-2">
+                                  {activeTab && (
+                                    <button
+                                      type="button"
+                                      className="btn btn-outline-warning btn-sm"
+                                      onClick={() =>
+                                        clearTabFields(validation, activeTab)
                                       }
-                                    }
-
-                                    // Clear all Formik values for internship
-                                    validation.setFieldValue("internship", {
-                                      totalJoiningStudentsOfIntern: "",
-                                      orgNameOfIntern: "",
-                                      locationOfIntern: "",
-                                      internshipFile: null,
-                                      internshipFileName: "",
-                                      internshipFileKey: "",
-                                    });
-
-                                    // Clear DOM file inputs so same file can be re-uploaded
-                                    if (internshipFileRef.current)
-                                      internshipFileRef.current.value = "";
-                                  }}
-                                >
-                                  Clear
-                                </button>
+                                    >
+                                      Clear
+                                    </button>
+                                  )}
+                                </div>
                               </Col>
                             </Row>
                           </Form>
@@ -2581,86 +2831,19 @@ const Experiential_Learning: React.FC = () => {
                             </Row>
                             <Row className="mt-3">
                               <Col className="d-flex justify-content-center">
-                                <button
-                                  type="button"
-                                  className="btn btn-danger"
-                                  onClick={async () => {
-                                    // In edit mode, delete backend files if keys exist
-                                    if (isEditMode) {
-                                      try {
-                                        if (
-                                          validation.values.fieldProject
-                                            ?.fieldProjectFileKey
-                                        ) {
-                                          await handleDeleteFileWithKey(
-                                            "fieldProject",
-                                            "fieldProjectFile",
-                                            "fieldProjectFileName",
-                                            validation.values.fieldProject
-                                              .fieldProjectFileKey
-                                          );
-                                        }
-                                      } catch (err) {
-                                        /* handleDeleteFileWithKey shows toast on error */
+                                <div className="mb-2 mt-2">
+                                  {activeTab && (
+                                    <button
+                                      type="button"
+                                      className="btn btn-outline-warning btn-sm"
+                                      onClick={() =>
+                                        clearTabFields(validation, activeTab)
                                       }
-                                      try {
-                                        if (
-                                          validation.values.fieldProject
-                                            ?.communicationLetterFileKey
-                                        ) {
-                                          await handleDeleteFileWithKey(
-                                            "fieldProject",
-                                            "communicationLetter",
-                                            "communicationLetterFileName",
-                                            validation.values.fieldProject
-                                              .communicationLetterFileKey
-                                          );
-                                        }
-                                      } catch (err) {}
-                                      // try {
-                                      //   if (
-                                      //     validation.values.fieldProject
-                                      //       ?.studentExcelSheetFileKey
-                                      //   ) {
-                                      //     await handleDeleteFileWithKey(
-                                      //       "fieldProject",
-                                      //       "studentExcelSheet",
-                                      //       "studentExcelSheetFileName",
-                                      //       validation.values.fieldProject
-                                      //         .studentExcelSheetFileKey
-                                      //     );
-                                      //   }
-                                      // } catch (err) {}
-                                    }
-
-                                    // Clear all Formik values for fieldProject
-                                    validation.setFieldValue("fieldProject", {
-                                      totalParticipatingStudents: "",
-                                      fieldProjectStartDate: "",
-                                      fieldProjectEndDate: "",
-                                      locationOfOrganisation: "",
-                                      fieldProjectFile: null,
-                                      fieldProjectFileName: "",
-                                      fieldProjectFileKey: "",
-                                      communicationLetter: null,
-                                      communicationLetterFileName: "",
-                                      communicationLetterFileKey: "",
-                                      // studentExcelSheet: null,
-                                      // studentExcelSheetFileName: "",
-                                      // studentExcelSheetFileKey: "",
-                                    });
-
-                                    // Clear DOM file inputs so same file can be re-uploaded
-                                    if (fieldProjectFileRef.current)
-                                      fieldProjectFileRef.current.value = "";
-                                    if (communicationLetterRef.current)
-                                      communicationLetterRef.current.value = "";
-                                    // if (fieldStudentExcelRef.current)
-                                    //   fieldStudentExcelRef.current.value = "";
-                                  }}
-                                >
-                                  Clear
-                                </button>
+                                    >
+                                      Clear
+                                    </button>
+                                  )}
+                                </div>
                               </Col>
                             </Row>
                           </Form>
@@ -2824,7 +3007,8 @@ const Experiential_Learning: React.FC = () => {
                                     target="infoIcon"
                                     toggle={toggleTooltip}
                                   >
-                                    For more than 1 student, upload a merged document
+                                    For more than 1 student, upload a merged
+                                    document
                                   </Tooltip>
                                   {isEditMode &&
                                   validation.values.dissertation
@@ -2945,48 +3129,19 @@ const Experiential_Learning: React.FC = () => {
                             </Row>
                             <Row className="mt-3">
                               <Col className="d-flex justify-content-center">
-                                <button
-                                  type="button"
-                                  className="btn btn-danger"
-                                  onClick={async () => {
-                                    // In edit mode, delete backend files if keys exist
-                                    if (isEditMode) {
-                                      try {
-                                        if (
-                                          validation.values.dissertation
-                                            ?.dissertationFileKey
-                                        ) {
-                                          await handleDeleteFileWithKey(
-                                            "dissertation",
-                                            "dissertationFile",
-                                            "dissertationFileName",
-                                            validation.values.dissertation
-                                              .dissertationFileKey
-                                          );
-                                        }
-                                      } catch (err) {
-                                        /* handleDeleteFileWithKey shows toast on error */
+                                <div className="mb-2 mt-2">
+                                  {activeTab && (
+                                    <button
+                                      type="button"
+                                      className="btn btn-outline-warning btn-sm"
+                                      onClick={() =>
+                                        clearTabFields(validation, activeTab)
                                       }
-                                    }
-
-                                    // Clear all Formik values for internship
-                                    validation.setFieldValue("dissertation", {
-                                      totalParticipatingStudentsdissertation: "",
-                                      dissertationsStartDate: "",
-                                      dissertationsEndDate: "",
-                                      dissertationTitleOfTheProject: "",
-                                      dissertationFile: null,
-                                      dissertationFileName: "",
-                                      dissertationFileKey: "",
-                                    });
-
-                                    // Clear DOM file inputs so same file can be re-uploaded
-                                    if (dissertationFileRef.current)
-                                      dissertationFileRef.current.value = "";
-                                  }}
-                                >
-                                  Clear
-                                </button>
+                                    >
+                                      Clear
+                                    </button>
+                                  )}
+                                </div>
                               </Col>
                             </Row>
                           </Form>
@@ -3218,67 +3373,19 @@ const Experiential_Learning: React.FC = () => {
                             </Row>
                             <Row className="mt-3">
                               <Col className="d-flex justify-content-center">
-                                <Button
-                                  type="button"
-                                  className="btn btn-danger"
-                                  onClick={async () => {
-                                    // In edit mode delete backend files if keys exist
-                                    if (isEditMode) {
-                                      try {
-                                        if (
-                                          validation.values.fellowship
-                                            ?.studentExcelSheetFileKey
-                                        ) {
-                                          await handleDeleteFileWithKey(
-                                            "fellowship",
-                                            "studentExcelSheet",
-                                            "studentExcelSheetFileName",
-                                            validation.values.fellowship
-                                              .studentExcelSheetFileKey
-                                          );
-                                        }
-                                      } catch (err) {
-                                        /* noop - handleDeleteFileWithKey shows toast */
+                                <div className="mb-2 mt-2">
+                                  {activeTab && (
+                                    <button
+                                      type="button"
+                                      className="btn btn-outline-warning btn-sm"
+                                      onClick={() =>
+                                        clearTabFields(validation, activeTab)
                                       }
-
-                                      try {
-                                        if (
-                                          validation.values.fellowship
-                                            ?.fellowshipFileKey
-                                        ) {
-                                          await handleDeleteFileWithKey(
-                                            "fellowship",
-                                            "fellowshipFile",
-                                            "fellowshipFileName",
-                                            validation.values.fellowship
-                                              .fellowshipFileKey
-                                          );
-                                        }
-                                      } catch (err) {
-                                        /* noop */
-                                      }
-                                    }
-
-                                    // Clear all Formik values for fellowship
-                                    validation.setFieldValue("fellowship", {
-                                      studentExcelSheet: null,
-                                      studentExcelSheetFileName: "",
-                                      studentExcelSheetFileKey: "",
-                                      fellowshipFile: null,
-                                      fellowshipFileName: "",
-                                      fellowshipFileKey: "",
-                                    });
-
-                                    // Clear DOM file inputs so same file can be re-uploaded
-                                    if (fellowshipStudentExcelRef.current)
-                                      fellowshipStudentExcelRef.current.value =
-                                        "";
-                                    if (fellowshipFileRef.current)
-                                      fellowshipFileRef.current.value = "";
-                                  }}
-                                >
-                                  Clear
-                                </Button>
+                                    >
+                                      Clear
+                                    </button>
+                                  )}
+                                </div>
                               </Col>
                             </Row>
                           </Form>
@@ -3509,67 +3616,19 @@ const Experiential_Learning: React.FC = () => {
                             </Row>
                             <Row className="mt-3">
                               <Col className="d-flex justify-content-center">
-                                <Button
-                                  type="button"
-                                  className="btn btn-danger"
-                                  onClick={async () => {
-                                    // In edit mode delete backend files if keys exist
-                                    if (isEditMode) {
-                                      try {
-                                        if (
-                                          validation.values.bootcamp
-                                            ?.studentExcelSheetFileKey
-                                        ) {
-                                          await handleDeleteFileWithKey(
-                                            "bootcamp",
-                                            "studentExcelSheet",
-                                            "studentExcelSheetFileName",
-                                            validation.values.bootcamp
-                                              .studentExcelSheetFileKey
-                                          );
-                                        }
-                                      } catch (err) {
-                                        /* noop */
+                                <div className="mb-2 mt-2">
+                                  {activeTab && (
+                                    <button
+                                      type="button"
+                                      className="btn btn-outline-warning btn-sm"
+                                      onClick={() =>
+                                        clearTabFields(validation, activeTab)
                                       }
-
-                                      try {
-                                        if (
-                                          validation.values.bootcamp
-                                            ?.bootcampFileKey
-                                        ) {
-                                          await handleDeleteFileWithKey(
-                                            "bootcamp",
-                                            "bootcampFile",
-                                            "bootcampFileName",
-                                            validation.values.bootcamp
-                                              .bootcampFileKey
-                                          );
-                                        }
-                                      } catch (err) {
-                                        /* noop */
-                                      }
-                                    }
-
-                                    // Clear all Formik values for bootcamp
-                                    validation.setFieldValue("bootcamp", {
-                                      studentExcelSheet: null,
-                                      studentExcelSheetFileName: "",
-                                      studentExcelSheetFileKey: "",
-                                      bootcampFile: null,
-                                      bootcampFileName: "",
-                                      bootcampFileKey: "",
-                                    });
-
-                                    // Clear DOM file inputs so same file can be re-uploaded
-                                    if (bootcampStudentExcelRef.current)
-                                      bootcampStudentExcelRef.current.value =
-                                        "";
-                                    if (bootcampFileRef.current)
-                                      bootcampFileRef.current.value = "";
-                                  }}
-                                >
-                                  Clear
-                                </Button>
+                                    >
+                                      Clear
+                                    </button>
+                                  )}
+                                </div>
                               </Col>
                             </Row>
                           </Form>
@@ -3665,7 +3724,9 @@ const Experiential_Learning: React.FC = () => {
                   </th>
                   <th>Duration of Project start date(Projects/Dissertation)</th>
                   <th>Duration of Project end date(Projects/Dissertation)</th>
-                  <th>Dissertation Title of the Project(Projects/Dissertation)</th>
+                  <th>
+                    Dissertation Title of the Project(Projects/Dissertation)
+                  </th>
                   <th>Dissertation File(Projects/Dissertation)</th>
 
                   <th>Student Excel Sheet(Fellowship)</th>

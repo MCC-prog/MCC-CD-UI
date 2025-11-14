@@ -36,6 +36,7 @@ import "datatables.net-buttons/js/buttons.html5.js";
 import "jszip";
 import "pdfmake/build/pdfmake";
 import "pdfmake/build/vfs_fonts";
+import { aB } from "@fullcalendar/core/internal-common";
 const api = new APIClient();
 
 const Management_Funded_Project: React.FC = () => {
@@ -61,6 +62,87 @@ const Management_Funded_Project: React.FC = () => {
   const tableRef = useRef<HTMLTableElement>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
   const file2Ref = useRef<HTMLInputElement | null>(null);
+
+  const [editResData, setEditResData] = useState<any>(null);
+
+  const isTabFilled = (validation: any, tab: number | null) => {
+    switch (tab) {
+      case 1:
+        return (
+          validation.values.principalInvestigator.name ||
+          validation.values.principalInvestigator.qualification ||
+          validation.values.principalInvestigator.designation ||
+          validation.values.principalInvestigator.department ||
+          validation.values.principalInvestigator.abstractFile ||
+          validation.values.principalInvestigator.sanctionOrderFile
+        );
+      case 2:
+        return (
+          validation.values.coInvestigator.name ||
+          validation.values.coInvestigator.qualification ||
+          validation.values.coInvestigator.designation ||
+          validation.values.coInvestigator.department
+        );
+      default:
+        return false;
+    }
+  };
+
+  const clearTabFields = async (validation: any, tab: number | null) => {
+    try {
+      let deleteId = null;
+
+      if (
+        tab === 1 &&
+        editResData?.principleInvestigatorDto?.principleInvestigatorId
+      ) {
+        deleteId = editResData.principleInvestigatorDto.principleInvestigatorId;
+      } else if (
+        tab === 2 &&
+        editResData?.coInvestigatorDto?.coInvestigatorId
+      ) {
+        deleteId = editResData.coInvestigatorDto.coInvestigatorId;
+      }
+
+      if (deleteId) {
+        await api.delete(
+          `/managementFundProject/deleteManagementFundedProjectTabsAndDoc?managementFundProjectAddTabId=${deleteId}`,
+          ""
+        );
+      }
+      switch (tab) {
+        case 1:
+          validation.setFieldValue("principleInvestigatorId", null);
+          validation.setFieldValue("principalInvestigator", {
+            name: "",
+            qualification: "",
+            designation: "",
+            department: null,
+            abstractFile: null,
+            sanctionOrderFile: null,
+          });
+          setIsAbstractFileUploadDisabled(false);
+          setIsSanctionFileUploadDisabled(false);
+
+         if (fileRef.current) fileRef.current.value = "";
+         if (file2Ref.current) file2Ref.current.value = "";
+          break;
+        case 2:
+          validation.setFieldValue("coInvestigatorId", null);
+          validation.setFieldValue("coInvestigator", {
+            name: "",
+            qualification: "",
+            designation: "",
+            department: null,
+          });
+          break;
+        default:
+          break;
+      }
+    } catch (error) {
+      console.error("Delete API failed", error);
+    }
+  };
 
   // Fetch department data on mount
   useEffect(() => {
@@ -431,7 +513,7 @@ const Management_Funded_Project: React.FC = () => {
         ""
       );
       // Show success message
-toast.success(response.message || "File deleted successfully!");
+      toast.success(response.message || "File deleted successfully!");
       if (docType === "sanctionOrder") {
         validation.setFieldValue(
           "principalInvestigator.sanctionOrderFile",
@@ -809,7 +891,7 @@ toast.success(response.message || "File deleted successfully!");
         ""
       );
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
-
+      setEditResData(response);
       // Filter the response where isCurrent or isCurrentForAdmission is true
       const filteredAcademicYearList = academicYearOptions.filter(
         (year: any) => year.isCurrent || year.isCurrentForAdmission
@@ -824,9 +906,11 @@ toast.success(response.message || "File deleted successfully!");
       // Map API response to Formik values
       const mappedValues: any = {
         academicYear: mapValueToLabel(response.academicYear, academicYearList),
+
         stream: response.streamId
           ? { value: response.streamId.toString(), label: response.streamName }
           : null,
+
         department: response.departmentId
           ? {
               value: response.departmentId.toString(),
@@ -1286,7 +1370,10 @@ toast.success(response.message || "File deleted successfully!");
                       <NavItem>
                         <NavLink
                           className={activeTab === "1" ? "active" : ""}
-                          onClick={() => setActiveTab("1")}
+                          disabled={isTabFilled(validation, 2)} // disable PI tab when CO tab is filled
+                          onClick={() => {
+                            if (!isTabFilled(validation, 2)) setActiveTab("1");
+                          }}
                         >
                           Principal Investigator Details
                         </NavLink>
@@ -1294,7 +1381,10 @@ toast.success(response.message || "File deleted successfully!");
                       <NavItem>
                         <NavLink
                           className={activeTab === "2" ? "active" : ""}
-                          onClick={() => setActiveTab("2")}
+                          disabled={isTabFilled(validation, 1)} // disable CO tab when PI tab is filled
+                          onClick={() => {
+                            if (!isTabFilled(validation, 1)) setActiveTab("2");
+                          }}
                         >
                           Co-Investigator Details
                         </NavLink>
@@ -1303,8 +1393,29 @@ toast.success(response.message || "File deleted successfully!");
                     <TabContent activeTab={activeTab}>
                       <TabPane tabId="1">
                         {renderPrincipalInvestigatorForm()}
+                        <div className="mb-2 mt-2">
+                          <button
+                            type="button"
+                            className="btn btn-outline-warning btn-sm"
+                            onClick={() => clearTabFields(validation, 1)}
+                          >
+                            Clear
+                          </button>
+                        </div>
                       </TabPane>
-                      <TabPane tabId="2">{renderCoInvestigatorForm()}</TabPane>
+
+                      <TabPane tabId="2">
+                        {renderCoInvestigatorForm()}
+                        <div className="mb-2 mt-2">
+                          <button
+                            type="button"
+                            className="btn btn-outline-warning btn-sm"
+                            onClick={() => clearTabFields(validation, 2)}
+                          >
+                            Clear
+                          </button>
+                        </div>
+                      </TabPane>
                     </TabContent>
                   </div>
                 )}

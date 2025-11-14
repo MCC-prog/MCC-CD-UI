@@ -37,7 +37,6 @@ import "jszip";
 import "pdfmake/build/pdfmake";
 import "pdfmake/build/vfs_fonts";
 
-
 const api = new APIClient();
 
 const Fellowships_Awarded_For_AL_And_Research = () => {
@@ -64,7 +63,94 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
   const [filteredData, setFilteredData] = useState(fwlData);
   const tableRef = useRef<HTMLTableElement>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const file2Ref = useRef<HTMLInputElement | null>(null);
+  const file3Ref = useRef<HTMLInputElement | null>(null);
 
+  const [editResData, setEditResData] = useState<any>(null);
+
+  const isTabFilled = (validation: any, tab: number | null) => {
+    switch (tab) {
+      case 1:
+        return (
+          validation.values.principalInvestigator.name ||
+          validation.values.principalInvestigator.qualification ||
+          validation.values.principalInvestigator.designation ||
+          validation.values.principalInvestigator.department ||
+          validation.values.principalInvestigator.abstractFile ||
+          validation.values.principalInvestigator.sanctionOrderFile
+        );
+      case 2:
+        return (
+          validation.values.coInvestigator.name ||
+          validation.values.coInvestigator.qualification ||
+          validation.values.coInvestigator.designation ||
+          validation.values.coInvestigator.department
+        );
+      default:
+        return false;
+    }
+  };
+
+  const tabName: Record<number, string> = {
+  1: "PrincipleInvestigatorDetails",
+  2: "CoInvestigatorDetails",
+};
+
+  const clearTabFields = async (validation: any, tab: number | null) => {
+    try {
+      let deleteId = null;
+
+      if (
+        tab === 1 &&
+        editResData?.principleInvestigatorDto?.principleInvestigatorId
+      ) {
+        deleteId = editResData.principleInvestigatorDto.principleInvestigatorId;
+      } else if (
+        tab === 2 &&
+        editResData?.coInvestigatorDto?.coInvestigatorId
+      ) {
+        deleteId = editResData.coInvestigatorDto.coInvestigatorId;
+      }
+
+      if (deleteId) {
+        await api.delete(
+          `/fellowshipAwarded/deleteFellowshipAwardedTabsAndDoc?fellowshipAwardedAddTabId=${deleteId}&tabName=${encodeURIComponent(tabName[tab!])}`,
+          ""
+        );
+      }
+      switch (tab) {
+        case 1:
+          validation.setFieldValue("principleInvestigatorId", null);
+          validation.setFieldValue("principalInvestigator", {
+            name: "",
+            qualification: "",
+            designation: "",
+            department: null,
+            abstractFile: null,
+            sanctionOrderFile: null,
+          });
+          setIsAbstractFileUploadDisabled(false);
+          setIsSanctionFileUploadDisabled(false);
+
+          if (file3Ref.current) file3Ref.current.value = "";
+          if (file2Ref.current) file2Ref.current.value = "";
+          break;
+        case 2:
+          validation.setFieldValue("coInvestigatorId", null);
+          validation.setFieldValue("coInvestigator", {
+            name: "",
+            qualification: "",
+            designation: "",
+            department: null,
+          });
+          break;
+        default:
+          break;
+      }
+    } catch (error) {
+      console.error("Delete API failed", error);
+    }
+  };
 
   useEffect(() => {
     const fetchDepartments = async () => {
@@ -82,7 +168,6 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
     fetchDepartments();
   }, []);
 
- 
   // Toggle the modal for listing fwl
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
@@ -121,31 +206,31 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
     principalInvestigator:
       isMultidisciplinary === "Yes" && activeTab === "1"
         ? Yup.object({
-          name: Yup.string().required("Please enter name"),
-          qualification: Yup.string().required("Please enter qualification"),
-          designation: Yup.string().required("Please enter designation"),
-          department: Yup.object<{ value: string; label: string }>()
-            .nullable()
-            .required("Please select department"),
-          //date: Yup.date().required("Please select a date"),
-          abstractFile: Yup.mixed().required(
-            "Please upload the abstract file"
-          ),
-          sanctionOrderFile: Yup.mixed().required(
-            "Please upload the sanction order file"
-          ),
-        })
+            name: Yup.string().required("Please enter name"),
+            qualification: Yup.string().required("Please enter qualification"),
+            designation: Yup.string().required("Please enter designation"),
+            department: Yup.object<{ value: string; label: string }>()
+              .nullable()
+              .required("Please select department"),
+            //date: Yup.date().required("Please select a date"),
+            abstractFile: Yup.mixed().required(
+              "Please upload the abstract file"
+            ),
+            sanctionOrderFile: Yup.mixed().required(
+              "Please upload the sanction order file"
+            ),
+          })
         : Yup.object(),
     coInvestigator:
       isMultidisciplinary === "Yes" && activeTab === "2"
         ? Yup.object({
-          name: Yup.string().required("Please enter name"),
-          qualification: Yup.string().required("Please enter qualification"),
-          designation: Yup.string().required("Please enter designation"),
-          department: Yup.object<{ value: string; label: string }>()
-            .nullable()
-            .required("Please select department"),
-        })
+            name: Yup.string().required("Please enter name"),
+            qualification: Yup.string().required("Please enter qualification"),
+            designation: Yup.string().required("Please enter designation"),
+            department: Yup.object<{ value: string; label: string }>()
+              .nullable()
+              .required("Please select department"),
+          })
         : Yup.object(),
   });
 
@@ -163,6 +248,7 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
       typeOfFunding: null as { value: string; label: string } | null,
       fellowship: null as File | null,
       principalInvestigator: {
+        pId: null,
         name: "",
         qualification: "",
         designation: "",
@@ -172,6 +258,7 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
         sanctionOrderFile: null as File | null,
       },
       coInvestigator: {
+        cId: null,
         name: "",
         qualification: "",
         designation: "",
@@ -201,7 +288,10 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
             ? "PrincipleInvestigatorDetails"
             : "CoInvestigatorDetails",
         fellowshipAwardedAddTabDto: {
-          additionalTabId: editId || null,
+          additionalTabId:
+            activeTab === "1"
+              ? values.principalInvestigator.pId || null
+              : values.coInvestigator.cId || null,
           name:
             activeTab === "1"
               ? values.principalInvestigator.name || null
@@ -230,13 +320,16 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
         "fellowshipAwardedRequestDto",
         new Blob([JSON.stringify(dtoPayload)], { type: "application/json" })
       );
-      // console.log("API PAYLOAD CHECK ==>>",formData)
+      console.log("API PAYLOAD CHECK ==>>", dtoPayload);
 
       // Append the file with the key `file`
       if (isMultidisciplinary === "Yes") {
         if (activeTab === "1") {
           if (values.principalInvestigator.abstractFile instanceof File) {
-            formData.append("abstractProject", values.principalInvestigator.abstractFile);
+            formData.append(
+              "abstractProject",
+              values.principalInvestigator.abstractFile
+            );
           }
           if (values.principalInvestigator.sanctionOrderFile instanceof File) {
             formData.append(
@@ -255,22 +348,31 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
         const response =
           isEditMode && editId
             ? await api.put(`/fellowshipAwarded/update`, formData, {
-              headers: {
-                "Content-Type": "multipart/form-data",
-              },
-            })
+                headers: {
+                  "Content-Type": "multipart/form-data",
+                },
+              })
             : await api.create(`/fellowshipAwarded/save`, formData, {
-              headers: {
-                "Content-Type": "multipart/form-data",
-              },
-            });
+                headers: {
+                  "Content-Type": "multipart/form-data",
+                },
+              });
 
         toast.success(response.message || "FWL record saved successfully!");
         // Reset the form fields
         resetForm();
-         if (fileRef.current) {
+        if (fileRef.current) {
           fileRef.current.value = "";
         }
+        if (file2Ref.current) {
+          file2Ref.current.value = "";
+        }
+        if (file3Ref.current) {
+          file3Ref.current.value = "";
+        }
+        setIsFellowshipFileUploadDisabled(false);
+        setIsAbstractFileUploadDisabled(false);
+        setIsSanctionFileUploadDisabled(false);
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         handleListFWLClick(); // Refresh the list
@@ -307,9 +409,9 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
           ""
         );
         setIsModalOpen(false);
-
         toast.success(response.message || "FWL record removed successfully!");
         fetchMFAData();
+        
       } catch (error) {
         toast.error("Failed to remove FWL Record. Please try again.");
         console.error("Error deleting FWL:", error);
@@ -331,11 +433,12 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
           departmentOptions.find((opt) => opt.value === e.target.value) || null;
         validation.setFieldValue("principalInvestigator.department", selected);
       }}
-      className={`form-control ${validation.touched.principalInvestigator?.department &&
+      className={`form-control ${
+        validation.touched.principalInvestigator?.department &&
         validation.errors.principalInvestigator?.department
-        ? "is-invalid"
-        : ""
-        }`}
+          ? "is-invalid"
+          : ""
+      }`}
     >
       <option value="">Select Department</option>
       {departmentOptions.map((opt) => (
@@ -356,11 +459,12 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
           departmentOptions.find((opt) => opt.value === e.target.value) || null;
         validation.setFieldValue("coInvestigator.department", selected);
       }}
-      className={`form-control ${validation.touched.coInvestigator?.department &&
+      className={`form-control ${
+        validation.touched.coInvestigator?.department &&
         validation.errors.coInvestigator?.department
-        ? "is-invalid"
-        : ""
-        }`}
+          ? "is-invalid"
+          : ""
+      }`}
     >
       <option value="">Select Department</option>
       {departmentOptions.map((opt) => (
@@ -420,7 +524,7 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
         `/fellowshipAwarded/deleteFellowshipAwardedDocument?fellowshipAwardedId=${editId}&docType=${fileType}`,
         ""
       );
-toast.success(response.message || "File deleted successfully!");
+      toast.success(response.message || "File deleted successfully!");
 
       if (fileType === "fellowship") {
         validation.setFieldValue("fellowship", null);
@@ -451,11 +555,12 @@ toast.success(response.message || "File deleted successfully!");
             name="principalInvestigator.name"
             value={validation.values.principalInvestigator.name}
             onChange={validation.handleChange}
-            className={`form-control ${validation.touched.principalInvestigator?.name &&
+            className={`form-control ${
+              validation.touched.principalInvestigator?.name &&
               validation.errors.principalInvestigator?.name
-              ? "is-invalid"
-              : ""
-              }`}
+                ? "is-invalid"
+                : ""
+            }`}
             placeholder="Enter Name"
           />
           {validation.touched.principalInvestigator?.name &&
@@ -474,11 +579,12 @@ toast.success(response.message || "File deleted successfully!");
             name="principalInvestigator.qualification"
             value={validation.values.principalInvestigator.qualification}
             onChange={validation.handleChange}
-            className={`form-control ${validation.touched.principalInvestigator?.qualification &&
+            className={`form-control ${
+              validation.touched.principalInvestigator?.qualification &&
               validation.errors.principalInvestigator?.qualification
-              ? "is-invalid"
-              : ""
-              }`}
+                ? "is-invalid"
+                : ""
+            }`}
             placeholder="Enter Qualification"
           />
           {validation.touched.principalInvestigator?.qualification &&
@@ -497,11 +603,12 @@ toast.success(response.message || "File deleted successfully!");
             name="principalInvestigator.designation"
             value={validation.values.principalInvestigator.designation}
             onChange={validation.handleChange}
-            className={`form-control ${validation.touched.principalInvestigator?.designation &&
+            className={`form-control ${
+              validation.touched.principalInvestigator?.designation &&
               validation.errors.principalInvestigator?.designation
-              ? "is-invalid"
-              : ""
-              }`}
+                ? "is-invalid"
+                : ""
+            }`}
             placeholder="Enter Designation"
           />
           {validation.touched.principalInvestigator?.designation &&
@@ -553,7 +660,7 @@ toast.success(response.message || "File deleted successfully!");
           <Label>Abstract of the Project</Label>
           <Input
             type="file"
-             innerRef={fileRef}
+            innerRef={file2Ref}
             name="principalInvestigator.abstractFile"
             onChange={(event) =>
               validation.setFieldValue(
@@ -561,11 +668,12 @@ toast.success(response.message || "File deleted successfully!");
                 event.currentTarget.files?.[0] || null
               )
             }
-            className={`form-control ${validation.touched.principalInvestigator?.abstractFile &&
+            className={`form-control ${
+              validation.touched.principalInvestigator?.abstractFile &&
               validation.errors.principalInvestigator?.abstractFile
-              ? "is-invalid"
-              : ""
-              }`}
+                ? "is-invalid"
+                : ""
+            }`}
             disabled={isAbstractFileUploadDisabled} // Disable the button if a file exists
           />
           {validation.touched.principalInvestigator?.abstractFile &&
@@ -583,40 +691,40 @@ toast.success(response.message || "File deleted successfully!");
           {/* Only show the file name if it is a string (from the edit API) */}
           {typeof validation.values.principalInvestigator.abstractFile ===
             "string" && (
-              <div className="mt-2 d-flex align-items-center">
-                <span
-                  className="me-2"
-                  style={{ fontWeight: "bold", color: "green" }}
-                >
-                  {validation.values.principalInvestigator.abstractFile}
-                </span>
-                <Button
-                  color="link"
-                  className="text-primary"
-                  onClick={() => {
-                    if (
-                      typeof validation.values.principalInvestigator
-                        .abstractFile === "string"
-                    ) {
-                      handleDownloadFile(
-                        validation.values.principalInvestigator.abstractFile
-                      );
-                    }
-                  }}
-                  title="Download File"
-                >
-                  <i className="bi bi-download"></i>
-                </Button>
-                <Button
-                  color="link"
-                  className="text-danger"
-                  onClick={() => handleDeleteFile("abstractProject")}
-                  title="Delete File"
-                >
-                  <i className="bi bi-trash"></i>
-                </Button>
-              </div>
-            )}
+            <div className="mt-2 d-flex align-items-center">
+              <span
+                className="me-2"
+                style={{ fontWeight: "bold", color: "green" }}
+              >
+                {validation.values.principalInvestigator.abstractFile}
+              </span>
+              <Button
+                color="link"
+                className="text-primary"
+                onClick={() => {
+                  if (
+                    typeof validation.values.principalInvestigator
+                      .abstractFile === "string"
+                  ) {
+                    handleDownloadFile(
+                      validation.values.principalInvestigator.abstractFile
+                    );
+                  }
+                }}
+                title="Download File"
+              >
+                <i className="bi bi-download"></i>
+              </Button>
+              <Button
+                color="link"
+                className="text-danger"
+                onClick={() => handleDeleteFile("abstractProject")}
+                title="Delete File"
+              >
+                <i className="bi bi-trash"></i>
+              </Button>
+            </div>
+          )}
         </div>
       </Col>
       <Col lg={4}>
@@ -624,7 +732,7 @@ toast.success(response.message || "File deleted successfully!");
           <Label>Sanction Order</Label>
           <Input
             type="file"
-             innerRef={fileRef}
+            innerRef={file3Ref}
             name="principalInvestigator.sanctionOrderFile"
             onChange={(event) =>
               validation.setFieldValue(
@@ -632,11 +740,12 @@ toast.success(response.message || "File deleted successfully!");
                 event.currentTarget.files?.[0] || null
               )
             }
-            className={`form-control ${validation.touched.principalInvestigator?.sanctionOrderFile &&
+            className={`form-control ${
+              validation.touched.principalInvestigator?.sanctionOrderFile &&
               validation.errors.principalInvestigator?.sanctionOrderFile
-              ? "is-invalid"
-              : ""
-              }`}
+                ? "is-invalid"
+                : ""
+            }`}
             disabled={isSanctionFileUploadDisabled} // Disable the button if a file exists
           />
           {validation.touched.principalInvestigator?.sanctionOrderFile &&
@@ -654,40 +763,40 @@ toast.success(response.message || "File deleted successfully!");
           {/* Only show the file name if it is a string (from the edit API) */}
           {typeof validation.values.principalInvestigator?.sanctionOrderFile ===
             "string" && (
-              <div className="mt-2 d-flex align-items-center">
-                <span
-                  className="me-2"
-                  style={{ fontWeight: "bold", color: "green" }}
-                >
-                  {validation.values.principalInvestigator?.sanctionOrderFile}
-                </span>
-                <Button
-                  color="link"
-                  className="text-primary"
-                  onClick={() => {
-                    if (
-                      typeof validation.values.principalInvestigator
-                        ?.sanctionOrderFile === "string"
-                    ) {
-                      handleDownloadFile(
-                        validation.values.principalInvestigator?.sanctionOrderFile
-                      );
-                    }
-                  }}
-                  title="Download File"
-                >
-                  <i className="bi bi-download"></i>
-                </Button>
-                <Button
-                  color="link"
-                  className="text-danger"
-                  onClick={() => handleDeleteFile("sanctionOrder")}
-                  title="Delete File"
-                >
-                  <i className="bi bi-trash"></i>
-                </Button>
-              </div>
-            )}
+            <div className="mt-2 d-flex align-items-center">
+              <span
+                className="me-2"
+                style={{ fontWeight: "bold", color: "green" }}
+              >
+                {validation.values.principalInvestigator?.sanctionOrderFile}
+              </span>
+              <Button
+                color="link"
+                className="text-primary"
+                onClick={() => {
+                  if (
+                    typeof validation.values.principalInvestigator
+                      ?.sanctionOrderFile === "string"
+                  ) {
+                    handleDownloadFile(
+                      validation.values.principalInvestigator?.sanctionOrderFile
+                    );
+                  }
+                }}
+                title="Download File"
+              >
+                <i className="bi bi-download"></i>
+              </Button>
+              <Button
+                color="link"
+                className="text-danger"
+                onClick={() => handleDeleteFile("sanctionOrder")}
+                title="Delete File"
+              >
+                <i className="bi bi-trash"></i>
+              </Button>
+            </div>
+          )}
         </div>
       </Col>
     </Row>
@@ -703,11 +812,12 @@ toast.success(response.message || "File deleted successfully!");
             name="coInvestigator.name"
             value={validation.values.coInvestigator.name}
             onChange={validation.handleChange}
-            className={`form-control ${validation.touched.coInvestigator?.name &&
+            className={`form-control ${
+              validation.touched.coInvestigator?.name &&
               validation.errors.coInvestigator?.name
-              ? "is-invalid"
-              : ""
-              }`}
+                ? "is-invalid"
+                : ""
+            }`}
             placeholder="Enter Name"
           />
           {validation.touched.coInvestigator?.name &&
@@ -726,11 +836,12 @@ toast.success(response.message || "File deleted successfully!");
             name="coInvestigator.qualification"
             value={validation.values.coInvestigator.qualification}
             onChange={validation.handleChange}
-            className={`form-control ${validation.touched.coInvestigator?.qualification &&
+            className={`form-control ${
+              validation.touched.coInvestigator?.qualification &&
               validation.errors.coInvestigator?.qualification
-              ? "is-invalid"
-              : ""
-              }`}
+                ? "is-invalid"
+                : ""
+            }`}
             placeholder="Enter Qualification"
           />
           {validation.touched.coInvestigator?.qualification &&
@@ -749,11 +860,12 @@ toast.success(response.message || "File deleted successfully!");
             name="coInvestigator.designation"
             value={validation.values.coInvestigator.designation}
             onChange={validation.handleChange}
-            className={`form-control ${validation.touched.coInvestigator?.designation &&
+            className={`form-control ${
+              validation.touched.coInvestigator?.designation &&
               validation.errors.coInvestigator?.designation
-              ? "is-invalid"
-              : ""
-              }`}
+                ? "is-invalid"
+                : ""
+            }`}
             placeholder="Enter Designation"
           />
           {validation.touched.coInvestigator?.designation &&
@@ -788,7 +900,7 @@ toast.success(response.message || "File deleted successfully!");
         ""
       );
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
-
+      setEditResData(response);
       // Filter the response where isCurrent or isCurrentForAdmission is true
       const filteredAcademicYearList = academicYearOptions.filter(
         (year: any) => year.isCurrent || year.isCurrentForAdmission
@@ -808,9 +920,9 @@ toast.success(response.message || "File deleted successfully!");
           : null,
         department: response.departmentId
           ? {
-            value: response.departmentId.toString(),
-            label: response.departmentName,
-          }
+              value: response.departmentId.toString(),
+              label: response.departmentName,
+            }
           : null,
         facultyName: response.facultyName || "",
         fellowshipName: response.fellowshipName || "",
@@ -822,15 +934,17 @@ toast.success(response.message || "File deleted successfully!");
           : null,
         fellowship: response.globalDocument?.fellowship || null,
         principalInvestigator: {
+          pId:
+            response.principleInvestigatorDto?.principleInvestigatorId || null,
           name: response.principleInvestigatorDto?.name || "",
           qualification: response.principleInvestigatorDto?.qualification || "",
           designation: response.principleInvestigatorDto?.designation || "",
           department: response.principleInvestigatorDto?.departmentId
             ? {
-              value:
-                response.principleInvestigatorDto.departmentId.toString(),
-              label: response.principleInvestigatorDto.departmentName,
-            }
+                value:
+                  response.principleInvestigatorDto.departmentId.toString(),
+                label: response.principleInvestigatorDto.departmentName,
+              }
             : null,
           date: response.principleInvestigatorDto?.date || "",
           abstractFile:
@@ -840,22 +954,23 @@ toast.success(response.message || "File deleted successfully!");
         },
         coInvestigator: response.coInvestigatorDto
           ? {
-            name: response.coInvestigatorDto.name || "",
-            qualification: response.coInvestigatorDto.qualification || "",
-            designation: response.coInvestigatorDto.designation || "",
-            department: response.coInvestigatorDto.departmentId
-              ? {
-                value: response.coInvestigatorDto.departmentId.toString(),
-                label: response.coInvestigatorDto.departmentName,
-              }
-              : null,
-          }
+              cId: response.coInvestigatorDto?.coInvestigatorId || null,
+              name: response.coInvestigatorDto.name || "",
+              qualification: response.coInvestigatorDto.qualification || "",
+              designation: response.coInvestigatorDto.designation || "",
+              department: response.coInvestigatorDto.departmentId
+                ? {
+                    value: response.coInvestigatorDto.departmentId.toString(),
+                    label: response.coInvestigatorDto.departmentName,
+                  }
+                : null,
+            }
           : {
-            name: "",
-            qualification: "",
-            designation: "",
-            department: null,
-          },
+              name: "",
+              qualification: "",
+              designation: "",
+              department: null,
+            },
       };
 
       // Set multidisciplinary state and active tab
@@ -904,13 +1019,13 @@ toast.success(response.message || "File deleted successfully!");
     return matchedOption ? matchedOption : { value, label: String(value) };
   };
 
-      useEffect(() => {
+  useEffect(() => {
     if (fwlData.length === 0) return; // wait until data is loaded
 
     const table = $("#fellowshipAwardedId").DataTable({
       destroy: true, // destroy existing instance if re-rendered
-      scrollX: true, 
-       autoWidth: false, 
+      scrollX: true,
+      autoWidth: false,
       dom: "Bfrtip",
       buttons: [
         {
@@ -949,7 +1064,10 @@ toast.success(response.message || "File deleted successfully!");
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <Breadcrumb title="Research" breadcrumbItem="Fellowships Awarded For Advanced Learning & Research" />
+          <Breadcrumb
+            title="Research"
+            breadcrumbItem="Fellowships Awarded For Advanced Learning & Research"
+          />
           <Card>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
@@ -1040,11 +1158,12 @@ toast.success(response.message || "File deleted successfully!");
                         <Label>Specify Department</Label>
                         <Input
                           type="text"
-                          className={`form-control ${validation.touched.otherDepartment &&
+                          className={`form-control ${
+                            validation.touched.otherDepartment &&
                             validation.errors.otherDepartment
-                            ? "is-invalid"
-                            : ""
-                            }`}
+                              ? "is-invalid"
+                              : ""
+                          }`}
                           value={validation.values.otherDepartment}
                           onChange={(e) =>
                             validation.setFieldValue(
@@ -1077,11 +1196,12 @@ toast.success(response.message || "File deleted successfully!");
                             e.target.value
                           )
                         }
-                        className={`form-control ${validation.touched.facultyName &&
+                        className={`form-control ${
+                          validation.touched.facultyName &&
                           validation.errors.facultyName
-                          ? "is-invalid"
-                          : ""
-                          }`}
+                            ? "is-invalid"
+                            : ""
+                        }`}
                         placeholder="Enter Faculty Name"
                       />
                       {validation.touched.facultyName &&
@@ -1092,7 +1212,7 @@ toast.success(response.message || "File deleted successfully!");
                         )}
                     </div>
                   </Col>
-                   <Col lg={4}>
+                  <Col lg={4}>
                     <div className="mb-3">
                       <Label>Name of the Fellowship</Label>
                       <Input
@@ -1104,11 +1224,12 @@ toast.success(response.message || "File deleted successfully!");
                             e.target.value
                           )
                         }
-                        className={`form-control ${validation.touched.fellowshipName &&
+                        className={`form-control ${
+                          validation.touched.fellowshipName &&
                           validation.errors.fellowshipName
-                          ? "is-invalid"
-                          : ""
-                          }`}
+                            ? "is-invalid"
+                            : ""
+                        }`}
                         placeholder="Enter Name of the Fellowship"
                       />
                       {validation.touched.fellowshipName &&
@@ -1132,11 +1253,12 @@ toast.success(response.message || "File deleted successfully!");
                             e.target.value
                           )
                         }
-                        className={`form-control ${validation.touched.projectTitle &&
+                        className={`form-control ${
+                          validation.touched.projectTitle &&
                           validation.errors.projectTitle
-                          ? "is-invalid"
-                          : ""
-                          }`}
+                            ? "is-invalid"
+                            : ""
+                        }`}
                         placeholder="Enter Project Title"
                       />
                       {validation.touched.projectTitle &&
@@ -1158,10 +1280,11 @@ toast.success(response.message || "File deleted successfully!");
                         onChange={(e) =>
                           validation.setFieldValue("amount", e.target.value)
                         }
-                        className={`form-control ${validation.touched.amount && validation.errors.amount
-                          ? "is-invalid"
-                          : ""
-                          }`}
+                        className={`form-control ${
+                          validation.touched.amount && validation.errors.amount
+                            ? "is-invalid"
+                            : ""
+                        }`}
                         placeholder="Enter Amount"
                       />
                       {validation.touched.amount &&
@@ -1178,7 +1301,7 @@ toast.success(response.message || "File deleted successfully!");
                     <div className="mb-3">
                       <Label>Month of Grant</Label>
                       <Input
-                        type="text"
+                        type="date"
                         value={validation.values.monthOfGrant}
                         onChange={(e) =>
                           validation.setFieldValue(
@@ -1186,11 +1309,12 @@ toast.success(response.message || "File deleted successfully!");
                             e.target.value
                           )
                         }
-                        className={`form-control ${validation.touched.monthOfGrant &&
+                        className={`form-control ${
+                          validation.touched.monthOfGrant &&
                           validation.errors.monthOfGrant
-                          ? "is-invalid"
-                          : ""
-                          }`}
+                            ? "is-invalid"
+                            : ""
+                        }`}
                         placeholder="Enter Month of Grant"
                       />
                       {validation.touched.monthOfGrant &&
@@ -1215,11 +1339,12 @@ toast.success(response.message || "File deleted successfully!");
                             label: e.target.value,
                           })
                         }
-                        className={`form-control ${validation.touched.typeOfFunding &&
+                        className={`form-control ${
+                          validation.touched.typeOfFunding &&
                           validation.errors.typeOfFunding
-                          ? "is-invalid"
-                          : ""
-                          }`}
+                            ? "is-invalid"
+                            : ""
+                        }`}
                       >
                         <option value="">Select Type of Funding</option>
                         <option value="MGMT">MGMT</option>
@@ -1250,6 +1375,80 @@ toast.success(response.message || "File deleted successfully!");
                       </Input>
                     </div>
                   </Col>
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label htmlFor="formFile" className="form-label">
+                        Sanction Letter
+                      </Label>
+                      <Input
+                        className={`form-control ${
+                          validation.touched.fellowship &&
+                          validation.errors.fellowship
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        type="file"
+                        id="formFile"
+                        innerRef={fileRef}
+                        onChange={(event) => {
+                          validation.setFieldValue(
+                            "fellowship",
+                            event.currentTarget.files
+                              ? event.currentTarget.files[0]
+                              : null
+                          );
+                        }}
+                        disabled={isFellowshipFileUploadDisabled} // Disable the button if a file exists
+                      />
+                      {validation.touched.fellowship &&
+                        validation.errors.fellowship && (
+                          <div className="text-danger">
+                            {validation.errors.fellowship}
+                          </div>
+                        )}
+                      {/* Show a message if the file upload button is disabled */}
+                      {isFellowshipFileUploadDisabled && (
+                        <div className="text-warning mt-2">
+                          Please remove the existing file to upload a new one.
+                        </div>
+                      )}
+                      {/* Only show the file name if it is a string (from the edit API) */}
+                      {typeof validation.values.fellowship === "string" && (
+                        <div className="mt-2 d-flex align-items-center">
+                          <span
+                            className="me-2"
+                            style={{ fontWeight: "bold", color: "green" }}
+                          >
+                            {validation.values.fellowship}
+                          </span>
+                          <Button
+                            color="link"
+                            className="text-primary"
+                            onClick={() => {
+                              if (
+                                typeof validation.values.fellowship === "string"
+                              ) {
+                                handleDownloadFile(
+                                  validation.values.fellowship
+                                );
+                              }
+                            }}
+                            title="Download File"
+                          >
+                            <i className="bi bi-download"></i>
+                          </Button>
+                          <Button
+                            color="link"
+                            className="text-danger"
+                            onClick={() => handleDeleteFile("fellowship")}
+                            title="Delete File"
+                          >
+                            <i className="bi bi-trash"></i>
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </Col>
                 </Row>
                 {isMultidisciplinary === "Yes" && (
                   <div>
@@ -1257,7 +1456,10 @@ toast.success(response.message || "File deleted successfully!");
                       <NavItem>
                         <NavLink
                           className={activeTab === "1" ? "active" : ""}
-                          onClick={() => setActiveTab("1")}
+                          disabled={isTabFilled(validation, 2)} // disable PI tab when CO tab is filled
+                          onClick={() => {
+                            if (!isTabFilled(validation, 2)) setActiveTab("1");
+                          }}
                         >
                           Principal Investigator Details
                         </NavLink>
@@ -1265,7 +1467,10 @@ toast.success(response.message || "File deleted successfully!");
                       <NavItem>
                         <NavLink
                           className={activeTab === "2" ? "active" : ""}
-                          onClick={() => setActiveTab("2")}
+                          disabled={isTabFilled(validation, 1)} // disable CO tab when PI tab is filled
+                          onClick={() => {
+                            if (!isTabFilled(validation, 1)) setActiveTab("2");
+                          }}
                         >
                           Co-Investigator Details
                         </NavLink>
@@ -1274,82 +1479,32 @@ toast.success(response.message || "File deleted successfully!");
                     <TabContent activeTab={activeTab}>
                       <TabPane tabId="1">
                         {renderPrincipalInvestigatorForm()}
+                        <div className="mb-2 mt-2">
+                          <button
+                            type="button"
+                            className="btn btn-outline-warning btn-sm"
+                            onClick={() => clearTabFields(validation, 1)}
+                          >
+                            Clear
+                          </button>
+                        </div>
                       </TabPane>
-                      <TabPane tabId="2">{renderCoInvestigatorForm()}</TabPane>
+
+                      <TabPane tabId="2">
+                        {renderCoInvestigatorForm()}
+                        <div className="mb-2 mt-2">
+                          <button
+                            type="button"
+                            className="btn btn-outline-warning btn-sm"
+                            onClick={() => clearTabFields(validation, 2)}
+                          >
+                            Clear
+                          </button>
+                        </div>
+                      </TabPane>
                     </TabContent>
                   </div>
                 )}
-                <Col lg={4}>
-                  <div className="mb-3">
-                    <Label htmlFor="formFile" className="form-label">
-                      Sanction Letter
-                    </Label>
-                    <Input
-                      className={`form-control ${validation.touched.fellowship &&
-                        validation.errors.fellowship
-                        ? "is-invalid"
-                        : ""
-                        }`}
-                      type="file"
-                      id="formFile"
-                       innerRef={fileRef}
-                      onChange={(event) => {
-                        validation.setFieldValue(
-                          "fellowship",
-                          event.currentTarget.files
-                            ? event.currentTarget.files[0]
-                            : null
-                        );
-                      }}
-                      disabled={isFellowshipFileUploadDisabled} // Disable the button if a file exists
-                    />
-                    {validation.touched.fellowship &&
-                      validation.errors.fellowship && (
-                        <div className="text-danger">
-                          {validation.errors.fellowship}
-                        </div>
-                      )}
-                    {/* Show a message if the file upload button is disabled */}
-                    {isFellowshipFileUploadDisabled && (
-                      <div className="text-warning mt-2">
-                        Please remove the existing file to upload a new one.
-                      </div>
-                    )}
-                    {/* Only show the file name if it is a string (from the edit API) */}
-                    {typeof validation.values.fellowship === "string" && (
-                      <div className="mt-2 d-flex align-items-center">
-                        <span
-                          className="me-2"
-                          style={{ fontWeight: "bold", color: "green" }}
-                        >
-                          {validation.values.fellowship}
-                        </span>
-                        <Button
-                          color="link"
-                          className="text-primary"
-                          onClick={() => {
-                            if (
-                              typeof validation.values.fellowship === "string"
-                            ) {
-                              handleDownloadFile(validation.values.fellowship);
-                            }
-                          }}
-                          title="Download File"
-                        >
-                          <i className="bi bi-download"></i>
-                        </Button>
-                        <Button
-                          color="link"
-                          className="text-danger"
-                          onClick={() => handleDeleteFile("fellowship")}
-                          title="Delete File"
-                        >
-                          <i className="bi bi-trash"></i>
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </Col>
 
                 <Row>
                   <Col lg={12}>
@@ -1401,9 +1556,11 @@ toast.success(response.message || "File deleted successfully!");
                   <th>Amount</th>
                   <th>Month of Grant</th>
                   <th>Type of Funding</th>
-                  <th className="d-none">Fellowship File Path</th> {/* Hidden */}
+                  <th className="d-none">Fellowship File Path</th>{" "}
+                  {/* Hidden */}
                   <th className="d-none">Abstract File Path</th> {/* Hidden */}
-                  <th className="d-none">SanctionOrder File Path</th> {/* Hidden */}
+                  <th className="d-none">SanctionOrder File Path</th>{" "}
+                  {/* Hidden */}
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -1421,9 +1578,20 @@ toast.success(response.message || "File deleted successfully!");
                       <td>{fw.amount}</td>
                       <td>{fw.monthOfGrant}</td>
                       <td>{fw.fundingType}</td>
-                      <td className="d-none">{fw?.filePath?.fellowship || "N/A"}</td> {/* Hidden */}
-                      <td className="d-none">{fw?.principleInvestigatorDto?.filePath?.abstractProject || "N/A"}</td> {/* Hidden */}
-                      <td className="d-none">{fw?.principleInvestigatorDto?.filePath?.sanctionOrder || "N/A"}</td> {/* Hidden */}
+                      <td className="d-none">
+                        {fw?.filePath?.fellowship || "N/A"}
+                      </td>{" "}
+                      {/* Hidden */}
+                      <td className="d-none">
+                        {fw?.principleInvestigatorDto?.filePath
+                          ?.abstractProject || "N/A"}
+                      </td>{" "}
+                      {/* Hidden */}
+                      <td className="d-none">
+                        {fw?.principleInvestigatorDto?.filePath
+                          ?.sanctionOrder || "N/A"}
+                      </td>{" "}
+                      {/* Hidden */}
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
