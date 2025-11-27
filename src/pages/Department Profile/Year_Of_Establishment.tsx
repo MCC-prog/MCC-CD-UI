@@ -148,11 +148,11 @@ const Year_Of_Establishment: React.FC = () => {
         department: response.departmentId
           ? { value: response.departmentId.toString(), label: response.departmentName }
           : null,
-        program: response.courses
+      program: response.courses
           ? Object.entries(response.courses).map(([key, value]) => ({
-            value: key,
-            label: String(value),
-          }))
+              value: key,
+              label: String(value),
+            }))
           : [],
       };
 
@@ -165,10 +165,6 @@ const Year_Of_Establishment: React.FC = () => {
             label: mappedValues.department.label || "",
           }
           : null,
-        program: mappedValues.program.map((p) => ({
-          value: String(p.value),
-          label: p.label,
-        })),
       });
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
@@ -219,7 +215,7 @@ const Year_Of_Establishment: React.FC = () => {
       program: [] as { value: string; label: string }[],
     },
     validationSchema: Yup.object({
-      yearOfEst: Yup.string().required("Please enter year of establishment"),
+      yearOfEst: Yup.number().required("Please enter year of establishment"),
       department: Yup.object().nullable().required("Please select department"),
       program: Yup.array()
         .min(1, "Please select at least one program")
@@ -484,14 +480,14 @@ const Year_Of_Establishment: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((bos, index) => (
+                {bosData.length > 0 ? (
+                  bosData.map((bos, index) => (
                     <tr key={bos.establismentYearId}>
                       <td>{index + 1}</td>
                       {/* <td>{bos.academicYear}</td>
                       <td>{bos.streamName}</td> */}
                       <td>{bos.departmentName}</td>
-                      <td>{bos.programName}</td>
+                     <td>{Object.values(bos.courses).join(", ")}</td>    
                       <td>{bos.yearOfEstablishment}</td>
                       <td>
                         <button

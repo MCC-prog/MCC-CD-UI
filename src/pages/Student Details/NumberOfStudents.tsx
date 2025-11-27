@@ -417,25 +417,41 @@ const NumberOfStudents: React.FC = () => {
     if (nosData.length === 0) return; // wait until data is loaded
 
     const table = $("#id").DataTable({
-      destroy: true,
-      scrollX: true,
-      autoWidth: false,
-      dom: "Bfrtip",
-      buttons: [
-        {
-          extend: "copy",
-          exportOptions: {
-            columns: ":not(:last-child)", // skip Actions column
+     destroy: true,
+    scrollX: true,
+    autoWidth: false,
+    dom: "Bfrtip",
+    paging: true,
+    pageLength: 10,
+    info: true,
+    searching: false,
+
+    columnDefs: [
+      { targets: [4, 5], visible: false }, // hide UG(file) & PG(file)
+      { targets: 6, orderable: false, searchable: false }, // Actions column
+    ],
+
+    buttons: [
+      {
+        extend: "copy",
+        exportOptions: {
+          modifier: { page: "all" },
+          columns: function (idx) {
+            return idx !== 6; // exclude Actions
           },
         },
-        {
-          extend: "csv",
-          exportOptions: {
-            columns: ":not(:last-child)",
+      },
+      {
+        extend: "csv",
+        exportOptions: {
+          modifier: { page: "all" },
+          columns: function (idx) {
+            return idx !== 6; // exclude Actions
           },
         },
-      ],
-    });
+      },
+    ],
+  });
     $(".dt-buttons").addClass("mb-3 gap-2");
     $(".buttons-copy").addClass("btn btn-success");
     $(".buttons-csv").addClass("btn btn-info");
@@ -520,7 +536,7 @@ const NumberOfStudents: React.FC = () => {
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
-                        Upload Report of Ug
+                        Upload Report of UG
                       </Label>
                       <Input
                         className={`form-control ${validation.touched.ugFile && validation.errors.ugFile
@@ -614,7 +630,7 @@ const NumberOfStudents: React.FC = () => {
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
-                        Upload Report of Pg
+                        Upload Report of PG
                       </Label>
                       <Input
                         className={`form-control ${validation.touched.pgFile && validation.errors.pgFile
@@ -732,22 +748,22 @@ const NumberOfStudents: React.FC = () => {
                   <th>#</th>
                   <th>Academic Year</th>
                   <th>UG</th>
-                  <th>UG(file)</th>
                   <th>PG</th>
-                  <th>PG(file)</th>
+                  <th className="export-hidden">UG(file)</th>
+                  <th className="export-hidden">PG(file)</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((bos, index) => (
+                {nosData.length > 0 ? (
+                  nosData.map((bos, index) => (
                     <tr key={bos.studentEnrolledId}>
                       <td>{index + 1}</td>
                       <td>{bos.academicYear}</td>
                       <td>{bos.ug}</td>
-                      <td>{bos.ugFile}</td>
                       <td>{bos.pg}</td>
-                      <td>{bos.pgFile}</td>
+                      <td className="export-hidden">{bos.document?.ugFile || "N/A" }</td>
+                      <td className="export-hidden">{bos.document?.pgFile || "N/A"}</td>
                       <td>
                         <button
                           className="btn btn-sm btn-warning me-2"

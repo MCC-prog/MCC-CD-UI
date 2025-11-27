@@ -695,7 +695,7 @@ toast.success(response.message || "File deleted successfully!");
           </ModalHeader>
           <ModalBody>
             <Table striped bordered hover id="id" innerRef={tableRef}>
-              <thead className="table-dark">
+              <thead>
                 <tr>
                   <th>#</th>
                   <th>Level </th>

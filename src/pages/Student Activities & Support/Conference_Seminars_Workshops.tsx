@@ -619,7 +619,7 @@ toast.success(response.message || "File deleted successfully!");
                         target="infoIconLevel" // ✅ match unique ID
                         toggle={toggleTooltipLevel}
                       >
-                        Institutional only for workshops.
+                        Institutional is only for workshops.
                       </Tooltip>
 
                       <Select
@@ -1155,7 +1155,7 @@ toast.success(response.message || "File deleted successfully!");
                   <th>#</th>
                   <th>Academic Year</th>
                   <th>Level</th>
-                  <th>Stream</th>
+                  <th>School</th>
                   <th>Department</th>
                   <th>Conference Title</th>
                   <th>From Date</th>
@@ -1170,8 +1170,8 @@ toast.success(response.message || "File deleted successfully!");
                 </tr>
               </thead>
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((cds, index) => (
+                {cswData.length > 0 ? (
+                  cswData.map((cds, index) => (
                     <tr key={cds.conferenceId}>
                       <td>{index + 1}</td>
                       <td>{cds.academicYear}</td>

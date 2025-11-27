@@ -369,7 +369,7 @@ const Scholarships: React.FC = () => {
       <div className="page-content">
         <Container fluid>
           <Breadcrumb title="Alumini" breadcrumbItem="Scholarships" />
-          <Card>
+          <Card style={{ height: "350px" }}>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
                 <Input type="hidden" name="id" value={editId || ""} />
@@ -502,7 +502,7 @@ const Scholarships: React.FC = () => {
                       <Label>Download Template</Label>
                       <div>
                         <a
-                          href={`${process.env.PUBLIC_URL}/templateFiles/BOS_MoM_DeptName_Aug24.docx`}
+                          href={`${process.env.PUBLIC_URL}/templateFiles/`}
                           download
                           className="btn btn-primary btn-sm"
                         >

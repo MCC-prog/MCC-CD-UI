@@ -185,7 +185,7 @@ const Innovative_Teaching_Methodologies: React.FC = () => {
       });
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
-       if (response.documents?.innovativePedagogy) {
+      if (response.documents?.innovativePedagogy) {
         setIsFileUploadDisabled(true);
       }
       toggleModal();
@@ -283,7 +283,7 @@ const Innovative_Teaching_Methodologies: React.FC = () => {
         ""
       );
       // Show success message
-toast.success(response.message || "File deleted successfully!");
+      toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
       validation.setFieldValue("file", null); // Clear the file from Formik state
       setIsFileUploadDisabled(false); // Enable the file upload button
@@ -426,24 +426,38 @@ toast.success(response.message || "File deleted successfully!");
       const table = $("#bosDataId").DataTable({
         destroy: true,
         dom: "Bfrtip",
+        paging: true,
+        searching: false,
+        pageLength: 10,
+
+        columnDefs: [
+          {
+            targets: [6], // hide file path column
+            visible: false,
+          },
+          {
+            targets: [7], // actions
+            orderable: false,
+            searchable: false,
+            visible: true,
+          },
+        ],
+
         buttons: [
           {
             extend: "copy",
           },
           {
             extend: "csv",
+            exportOptions: {
+              modifier: { page: "all" },
+              columns: function (idx) {
+                return idx !== 7; // exclude actions column
+              },
+            },
           },
         ],
-        columnDefs: [
-          {
-            targets: [3, 4], // Make sure indexes match actual column positions
-            visible: false,
-          },
-        ],
-        searching: false,
-        paging: false,
       });
-
       $(".dt-buttons").addClass("mb-3 gap-2");
       $(".buttons-copy").addClass("btn btn-success");
       $(".buttons-csv").addClass("btn btn-info");
@@ -483,7 +497,7 @@ toast.success(response.message || "File deleted successfully!");
             title="Curriculum"
             breadcrumbItem="Innovative teaching methodology"
           />
-          <Card>
+          <Card style={{ height: "350px" }}>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
                 <Row>
@@ -702,7 +716,6 @@ toast.success(response.message || "File deleted successfully!");
                 onChange={handleSearch}
               />
             </div>
-
             <Table
               striped
               bordered
@@ -710,8 +723,6 @@ toast.success(response.message || "File deleted successfully!");
               responsive
               className="align-middle text-center"
               id="bosDataId"
-              innerRef={tableRef}
-              style={{ display: "none" }}
             >
               <thead className="table-dark">
                 <tr>
@@ -719,14 +730,20 @@ toast.success(response.message || "File deleted successfully!");
                   <th>Academic Year</th>
                   <th>Semester Type</th>
                   <th>Semester No</th>
-                  <th>Stream</th>
                   <th>Program</th>
-                  <th>File Path</th>
+                  <th>Course Title</th>
+
+                  {/* HIDDEN EXPORT COLUMN */}
+                  <th className="export-hidden">File Path</th>
+
+                  {/* ACTIONS */}
+                  <th>Actions</th>
                 </tr>
               </thead>
+
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((bos, index) => (
+                {ITMData.length > 0 ? (
+                  ITMData.map((bos, index) => (
                     <tr key={bos.innovativeTeachingMethodologyId}>
                       <td>{indexOfFirstRow + index + 1}</td>
                       <td>{bos.academicYear || "N/A"}</td>
@@ -734,56 +751,12 @@ toast.success(response.message || "File deleted successfully!");
                       <td>{bos.semesterNo || "N/A"}</td>
                       <td>{Object.values(bos.courses).join(", ") || "N/A"}</td>
                       <td>{bos.courseTitle || "N/A"}</td>
-                      <td>{bos.filePath?.innovativePedagogy || "N/A"}</td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={11} className="text-center">
-                      No Innovative Teaching Methodologies data available.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </Table>
-            {/* Table with Pagination */}
-            <Table
-              striped
-              bordered
-              hover
-              responsive
-              className="align-middle text-center"
-            >
-              <thead className="table-dark">
-                <tr>
-                  <th>#</th>
-                  <th>Academic Year</th>
-                  <th>Semester Type</th>
-                  <th>Semester No</th>
-                  <th>Stream</th>
-                  <th>Program</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((bos, index) => (
-                    <tr key={bos.innovativeTeachingMethodologyId}>
-                      <td>{indexOfFirstRow + index + 1}</td>
-                      <td>{bos.academicYear}</td>
-                      <td>{bos.semType}</td>
-                      <td>{bos.semesterNo}</td>
-                      <td>
-                        <ul>
-                          {(Object.values(bos.courses) as string[]).map(
-                            (course, index) => (
-                              <li key={index}>{course}</li>
-                            )
-                          )}
-                        </ul>
+
+                      {/* HIDDEN EXPORT COLUMN */}
+                      <td className="export-hidden">
+                        {bos.filePath?.innovativePedagogy || "N/A"}
                       </td>
 
-                      <td>{bos.courseTitle}</td>
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
@@ -808,33 +781,13 @@ toast.success(response.message || "File deleted successfully!");
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={11} className="text-center">
+                    <td colSpan={8} className="text-center">
                       No Innovative Teaching Methodologies data available.
                     </td>
                   </tr>
                 )}
               </tbody>
             </Table>
-            {/* Pagination Controls */}
-            <div className="d-flex justify-content-between align-items-center mt-3">
-              <Button
-                color="primary"
-                disabled={currentPage === 1}
-                onClick={() => handlePageChange(currentPage - 1)}
-              >
-                Previous
-              </Button>
-              <div>
-                Page {currentPage} of {totalPages}
-              </div>
-              <Button
-                color="primary"
-                disabled={currentPage === totalPages}
-                onClick={() => handlePageChange(currentPage + 1)}
-              >
-                Next
-              </Button>
-            </div>
           </ModalBody>
         </Modal>
         {/* Confirmation Modal */}

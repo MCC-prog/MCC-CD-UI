@@ -417,7 +417,7 @@ toast.success(response.message || "File deleted successfully!");
       <div className="page-content">
         <Container fluid>
           <Breadcrumb title="Library" breadcrumbItem="Books" />
-          <Card>
+          <Card style={{ height: "350px" }}>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
                 <Row>
@@ -668,8 +668,8 @@ toast.success(response.message || "File deleted successfully!");
                 </tr>
               </thead>
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((cds, index) => (
+                {cswData.length > 0 ? (
+                  cswData.map((cds, index) => (
                     <tr key={cds.id}>
                       <td>{index + 1}</td>
                       <td>{cds.academicYear}</td>

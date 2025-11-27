@@ -699,7 +699,7 @@ toast.success(response.message || "File deleted successfully!");
                       <Label>Download Template</Label>
                       <div>
                         <a
-                          href="/templateFiles/bos.pdf"
+                          href={`${process.env.PUBLIC_URL}/templateFiles/Alumni_Template.docx`}
                           download
                           className="btn btn-primary btn-sm"
                         >
@@ -750,7 +750,7 @@ toast.success(response.message || "File deleted successfully!");
                   <th>#</th>
                   <th>Academic Year</th>
                   <th>Semester No</th>
-                  <th>Stream</th>
+                  <th>School</th>
                   <th>Program</th>
                   <th>Activity Name</th>
                   <th>Date of Activity</th>

@@ -90,11 +90,11 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
         return false;
     }
   };
- 
+
   const tabName: Record<number, string> = {
-  1: "PrincipleInvestigatorDetails", 
-  2: "CoInvestigatorDetails",
-};
+    1: "PrincipleInvestigatorDetails",
+    2: "CoInvestigatorDetails",
+  };
 
   const clearTabFields = async (validation: any, tab: number | null) => {
     try {
@@ -114,7 +114,9 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
 
       if (deleteId) {
         await api.delete(
-          `/fellowshipAwarded/deleteFellowshipAwardedTabsAndDoc?fellowshipAwardedAddTabId=${deleteId}&tabName=${encodeURIComponent(tabName[tab!])}`,
+          `/fellowshipAwarded/deleteFellowshipAwardedTabsAndDoc?fellowshipAwardedAddTabId=${deleteId}&tabName=${encodeURIComponent(
+            tabName[tab!]
+          )}`,
           ""
         );
       }
@@ -173,6 +175,13 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
     setIsModalOpen(!isModalOpen);
   };
 
+  const handleTabSwitch = (tab: string) => {
+    setActiveTab(tab);
+    validation.setFieldValue("activeTab", tab); // <-- CRITICAL
+    validation.setTouched({});
+    validation.setErrors({});
+  };
+
   const validationSchema = Yup.object({
     academicYear: Yup.object<{ value: string; label: string }>()
       .nullable()
@@ -203,35 +212,37 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
       .nullable()
       .required("Please select type of funding"),
     fellowship: Yup.mixed().required("Please upload the fellowship file"),
-    principalInvestigator:
-      isMultidisciplinary === "Yes" && activeTab === "1"
-        ? Yup.object({
-            name: Yup.string().required("Please enter name"),
-            qualification: Yup.string().required("Please enter qualification"),
-            designation: Yup.string().required("Please enter designation"),
-            department: Yup.object<{ value: string; label: string }>()
-              .nullable()
-              .required("Please select department"),
-            //date: Yup.date().required("Please select a date"),
-            abstractFile: Yup.mixed().required(
-              "Please upload the abstract file"
-            ),
-            sanctionOrderFile: Yup.mixed().required(
-              "Please upload the sanction order file"
-            ),
-          })
-        : Yup.object(),
-    coInvestigator:
-      isMultidisciplinary === "Yes" && activeTab === "2"
-        ? Yup.object({
-            name: Yup.string().required("Please enter name"),
-            qualification: Yup.string().required("Please enter qualification"),
-            designation: Yup.string().required("Please enter designation"),
-            department: Yup.object<{ value: string; label: string }>()
-              .nullable()
-              .required("Please select department"),
-          })
-        : Yup.object(),
+    principalInvestigator: Yup.object().when("activeTab", {
+      is: (tab: string) => tab === "1",
+      then: (schema) =>
+        schema.shape({
+          name: Yup.string().required("Please enter name"),
+          qualification: Yup.string().required("Please enter qualification"),
+          designation: Yup.string().required("Please enter designation"),
+          department: Yup.object()
+            .nullable()
+            .required("Please select department"),
+          abstractFile: Yup.mixed().required("Please upload abstract file"),
+          sanctionOrderFile: Yup.mixed().required(
+            "Please upload sanction order"
+          ),
+        }),
+      otherwise: (schema) => schema.notRequired(),
+    }),
+
+    coInvestigator: Yup.object().when("activeTab", {
+      is: (tab: string) => tab === "2",
+      then: (schema) =>
+        schema.shape({
+          name: Yup.string().required("Please enter name"),
+          qualification: Yup.string().required("Please enter qualification"),
+          designation: Yup.string().required("Please enter designation"),
+          department: Yup.object()
+            .nullable()
+            .required("Please select department"),
+        }),
+      otherwise: (schema) => schema.notRequired(),
+    }),
   });
 
   const validation = useFormik({
@@ -270,8 +281,26 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
       // Create FormData object
       const formData = new FormData();
 
+      // ------------------------------
+      // 1️⃣ CHECK IF PI HAS DATA
+      // ------------------------------
+      const hasPI =
+        values.principalInvestigator.name ||
+        values.principalInvestigator.qualification ||
+        values.principalInvestigator.designation ||
+        values.principalInvestigator.department;
+
+      // ------------------------------
+      // 2️⃣ CHECK IF CO HAS DATA
+      // ------------------------------
+      const hasCO =
+        values.coInvestigator.name ||
+        values.coInvestigator.qualification ||
+        values.coInvestigator.designation ||
+        values.coInvestigator.department;
+
       // Prepare the JSON payload for the `dto` key
-      const dtoPayload = {
+      const dtoPayload: any = {
         fellowshipAwardedId: editId || null,
         academicYear: values.academicYear?.value || null,
         streamId: values.stream?.value || null,
@@ -283,38 +312,33 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
         monthOfGrant: values.monthOfGrant || null,
         fundingType: values.typeOfFunding?.value || null,
         multidisciplinary: isMultidisciplinary === "Yes",
-        multidisciplinaryType:
-          activeTab === "1"
-            ? "PrincipleInvestigatorDetails"
-            : "CoInvestigatorDetails",
-        fellowshipAwardedAddTabDto: {
-          additionalTabId:
-            activeTab === "1"
-              ? values.principalInvestigator.pId || null
-              : values.coInvestigator.cId || null,
-          name:
-            activeTab === "1"
-              ? values.principalInvestigator.name || null
-              : values.coInvestigator.name || null,
-          qualification:
-            activeTab === "1"
-              ? values.principalInvestigator.qualification || null
-              : values.coInvestigator.qualification || null,
-          designation:
-            activeTab === "1"
-              ? values.principalInvestigator.designation || null
-              : values.coInvestigator.designation || null,
-          departmentId:
-            activeTab === "1"
-              ? values.principalInvestigator.department?.value || null
-              : values.coInvestigator.department?.value || null,
-          departmentName:
-            activeTab === "1"
-              ? values.principalInvestigator.department?.label || null
-              : values.coInvestigator.department?.label || null,
-        },
       };
 
+      // ------------------------------
+      // 4️⃣ PI DTO (only if filled)
+      // ------------------------------
+      if (hasPI) {
+        dtoPayload.principleFormRequestDto = {
+          principleInvestigatorFormId: values.principalInvestigator.pId || null,
+          name: values.principalInvestigator.name || null,
+          qualification: values.principalInvestigator.qualification || null,
+          designation: values.principalInvestigator.designation || null,
+          departmentId: values.principalInvestigator.department?.value || null,
+        };
+      }
+
+      // ------------------------------
+      // 5️⃣ CO DTO (only if filled)
+      // ------------------------------
+      if (hasCO) {
+        dtoPayload.coInvestigatorFormRequestDto = {
+          coInvestigatorFormId: values.coInvestigator.cId || null,
+          name: values.coInvestigator.name || null,
+          qualification: values.coInvestigator.qualification || null,
+          designation: values.coInvestigator.designation || null,
+          departmentId: values.coInvestigator.department?.value || null,
+        };
+      }
       // Append the JSON payload as a string with the key `fellowshipAwardedRequestDto`
       formData.append(
         "fellowshipAwardedRequestDto",
@@ -322,22 +346,18 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
       );
       console.log("API PAYLOAD CHECK ==>>", dtoPayload);
 
-      // Append the file with the key `file`
-      if (isMultidisciplinary === "Yes") {
-        if (activeTab === "1") {
-          if (values.principalInvestigator.abstractFile instanceof File) {
-            formData.append(
-              "abstractProject",
-              values.principalInvestigator.abstractFile
-            );
-          }
-          if (values.principalInvestigator.sanctionOrderFile instanceof File) {
-            formData.append(
-              "sanctionOrder",
-              values.principalInvestigator.sanctionOrderFile
-            );
-          }
-        }
+      if (values.principalInvestigator.abstractFile instanceof File) {
+        formData.append(
+          "abstractProject",
+          values.principalInvestigator.abstractFile
+        );
+      }
+
+      if (values.principalInvestigator.sanctionOrderFile instanceof File) {
+        formData.append(
+          "sanctionOrder",
+          values.principalInvestigator.sanctionOrderFile
+        );
       }
 
       // append global fellowship file
@@ -411,7 +431,6 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
         setIsModalOpen(false);
         toast.success(response.message || "FWL record removed successfully!");
         fetchMFAData();
-        
       } catch (error) {
         toast.error("Failed to remove FWL Record. Please try again.");
         console.error("Error deleting FWL:", error);
@@ -520,6 +539,7 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
     fileType: "fellowship" | "abstractProject" | "sanctionOrder"
   ) => {
     try {
+     
       const response = await api.delete(
         `/fellowshipAwarded/deleteFellowshipAwardedDocument?fellowshipAwardedId=${editId}&docType=${fileType}`,
         ""
@@ -1450,61 +1470,53 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
                     </div>
                   </Col>
                 </Row>
-                {isMultidisciplinary === "Yes" && (
-                  <div>
-                    <Nav tabs>
-                      <NavItem>
-                        <NavLink
-                          className={activeTab === "1" ? "active" : ""}
-                          disabled={isTabFilled(validation, 2)} // disable PI tab when CO tab is filled
-                          onClick={() => {
-                            if (!isTabFilled(validation, 2)) setActiveTab("1");
-                          }}
+                <div>
+                  <Nav tabs>
+                    <NavItem>
+                      <NavLink
+                        className={activeTab === "1" ? "active" : ""}
+                        onClick={() => handleTabSwitch("1")}
+                      >
+                        Principal Investigator Details
+                      </NavLink>
+                    </NavItem>
+                    <NavItem>
+                      <NavLink
+                        className={activeTab === "2" ? "active" : ""}
+                        onClick={() => handleTabSwitch("2")}
+                      >
+                        Co-Investigator Details
+                      </NavLink>
+                    </NavItem>
+                  </Nav>
+                  <TabContent activeTab={activeTab}>
+                    <TabPane tabId="1">
+                      {renderPrincipalInvestigatorForm()}
+                      <div className="mb-2 mt-2">
+                        <button
+                          type="button"
+                          className="btn btn-outline-warning btn-sm"
+                          onClick={() => clearTabFields(validation, 1)}
                         >
-                          Principal Investigator Details
-                        </NavLink>
-                      </NavItem>
-                      <NavItem>
-                        <NavLink
-                          className={activeTab === "2" ? "active" : ""}
-                          disabled={isTabFilled(validation, 1)} // disable CO tab when PI tab is filled
-                          onClick={() => {
-                            if (!isTabFilled(validation, 1)) setActiveTab("2");
-                          }}
-                        >
-                          Co-Investigator Details
-                        </NavLink>
-                      </NavItem>
-                    </Nav>
-                    <TabContent activeTab={activeTab}>
-                      <TabPane tabId="1">
-                        {renderPrincipalInvestigatorForm()}
-                        <div className="mb-2 mt-2">
-                          <button
-                            type="button"
-                            className="btn btn-outline-warning btn-sm"
-                            onClick={() => clearTabFields(validation, 1)}
-                          >
-                            Clear
-                          </button>
-                        </div>
-                      </TabPane>
+                          Clear
+                        </button>
+                      </div>
+                    </TabPane>
 
-                      <TabPane tabId="2">
-                        {renderCoInvestigatorForm()}
-                        <div className="mb-2 mt-2">
-                          <button
-                            type="button"
-                            className="btn btn-outline-warning btn-sm"
-                            onClick={() => clearTabFields(validation, 2)}
-                          >
-                            Clear
-                          </button>
-                        </div>
-                      </TabPane>
-                    </TabContent>
-                  </div>
-                )}
+                    <TabPane tabId="2">
+                      {renderCoInvestigatorForm()}
+                      <div className="mb-2 mt-2">
+                        <button
+                          type="button"
+                          className="btn btn-outline-warning btn-sm"
+                          onClick={() => clearTabFields(validation, 2)}
+                        >
+                          Clear
+                        </button>
+                      </div>
+                    </TabPane>
+                  </TabContent>
+                </div>
 
                 <Row>
                   <Col lg={12}>
@@ -1556,11 +1568,20 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
                   <th>Amount</th>
                   <th>Month of Grant</th>
                   <th>Type of Funding</th>
-                  <th className="d-none">Fellowship File Path</th>{" "}
-                  {/* Hidden */}
-                  <th className="d-none">Abstract File Path</th> {/* Hidden */}
-                  <th className="d-none">SanctionOrder File Path</th>{" "}
-                  {/* Hidden */}
+                  <th>Multidisciplinary</th>
+                  <th className="d-none">PrincipalInvestigator Sanction Letter File Path</th>
+                  <th className="d-none">PrincipalInvestigator Name</th>
+                  <th className="d-none">PrincipalInvestigator Qualification</th>
+                  <th className="d-none">PrincipalInvestigator Designation</th>
+                  <th className="d-none">PrincipalInvestigator Department</th>
+                  <th className="d-none">PrincipalInvestigator Abstract File Path</th>
+                  <th className="d-none">PrincipalInvestigator Sanction Order File Path</th>
+                  
+                  <th className="d-none">CoInvestigator  Name</th>
+                  <th className="d-none">CoInvestigator  Qualification</th>
+                  <th className="d-none">CoInvestigator  Designation</th>
+                  <th className="d-none">CoInvestigator  Department</th>
+
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -1578,20 +1599,19 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
                       <td>{fw.amount}</td>
                       <td>{fw.monthOfGrant}</td>
                       <td>{fw.fundingType}</td>
-                      <td className="d-none">
-                        {fw?.filePath?.fellowship || "N/A"}
-                      </td>{" "}
-                      {/* Hidden */}
-                      <td className="d-none">
-                        {fw?.principleInvestigatorDto?.filePath
-                          ?.abstractProject || "N/A"}
-                      </td>{" "}
-                      {/* Hidden */}
-                      <td className="d-none">
-                        {fw?.principleInvestigatorDto?.filePath
-                          ?.sanctionOrder || "N/A"}
-                      </td>{" "}
-                      {/* Hidden */}
+                      <td>{fw.multidisciplinary}</td>
+                      <td className="d-none">{fw?.filePath?.fellowship || "N/A"}</td>
+                      <td className="d-none">{fw?.principleInvestigatorDto?.name || "N/A"}</td>
+                      <td className="d-none">{fw?.principleInvestigatorDto?.qualification || "N/A"}</td>
+                      <td className="d-none">{fw?.principleInvestigatorDto?.designation || "N/A"}</td>
+                      <td className="d-none">{fw?.principleInvestigatorDto?.departmentName || "N/A"}</td>
+                      <td className="d-none">{fw?.principleInvestigatorDto?.filePath?.abstractProject || "N/A"}</td>
+                      <td className="d-none">{fw?.principleInvestigatorDto?.filePath?.sanctionOrder || "N/A"}</td>
+                      
+                      <td className="d-none">{fw?.coInvestigatorDto?.name || "N/A"}</td>
+                      <td className="d-none">{fw?.coInvestigatorDto?.qualification || "N/A"}</td>
+                      <td className="d-none">{fw?.coInvestigatorDto?.designation || "N/A"}</td>
+                      <td className="d-none">{fw?.coInvestigatorDto?.departmentName || "N/A"}</td>
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button

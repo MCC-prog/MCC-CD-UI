@@ -79,7 +79,8 @@ const Books_Chapters = () => {
       otherDepartment: "",
       facultyName: "",
       coAuthors: "",
-      bookTitle: "",
+      bookTitle: "", 
+      chapterTitle: "", 
       editor: "",
       isbn: "",
       publisher: "",
@@ -152,6 +153,7 @@ const Books_Chapters = () => {
       formData.append("facultyName", values.facultyName || "");
       formData.append("coAuthors", values.coAuthors || "");
       formData.append("bookTitle", String(values.bookTitle || ""));
+     formData.append("chapterTitle", String(values.chapterTitle || ""));
       formData.append("editor", values.editor || "");
       formData.append("isbn", values.isbn || "");
       formData.append("streamId", values.stream?.value || "");
@@ -246,6 +248,7 @@ const Books_Chapters = () => {
         facultyName: response.facultyName || "",
         coAuthors: response.coAuthors || "",
         bookTitle: response.bookTitle || "",
+        chapterTitle: response.chapterTitle || "",
         editor: response.editor || "",
         isbn: response.isbn || "",
         dateOfPublication: response.publicationDate || "",
@@ -636,6 +639,32 @@ toast.success(response.message || "File deleted successfully!");
                         )}
                     </div>
                   </Col>
+                        <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Chapter Title</Label>
+                      <Input
+                        type="text"
+                        name="chapterTitle"
+                        value={validation.values.chapterTitle}
+                        onChange={validation.handleChange}
+                        className={`form-control ${
+                          validation.touched.chapterTitle &&
+                          validation.errors.chapterTitle
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        placeholder="Enter Chapter Title"
+                      />
+                      {validation.touched.chapterTitle &&
+                        validation.errors.chapterTitle && (
+                          <div className="text-danger">
+                            {typeof validation.errors.chapterTitle === "string" &&
+                              validation.errors.chapterTitle}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+
 
                   <Col lg={4}>
                     <div className="mb-3">
@@ -905,6 +934,8 @@ toast.success(response.message || "File deleted successfully!");
                   <th>Faculty Name</th>
                   <th>Co-Authors</th>
                   <th>Book Title</th>
+                  <th>Chapter Title</th>
+                  <th>Chapter Title</th>
                   <th>Editor</th>
                   <th>Publisher</th>
                   <th>ISBN</th>
@@ -924,6 +955,8 @@ toast.success(response.message || "File deleted successfully!");
                       <td>{books.facultyName}</td>
                       <td>{books.coAuthors}</td>
                       <td>{books.bookTitle}</td>
+                      <td>{books.chapterTitle}</td>
+                      <td>{books.chapterTitle}</td>
                       <td>{books.editor}</td>
                       <td>{books.publisher}</td>
                       <td>{books.isbn}</td>

@@ -329,7 +329,7 @@ const AAA: React.FC = () => {
       <div className="page-content">
         <Container fluid>
           <Breadcrumb title="Governance" breadcrumbItem="AAA" />
-          <Card>
+          <Card style={{ height: "350px" }}>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
                 <Row>

@@ -58,7 +58,7 @@ const megaMenuContents = [
   {
     title: "CURRICULUM",
     items: [
-      { label: "1. BoS", path: "/Bos_Data" },
+      { label: "1. BOS", path: "/Bos_Data" },
       { label: "2. Courses with focus", path: "/Courses_With_Focus" },
       { label: "3. New Programs Introduced", path: "/New_Programs_Introduced" },
       { label: "4. New Courses Introduced", path: "/New_Courses_Introduced" },
@@ -68,7 +68,8 @@ const megaMenuContents = [
         label: "7. Innovative Teaching Methodologies",
         path: "/Innovative_Teaching_Methodologies",
       },
-      { label: "8. AC & GB MoM", path: "/AC_GB_MoM" },
+      { label: "8. BOE", path: "/Boe_Data" },
+      { label: "9. AC & GB MoM", path: "/AC_GB_MoM" },
     ],
   },
   {
@@ -80,10 +81,10 @@ const megaMenuContents = [
         label: "3. Student Centric Teaching Methodology",
         path: "/Student_Centric_Teaching",
       },
-      {
-        label: "4. Usage of ICT tools in classroom",
-        path: "/UsageOf_ICT_Tools",
-      },
+      // {
+      //   label: "4. Usage of ICT tools in classroom",
+      //   path: "/UsageOf_ICT_Tools",
+      // },
     ],
   },
   {
@@ -104,20 +105,20 @@ const megaMenuContents = [
     ],
   },
   {
-    title: "STAFF PROFILE",
+    title: "FACULTY DETAILS",
     items: [
       {
         label: "1. Teachers' details",
         path: "/Teachers_Details",
       },
-      {
-        label: "2. Part Time/Guest Faculty",
-        path: "/PartTime_Guest",
-      },
-      {
-        label: "3. Professor Practice",
-        path: "/Professor_Practice",
-      },
+      // {
+      //   label: "2. Part Time/Guest Faculty",
+      //   path: "/PartTime_Guest",
+      // },
+      // {
+      //   label: "3. Professor Practice",
+      //   path: "/Professor_Practice",
+      // },
     ],
   },
   {
@@ -165,20 +166,20 @@ const megaMenuContents = [
         label: "1. Management funded Project",
         path: "/Management_Funded_Project",
       },
+     // {
+     //      label: "2. Government/ NGO funded projects",
+     //   path: "/Government_Or_NGO_Funded_Projects",
+     // },
       {
-        label: "2. Government/ NGO funded projects",
-        path: "/Government_Or_NGO_Funded_Projects",
-      },
-      {
-        label: "3. Fellowships awarded for advanced learning & research",
+        label: "2. Fellowships awarded for advanced learning & research",
         path: "/Felloships_Awarded",
       },
-      { label: "4. Research Guides", path: "/Research_Guides" },
-      { label: "5. Research Publications", path: "/Research_Publications" },
-      { label: "6. Books/Chapters", path: "/Books_Chapters" },
+      { label: "3. Research Guides", path: "/Research_Guides" },
+      { label: "4. Research Publications", path: "/Research_Publications" },
+      { label: "5. Books/Chapters", path: "/Books_Chapters" },
       {
         label:
-          "7. Faculty participation & presentation of Research Papers in Conference/Seminars and going as Resource Persons",
+          "6. Faculty participation & presentation of Research Papers in Conference/Seminars and going as Resource Persons",
         path: "/FP_And_Presentation_Research_Papers",
       },
     ],

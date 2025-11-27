@@ -128,15 +128,15 @@ const OnCampus: React.FC = () => {
           : null,
         department: response.departmentId
           ? {
-            value: response.departmentId.toString(),
-            label: response.departmentName,
-          }
+              value: response.departmentId.toString(),
+              label: response.departmentName,
+            }
           : null,
         programType: response.programTypeId
           ? {
-            value: response.programTypeId.toString(),
-            label: response.programTypeName,
-          }
+              value: response.programTypeId.toString(),
+              label: response.programTypeName,
+            }
           : null,
 
         otherDepartment: "",
@@ -148,15 +148,15 @@ const OnCampus: React.FC = () => {
         file: response.documents?.file || null,
         academicYear: mappedValues.academicYear
           ? {
-            ...mappedValues.academicYear,
-            value: String(mappedValues.academicYear.value),
-          }
+              ...mappedValues.academicYear,
+              value: String(mappedValues.academicYear.value),
+            }
           : null,
         program: response.programId
           ? {
-            value: response.programId.toString(),
-            label: response.programName,
-          }
+              value: response.programId.toString(),
+              label: response.programName,
+            }
           : null,
       });
       // In your handleEdit, after setting Formik values:
@@ -256,7 +256,7 @@ const OnCampus: React.FC = () => {
         ""
       );
       // Show success message
-toast.success(response.message || "File deleted successfully!");
+      toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
       validation.setFieldValue("file", null); // Clear the file from Formik state
       setIsFileUploadDisabled(false); // Enable the file upload button
@@ -277,7 +277,8 @@ toast.success(response.message || "File deleted successfully!");
       stream: null as { value: string; label: string } | null,
       department: null as { value: string; label: string } | null,
       otherDepartment: "",
-      file: null as File | string | null,
+      // file: null as File | string | null,
+      file: null as FileList | File | string | null,
       programType: null as { value: string; label: string } | null,
       program: null as { value: string; label: string } | null,
     },
@@ -305,47 +306,58 @@ toast.success(response.message || "File deleted successfully!");
             : schema;
         }
       ),
+      // file: Yup.mixed()
+      //   .required("Please upload a file")
+      //   .test(
+      //     "fileType",
+      //     "Only Excel files (.xls, .xlsx) or CSV files (.csv) are allowed",
+      //     function (value) {
+      //       if (isFileUploadDisabled) {
+      //         return true;
+      //       }
+      //       if (!value) {
+      //         return this.createError({ message: "Please upload a file" });
+      //       }
+      //       if (typeof value === "string") {
+      //         return true;
+      //       }
+      //       if (value instanceof File && value.size > 2 * 1024 * 1024) {
+      //         return this.createError({ message: "File size is too large" });
+      //       }
+      //       const allowedTypes = [
+      //         "application/vnd.ms-excel",
+      //         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      //         "text/csv",
+      //         "application/csv",
+      //       ];
+      //       const allowedExtensions = [".xls", ".xlsx", ".csv"];
+      //       const fileName = value instanceof File ? value.name : "";
+      //       const hasValidExtension = allowedExtensions.some((ext) =>
+      //         fileName.toLowerCase().endsWith(ext)
+      //       );
+      //       if (
+      //         value instanceof File &&
+      //         !allowedTypes.includes(value.type) &&
+      //         !hasValidExtension
+      //       ) {
+      //         return this.createError({
+      //           message:
+      //             "Only Excel files (.xls, .xlsx) or CSV files (.csv) are allowed",
+      //         });
+      //       }
+      //       return true;
+      //     }
+      //   ),
+
       file: Yup.mixed()
-        .required("Please upload a file")
-        .test(
-          "fileType",
-          "Only Excel files (.xls, .xlsx) or CSV files (.csv) are allowed",
-          function (value) {
-            if (isFileUploadDisabled) {
-              return true;
-            }
-            if (!value) {
-              return this.createError({ message: "Please upload a file" });
-            }
-            if (typeof value === "string") {
-              return true;
-            }
-            if (value instanceof File && value.size > 2 * 1024 * 1024) {
-              return this.createError({ message: "File size is too large" });
-            }
-            const allowedTypes = [
-              "application/vnd.ms-excel",
-              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-              "text/csv",
-              "application/csv"
-            ];
-            const allowedExtensions = [".xls", ".xlsx", ".csv"];
-            const fileName = value instanceof File ? value.name : "";
-            const hasValidExtension = allowedExtensions.some(ext =>
-              fileName.toLowerCase().endsWith(ext)
-            );
-            if (
-              value instanceof File &&
-              !allowedTypes.includes(value.type) &&
-              !hasValidExtension
-            ) {
-              return this.createError({
-                message: "Only Excel files (.xls, .xlsx) or CSV files (.csv) are allowed"
-              });
-            }
-            return true;
+        .required("Please upload a ZIP file")
+        .test("fileExtension", "Only .zip file allowed", (value) => {
+          if (!value || typeof value === "string") return true;
+          if (value instanceof File) {
+            return value.name.toLowerCase().endsWith(".zip");
           }
-        )
+          return true;
+        }),
     }),
     onSubmit: async (values, { resetForm }) => {
       // Create FormData object
@@ -361,20 +373,45 @@ toast.success(response.message || "File deleted successfully!");
       formData.append("otherDepartment", values.otherDepartment || "");
       formData.append("screenType", "on");
 
+      // if (isEditMode && typeof values.file === "string") {
+      //   formData.append(
+      //     "file",
+      //     new Blob([], { type: "application/pdf" }),
+      //     "empty.pdf"
+      //   );
+      // } else if (isEditMode && values.file === null) {
+      //   formData.append(
+      //     "file",
+      //     new Blob([], { type: "application/pdf" }),
+      //     "empty.pdf"
+      //   );
+      // } else if (values.file) {
+      //   formData.append("file", values.file);
+      // }
       if (isEditMode && typeof values.file === "string") {
+        // Existing file in DB → keep empty placeholder
         formData.append(
           "file",
-          new Blob([], { type: "application/pdf" }),
-          "empty.pdf"
+          new Blob([], { type: "application/octet-stream" }),
+          "empty.zip"
         );
       } else if (isEditMode && values.file === null) {
+        // No new file chosen in edit mode → send empty placeholder
         formData.append(
           "file",
-          new Blob([], { type: "application/pdf" }),
-          "empty.pdf"
+          new Blob([], { type: "application/octet-stream" }),
+          "empty.zip"
         );
-      } else if (values.file) {
+      } else if (values.file instanceof File) {
+        // User uploaded a ZIP file
         formData.append("file", values.file);
+      } else {
+        // Fallback
+        formData.append(
+          "file",
+          new Blob([], { type: "application/octet-stream" }),
+          "empty.zip"
+        );
       }
 
       try {
@@ -399,7 +436,7 @@ toast.success(response.message || "File deleted successfully!");
         if (fileRef.current) {
           fileRef.current.value = "";
         }
-        setIsFileUploadDisabled(false); 
+        setIsFileUploadDisabled(false);
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         // display the On-Campus placement List
@@ -417,11 +454,13 @@ toast.success(response.message || "File deleted successfully!");
     const fetchPrograms = async () => {
       if (
         validation.values.programType &&
-        validation.values.programType.value
+        validation.values.programType.value &&
+        validation.values.department &&
+        validation.values.department.value
       ) {
         try {
           const response = await api.get(
-            `/ProgramsByProgramTypeId?programTypeId=${validation.values.programType.value}`,
+            `/ProgramsByProgramTypeId?deptId=${validation.values.department.value}&programTypeId=${validation.values.programType.value}`,
             ""
           );
           const options = (response || []).map((item: any) => ({
@@ -437,7 +476,7 @@ toast.success(response.message || "File deleted successfully!");
       }
     };
     fetchPrograms();
-  }, [validation.values.programType]);
+  }, [validation.values.programType, validation.values.department]);
 
   useEffect(() => {
     if (campusData.length === 0) return; // wait until data is loaded
@@ -579,11 +618,12 @@ toast.success(response.message || "File deleted successfully!");
                         <Label>Specify Department</Label>
                         <Input
                           type="text"
-                          className={`form-control ${validation.touched.otherDepartment &&
+                          className={`form-control ${
+                            validation.touched.otherDepartment &&
                             validation.errors.otherDepartment
-                            ? "is-invalid"
-                            : ""
-                            }`}
+                              ? "is-invalid"
+                              : ""
+                          }`}
                           value={validation.values.otherDepartment}
                           onChange={(e) =>
                             validation.setFieldValue(
@@ -645,7 +685,7 @@ toast.success(response.message || "File deleted successfully!");
                         }}
                         className={
                           validation.touched.program &&
-                            validation.errors.program
+                          validation.errors.program
                             ? "is-invalid"
                             : ""
                         }
@@ -673,25 +713,16 @@ toast.success(response.message || "File deleted successfully!");
                         Upload Placement Details
                       </Label>
                       <Input
-                        className={`form-control ${validation.touched.file && validation.errors.file ? "is-invalid" : ""}`}
                         type="file"
-                        id="formFile"
+                        accept=".zip"
                         innerRef={fileRef}
-                        onChange={(event) => {
-                          const file = event.currentTarget.files ? event.currentTarget.files[0] : null;
-                          validation.setFieldTouched("file", true, true);
-                          validation.setFieldValue("file", file, true);
-
-                          // Reset file input if invalid file is selected
-                          if (
-                            file &&
-                            ![".xls", ".xlsx", ".csv"].some(ext => file.name.toLowerCase().endsWith(ext))
-                          ) {
-                            event.target.value = "";
-                          }
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                          const file = e.target.files?.[0] ?? null;
+                          validation.setFieldValue("file", file);
                         }}
                         disabled={isFileUploadDisabled}
                       />
+
                       {validation.touched.file && validation.errors.file && (
                         <div className="text-danger">
                           {validation.errors.file}
@@ -786,13 +817,7 @@ toast.success(response.message || "File deleted successfully!");
             List On-Campus placement
           </ModalHeader>
           <ModalBody>
-            <Table
-              striped
-              bordered
-              hover
-              id="id"
-              innerRef={tableRef}
-            >
+            <Table striped bordered hover id="id" innerRef={tableRef}>
               <thead className="table-dark">
                 <tr>
                   <th>#</th>
@@ -815,7 +840,10 @@ toast.success(response.message || "File deleted successfully!");
                       <td>{campus.departmentName}</td>
                       <td>{campus.programTypeName}</td>
                       <td>{campus.programName}</td>
-                      <td className="d-none">{campus?.filePath?.file || "N/A"}</td> {/* Hidden */}
+                      <td className="d-none">
+                        {campus?.filePath?.file || "N/A"}
+                      </td>{" "}
+                      {/* Hidden */}
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button

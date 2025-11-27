@@ -291,8 +291,8 @@ const Guest_Lectures: React.FC = () => {
   };
 
   const semType = [
-    { value: "T", label: "Even" },
-    { value: "P", label: "Odd" },
+    { value: "Even", label: "Even" },
+    { value: "Odd", label: "Odd" },
   ];
 
   // Handle file download actions
@@ -1063,9 +1063,11 @@ toast.success(response.message || "File deleted successfully!");
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
-                  <th>Stream</th>
+                  <th>School</th>
                   <th>Department</th>
+                  <th>Program</th>
                   <th>Semester Type</th>
+                  <th>Date</th>
                   <th>Resource Person</th>
                   <th>Resource Person Designation</th>
                   <th>Organisation</th>
@@ -1077,14 +1079,16 @@ toast.success(response.message || "File deleted successfully!");
                 </tr>
               </thead>
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((gl, index) => (
+                {gLData.length > 0 ? (
+                  gLData.map((gl, index) => (
                     <tr key={gl.guestLectureId}>
                       <td>{index + 1}</td>
                       <td>{gl.academicYear}</td>
                       <td>{gl.streamName}</td>
                       <td>{gl.departmentName}</td>
+                      <td>{Object.values(gl.courses).join(", ")}</td>
                       <td>{gl.semType}</td>
+                      <td>{gl.date}</td>
                       <td>{gl.resourcePersonName}</td>
                       <td>{gl.resourcePersonDesignation}</td>
                       <td>{gl.organisation}</td>

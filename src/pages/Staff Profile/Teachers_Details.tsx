@@ -192,15 +192,15 @@ const Teachers_Details: React.FC = () => {
 
   const facultyType = [
     { value: "FT", label: "Full-Time" },
-    { value: "POP", label: "Proffessor of Practice" },
+    { value: "POP", label: "Professor of Practice" },
     { value: "GF", label: "Guest Faculty" },
     { value: "VF", label: "Visiting Faculty" },
   ];
 
   const designationType = [
     { value: "Lecturer", label: "Lecturer" },
-    { value: "Assistant Proffessor", label: "Assistant Proffessor" },
-    { value: "Associate Proffessor", label: "Associate Proffessor" },
+    { value: "Assistant Professor", label: "Assistant Professor" },
+    { value: "Associate Professor", label: "Associate Professor" },
   ];
 
   const validation = useFormik({
@@ -351,7 +351,7 @@ const Teachers_Details: React.FC = () => {
       <div className="page-content">
         <Container fluid>
           <Breadcrumb
-            title="Staff Profile"
+            title="FACULTY DETAILS"
             breadcrumbItem="Teacher's Details"
           />
           <Card>
@@ -742,15 +742,16 @@ const Teachers_Details: React.FC = () => {
                   <th>Designation</th>
                   <th>Qualification</th>
                   <th>VIDWAAN ID</th>
-                  <th className="d-none">Date of Joining</th>
-                  <th className="d-none">Academic Exp (%)</th>
-                  <th className="d-none">Industry Exp (%)</th>
+                  <th>Date of Joining</th>
+                  <th>Academic Experience</th>
+                  <th>Academic Experience in MCC</th>
+                  <th>Academic Experience in Non MCC</th>                 
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((bos, index) => (
+                {bosData.length > 0 ? (
+                  bosData.map((bos, index) => (
                     <tr key={bos.teacherDetailsId}>
                       <td>{index + 1}</td>
                       <td>{bos.facultyType}</td>
@@ -760,9 +761,10 @@ const Teachers_Details: React.FC = () => {
                       <td>{bos.designation}</td>
                       <td>{bos.qualification}</td>
                       <td>{bos.vidwanId}</td>
-                      <td className="d-none">{bos.joiningDate} </td>
-                      <td className="d-none">{bos.academicExperience}</td>
-                      <td className="d-none">{bos.industrialExperience}</td>
+                      <td>{bos.joiningDate} </td>
+                      <td>{bos.academicExperience}</td>
+                      <td>{bos.industrialExperienceNonMcc}</td>
+                      <td>{bos.industrialExperience}</td>
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button

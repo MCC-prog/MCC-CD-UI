@@ -825,7 +825,7 @@ toast.success(response.message || "File deleted successfully!");
           <ModalHeader toggle={toggleModal}>List IKS</ModalHeader>
           <ModalBody>
             <Table striped bordered hover id="id" innerRef={tableRef}>
-              <thead className="table-dark">
+              <thead >
                 <tr>
                   <th>Sl.No</th>
                   <th>Academic Year</th>

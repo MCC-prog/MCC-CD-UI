@@ -81,6 +81,19 @@ const Program_Wise_Exam_Result: React.FC = () => {
 
   const tableRef = useRef<HTMLTableElement>(null);
 
+  const [menuOpen, setmenuOpen] = useState(false);
+
+  const ROMAN_MAP: Record<string, string> = {
+  "1": "I",
+  "2": "II",
+  "3": "III",
+  "4": "IV",
+  "5": "V",
+  "6": "VI",
+  "7": "VII",
+  "8": "VIII",
+};
+
   // Calculate the paginated data
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
@@ -169,43 +182,43 @@ const Program_Wise_Exam_Result: React.FC = () => {
 
         department: response.departmentId
           ? {
-            value: response.departmentId.toString(),
-            label: response.departmentName,
-          }
+              value: response.departmentId.toString(),
+              label: response.departmentName,
+            }
           : null,
 
         programType: response.programTypeId
           ? {
-            value: response.programTypeId.toString(),
-            label: response.programTypeName,
-          }
+              value: response.programTypeId.toString(),
+              label: response.programTypeName,
+            }
           : null,
 
         degree: response.programId
           ? {
-            value: response.programId.toString(),
-            label: response.programName,
-          }
+              value: response.programId.toString(),
+              label: response.programName,
+            }
           : null,
 
         program: response.courses
           ? Object.entries(response.courses).map(([key, value]) => ({
-            value: key,
-            label: String(value),
-          }))
+              value: key,
+              label: String(value),
+            }))
           : [],
 
         examType: response.typeOfExam
           ? {
-            value: String(response.typeOfExam),
-            label: String(response.typeOfExam),
-          }
+              value: String(response.typeOfExam),
+              label: String(response.typeOfExam),
+            }
           : null,
 
         semester: response.semesters
           ? response.semesters.map((sem: number) =>
-            mapValueToLabel(String(sem), semesterNoOptions)
-          )
+              mapValueToLabel(String(sem), semesterNoOptions)
+            )
           : [],
 
         file: response.documents?.examResult || null,
@@ -220,9 +233,9 @@ const Program_Wise_Exam_Result: React.FC = () => {
         ...mappedValues,
         academicYear: mappedValues.academicYear
           ? {
-            ...mappedValues.academicYear,
-            value: String(mappedValues.academicYear.value),
-          }
+              ...mappedValues.academicYear,
+              value: String(mappedValues.academicYear.value),
+            }
           : null,
       });
       setSelectedStream(streamOption);
@@ -321,7 +334,7 @@ const Program_Wise_Exam_Result: React.FC = () => {
         ""
       );
       // Show success message
-toast.success(response.message || "File deleted successfully!");
+      toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
       validation.setFieldValue("file", null); // Clear the file from Formik state
       setIsFileUploadDisabled(false); // Enable the file upload button
@@ -455,7 +468,7 @@ toast.success(response.message || "File deleted successfully!");
           );
           toast.success(
             response.message ||
-            "Program –wise Exam Results updated successfully!"
+              "Program –wise Exam Results updated successfully!"
           );
         } else {
           // Call the save API
@@ -536,7 +549,7 @@ toast.success(response.message || "File deleted successfully!");
             title="EXAMINATION"
             breadcrumbItem="Program –wise Exam Results"
           />
-          <Card>
+          <Card style={{ height: "450px" }}>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
                 <Row>
@@ -627,11 +640,12 @@ toast.success(response.message || "File deleted successfully!");
                         <Label>Specify Department</Label>
                         <Input
                           type="text"
-                          className={`form-control ${validation.touched.otherDepartment &&
-                              validation.errors.otherDepartment
+                          className={`form-control ${
+                            validation.touched.otherDepartment &&
+                            validation.errors.otherDepartment
                               ? "is-invalid"
                               : ""
-                            }`}
+                          }`}
                           value={validation.values.otherDepartment}
                           onChange={(e) =>
                             validation.setFieldValue(
@@ -730,8 +744,19 @@ toast.success(response.message || "File deleted successfully!");
                   {/* Semester Dropdowns */}
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>Semester</Label>
+                      <Label>Semester No</Label>
                       <Select
+                        menuIsOpen={menuOpen}
+                        onMenuOpen={() => setmenuOpen(true)}
+                        onMenuClose={() => setmenuOpen(false)}
+                        styles={{
+                          menu: (provided) => ({ ...provided, zIndex: 9999 }),
+                          menuList: (provided) => ({
+                            ...provided,
+                            maxHeight: "170px",
+                            overflowY: "auto",
+                          }),
+                        }}
                         isMulti
                         name="semester"
                         options={[
@@ -750,7 +775,7 @@ toast.success(response.message || "File deleted successfully!");
                         }
                         className={
                           validation.touched.semester &&
-                            validation.errors.semester
+                          validation.errors.semester
                             ? "select-error"
                             : ""
                         }
@@ -779,7 +804,7 @@ toast.success(response.message || "File deleted successfully!");
                         menuPortalTarget={document.body}
                         className={
                           validation.touched.examType &&
-                            validation.errors.examType
+                          validation.errors.examType
                             ? "select-error"
                             : ""
                         }
@@ -801,10 +826,11 @@ toast.success(response.message || "File deleted successfully!");
                         Upload Results from KP
                       </Label>
                       <Input
-                        className={`form-control ${validation.touched.file && validation.errors.file
+                        className={`form-control ${
+                          validation.touched.file && validation.errors.file
                             ? "is-invalid"
                             : ""
-                          }`}
+                        }`}
                         type="file"
                         id="formFile"
                         innerRef={fileRef}
@@ -829,11 +855,12 @@ toast.success(response.message || "File deleted successfully!");
                         </div>
                       )}
                       {/* Show a message if the file upload button is disabled */}
-                      {isFileUploadDisabled && typeof validation.values.file === "string" &&(
-                        <div className="text-warning mt-2">
-                          Please remove the existing file to upload a new one.
-                        </div>
-                      )}
+                      {isFileUploadDisabled &&
+                        typeof validation.values.file === "string" && (
+                          <div className="text-warning mt-2">
+                            Please remove the existing file to upload a new one.
+                          </div>
+                        )}
                       {/* Only show the file name if it is a string (from the edit API) */}
                       {typeof validation.values.file === "string" && (
                         <div className="mt-2 d-flex align-items-center">
@@ -904,19 +931,20 @@ toast.success(response.message || "File deleted successfully!");
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
-                  <th>Stream</th>
+                  <th>School</th>
                   <th>Department</th>
                   <th>Program Type</th>
+                  <th>Degree</th>
                   <th>Program</th>
-                  {/* <th>Semester</th> */}
+                  <th>Semester</th>
                   <th>Exam Type</th>
                   <th className="d-none">File</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((bos, index) => (
+                {pwerData.length > 0 ? (
+                  pwerData.map((bos, index) => (
                     <tr key={bos.programWiseExamReportId}>
                       <td>{indexOfFirstRow + index + 1}</td>
                       <td>{bos.academicYear}</td>
@@ -924,9 +952,17 @@ toast.success(response.message || "File deleted successfully!");
                       <td>{bos.departmentName}</td>
                       <td>{bos.programTypeName}</td>
                       <td>{bos.programName}</td>
-                      {/* <td>{bos.semester}</td> */}
+                      <td>{Object.values(bos.courses).join(", ")}</td>
+                      <td>
+                        {Object.values(bos.semesters)
+                          .map((s: any) => ROMAN_MAP[String(s)] || s)
+                          .join(", ")}
+                      </td>
+
                       <td>{bos.typeOfExam}</td>
-                      <td className="d-none">{bos?.filePath.examResult}</td>
+                      <td className="d-none">
+                        {bos?.filePath?.examResult ?? "N/A"}
+                      </td>
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button

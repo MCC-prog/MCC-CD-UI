@@ -310,7 +310,7 @@ const Number_OfBooks_Dept: React.FC = () => {
             title="Department Profile"
             breadcrumbItem="Number of books in the department library"
           />
-          <Card style={{ minHeight: "300px", overflow: "visible" }}>
+          <Card style={{ minHeight: "350px", overflow: "visible" }}>
             <CardBody style={{ overflow: "visible" }}>
               <form onSubmit={validation.handleSubmit}>
                 <Row>

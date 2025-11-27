@@ -94,6 +94,7 @@ import Annual_Expenditure from "pages/Library/Annual_Expenditure";
 import Books from "pages/Library/Books";
 import Research_Journals from "pages/Library/Research_Journals";
 import Databases from "pages/Library/Databases";
+import Boe from "pages/Curriculum/Boe";
 
 const authProtectedRoutes = [
   { path: "/dashboard", component: <Dashboard /> },
@@ -107,6 +108,7 @@ const authProtectedRoutes = [
     path: "/Innovative_Teaching_Methodologies",
     component: <Innovative_Teaching_Methodologies />,
   },
+   { path: "/Boe_Data", component: <Boe /> },
   { path: "/AC_GB_MoM", component: <AC_GB_MoM /> },
   { path: "/Value_Added_Program", component: <Value_Added_Program /> },
 

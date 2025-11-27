@@ -470,7 +470,7 @@ toast.success(response.message || "File deleted successfully!");
             title="INNOVATION & ENTREPRENUERSHIP"
             breadcrumbItem="Innovation"
           />
-          <Card>
+          <Card style={{ height: "350px" }}>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
                 <Row>
@@ -695,7 +695,7 @@ toast.success(response.message || "File deleted successfully!");
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
-                  <th>Stream</th>
+                  <th>School</th>
                   <th>Department</th>
                   <th className="d-none">FilePath</th>
                   <th>Actions</th>

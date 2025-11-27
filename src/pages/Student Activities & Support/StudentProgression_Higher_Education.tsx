@@ -63,17 +63,6 @@ const StudentProgression_Higher_Education: React.FC = () => {
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
   const [isFile2UploadDisabled, setIsFile2UploadDisabled] = useState(false);
   const [isFile3UploadDisabled, setIsFile3UploadDisabled] = useState(false);
-  const [filters, setFilters] = useState({
-    academicYear: null,
-    studentName: "",
-    mccRegNo: "",
-    coursePurused: "",
-    heigherEduCu: "",
-    university: "",
-    location: "",
-    icalepal: "",
-    courseDuration: "",
-  });
   const fileRef = useRef<HTMLInputElement | null>(null);
   const fileRef1 = useRef<HTMLInputElement | null>(null);
   const fileRef2 = useRef<HTMLInputElement | null>(null);
@@ -173,14 +162,14 @@ const StudentProgression_Higher_Education: React.FC = () => {
               label: response.departmentName,
             }
           : null,
-        mccRegNo: response.mccRegisterNo || "",
-        studentName: response.studentName || "",
-        coursePurused: response.coursePursuedInMcc || "",
-        heigherEduCu: response.higherEducationCourse || "",
-        university: response.university || "",
-        location: response.location || "",
-        icalepal: response.enrollmentProof || "",
-        courseDuration: response.courseDuration || "",
+        // mccRegNo: response.mccRegisterNo || "",
+        // studentName: response.studentName || "",
+        // coursePurused: response.coursePursuedInMcc || "",
+        // heigherEduCu: response.higherEducationCourse || "",
+        // university: response.university || "",
+        // location: response.location || "",
+        // icalepal: response.enrollmentProof || "",
+        // courseDuration: response.courseDuration || "",
         file: response.documents.excel || null, // Assuming 'file' is a string or null
         idCard: response.documents?.idCard || null,
         // higherEducation: response.documents?.higherEducation || null,
@@ -203,14 +192,14 @@ const StudentProgression_Higher_Education: React.FC = () => {
               value: String(mappedValues.department.value),
             }
           : null,
-        mccRegNo: response.mccRegisterNo || "",
-        studentName: response.studentName || "",
-        coursePurused: response.coursePursuedInMcc || "",
-        heigherEduCu: response.higherEducationCourse || "",
-        university: response.university || "",
-        location: response.location || "",
-        icalepal: response.enrollmentProof || "",
-        courseDuration: response.courseDuration || "",
+        // mccRegNo: response.mccRegisterNo || "",
+        // studentName: response.studentName || "",
+        // coursePurused: response.coursePursuedInMcc || "",
+        // heigherEduCu: response.higherEducationCourse || "",
+        // university: response.university || "",
+        // location: response.location || "",
+        // icalepal: response.enrollmentProof || "",
+        // courseDuration: response.courseDuration || "",
         file: response.documents.excel || null, // Assuming 'file' is a string or null
         idCard: response.documents?.idCard || null,
         // higherEducation: response.documents?.higherEducation || null,
@@ -332,14 +321,14 @@ toast.success(response.message || "File deleted successfully!");
       academicYear: null as { value: string; label: string } | null,
       stream: null as { value: string; label: string } | null,
       department: null as { value: string; label: string } | null,
-      mccRegNo: "",
-      studentName: "",
-      coursePurused: "",
-      heigherEduCu: "",
-      university: "",
-      location: "",
-      icalepal: "",
-      courseDuration: "",
+      // mccRegNo: "",
+      // studentName: "",
+      // coursePurused: "",
+      // heigherEduCu: "",
+      // university: "",
+      // location: "",
+      // icalepal: "",
+      // courseDuration: "",
       file: null as File | string | null,
       idCard: null as File | string | null,
       // higherEducation: null as File | string | null,
@@ -350,15 +339,15 @@ toast.success(response.message || "File deleted successfully!");
         .required("Please select academic year"),
       stream: Yup.object().nullable().required("Please select stream"),
       department: Yup.object().nullable().required("Please select department"),
-      mccRegNo: Yup.string().required("Please enter MCC Register number"),
-      studentName: Yup.string().required("Please enter student name"),
-      coursePurused: Yup.string().required(
-        "Please enter course pursued in MCC"
-      ),
-      heigherEduCu: Yup.string().required(
-        "Please enter higher education course"
-      ),
-      university: Yup.string().required("Please enter university"),
+      // mccRegNo: Yup.string().required("Please enter MCC Register number"),
+      // studentName: Yup.string().required("Please enter student name"),
+      // coursePurused: Yup.string().required(
+      //   "Please enter course pursued in MCC"
+      // ),
+      // heigherEduCu: Yup.string().required(
+      //   "Please enter higher education course"
+      // ),
+      // university: Yup.string().required("Please enter university"),
       file: Yup.mixed()
         .required("Please upload a file")
         .test("fileSize", "File size is too large", (value: any) => {
@@ -377,31 +366,37 @@ toast.success(response.message || "File deleted successfully!");
             ].includes(value.type)
           );
         }),
-      idCard: Yup.mixed()
-        .required("Please upload a file")
-        .test("fileSize", "File size is too large", (value: any) => {
-          // Skip size validation if file is a string (from existing data)
-          if (typeof value === "string") return true;
-          return value && value.size <= 50 * 1024 * 1024; // 50MB
-        })
-        .test("fileType", "Unsupported file format", (value: any) => {
-          // Skip type validation if file is a string
-          if (typeof value === "string") return true;
-          return (
-            value &&
-            [
-              "application/vnd.ms-excel",
-              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            ].includes(value.type)
-          );
-        }),
-      location: Yup.string().required("Please enter location"),
-      icalepal: Yup.string()
-        // .url("Please enter a valid URL")
-        .required(
-          "Please provide a link for Id Card/Acceptance/Admission Letter-Enrollment Proof"
-        ),
-      courseDuration: Yup.string().required("Please enter course duration"),
+        idCard: Yup.mixed().test(
+             "fileValidation",
+             "Please upload a valid file",
+             function (value) {
+               // Skip validation if the file upload is disabled (file exists)
+               if (isFileUploadDisabled) {
+                 return true;
+               }
+               // Perform validation if the file upload is enabled (file doesn't exist)
+               if (!value) {
+                 return this.createError({ message: "Please upload a file" });
+               }
+               // Check file size (2MB limit)
+               if (value instanceof File && value.size > 2 * 1024 * 1024) {
+                 return this.createError({ message: "File size is too large" });
+               }
+               // Check file type
+               const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
+               if (value instanceof File && !allowedTypes.includes(value.type)) {
+                 return this.createError({ message: "Unsupported file format" });
+               }
+               return true;
+             }
+           ),
+      // location: Yup.string().required("Please enter location"),
+      // icalepal: Yup.string()
+      //   // .url("Please enter a valid URL")
+      //   .required(
+      //     "Please provide a link for Id Card/Acceptance/Admission Letter-Enrollment Proof"
+      //   ),
+      // courseDuration: Yup.string().required("Please enter course duration"),
     }),
     onSubmit: async (values, { resetForm }) => {
       try {
@@ -409,14 +404,14 @@ toast.success(response.message || "File deleted successfully!");
         formData.append("academicYear", values.academicYear?.value || "");
         formData.append("streamId", values.stream?.value || "");
         formData.append("departmentId", values.department?.value || "");
-        formData.append("studentName", values.studentName);
-        formData.append("mccRegisterNo", values.mccRegNo);
-        formData.append("coursePursuedInMcc", values.coursePurused);
-        formData.append("higherEducationCourse", values.heigherEduCu);
-        formData.append("university", values.university);
-        formData.append("location", values.location);
-        formData.append("enrollmentProof", values.icalepal);
-        formData.append("courseDuration", values.courseDuration);
+        // formData.append("studentName", values.studentName);
+        // formData.append("mccRegisterNo", values.mccRegNo);
+        // formData.append("coursePursuedInMcc", values.coursePurused);
+        // formData.append("higherEducationCourse", values.heigherEduCu);
+        // formData.append("university", values.university);
+        // formData.append("location", values.location);
+        // formData.append("enrollmentProof", values.icalepal);
+        // formData.append("courseDuration", values.courseDuration);
         if (isEditMode && typeof values.file === "string") {
           formData.append(
             "excel",
@@ -465,18 +460,14 @@ toast.success(response.message || "File deleted successfully!");
         if (isEditMode && typeof values.idCard === "string") {
           formData.append(
             "idCard",
-            new Blob([], {
-              type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            }),
-            "empty.xlsx"
+        new Blob([], { type: "application/pdf" }),
+          "empty.pdf"
           );
         } else if (isEditMode && values.idCard === null) {
           formData.append(
             "idCard",
-            new Blob([], {
-              type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            }),
-            "empty.xlsx"
+            new Blob([], { type: "application/pdf" }),
+          "empty.pdf"
           );
         } else if (values.idCard) {
           formData.append("idCard", values.idCard);
@@ -664,7 +655,7 @@ toast.success(response.message || "File deleted successfully!");
                     </div>
                   </Col>
 
-                  <Col sm={4}>
+                  {/* <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
                         MCC Register number
@@ -859,7 +850,7 @@ toast.success(response.message || "File deleted successfully!");
                         onOpen={() => setTooltipOpen(true)}
                         title={
                           <span>
-                            Id Card/Acceptance/Admission Letter-Enrollment Proof
+                            Provide a link for Id Card/Acceptance/Admission
                           </span>
                         }
                         arrow
@@ -924,7 +915,7 @@ toast.success(response.message || "File deleted successfully!");
                           </div>
                         )}
                     </div>
-                  </Col>
+                  </Col> */}
 
                   <Col sm={4}>
                     <div className="mb-3">
@@ -1244,13 +1235,15 @@ toast.success(response.message || "File deleted successfully!");
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
-                  <th>MCC Register number</th>
+                  <th>School</th>
+                  <th>Department</th>
+                  {/* <th>MCC Register number</th>
                   <th>Student Name</th>
                   <th>Course Pursued in MCC</th>
                   <th>Heigher Education Course</th>
                   <th>University</th>
                   <th>Location</th>
-                  <th>Course Duration</th>
+                  <th>Course Duration</th> */}
                   <th className="d-none">File Path(Excel)</th>
                   <th className="d-none">File Path(ID Proof)</th>
                   <th className="d-none">File Path(Competitive Exam)</th>
@@ -1258,18 +1251,20 @@ toast.success(response.message || "File deleted successfully!");
                 </tr>
               </thead>
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((she, index) => (
+                {sheData.length > 0 ? (
+                  sheData.map((she, index) => (
                     <tr key={she.higherEducationId}>
                       <td>{index + 1}</td>
                       <td>{she.academicYear}</td>
-                      <td>{she.mccRegisterNo}</td>
+                      <td>{she.streamName}</td>
+                      <td>{she.departmentName}</td>
+                      {/* <td>{she.mccRegisterNo}</td>
                       <td>{she.studentName}</td>
                       <td>{she.coursePursuedInMcc}</td>
                       <td>{she.higherEducationCourse}</td>
                       <td>{she.university}</td>
                       <td>{she.location}</td>
-                      <td>{she.courseDuration}</td>
+                      <td>{she.courseDuration}</td> */}
                       <td className="d-none">
                         {she.filePath.higherEducation || "N/A"}
                       </td>

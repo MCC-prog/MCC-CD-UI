@@ -3,7 +3,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import {
   Col,
-  Row, 
+  Row,
   Input,
   Label,
   Button,
@@ -65,29 +65,6 @@ const Management_Funded_Project: React.FC = () => {
 
   const [editResData, setEditResData] = useState<any>(null);
 
-  const isTabFilled = (validation: any, tab: number | null) => {
-    switch (tab) {
-      case 1:
-        return (
-          validation.values.principalInvestigator.name ||
-          validation.values.principalInvestigator.qualification ||
-          validation.values.principalInvestigator.designation ||
-          validation.values.principalInvestigator.department ||
-          validation.values.principalInvestigator.abstractFile ||
-          validation.values.principalInvestigator.sanctionOrderFile
-        );
-      case 2:
-        return (
-          validation.values.coInvestigator.name ||
-          validation.values.coInvestigator.qualification ||
-          validation.values.coInvestigator.designation ||
-          validation.values.coInvestigator.department
-        );
-      default:
-        return false;
-    }
-  };
-
   const clearTabFields = async (validation: any, tab: number | null) => {
     try {
       let deleteId = null;
@@ -124,8 +101,8 @@ const Management_Funded_Project: React.FC = () => {
           setIsAbstractFileUploadDisabled(false);
           setIsSanctionFileUploadDisabled(false);
 
-         if (fileRef.current) fileRef.current.value = "";
-         if (file2Ref.current) file2Ref.current.value = "";
+          if (fileRef.current) fileRef.current.value = "";
+          if (file2Ref.current) file2Ref.current.value = "";
           break;
         case 2:
           validation.setFieldValue("coInvestigatorId", null);
@@ -163,6 +140,12 @@ const Management_Funded_Project: React.FC = () => {
 
   const toggleModal = () => setIsModalOpen(!isModalOpen);
 
+  const handleTabSwitch = (tab: string) => {
+    setActiveTab(tab);
+    validation.setFieldValue("activeTab", tab); // <-- CRITICAL
+    validation.setTouched({});
+    validation.setErrors({});
+  };
   // Dynamic validation schema for nested tabs
   const validationSchema = useMemo(() => {
     return Yup.object({
@@ -201,43 +184,44 @@ const Management_Funded_Project: React.FC = () => {
             : schema;
         }
       ),
-      principalInvestigator:
-        isMultidisciplinary === "Yes" && activeTab === "1"
-          ? Yup.object({
-              name: Yup.string().required("Please enter name"),
-              qualification: Yup.string().required(
-                "Please enter qualification"
-              ),
-              designation: Yup.string().required("Please enter designation"),
-              department: Yup.object<{ value: string; label: string }>()
-                .nullable()
-                .required("Please select department"),
-              abstractFile: Yup.mixed().required(
-                "Please upload the abstract file"
-              ),
-              sanctionOrderFile: Yup.mixed().required(
-                "Please upload the sanction order file"
-              ),
-            })
-          : Yup.object(),
-      coInvestigator:
-        isMultidisciplinary === "Yes" && activeTab === "2"
-          ? Yup.object({
-              name: Yup.string().required("Please enter name"),
-              qualification: Yup.string().required(
-                "Please enter qualification"
-              ),
-              designation: Yup.string().required("Please enter designation"),
-              department: Yup.object<{ value: string; label: string }>()
-                .nullable()
-                .required("Please select department"),
-            })
-          : Yup.object(),
+      principalInvestigator: Yup.object().when("activeTab", {
+        is: (tab: string) => tab === "1",
+        then: (schema) =>
+          schema.shape({
+            name: Yup.string().required("Please enter name"),
+            qualification: Yup.string().required("Please enter qualification"),
+            designation: Yup.string().required("Please enter designation"),
+            department: Yup.object()
+              .nullable()
+              .required("Please select department"),
+            abstractFile: Yup.mixed().required("Please upload abstract file"),
+            sanctionOrderFile: Yup.mixed().required(
+              "Please upload sanction order"
+            ),
+          }),
+        otherwise: (schema) => schema.notRequired(),
+      }),
+
+      coInvestigator: Yup.object().when("activeTab", {
+        is: (tab: string) => tab === "2",
+        then: (schema) =>
+          schema.shape({
+            name: Yup.string().required("Please enter name"),
+            qualification: Yup.string().required("Please enter qualification"),
+            designation: Yup.string().required("Please enter designation"),
+            department: Yup.object()
+              .nullable()
+              .required("Please select department"),
+          }),
+        otherwise: (schema) => schema.notRequired(),
+      }),
     });
   }, [isMultidisciplinary, activeTab]);
 
   const validation = useFormik({
     initialValues: {
+      activeTab: activeTab,
+      isMultidisciplinary: isMultidisciplinary,
       academicYear: null as { value: string; label: string } | null,
       stream: null as { value: string; label: string } | null,
       department: null as { value: string; label: string } | null,
@@ -266,10 +250,31 @@ const Management_Funded_Project: React.FC = () => {
       },
     },
     validationSchema,
-    enableReinitialize: true,
     onSubmit: async (values, { resetForm }) => {
       const formData = new FormData();
-      const dtoPayload = {
+
+      // ------------------------------
+      // 1️⃣ CHECK IF PI HAS DATA
+      // ------------------------------
+      const hasPI =
+        values.principalInvestigator.name ||
+        values.principalInvestigator.qualification ||
+        values.principalInvestigator.designation ||
+        values.principalInvestigator.department;
+
+      // ------------------------------
+      // 2️⃣ CHECK IF CO HAS DATA
+      // ------------------------------
+      const hasCO =
+        values.coInvestigator.name ||
+        values.coInvestigator.qualification ||
+        values.coInvestigator.designation ||
+        values.coInvestigator.department;
+
+      // ------------------------------
+      // 3️⃣ BASE DTO
+      // ------------------------------
+      const dtoPayload: any = {
         managementFundProjectId: editId || null,
         academicYear: values.academicYear?.value || null,
         streamId: values.stream?.value || null,
@@ -280,87 +285,85 @@ const Management_Funded_Project: React.FC = () => {
         monthOfGrant: values.monthOfGrant || null,
         fundingType: values.typeOfFunding?.value || null,
         multidisciplinary: isMultidisciplinary === "Yes",
-        multidisciplinaryType:
-          activeTab === "1"
-            ? "PrincipleInvestigatorDetails"
-            : "CoInvestigatorDetails",
-        managementFundProjectAddTabDto: {
-          additionalTabId:
-            activeTab === "1"
-              ? values.principalInvestigator.pId || null
-              : values.coInvestigator.cId || null,
-          name:
-            activeTab === "1"
-              ? values.principalInvestigator.name || null
-              : values.coInvestigator.name || null,
-          qualification:
-            activeTab === "1"
-              ? values.principalInvestigator.qualification || null
-              : values.coInvestigator.qualification || null,
-          designation:
-            activeTab === "1"
-              ? values.principalInvestigator.designation || null
-              : values.coInvestigator.designation || null,
-          departmentId:
-            activeTab === "1"
-              ? values.principalInvestigator.department?.value || 0
-              : values.coInvestigator.department?.value || 0,
-          departmentName:
-            activeTab === "1"
-              ? values.principalInvestigator.department?.label || null
-              : values.coInvestigator.department?.label || null,
-        },
       };
 
+      // ------------------------------
+      // 4️⃣ PI DTO (only if filled)
+      // ------------------------------
+      if (hasPI) {
+        dtoPayload.principleFormRequestDto = {
+          principleInvestigatorFormId: values.principalInvestigator.pId || null,
+          name: values.principalInvestigator.name || null,
+          qualification: values.principalInvestigator.qualification || null,
+          designation: values.principalInvestigator.designation || null,
+          departmentId: values.principalInvestigator.department?.value || null,
+        };
+      }
+
+      // ------------------------------
+      // 5️⃣ CO DTO (only if filled)
+      // ------------------------------
+      if (hasCO) {
+        dtoPayload.coInvestigatorFormRequestDto = {
+          coInvestigatorFormId: values.coInvestigator.cId || null,
+          name: values.coInvestigator.name || null,
+          qualification: values.coInvestigator.qualification || null,
+          designation: values.coInvestigator.designation || null,
+          departmentId: values.coInvestigator.department?.value || null,
+        };
+      }
+
+      // ------------------------------
+      // 6️⃣ ADD DTO TO FORMDATA
+      // ------------------------------
       formData.append(
         "managementFundProjectRequestDto",
         new Blob([JSON.stringify(dtoPayload)], { type: "application/json" })
       );
-
-      // File handling logic
-      if (isMultidisciplinary === "Yes") {
-        if (activeTab === "1") {
-          if (values.principalInvestigator.abstractFile instanceof File) {
-            formData.append(
-              "abstractProject",
-              values.principalInvestigator.abstractFile
-            );
-          }
-          if (values.principalInvestigator.sanctionOrderFile instanceof File) {
-            formData.append(
-              "sanctionOrder",
-              values.principalInvestigator.sanctionOrderFile
-            );
-          }
-        }
+      console.warn("Payload check ===>>>", dtoPayload);
+      // ------------------------------
+      // 7️⃣ FILES (only for PI)
+      // ------------------------------
+      if (values.principalInvestigator.abstractFile instanceof File) {
+        formData.append(
+          "abstractProject",
+          values.principalInvestigator.abstractFile
+        );
       }
 
+      if (values.principalInvestigator.sanctionOrderFile instanceof File) {
+        formData.append(
+          "sanctionOrder",
+          values.principalInvestigator.sanctionOrderFile
+        );
+      }
+
+      // ------------------------------
+      // 8️⃣ API CALL
+      // ------------------------------
       try {
         const response =
           isEditMode && editId
             ? await api.put(`/managementFundProject/update`, formData, {
-                headers: {
-                  "Content-Type": "multipart/form-data",
-                },
+                headers: { "Content-Type": "multipart/form-data" },
               })
             : await api.create(`/managementFundProject/save`, formData, {
-                headers: {
-                  "Content-Type": "multipart/form-data",
-                },
+                headers: { "Content-Type": "multipart/form-data" },
               });
 
         toast.success(response.message || "MFP record saved successfully!");
+
+        // ------------------------------
+        // 9️⃣ RESET FORM
+        // ------------------------------
         resetForm();
-        if (fileRef.current) {
-          fileRef.current.value = "";
-        }
-        if (file2Ref.current) {
-          file2Ref.current.value = "";
-        }
+        if (fileRef.current) fileRef.current.value = "";
+        if (file2Ref.current) file2Ref.current.value = "";
         setIsAbstractFileUploadDisabled(false);
         setIsSanctionFileUploadDisabled(false);
         setIsEditMode(false);
         setEditId(null);
+
         handleListMFPClick();
       } catch (error) {
         toast.error("Failed to save MFP. Please try again.");
@@ -368,13 +371,6 @@ const Management_Funded_Project: React.FC = () => {
       }
     },
   });
-
-  // When switching tabs, clear touched/errors for a clean UX
-  const handleTabSwitch = (tab: string) => {
-    setActiveTab(tab);
-    validation.setTouched({});
-    validation.setErrors({});
-  };
 
   const fetchMFAData = async () => {
     try {
@@ -507,9 +503,19 @@ const Management_Funded_Project: React.FC = () => {
   // Clear the file from the form and show success message
   const handleDeleteFile = async (docType: string) => {
     try {
+      // Determine the tabId (principal investigator id) from Formik values or the loaded edit response
+      const tabId =
+        validation.values.principalInvestigator?.pId ||
+        editResData?.principleInvestigatorDto?.principleInvestigatorId;
+  
+      if (!tabId) {
+        toast.error("No document associated to delete.");
+        return;
+      }
+  
       // Call the delete API
       const response = await api.delete(
-        `/managementFundProject/deleteManagementFundedProjectDocument?managementFundProjectId=${editId}&docType=${docType}`,
+        `/managementFundProject/deleteManagementFundedProjectDocument?tabId=${tabId}&docType=${docType}`,
         ""
       );
       // Show success message
@@ -971,11 +977,14 @@ const Management_Funded_Project: React.FC = () => {
       } else if (response.multidisciplinaryType === "CoInvestigatorDetails") {
         setActiveTab("2");
       }
-
+      const streamOption = mapValueToLabel(response.streamId, []); // Replace [] with stream options array if available
+      const departmentOption = mapValueToLabel(response.departmentId, []);
       // Update Formik values
       validation.setValues(mappedValues);
 
       // Set edit mode and toggle modal
+      setSelectedStream(streamOption);
+      setSelectedDepartment(departmentOption);
       setIsEditMode(true);
       setEditId(id); // Store the ID of the record being edited
       setIsAbstractFileUploadDisabled(
@@ -1355,7 +1364,13 @@ const Management_Funded_Project: React.FC = () => {
                       <Input
                         type="select"
                         value={isMultidisciplinary}
-                        onChange={(e) => setIsMultidisciplinary(e.target.value)}
+                        onChange={(e) => {
+                          setIsMultidisciplinary(e.target.value);
+                          validation.setFieldValue(
+                            "isMultidisciplinary",
+                            e.target.value
+                          ); // <-- IMPORTANT
+                        }}
                         className="form-control"
                       >
                         <option value="No">No</option>
@@ -1364,61 +1379,53 @@ const Management_Funded_Project: React.FC = () => {
                     </div>
                   </Col>
                 </Row>
-                {isMultidisciplinary === "Yes" && (
-                  <div>
-                    <Nav tabs>
-                      <NavItem>
-                        <NavLink
-                          className={activeTab === "1" ? "active" : ""}
-                          disabled={isTabFilled(validation, 2)} // disable PI tab when CO tab is filled
-                          onClick={() => {
-                            if (!isTabFilled(validation, 2)) setActiveTab("1");
-                          }}
+                <div>
+                  <Nav tabs>
+                    <NavItem>
+                      <NavLink
+                        className={activeTab === "1" ? "active" : ""}
+                        onClick={() => handleTabSwitch("1")}
+                      >
+                        Principal Investigator Details
+                      </NavLink>
+                    </NavItem>
+                    <NavItem>
+                      <NavLink
+                        className={activeTab === "2" ? "active" : ""}
+                        onClick={() => handleTabSwitch("2")}
+                      >
+                        Co-Investigator Details
+                      </NavLink>
+                    </NavItem>
+                  </Nav>
+                  <TabContent activeTab={activeTab}>
+                    <TabPane tabId="1">
+                      {renderPrincipalInvestigatorForm()}
+                      <div className="mb-2 mt-2">
+                        <button
+                          type="button"
+                          className="btn btn-outline-warning btn-sm"
+                          onClick={() => clearTabFields(validation, 1)}
                         >
-                          Principal Investigator Details
-                        </NavLink>
-                      </NavItem>
-                      <NavItem>
-                        <NavLink
-                          className={activeTab === "2" ? "active" : ""}
-                          disabled={isTabFilled(validation, 1)} // disable CO tab when PI tab is filled
-                          onClick={() => {
-                            if (!isTabFilled(validation, 1)) setActiveTab("2");
-                          }}
-                        >
-                          Co-Investigator Details
-                        </NavLink>
-                      </NavItem>
-                    </Nav>
-                    <TabContent activeTab={activeTab}>
-                      <TabPane tabId="1">
-                        {renderPrincipalInvestigatorForm()}
-                        <div className="mb-2 mt-2">
-                          <button
-                            type="button"
-                            className="btn btn-outline-warning btn-sm"
-                            onClick={() => clearTabFields(validation, 1)}
-                          >
-                            Clear
-                          </button>
-                        </div>
-                      </TabPane>
+                          Clear
+                        </button>
+                      </div>
+                    </TabPane>
 
-                      <TabPane tabId="2">
-                        {renderCoInvestigatorForm()}
-                        <div className="mb-2 mt-2">
-                          <button
-                            type="button"
-                            className="btn btn-outline-warning btn-sm"
-                            onClick={() => clearTabFields(validation, 2)}
-                          >
-                            Clear
-                          </button>
-                        </div>
-                      </TabPane>
-                    </TabContent>
-                  </div>
-                )}
+                    <TabPane tabId="2">
+                      {renderCoInvestigatorForm()}
+                      <div className="mb-2 mt-2">
+                        <button
+                          type="button"
+                          className="btn btn-outline-warning btn-sm"
+                          onClick={() => clearTabFields(validation, 2)}
+                        >
+                          Clear
+                        </button>
+                      </div>
+                    </TabPane>
+                  </TabContent>
+                </div>
                 <Row>
                   <Col lg={12}>
                     <div className="mt-3 d-flex justify-content-between">

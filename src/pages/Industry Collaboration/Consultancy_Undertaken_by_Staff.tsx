@@ -730,12 +730,12 @@ toast.success(response.message || "File deleted successfully!");
                       )}
                     </div>
                   </Col>
-                  <Col lg={4}>
+                  {/* <Col lg={4}>
                     <div className="mb-3">
                       <Label>Report Template</Label>
                       <div>
                         <a
-                          href={`${process.env.PUBLIC_URL}/templateFiles/BOS_MoM_DeptName_Aug24.docx`}
+                          href={`${process.env.PUBLIC_URL}/templateFiles/Industry_collaboration _ skill_enhancement.docx`}
                           download
                           className="btn btn-primary btn-sm"
                         >
@@ -743,7 +743,7 @@ toast.success(response.message || "File deleted successfully!");
                         </a>
                       </div>
                     </div>
-                  </Col>
+                  </Col> */}
                 </Row>
                 <Row>
                   <Col lg={12}>
@@ -795,6 +795,7 @@ toast.success(response.message || "File deleted successfully!");
                   <th>Number Trainees</th>
                   <th>Address Agency</th>
                   <th>Revenue Generated</th>
+                  <th className="d-none">File Path</th> {/* Hidden */}
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -815,7 +816,13 @@ toast.success(response.message || "File deleted successfully!");
                         <td>{consultancyUndertaken.noOfTrainees}</td>
                         <td>{consultancyUndertaken.addressOfAgency}</td>
                         <td>{consultancyUndertaken.revenueGenerated}</td>
+                        <td className="d-none">
+                          {consultancyUndertaken?.certificate
+                            ?.ConsultancyUndertaken || "N/A"}
+                        </td>{" "}
+                        {/* Hidden */}
                         <td>
+                          <div className="d-flex justify-content-center gap-2">
                           <button
                             className="btn btn-sm btn-warning me-2"
                             onClick={() => handleEdit(consultancyUndertaken.id)}
@@ -830,6 +837,7 @@ toast.success(response.message || "File deleted successfully!");
                           >
                             Delete
                           </button>
+                          </div>
                         </td>
                       </tr>
                     )

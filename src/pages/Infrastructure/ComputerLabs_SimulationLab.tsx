@@ -357,7 +357,7 @@ const ComputerLabs_SimulationLab: React.FC = () => {
             title="Infrastructure"
             breadcrumbItem="ComputerLabs/SimulationLab"
           />
-          <Card>
+          <Card style={{ height: "350px" }}>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
                 <Row>

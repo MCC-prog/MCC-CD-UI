@@ -989,7 +989,7 @@ toast.success(response.message || "File deleted successfully!");
           </ModalHeader>
           <ModalBody>
             <Table striped bordered hover id="id" innerRef={tableRef}>
-              <thead className="table-dark">
+              <thead>
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
@@ -1006,8 +1006,8 @@ toast.success(response.message || "File deleted successfully!");
                 </tr>
               </thead>
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((cds, index) => (
+                {ccacData.length > 0 ? (
+                  ccacData.map((cds, index) => (
                     <tr key={cds.coCurricularActivityId}>
                       <td>{index + 1}</td>
                       <td>{cds.academicYear}</td>

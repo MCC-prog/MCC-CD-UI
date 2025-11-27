@@ -414,7 +414,7 @@ const Details_of_Programs_offered: React.FC = () => {
   useEffect(() => {
     if (detailsProgramOfferedData.length === 0) return; // wait until data is loaded
 
-    const table = $("#id").DataTable({
+    const table = $("#detailsProgramOfferedDataId").DataTable({
       destroy: true, // destroy existing instance if re-rendered
       scrollX: true,
       autoWidth: false,
@@ -844,19 +844,20 @@ const Details_of_Programs_offered: React.FC = () => {
               hover
               id="detailsProgramOfferedDataId"
               innerRef={tableRef}>
-              <thead className="table-dark">
+              <thead>
                 <tr>
                   <th>Sl.No</th>
                   <th>Academic Year</th>
                   <th>Schools</th>
                   <th>Department</th>
                   <th>Program Type</th>
+                  <th>Degree</th>
                   <th>Program</th>
-                  <th>Course</th>
                   <th>Agency Name</th>
                   <th>Number Of Student</th>
                   <th>Durationt</th>
-                  <th className="d-none">File Path</th> {/* Hidden */}
+                  <th>Mode Type</th>
+                  <th className="d-none">Letter/MOU File Path</th> {/* Hidden */}
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -884,6 +885,7 @@ const Details_of_Programs_offered: React.FC = () => {
                       <td>{detailsProgramOffered.agencyName}</td>
                       <td>{detailsProgramOffered.noOfStudent}</td>
                       <td>{detailsProgramOffered.duration}</td>
+                      <td>{detailsProgramOffered.mode}</td>
                       <td className="d-none">{detailsProgramOffered?.filePath?.mou || "N/A"}</td> {/* Hidden */}
                       <td>
                         <button

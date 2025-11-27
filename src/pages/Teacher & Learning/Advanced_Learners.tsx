@@ -44,7 +44,7 @@ import "datatables.net-buttons/js/buttons.print.js";
 import "jszip";
 import "pdfmake/build/pdfmake";
 import "pdfmake/build/vfs_fonts";
-
+import { t } from "i18next";
 
 const api = new APIClient();
 
@@ -729,7 +729,7 @@ const Advanced_Learners: React.FC = () => {
         ""
       );
       // Show success message
-toast.success(response.message || "File deleted successfully!");
+      toast.success(response.message || "File deleted successfully!");
       if (docType === "projectSanctionLetter") {
         formik.setFieldValue("file", null);
         setIsFileProjUploadDisabled(false);
@@ -978,28 +978,44 @@ toast.success(response.message || "File deleted successfully!");
     const table = $("#advanceLearnerId").DataTable({
       destroy: true,
       dom: "Bfrtip",
+      paging: true,
+      pageLength: 10,
+      searching: false,
+      info: true,
+
+      columnDefs: [
+        {
+          targets: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21], // HIDDEN EXPORT COLUMNS
+          visible: false,
+        },
+        {
+          targets: 22, // ACTION COLUMN (last column)
+          orderable: false,
+          searchable: false,
+          visible: true,
+        },
+      ],
+
       buttons: [
         {
           extend: "copy",
           exportOptions: {
-            columns: ":not(:last-child)",
+            modifier: { page: "all" },
+            columns: function (idx) {
+              return idx !== 22; // do not export Actions
+            },
           },
         },
         {
           extend: "csv",
           exportOptions: {
-            columns: ":not(:last-child)",
+            modifier: { page: "all" },
+            columns: function (idx) {
+              return idx !== 22; // do not export Actions
+            },
           },
         },
       ],
-      columnDefs: [
-        {
-          targets: [3, 4], // adjust as per actual hidden column indexes
-          visible: false,
-        },
-      ],
-      searching: false,
-      paging: false,
     });
 
     $(".dt-buttons").addClass("mb-3 gap-2");
@@ -1902,104 +1918,12 @@ toast.success(response.message || "File deleted successfully!");
               />
             </div>
 
-            {/* Table with Pagination */}
             <Table
               striped
               bordered
               hover
               responsive
-              className="align-middle text-center"
               id="advanceLearnerId"
-              innerRef={tableRef}
-              style={{ display: "none" }}
-            >
-              <thead className="table-dark">
-                <tr>
-                  <th>#</th>
-                  <th>Academic Year</th>
-                  <th>Semester Type</th>
-                  <th>Semester No</th>
-                  <th>Stream</th>
-                  <th>Department</th>
-                  <th>Program Type</th>
-                  <th>Program</th>
-                  <th>AdvanceLearnerType</th>
-                  <th>Project Title</th>
-                  <th>Duration</th>
-                  <th>Type of Project</th>
-                  <th>Guide Name</th>
-                  <th>Type</th>
-                  <th>Amount</th>
-                  <th> Project Sanction Letter(File Path)</th>{" "}
-                  <th>Synopsis Letter(File Path)</th> <th>Course</th>
-                  <th>Mentorship</th>
-                  <th>Register Number</th>
-                  <th>Teacher Co-Ordinator</th>
-                  <th>Peer Teaching(File Path)</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((als, index) => (
-                    <tr key={als.advanceLearnerId}>
-                      <td>{indexOfFirstRow + index + 1}</td>
-                      <td>{als.academicYear}</td>
-                      <td>{als.semType}</td>
-                      <td>{als.semesterNo}</td>
-                      <td>{als.streamName}</td>
-                      <td>{als.departmentName}</td>
-                      <td>{als.programTypeName}</td>
-                      <td>{als.programName}</td>
-                      <td>{als.advanceLearnerType}</td>
-
-                      <td>{als.researchProjectDto?.projectTitle || "N/A"}</td>
-
-                      <td>{als.researchProjectDto?.duration || "N/A"}</td>
-                      <td>{als.researchProjectDto?.typeOfProject || "N/A"}</td>
-                      <td>{als.researchProjectDto?.guideName || "N/A"}</td>
-                      <td>{als.researchProjectDto?.fundType || "N/A"}</td>
-                      <td>{als.researchProjectDto?.amount || "N/A"}</td>
-
-                      <td>{als.filePath?.projectSanctionLetter || "N/A"}</td>
-                      <td>{als.filePath?.synopsisReport || "N/A"}</td>
-                      <td>{als.peerTeachingDto?.courseTitle || "N/A"}</td>
-                      <td>{als.peerTeachingDto?.mentorship || "N/A"}</td>
-                      <td>{als.peerTeachingDto?.registerNo || "N/A"}</td>
-                      <td>{als.teacherCordinator || "N/A"}</td>
-                      <td>{als.filePath?.peerTeaching || "N/A"}</td>
-                      <td>
-                        <div className="d-flex justify-content-center gap-2">
-                          <button
-                            className="btn btn-sm btn-warning"
-                            onClick={() => handleEdit(als.advanceLearnerId)}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            className="btn btn-sm btn-danger"
-                            onClick={() => handleDelete(als.advanceLearnerId)}
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={11} className="text-center">
-                      No Advanced Learners data available.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </Table>
-            <Table
-              striped
-              bordered
-              hover
-              responsive
               className="align-middle text-center"
             >
               <thead className="table-dark">
@@ -2008,19 +1932,39 @@ toast.success(response.message || "File deleted successfully!");
                   <th>Academic Year</th>
                   <th>Semester Type</th>
                   <th>Semester No</th>
-                  <th>Stream</th>
+                  <th>School</th>
                   <th>Department</th>
                   <th>Program Type</th>
-                  <th>Program</th>
-                  <th>AdvanceLearnerType</th>
+                  <th>Degree</th>
+                  <th>Advance Learner Type</th>
+
+                  {/* HIDDEN EXPORT ONLY COLUMNS */}
+                  <th className="export-hidden">Project Title</th>
+                  <th className="export-hidden">Duration</th>
+                  <th className="export-hidden">Type Of Project</th>
+                  <th className="export-hidden">Guide Name</th>
+                  <th className="export-hidden">Fund Type</th>
+                  <th className="export-hidden">Amount</th>
+
+                  <th className="export-hidden">Project Sanction Letter</th>
+                  <th className="export-hidden">Synopsis Letter</th>
+
+                  <th className="export-hidden">Course</th>
+                  <th className="export-hidden">Mentorship</th>
+                  <th className="export-hidden">Register Number</th>
+                  <th className="export-hidden">Teacher Coordinator</th>
+                  <th className="export-hidden">Peer Teaching File</th>
+
+                  {/* ACTIONS (VISIBLE) */}
                   <th>Actions</th>
                 </tr>
               </thead>
+
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((als, index) => (
+                {advancedLearnerData.length > 0 ? (
+                  advancedLearnerData.map((als, index) => (
                     <tr key={als.advanceLearnerId}>
-                      <td>{indexOfFirstRow + index + 1}</td>
+                      <td>{index + 1}</td>
                       <td>{als.academicYear}</td>
                       <td>{als.semType}</td>
                       <td>{als.semesterNo}</td>
@@ -2029,6 +1973,25 @@ toast.success(response.message || "File deleted successfully!");
                       <td>{als.programTypeName}</td>
                       <td>{als.programName}</td>
                       <td>{als.advanceLearnerType}</td>
+
+                      {/* HIDDEN VALUES */}
+                      <td>{als.researchProjectDto?.projectTitle ?? "N/A"}</td>
+                      <td>{als.researchProjectDto?.duration ?? "N/A"}</td>
+                      <td>{als.researchProjectDto?.typeOfProject ?? "N/A"}</td>
+                      <td>{als.researchProjectDto?.guideName ?? "N/A"}</td>
+                      <td>{als.researchProjectDto?.fundType ?? "N/A"}</td>
+                      <td>{als.researchProjectDto?.amount ?? "N/A"}</td>
+
+                      <td>{als.filePath?.projectSanctionLetter ?? "N/A"}</td>
+                      <td>{als.filePath?.synopsisReport ?? "N/A"}</td>
+
+                      <td>{als.peerTeachingDto?.courseTitle ?? "N/A"}</td>
+                      <td>{als.peerTeachingDto?.mentorship ?? "N/A"}</td>
+                      <td>{als.peerTeachingDto?.registerNo ?? "N/A"}</td>
+                      <td>{als.teacherCordinator ?? "N/A"}</td>
+                      <td>{als.filePath?.peerTeaching ?? "N/A"}</td>
+
+                      {/* ACTIONS */}
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
@@ -2049,33 +2012,13 @@ toast.success(response.message || "File deleted successfully!");
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={11} className="text-center">
-                      No Advanced Learners data available.
+                    <td colSpan={22} className="text-center">
+                      No Advanced Learners data available
                     </td>
                   </tr>
                 )}
               </tbody>
             </Table>
-            {/* Pagination Controls */}
-            <div className="d-flex justify-content-between align-items-center mt-3">
-              <Button
-                color="primary"
-                disabled={currentPage === 1}
-                onClick={() => handlePageChange(currentPage - 1)}
-              >
-                Previous
-              </Button>
-              <div>
-                Page {currentPage} of {totalPages}
-              </div>
-              <Button
-                color="primary"
-                disabled={currentPage === totalPages}
-                onClick={() => handlePageChange(currentPage + 1)}
-              >
-                Next
-              </Button>
-            </div>
           </ModalBody>
         </Modal>
         {/* Confirmation Modal */}

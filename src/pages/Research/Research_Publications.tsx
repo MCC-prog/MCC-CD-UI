@@ -121,10 +121,7 @@ const Research_Publications = () => {
       titleOfPaper: Yup.string().required("Please enter title of paper"),
       volume: Yup.string().required("Please enter volume"),
       issue: Yup.string().required("Please enter issue"),
-      pageNumber: Yup.number()
-        .required("Please enter page number")
-        .positive("Page number must be positive")
-        .integer("Page number must be an integer"),
+      pageNumber: Yup.string().required("Please enter page number"),
       issn: Yup.string().required("Please enter ISSN"),
       doi: Yup.string().required("Please enter DOI"),
       publicationDate: Yup.date().required("Please select from date"),
@@ -445,23 +442,32 @@ toast.success(response.message || "File deleted successfully!");
     const table = $("#researchPublicationId").DataTable({
       destroy: true, // destroy existing instance if re-rendered
       scrollX: true, 
-       autoWidth: false, 
+       autoWidth: true, 
       dom: "Bfrtip",
-      buttons: [
-        {
-          extend: "copy",
-          exportOptions: {
-            columns: ":not(:last-child)", // skip Actions column
+      columnDefs: [
+      { targets: 16, visible: false }, // hide File Path column
+      { targets: 17, orderable: false, searchable: false }, // disable sort for Actions
+    ],
+
+    buttons: [
+      {
+        extend: "copy",
+        exportOptions: {
+          columns: function (idx) {
+            return idx !== 17; // exclude Actions column
           },
         },
-        {
-          extend: "csv",
-          exportOptions: {
-            columns: ":not(:last-child)",
+      },
+      {
+        extend: "csv",
+        exportOptions: {
+          columns: function (idx) {
+            return idx !== 17; // exclude Actions column
           },
         },
-      ],
-    });
+      },
+    ],
+  });
     $(".dt-buttons").addClass("mb-3 gap-2");
     $(".buttons-copy").addClass("btn btn-success");
     $(".buttons-csv").addClass("btn btn-info");
@@ -795,7 +801,7 @@ toast.success(response.message || "File deleted successfully!");
                     <div className="mb-3">
                       <Label>Page Number</Label>
                       <Input
-                        type="number"
+                        type="text"
                         name="pageNumber"
                         value={validation.values.pageNumber}
                         onChange={validation.handleChange}
@@ -1037,14 +1043,18 @@ toast.success(response.message || "File deleted successfully!");
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
+                   <th>School</th>
+                  <th>Department</th>
                   <th>Faculty Name</th>
                   <th>Co-authors</th>
-                  <th>Stream</th>
-                  <th>Department</th>
                   <th>Indexation</th>
                   <th>JournalName</th>
                   <th>PaperTitle</th>
+                  <th>Volume</th>
+                  <th>Issue</th>
+                  <th>PageNumber</th>
                   <th>ISSN</th>
+                  <th>DOI</th>
                   <th>PublicationDate</th>
                   <th>Publisher</th>
                   <th className="d-none">File Path</th> {/* Hidden */}
@@ -1057,14 +1067,18 @@ toast.success(response.message || "File deleted successfully!");
                     <tr key={research.researchPublicationId}>
                       <td>{index + 1}</td>
                       <td>{research.academicYear}</td>
-                      <td>{research.facultyName}</td>
-                      <td>{research.coAuthors}</td>
                       <td>{research.streamName}</td>
                       <td>{research.departmentName}</td>
+                      <td>{research.facultyName}</td>
+                      <td>{research.coAuthors}</td>
                       <td>{research.indexation}</td>
                       <td>{research.journalName}</td>
                       <td>{research.paperTitle}</td>
+                      <td>{research.volume}</td>
+                      <td>{research.issue}</td>
+                      <td>{research.pageNumber}</td>
                       <td>{research.issn}</td>
+                      <td>{research.doi}</td>
                       <td>{research.publicationDate}</td>
                       <td>{research.publisher}</td>
                        <td className="d-none">{research?.filePath?.researchPublication || "N/A"}</td> {/* Hidden */}
@@ -1092,7 +1106,7 @@ toast.success(response.message || "File deleted successfully!");
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={11} className="text-center">
+                    <td colSpan={18} className="text-center">
                       No Research data available.
                     </td>
                   </tr>

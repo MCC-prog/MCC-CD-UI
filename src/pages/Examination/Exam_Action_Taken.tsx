@@ -694,14 +694,14 @@ const Exam_Action_Taken: React.FC = () => {
                   <th>Program Type</th>
                   <th>Program</th>
                   <th>Degree</th>
-                  <th className="d-none">Remarks</th>
+                  <th>Remarks</th>
 
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((eat, index) => (
+                {eatData.length > 0 ? (
+                  eatData.map((eat, index) => (
                     <tr key={eat.id}>
                       <td>{indexOfFirstRow + index + 1}</td>
                       <td>{eat.academicYear}</td>
@@ -721,7 +721,7 @@ const Exam_Action_Taken: React.FC = () => {
                           ))}
                         </ul>
                       </td>
-                      <td className="d-none">{eat.remarks || "N/A"}</td>
+                      <td>{eat.remarks}</td>
 
                       <td>
                         <div className="d-flex justify-content-center gap-2">

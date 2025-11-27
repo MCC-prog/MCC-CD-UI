@@ -654,7 +654,7 @@ toast.success(response.message || "File deleted successfully!");
                             e.target.value
                           )
                         }
-                        placeholder="Enter Student name"
+                        placeholder="Enter Faculty Name"
                       />
                       {validation.touched.facultyName &&
                         validation.errors.facultyName && (
@@ -667,7 +667,7 @@ toast.success(response.message || "File deleted successfully!");
 
                   <Col lg={4}>
                     <div className="mb-3">
-                      <Label>Title of Moocs</Label>
+                      <Label>Title of Mooc</Label>
                       <Input
                         type="text"
                         className={`form-control ${
@@ -680,7 +680,7 @@ toast.success(response.message || "File deleted successfully!");
                         onChange={(e) =>
                           validation.setFieldValue("titleOfFdp", e.target.value)
                         }
-                        placeholder="Enter Title of Moocs"
+                        placeholder="Enter Title of Mooc"
                       />
                       {validation.touched.titleOfFdp &&
                         validation.errors.titleOfFdp && (
@@ -916,7 +916,7 @@ toast.success(response.message || "File deleted successfully!");
           <ModalHeader toggle={toggleModal}>List Moocs</ModalHeader>
           <ModalBody>
             <Table striped bordered hover id="id" innerRef={tableRef}>
-              <thead className="table-dark">
+              <thead>
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
@@ -933,8 +933,8 @@ toast.success(response.message || "File deleted successfully!");
                 </tr>
               </thead>
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((bos, index) => (
+                {bosData.length > 0 ? (
+                  bosData.map((bos, index) => (
                     <tr key={bos.id}>
                       <td>{indexOfFirstRow + index + 1}</td>
                       <td>{bos.year}</td>

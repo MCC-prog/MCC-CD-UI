@@ -752,11 +752,13 @@ const CapacityDevelopment_Skills: React.FC = () => {
           </ModalHeader>
           <ModalBody>
             <Table striped bordered hover id="id" innerRef={tableRef}>
-              <thead className="table-dark">
+              <thead>
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
+                  <th>School</th>
                   <th>Department</th>
+                  <th>Semester No</th>
                   <th>Activity Name</th>
                   <th>Type</th>
                   <th className="d-none">File</th>
@@ -764,12 +766,14 @@ const CapacityDevelopment_Skills: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((cds, index) => (
+                {cdsData.length > 0 ? (
+                  cdsData.map((cds, index) => (
                     <tr key={cds.capacityDevelopmentId}>
                       <td>{index + 1}</td>
                       <td>{cds.academicYear}</td>
+                      <td>{cds.streamName}</td>
                       <td>{cds.departmentName}</td>
+                      <td>{cds.semNo}</td>
                       <td>{cds.activityName}</td>
                       <td>{cds.type}</td>
                       <td className="d-none">

@@ -456,7 +456,7 @@ const Skill_Development_Workshop: React.FC = () => {
   useEffect(() => {
     if (skillDevelopmentData.length === 0) return; // wait until data is loaded
 
-    const table = $("#id").DataTable({
+    const table = $("#skillDevelopmentDataId").DataTable({
       destroy: true, // destroy existing instance if re-rendered
       scrollX: true,
       autoWidth: false,
@@ -767,7 +767,7 @@ const Skill_Development_Workshop: React.FC = () => {
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
-                        Upload Certificate
+                        Upload Report
                         <i
                           id="infoIcon"
                           className="bi bi-info-circle ms-2"
@@ -848,12 +848,12 @@ const Skill_Development_Workshop: React.FC = () => {
                     </div>
                   </Col>
                   
-                  <Col lg={4}>
+                  {/* <Col lg={4}>
                     <div className="mb-3">
                       <Label>Report Template</Label>
                       <div>
                         <a
-                          href={`${process.env.PUBLIC_URL}/templateFiles/BOS_MoM_DeptName_Aug24.docx`}
+                          href={`${process.env.PUBLIC_URL}/templateFiles/Industry_collaboration _ skill_enhancement.docx`}
                           download
                           className="btn btn-primary btn-sm"
                         >
@@ -861,7 +861,7 @@ const Skill_Development_Workshop: React.FC = () => {
                         </a>
                       </div>
                     </div>
-                  </Col>
+                  </Col> */}
                 </Row>
                 <Row>
                   <Col lg={12}>
@@ -901,7 +901,7 @@ const Skill_Development_Workshop: React.FC = () => {
               id="skillDevelopmentDataId"
               innerRef={tableRef}
             >
-              <thead className="table-dark">
+              <thead>
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
@@ -913,6 +913,8 @@ const Skill_Development_Workshop: React.FC = () => {
                   <th>Collaborating Organization / Department</th>
                   <th>From Date</th>
                   <th>To Date</th>
+                  <th>Mode Type</th>
+                   <th className="d-none">Report File Path</th> {/* Hidden */}
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -930,7 +932,10 @@ const Skill_Development_Workshop: React.FC = () => {
                       <td>{skillDevelopment.organizedBy}</td>
                       <td>{skillDevelopment.fromDate}</td>
                       <td>{skillDevelopment.toDate}</td>
+                      <td>{skillDevelopment.mode}</td>
+                      <td className="d-none">{skillDevelopment?.skillDevelopmentDoc?.SkillDevelopment || "N/A"}</td> {/* Hidden */}
                       <td>
+                        <div className="d-flex justify-content-center gap-2">
                         <button
                           className="btn btn-sm btn-warning me-2"
                           onClick={() => handleEdit(skillDevelopment.id)}
@@ -943,6 +948,7 @@ const Skill_Development_Workshop: React.FC = () => {
                         >
                           Delete
                         </button>
+                        </div>
                       </td>
                     </tr>
                   ))

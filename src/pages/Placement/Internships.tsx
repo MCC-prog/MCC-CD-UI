@@ -403,7 +403,7 @@ const Internships: React.FC = () => {
             <div className="page-content">
                 <Container fluid>
                     <Breadcrumb title="Placement" breadcrumbItem="Internships" />
-                    <Card>
+                    <Card style={{ height: "350px" }}>
                         <CardBody>
                             <form onSubmit={validation.handleSubmit}>
                                 <Row>

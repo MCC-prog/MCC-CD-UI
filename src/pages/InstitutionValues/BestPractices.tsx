@@ -454,7 +454,7 @@ toast.success(response.message || "File deleted successfully!");
             title="Institutional Values"
             breadcrumbItem="Best Practices"
           />
-          <Card>
+          <Card style={{ height: "350px" }}>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
                 <Row>
@@ -780,7 +780,7 @@ toast.success(response.message || "File deleted successfully!");
                       <Label>Download Template</Label>
                       <div>
                         <a
-                          href={`${process.env.PUBLIC_URL}/templateFiles/BOS_MoM_DeptName_Aug24.docx`}
+                          href={`${process.env.PUBLIC_URL}/templateFiles/YEAR_DEPT_BEST_PRACTICES.docx`}
                           download
                           className="btn btn-primary btn-sm"
                         >

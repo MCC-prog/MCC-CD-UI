@@ -784,7 +784,7 @@ const NationalInternationalDays: React.FC = () => {
                       <Label>Download Template</Label>
                       <div>
                         <a
-                          href={`${process.env.PUBLIC_URL}/templateFiles/BOS_MoM_DeptName_Aug24.docx`}
+                          href={`${process.env.PUBLIC_URL}/templateFiles/YEAR_DEPT_REPORT.docx`}
                           download
                           className="btn btn-primary btn-sm"
                         >

@@ -144,24 +144,24 @@ const DetailsOfStudents_MOOC: React.FC = () => {
           : null,
         department: response.departmentId
           ? {
-            value: response.departmentId.toString(),
-            label: response.departmentName,
-          }
+              value: response.departmentId.toString(),
+              label: response.departmentName,
+            }
           : null,
-        courses: response.courses
-          ? Object.entries(response.courses).map(([key, value]) => ({
-            value: key,
-            label: String(value),
-          }))
-          : [],
-        noOfStaff: response.noOfStaff || "",
-        mccRegNo: response.mccRegisterNo || "",
-        studentName: response.studentName || "",
-        offeredBy: response.offeredBy || "",
-        moocCourseRegId: response.moocCourseId || "",
-        moocCoursePursued: response.moocCoursePursued || "",
-        duration: response.duration || "",
-        courseDuration: response.courseDuration || "",
+        // courses: response.courses
+        //   ? Object.entries(response.courses).map(([key, value]) => ({
+        //       value: key,
+        //       label: String(value),
+        //     }))
+        //   : [],
+        // noOfStaff: response.noOfStaff || "",
+        // mccRegNo: response.mccRegisterNo || "",
+        // studentName: response.studentName || "",
+        // offeredBy: response.offeredBy || "",
+        // moocCourseRegId: response.moocCourseId || "",
+        // moocCoursePursued: response.moocCoursePursued || "",
+        // duration: response.duration || "",
+        // courseDuration: response.courseDuration || "",
         file: response.documents.moocCertificate || null, // Assuming 'file' is a string or null
         excel: response.documents.excel || null, // Assuming 'file' is a string or null
       };
@@ -170,30 +170,30 @@ const DetailsOfStudents_MOOC: React.FC = () => {
       validation.setValues({
         academicYear: mappedValues.academicYear
           ? {
-            ...mappedValues.academicYear,
-            value: String(mappedValues.academicYear.value),
-          }
+              ...mappedValues.academicYear,
+              value: String(mappedValues.academicYear.value),
+            }
           : null,
         stream: mappedValues.stream
           ? { ...mappedValues.stream, value: String(mappedValues.stream.value) }
           : null,
         department: mappedValues.department
           ? {
-            ...mappedValues.department,
-            value: String(mappedValues.department.value),
-          }
+              ...mappedValues.department,
+              value: String(mappedValues.department.value),
+            }
           : null,
-        noOfStaff: response.noOfStaff || "",
-        mccRegNo: response.mccRegisterNo || "",
-        studentName: response.studentName || "",
-        offeredBy: response.offeredBy || "",
-        moocCourseRegId: response.moocCourseId || "",
-        moocCoursePursued: response.moocCoursePursued || "",
-        duration: response.duration || "",
-        courseDuration: response.courseDuration || "",
+        // noOfStaff: response.noOfStaff || "",
+        // mccRegNo: response.mccRegisterNo || "",
+        // studentName: response.studentName || "",
+        // offeredBy: response.offeredBy || "",
+        // moocCourseRegId: response.moocCourseId || "",
+        // moocCoursePursued: response.moocCoursePursued || "",
+        // duration: response.duration || "",
+        // courseDuration: response.courseDuration || "",
         file: response.documents.moocCertificate || null, // Assuming 'file' is a string or null
         excel: response.documents.excel || null, // Assuming 'file' is a string or null
-        courses: mappedValues.courses || [],
+        // courses: mappedValues.courses || [],
       });
       setIsFileUploadDisabled(!!response.documents.moocCertificate); // Disable file upload if a file exists
       setIsFile2UploadDisabled(!!response.documents.excel); // Disable file upload if a file exists
@@ -224,7 +224,7 @@ const DetailsOfStudents_MOOC: React.FC = () => {
         setIsModalOpen(false);
         toast.success(
           response.message ||
-          "Details of Students Enrolled for MOOC removed successfully!"
+            "Details of Students Enrolled for MOOC removed successfully!"
         );
         fetchDOSMData();
       } catch (error) {
@@ -292,9 +292,8 @@ const DetailsOfStudents_MOOC: React.FC = () => {
       if (docType === "moocCertificate") {
         validation.setFieldValue("file", null);
         setIsFileUploadDisabled(false); // Enable the file upload button
-
       } else if (docType === "excel") {
-        validation.setFieldValue("excel", null);  
+        validation.setFieldValue("excel", null);
         setIsFile2UploadDisabled(false); // Enable the file upload button
       }
     } catch (error) {
@@ -308,17 +307,17 @@ const DetailsOfStudents_MOOC: React.FC = () => {
       academicYear: null as { value: string; label: string } | null,
       stream: null as { value: string; label: string } | null,
       department: null as { value: string; label: string } | null,
-      noOfStaff: "",
-      mccRegNo: "",
-      studentName: "",
-      offeredBy: "",
-      moocCourseRegId: "",
-      moocCoursePursued: "",
-      duration: "",
-      courseDuration: "",
+      // noOfStaff: "",
+      // mccRegNo: "",
+      // studentName: "",
+      // offeredBy: "",
+      // moocCourseRegId: "",
+      // moocCoursePursued: "",
+      // duration: "",
+      // courseDuration: "",
       file: null as File | string | null,
       excel: null as File | string | null,
-      courses: [] as { value: string; label: string }[],
+      // courses: [] as { value: string; label: string }[],
     },
     validationSchema: Yup.object({
       academicYear: Yup.object()
@@ -326,33 +325,39 @@ const DetailsOfStudents_MOOC: React.FC = () => {
         .required("Please select academic year"),
       stream: Yup.object().nullable().required("Please select school"),
       department: Yup.object().nullable().required("Please select department"),
-      mccRegNo: Yup.string().required("Please enter MCC Register number"),
-      studentName: Yup.string().required("Please enter student name"),
-      offeredBy: Yup.string().required("Please enter Mooc Offering Institute"),
-      moocCourseRegId: Yup.string().required(
-        "Please enter Mooc Course Id/Registration Number"
+      // mccRegNo: Yup.string().required("Please enter MCC Register number"),
+      // studentName: Yup.string().required("Please enter student name"),
+      // offeredBy: Yup.string().required("Please enter Mooc Offering Institute"),
+      // moocCourseRegId: Yup.string().required(
+      //   "Please enter Mooc Course Id/Registration Number"
+      // ),
+      file: Yup.mixed().test(
+        "fileValidation",
+        "Please upload a valid file",
+        function (value) {
+          // Skip validation if the file upload is disabled (file exists)
+          if (isFileUploadDisabled) {
+            return true;
+          }
+          // Perform validation if the file upload is enabled (file doesn't exist)
+          if (!value) {
+            return this.createError({ message: "Please upload a file" });
+          }
+          // Check file size (2MB limit)
+          if (value instanceof File && value.size > 2 * 1024 * 1024) {
+            return this.createError({ message: "File size is too large" });
+          }
+          // Check file type
+          const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
+          if (value instanceof File && !allowedTypes.includes(value.type)) {
+            return this.createError({ message: "Unsupported file format" });
+          }
+          return true;
+        }
       ),
-      file: Yup.mixed()
-        .required("Please upload a file")
-        .test("fileSize", "File size is too large", (value: any) => {
-          // Skip size validation if file is a string (from existing data)
-          if (typeof value === "string") return true;
-          return value && value.size <= 50 * 1024 * 1024; // 50MB
-        })
-        .test("fileType", "Unsupported file format", (value: any) => {
-          // Skip type validation if file is a string
-          if (typeof value === "string") return true;
-          return (
-            value &&
-            [
-              "application/vnd.ms-excel",
-              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            ].includes(value.type)
-          );
-        }),
-      moocCoursePursued: Yup.string().required(
-        "Please enter Mooc Course Title"
-      ),
+      // moocCoursePursued: Yup.string().required(
+      //   "Please enter Mooc Course Title"
+      // ),
       excel: Yup.mixed()
         .required("Please upload a file")
         .test("fileSize", "File size is too large", (value: any) => {
@@ -371,16 +376,16 @@ const DetailsOfStudents_MOOC: React.FC = () => {
             ].includes(value.type)
           );
         }),
-      duration: Yup.string().required("Please enter Duration"),
-      courses: Yup.array()
-        .of(
-          Yup.object().shape({
-            value: Yup.string().required(),
-            label: Yup.string().required(),
-          })
-        )
-        .min(1, "Please select at least one program")
-        .required("Please select program"),
+      // duration: Yup.string().required("Please enter Duration"),
+      // courses: Yup.array()
+      //   .of(
+      //     Yup.object().shape({
+      //       value: Yup.string().required(),
+      //       label: Yup.string().required(),
+      //     })
+      //   )
+      //   .min(1, "Please select at least one program")
+      //   .required("Please select program"),
     }),
     onSubmit: async (values, { resetForm }) => {
       try {
@@ -388,35 +393,33 @@ const DetailsOfStudents_MOOC: React.FC = () => {
         formData.append("academicYear", values.academicYear?.value || "");
         formData.append("streamId", values.stream?.value || "");
         formData.append("departmentId", values.department?.value || "");
-        formData.append("studentName", values.studentName);
-        formData.append("mccRegisterNo", values.mccRegNo);
-        formData.append("offeredBy", values.offeredBy);
-        formData.append("moocCourseId", values.moocCourseRegId);
-        formData.append("moocCoursePursued", values.moocCoursePursued);
-        formData.append("duration", values.duration);
-        values.courses.forEach((course, index) => {
-          formData.append(`courseIds[${index}]`, course.value);
-        });
+        // formData.append("studentName", values.studentName);
+        // formData.append("mccRegisterNo", values.mccRegNo);
+        // formData.append("offeredBy", values.offeredBy);
+        // formData.append("moocCourseId", values.moocCourseRegId);
+        // formData.append("moocCoursePursued", values.moocCoursePursued);
+        // formData.append("duration", values.duration);
+        // values.courses.forEach((course, index) => {
+        //   formData.append(`courseIds[${index}]`, course.value);
+        // });
+       formData.append("studentsEnrolledForMoocId", editId || "");
+
 
         if (isEditMode && typeof values.file === "string") {
-          formData.append(
-            "file",
-            new Blob([], {
-              type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            }),
-            "empty.xlsx"
-          );
-        } else if (isEditMode && values.file === null) {
-          formData.append(
-            "file",
-            new Blob([], {
-              type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            }),
-            "empty.xlsx"
-          );
-        } else if (values.file) {
-          formData.append("file", values.file);
-        }
+        formData.append(
+          "file",
+          new Blob([], { type: "application/pdf" }),
+          "empty.pdf"
+        );
+      } else if (isEditMode && values.file === null) {
+        formData.append(
+          "file",
+          new Blob([], { type: "application/pdf" }),
+          "empty.pdf"
+        );
+      } else if (values.file) {
+        formData.append("file", values.file);
+      }
 
         if (isEditMode && typeof values.excel === "string") {
           formData.append(
@@ -450,7 +453,7 @@ const DetailsOfStudents_MOOC: React.FC = () => {
           );
           toast.success(
             response.message ||
-            "Details of Students Enrolled for MOOC updated successfully!"
+              "Details of Students Enrolled for MOOC updated successfully!"
           );
         } else {
           // Call the save API
@@ -460,7 +463,7 @@ const DetailsOfStudents_MOOC: React.FC = () => {
           );
           toast.success(
             response.message ||
-            "Details of Students Enrolled for MOOC added successfully!"
+              "Details of Students Enrolled for MOOC added successfully!"
           );
         }
         // Reset the form fields
@@ -619,17 +622,18 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                     </div>
                   </Col>
 
-                  <Col sm={4}>
+                  {/* <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
                         MCC Register number
                       </Label>
                       <Input
-                        className={`form-control ${validation.touched.mccRegNo &&
+                        className={`form-control ${
+                          validation.touched.mccRegNo &&
                           validation.errors.mccRegNo
-                          ? "is-invalid"
-                          : ""
-                          }`}
+                            ? "is-invalid"
+                            : ""
+                        }`}
                         type="text"
                         id="mccRegNo"
                         onChange={(e) =>
@@ -653,11 +657,12 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                         Student Name
                       </Label>
                       <Input
-                        className={`form-control ${validation.touched.studentName &&
+                        className={`form-control ${
+                          validation.touched.studentName &&
                           validation.errors.studentName
-                          ? "is-invalid"
-                          : ""
-                          }`}
+                            ? "is-invalid"
+                            : ""
+                        }`}
                         type="text"
                         id="studentName"
                         onChange={(e) =>
@@ -708,11 +713,12 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                         Mooc Offering Institute
                       </Label>
                       <Input
-                        className={`form-control ${validation.touched.offeredBy &&
+                        className={`form-control ${
+                          validation.touched.offeredBy &&
                           validation.errors.offeredBy
-                          ? "is-invalid"
-                          : ""
-                          }`}
+                            ? "is-invalid"
+                            : ""
+                        }`}
                         type="text"
                         id="offeredBy"
                         onChange={(e) =>
@@ -736,11 +742,12 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                         Mooc Course Id/Registration Number
                       </Label>
                       <Input
-                        className={`form-control ${validation.touched.moocCourseRegId &&
+                        className={`form-control ${
+                          validation.touched.moocCourseRegId &&
                           validation.errors.moocCourseRegId
-                          ? "is-invalid"
-                          : ""
-                          }`}
+                            ? "is-invalid"
+                            : ""
+                        }`}
                         type="text"
                         id="moocCourseRegId"
                         onChange={(e) =>
@@ -767,11 +774,12 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                         Mooc Course Title
                       </Label>
                       <Input
-                        className={`form-control ${validation.touched.moocCoursePursued &&
+                        className={`form-control ${
+                          validation.touched.moocCoursePursued &&
                           validation.errors.moocCoursePursued
-                          ? "is-invalid"
-                          : ""
-                          }`}
+                            ? "is-invalid"
+                            : ""
+                        }`}
                         type="text"
                         id="moocCoursePursued"
                         onChange={(e) =>
@@ -798,11 +806,12 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                         Duration
                       </Label>
                       <Input
-                        className={`form-control ${validation.touched.duration &&
+                        className={`form-control ${
+                          validation.touched.duration &&
                           validation.errors.duration
-                          ? "is-invalid"
-                          : ""
-                          }`}
+                            ? "is-invalid"
+                            : ""
+                        }`}
                         type="text"
                         id="duration"
                         onChange={(e) =>
@@ -818,7 +827,7 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                           </div>
                         )}
                     </div>
-                  </Col>
+                  </Col> */}
 
                   <Col sm={4}>
                     <div className="mb-3">
@@ -830,7 +839,7 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                         open={tooltipOpen}
                         onClose={() => setTooltipOpen(false)}
                         onOpen={() => setTooltipOpen(true)}
-                        title={<span>Upload file. Max size 10MB.</span>}
+                        title={<span>Upload pdf file. Max size 10MB.</span>}
                         arrow
                       >
                         <i
@@ -840,10 +849,11 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                         ></i>
                       </Tooltip>
                       <Input
-                        className={`form-control ${validation.touched.file && validation.errors.file
-                          ? "is-invalid"
-                          : ""
-                          }`}
+                        className={`form-control ${
+                          validation.touched.file && validation.errors.file
+                            ? "is-invalid"
+                            : ""
+                        }`}
                         type="file"
                         id="formFile"
                         innerRef={fileRef}
@@ -927,10 +937,11 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                         ></i>
                       </Tooltip>
                       <Input
-                        className={`form-control ${validation.touched.excel && validation.errors.excel
-                          ? "is-invalid"
-                          : ""
-                          }`}
+                        className={`form-control ${
+                          validation.touched.excel && validation.errors.excel
+                            ? "is-invalid"
+                            : ""
+                        }`}
                         type="file"
                         id="formFile"
                         innerRef={file2Ref}
@@ -993,6 +1004,20 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                       )}
                     </div>
                   </Col>
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Download Template</Label>
+                      <div>
+                        <a
+                          href={`${process.env.PUBLIC_URL}/templateFiles/moocs_template.xlsx`}
+                          download
+                          className="btn btn-primary btn-sm"
+                        >
+                          Template
+                        </a>
+                      </div>
+                    </div>
+                  </Col>
                 </Row>
                 <Row>
                   <Col lg={12}>
@@ -1026,32 +1051,32 @@ const DetailsOfStudents_MOOC: React.FC = () => {
           </ModalHeader>
           <ModalBody>
             <Table striped bordered hover id="id" innerRef={tableRef}>
-              <thead className="table-dark">
+              <thead>
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
                   <th>School</th>
                   <th>Department</th>
-                  <th>MCC Register number</th>
+                  {/* <th>MCC Register number</th>
                   <th>Student Name</th>
                   <th>Program</th>
                   <th>Mooc Offering Institute</th>
                   <th>Mooc Course Id/Registration Number</th>
                   <th>Mooc Course Title</th>
-                  <th>Duration</th>
+                  <th>Duration</th> */}
                   <th className="d-none">File Path</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((dosm, index) => (
+                {dosmData.length > 0 ? (
+                  dosmData.map((dosm, index) => (
                     <tr key={dosm.studentsEnrolledForMoocId}>
                       <td>{index + 1}</td>
                       <td>{dosm.academicYear}</td>
                       <td>{dosm.streamName}</td>
                       <td>{dosm.departmentName}</td>
-                      <td>{dosm.mccRegisterNo}</td>
+                      {/* <td>{dosm.mccRegisterNo}</td>
                       <td>{dosm.studentName}</td>
                       <td>
                         <ul className="list-disc list-inside">
@@ -1059,7 +1084,7 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                             (courseName, idx) => (
                               <li key={idx}>
                                 {typeof courseName === "string" ||
-                                  typeof courseName === "number"
+                                typeof courseName === "number"
                                   ? courseName
                                   : String(courseName)}
                               </li>
@@ -1070,7 +1095,7 @@ const DetailsOfStudents_MOOC: React.FC = () => {
                       <td>{dosm.offeredBy}</td>
                       <td>{dosm.moocCourseId}</td>
                       <td>{dosm.moocCoursePursued}</td>
-                      <td>{dosm.duration}</td>
+                      <td>{dosm.duration}</td> */}
                       <td className="d-none">
                         {dosm?.filePath.moocCertificate}
                       </td>

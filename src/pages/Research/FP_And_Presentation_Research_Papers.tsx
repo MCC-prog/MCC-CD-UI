@@ -32,7 +32,6 @@ import "jszip";
 import "pdfmake/build/pdfmake";
 import "pdfmake/build/vfs_fonts";
 
-
 const api = new APIClient();
 
 const FP_And_Presentation_Research_Papers = () => {
@@ -117,24 +116,40 @@ const FP_And_Presentation_Research_Papers = () => {
     onSubmit: async (values, { resetForm }) => {
       // Create FormData object
       const formData = new FormData();
-      formData.append("facultyParticipationId", editId || "null");
-      formData.append("academicYear", values.academicYear?.value || "null");
-      formData.append("departmentId", values.department?.value || "null");
-      formData.append("streamId", values.stream?.value || "null");
+      formData.append("facultyParticipationId", editId || "");
+      formData.append("academicYear", values.academicYear?.value || "");
+      formData.append("departmentId", values.department?.value || "");
+      formData.append("streamId", values.stream?.value || "");
       formData.append("otherDepartment", values.otherDepartment || "null");
-      formData.append("facultyName", values.facultyName || "null");
-      formData.append("type", values.type?.value || "null");
-      formData.append("mode", values.mode?.value || "null");
-      formData.append("level", values.level?.value || "null");
-      formData.append("role", values.role?.value || "null");
-      formData.append("paperTitle", values.paperTitle || "null");
-      formData.append("organisingInstitute", values.organisingInstitute || "null");
-      formData.append("fromDate", values.fromDate ? moment(values.fromDate, "YYYY-MM-DD").format("DD/MM/YYYY") : "null");
-      formData.append("toDate", values.toDate ? moment(values.toDate, "YYYY-MM-DD").format("DD/MM/YYYY") : "null");
+      formData.append("facultyName", values.facultyName || "");
+      formData.append("type", values.type?.value || "");
+      formData.append("mode", values.mode?.value || "");
+      formData.append("level", values.level?.value || "");
+      formData.append("role", values.role?.value || "");
+      formData.append("paperTitle", values.paperTitle || "");
+      formData.append(
+        "organisingInstitute",
+        values.organisingInstitute || ""
+      );
+      formData.append(
+        "fromDate",
+        values.fromDate
+          ? moment(values.fromDate, "YYYY-MM-DD").format("DD/MM/YYYY")
+          : ""
+      );
+      formData.append(
+        "toDate",
+        values.toDate
+          ? moment(values.toDate, "YYYY-MM-DD").format("DD/MM/YYYY")
+          : ""
+      );
       // Append the file
       if (typeof values.facultyCertificate === "string") {
         // If the file is just a name, send null
-        formData.append("facultyCertificate", new Blob([], { type: "application/pdf" }));
+        formData.append(
+          "facultyCertificate",
+          new Blob([], { type: "application/pdf" })
+        );
       } else if (values.facultyCertificate instanceof File) {
         // If the file is a File object, send the file
         formData.append("facultyCertificate", values.facultyCertificate);
@@ -162,7 +177,7 @@ const FP_And_Presentation_Research_Papers = () => {
         }
         // Reset the form fields
         resetForm();
-         if (fileRef.current) {
+        if (fileRef.current) {
           fileRef.current.value = "";
         }
         setIsEditMode(false); // Reset edit mode
@@ -336,7 +351,7 @@ const FP_And_Presentation_Research_Papers = () => {
         ""
       );
       // Show success message
-toast.success(response.message || "File deleted successfully!");
+      toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
       validation.setFieldValue("facultyCertificate", null); // Clear the file from Formik state
       setIsFileUploadDisabled(false); // Enable the file upload button
@@ -390,13 +405,13 @@ toast.success(response.message || "File deleted successfully!");
     }
   };
 
-      useEffect(() => {
+  useEffect(() => {
     if (facultyParticipationData.length === 0) return; // wait until data is loaded
 
     const table = $("#facultyParticipationId").DataTable({
       destroy: true, // destroy existing instance if re-rendered
-      scrollX: true, 
-       autoWidth: false, 
+      scrollX: true,
+      autoWidth: false,
       dom: "Bfrtip",
       buttons: [
         {
@@ -968,7 +983,7 @@ toast.success(response.message || "File deleted successfully!");
               id="facultyParticipationId"
               innerRef={tableRef}
             >
-              <thead >
+              <thead>
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
@@ -1004,7 +1019,10 @@ toast.success(response.message || "File deleted successfully!");
                       <td>{fp.organisingInstitute}</td>
                       <td>{fp.fromDate}</td>
                       <td>{fp.toDate}</td>
-                      <td className="d-none">{fp?.filePath?.facultyCertificate || "N/A"}</td> {/* Hidden */}
+                      <td className="d-none">
+                        {fp?.filePath?.facultyCertificate || "N/A"}
+                      </td>{" "}
+                      {/* Hidden */}
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button

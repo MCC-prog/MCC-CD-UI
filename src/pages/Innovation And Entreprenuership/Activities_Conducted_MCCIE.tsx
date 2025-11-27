@@ -83,7 +83,6 @@ const Activities_Conducted_MCCIE: React.FC = () => {
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
   const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
 
-
   // Toggle the modal for listing Activities Conducted MCCIE
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
@@ -154,9 +153,9 @@ const Activities_Conducted_MCCIE: React.FC = () => {
       validation.setValues({
         academicYear: mappedValues.academicYear
           ? {
-            ...mappedValues.academicYear,
-            value: String(mappedValues.academicYear.value),
-          }
+              ...mappedValues.academicYear,
+              value: String(mappedValues.academicYear.value),
+            }
           : null,
         startDate: response.startDate
           ? moment(response.startDate, "DD/MM/YYYY").format("DD/MM/YYYY")
@@ -207,7 +206,7 @@ const Activities_Conducted_MCCIE: React.FC = () => {
 
         toast.success(
           response.message ||
-          "Activities Conducted MCCIIE removed successfully!"
+            "Activities Conducted MCCIIE removed successfully!"
         );
         fetchACMData();
       } catch (error) {
@@ -271,16 +270,14 @@ const Activities_Conducted_MCCIE: React.FC = () => {
         ""
       );
       // Show success message
-toast.success(response.message || "File deleted successfully!");
+      toast.success(response.message || "File deleted successfully!");
       if (docType === "activityPhoto") {
         validation.setFieldValue("activityPhoto", null);
         setIsFileUploadDisabled(false); // Enable the file upload button
-
       }
       if (docType === "activityLetter") {
         validation.setFieldValue("activityLetter", null);
         setIsFile2UploadDisabled(false); // Enable the file upload button
-
       }
       // Remove the file from the form
       validation.setFieldValue("file", null); // Clear the file from Formik state
@@ -313,7 +310,9 @@ toast.success(response.message || "File deleted successfully!");
       academicYear: Yup.object<{ value: string; label: string }>()
         .nullable()
         .required("Please select academic year"),
-      agencyName: Yup.string().required("Please enter Collaborating Organisation"),
+      agencyName: Yup.string().required(
+        "Please enter Collaborating Organisation"
+      ),
       activityName: Yup.string().required("Please enter Activity Title"),
       noOfStudents: Yup.number()
         .typeError("Enter a valid number")
@@ -361,12 +360,18 @@ toast.success(response.message || "File deleted successfully!");
       formData.append("agencyName", values.agencyName || "");
       formData.append("activityName", values.activityName || "");
       formData.append("noOfStudents", values.noOfStudents || "");
-      formData.append("startDate", values.startDate ? moment(values.startDate, "DD/MM/YYYY").format("DD/MM/YYYY")
-        : "");
-      formData.append("endDate", values.endDate ? moment(values.endDate, "DD/MM/YYYY").format("DD/MM/YYYY")
-        : "");
-
-
+      formData.append(
+        "startDate",
+        values.startDate
+          ? moment(values.startDate, "DD/MM/YYYY").format("DD/MM/YYYY")
+          : ""
+      );
+      formData.append(
+        "endDate",
+        values.endDate
+          ? moment(values.endDate, "DD/MM/YYYY").format("DD/MM/YYYY")
+          : ""
+      );
 
       formData.append(
         "sourceFinancialSupport",
@@ -415,7 +420,7 @@ toast.success(response.message || "File deleted successfully!");
           );
           toast.success(
             response.message ||
-            "Activities Conducted MCCIIE updated successfully!"
+              "Activities Conducted MCCIIE updated successfully!"
           );
         } else {
           // Call the save API
@@ -425,7 +430,7 @@ toast.success(response.message || "File deleted successfully!");
           );
           toast.success(
             response.message ||
-            "Activities Conducted MCCIIE added successfully!"
+              "Activities Conducted MCCIIE added successfully!"
           );
         }
         // Reset the form fields
@@ -625,7 +630,7 @@ toast.success(response.message || "File deleted successfully!");
                         }
                         className={
                           validation.touched.agencyName &&
-                            validation.errors.agencyName
+                          validation.errors.agencyName
                             ? "is-invalid"
                             : ""
                         }
@@ -653,7 +658,7 @@ toast.success(response.message || "File deleted successfully!");
                         }
                         className={
                           validation.touched.activityName &&
-                            validation.errors.activityName
+                          validation.errors.activityName
                             ? "is-invalid"
                             : ""
                         }
@@ -682,7 +687,7 @@ toast.success(response.message || "File deleted successfully!");
                         }
                         className={
                           validation.touched.noOfStudents &&
-                            validation.errors.noOfStudents
+                          validation.errors.noOfStudents
                             ? "is-invalid"
                             : ""
                         }
@@ -710,7 +715,7 @@ toast.success(response.message || "File deleted successfully!");
                         }
                         className={
                           validation.touched.financialSupportSource &&
-                            validation.errors.financialSupportSource
+                          validation.errors.financialSupportSource
                             ? "is-invalid"
                             : ""
                         }
@@ -756,9 +761,9 @@ toast.success(response.message || "File deleted successfully!");
                         value={
                           validation.values.startDate
                             ? moment(
-                              validation.values.startDate,
-                              "DD/MM/YYYY"
-                            ).format("YYYY-MM-DD")
+                                validation.values.startDate,
+                                "DD/MM/YYYY"
+                              ).format("YYYY-MM-DD")
                             : ""
                         }
                         onChange={(e) => {
@@ -770,7 +775,7 @@ toast.success(response.message || "File deleted successfully!");
                         }}
                         className={
                           validation.touched.startDate &&
-                            validation.errors.startDate
+                          validation.errors.startDate
                             ? "is-invalid"
                             : ""
                         }
@@ -791,9 +796,9 @@ toast.success(response.message || "File deleted successfully!");
                         value={
                           validation.values.endDate
                             ? moment(
-                              validation.values.endDate,
-                              "DD/MM/YYYY"
-                            ).format("YYYY-MM-DD")
+                                validation.values.endDate,
+                                "DD/MM/YYYY"
+                              ).format("YYYY-MM-DD")
                             : ""
                         }
                         onChange={(e) => {
@@ -804,7 +809,8 @@ toast.success(response.message || "File deleted successfully!");
                           validation.setFieldValue("endDate", formattedDate);
                         }}
                         className={
-                          validation.touched.endDate && validation.errors.endDate
+                          validation.touched.endDate &&
+                          validation.errors.endDate
                             ? "is-invalid"
                             : ""
                         }
@@ -823,7 +829,7 @@ toast.success(response.message || "File deleted successfully!");
                       <Input
                         type="file"
                         innerRef={fileRef}
-                        accept="image/*"
+                        accept="application/pdf"
                         onChange={(e) =>
                           validation.setFieldValue(
                             "activityPhoto",
@@ -832,7 +838,7 @@ toast.success(response.message || "File deleted successfully!");
                         }
                         className={
                           validation.touched.activityPhoto &&
-                            validation.errors.activityPhoto
+                          validation.errors.activityPhoto
                             ? "is-invalid"
                             : ""
                         }
@@ -903,7 +909,7 @@ toast.success(response.message || "File deleted successfully!");
                         }
                         className={
                           validation.touched.activityLetter &&
-                            validation.errors.activityLetter
+                          validation.errors.activityLetter
                             ? "is-invalid"
                             : ""
                         }
@@ -959,6 +965,20 @@ toast.success(response.message || "File deleted successfully!");
                       )}
                     </div>
                   </Col>
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Report Template</Label>
+                      <div>
+                        <a
+                          href={`${process.env.PUBLIC_URL}/templateFiles/REPORT_DEPT_YEAR.docx`}
+                          download
+                          className="btn btn-primary btn-sm"
+                        >
+                          Template
+                        </a>
+                      </div>
+                    </div>
+                  </Col>
                 </Row>
                 <Row>
                   <Col lg={12}>
@@ -1011,8 +1031,8 @@ toast.success(response.message || "File deleted successfully!");
                 </tr>
               </thead>
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((acm, index) => (
+                {acmData.length > 0 ? (
+                  acmData.map((acm, index) => (
                     <tr key={acm.id}>
                       <td>{indexOfFirstRow + index + 1}</td>
                       <td>{acm.academicYear}</td>

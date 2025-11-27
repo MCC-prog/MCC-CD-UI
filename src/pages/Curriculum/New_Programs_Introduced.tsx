@@ -336,7 +336,7 @@ const New_Programs_Introduced: React.FC = () => {
         ""
       );
       // Show success message
-toast.success(response.message || "File deleted successfully!");
+      toast.success(response.message || "File deleted successfully!");
       if (docType === "mom") {
         validation.setFieldValue("file", null);
         setIsMomUploadDisabled(false); // Re-enable only MOM upload
@@ -535,22 +535,37 @@ toast.success(response.message || "File deleted successfully!");
       const table = $("#bosDataId").DataTable({
         destroy: true,
         dom: "Bfrtip",
-        buttons: [
-          {
-            extend: "copy",
-          },
-          {
-            extend: "csv",
-          },
-        ],
+
+        paging: true,
+        searching: false,
+        pageLength: 10,
+        info: true,
+
         columnDefs: [
           {
-            targets: [3, 4], // Make sure indexes match actual column positions
+            targets: [10, 11], // hide MOM & Syllabus columns
             visible: false,
           },
+          {
+            targets: 12, // Actions column
+            orderable: false,
+            searchable: false,
+            visible: true,
+          },
         ],
-        searching: false,
-        paging: false,
+
+        buttons: [
+          { extend: "copy" },
+          {
+            extend: "csv",
+            exportOptions: {
+              modifier: { page: "all" },
+              columns: function (idx) {
+                return idx !== 12; // Exclude actions only
+              },
+            },
+          },
+        ],
       });
 
       $(".dt-buttons").addClass("mb-3 gap-2");
@@ -1113,8 +1128,6 @@ toast.success(response.message || "File deleted successfully!");
               responsive
               className="align-middle text-center"
               id="bosDataId"
-              innerRef={tableRef}
-              style={{ display: "none" }}
             >
               <thead className="table-dark">
                 <tr>
@@ -1122,69 +1135,24 @@ toast.success(response.message || "File deleted successfully!");
                   <th>Academic Year</th>
                   <th>Semester Type</th>
                   <th>Semester No</th>
-                  <th>Stream</th>
+                  <th>School</th>
                   <th>Department</th>
                   <th>Program Type</th>
                   <th>Degree</th>
                   <th>Program Name</th>
                   <th>Introduction Year</th>
-                  <th>MOM (File Path)</th>
-                  <th>Syllabus (File Path)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((npi, index) => (
-                    <tr key={npi.newProgramId}>
-                      <td>{indexOfFirstRow + index + 1}</td>
-                      <td>{npi.academicYear}</td>
-                      <td>{npi.semType}</td>
-                      <td>{npi.semesterNo}</td>
-                      <td>{npi.streamName}</td>
-                      <td>{npi.departmentName}</td>
-                      <td>{npi.programTypeName}</td>
-                      <td>{npi.degreeName}</td>
-                      <td>{npi.programName}</td>
-                      <td>{npi.introductionYear}</td>
-                      <td>{npi.filePath?.mom || "N/A"}</td>
-                      <td>{npi.filePath?.syllabus || "N/A"}</td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={11} className="text-center">
-                      No New Program Introduced data available.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </Table>
-            {/* Table with Pagination */}
-            <Table
-              striped
-              bordered
-              hover
-              responsive
-              className="align-middle text-center"
-            >
-              <thead className="table-dark">
-                <tr>
-                  <th>#</th>
-                  <th>Academic Year</th>
-                  <th>Semester Type</th>
-                  <th>Semester No</th>
-                  <th>Stream</th>
-                  <th>Department</th>
-                  <th>Program Type</th>
-                  <th>Degree</th>
-                  <th>Program Name</th>
-                  <th>Introduction Year</th>
+
+                  {/* HIDDEN EXPORT-ONLY */}
+                  <th className="export-hidden">MOM (File Path)</th>
+                  <th className="export-hidden">Syllabus (File Path)</th>
+
                   <th>Actions</th>
                 </tr>
               </thead>
+
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((npi, index) => (
+                {bosData.length > 0 ? (
+                  bosData.map((npi, index) => (
                     <tr key={npi.newProgramId}>
                       <td>{indexOfFirstRow + index + 1}</td>
                       <td>{npi.academicYear}</td>
@@ -1196,6 +1164,11 @@ toast.success(response.message || "File deleted successfully!");
                       <td>{npi.degreeName}</td>
                       <td>{npi.programName}</td>
                       <td>{npi.introductionYear}</td>
+
+                      {/* Hidden Export Columns */}
+                      <td>{npi.filePath?.mom || "N/A"}</td>
+                      <td>{npi.filePath?.syllabus || "N/A"}</td>
+
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
@@ -1216,35 +1189,13 @@ toast.success(response.message || "File deleted successfully!");
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={11} className="text-center">
+                    <td colSpan={13} className="text-center">
                       No New Program Introduced data available.
                     </td>
                   </tr>
                 )}
               </tbody>
             </Table>
-            {/* Pagination Controls */}
-            <div className="d-flex justify-content-between align-items-center mt-3">
-              <div className="d-flex gap-2">
-                <Button
-                  color="primary"
-                  disabled={currentPage === 1}
-                  onClick={() => handlePageChange(currentPage - 1)}
-                >
-                  Previous
-                </Button>
-              </div>
-              <div>
-                Page {currentPage} of {totalPages}
-              </div>
-              <Button
-                color="primary"
-                disabled={currentPage === totalPages}
-                onClick={() => handlePageChange(currentPage + 1)}
-              >
-                Next
-              </Button>
-            </div>
           </ModalBody>
         </Modal>
         {/* Confirmation Modal */}

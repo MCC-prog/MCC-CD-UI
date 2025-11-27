@@ -34,6 +34,7 @@ import "datatables.net-buttons/js/buttons.html5.js";
 import "jszip";
 import "pdfmake/build/pdfmake";
 import "pdfmake/build/vfs_fonts";
+import GetAllDepartmentDropdown from "Components/DropDowns/GetAllDepartmentDropdown";
 const api = new APIClient();
 
 const Staff_Profile: React.FC = () => {
@@ -47,22 +48,14 @@ const Staff_Profile: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
   const [filteredData, setFilteredData] = useState(bosData);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
 
   const tableRef = useRef<HTMLTableElement>(null);
-
 
   // Calculate the paginated data
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
   const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
-
-  // Handle page change
-  const handlePageChange = (pageNumber: number) => {
-    setCurrentPage(pageNumber);
-  };
-
-  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
@@ -125,6 +118,12 @@ const Staff_Profile: React.FC = () => {
         partTime: response.partTime || "",
         guestFaculty: response.guestFaculty || "",
         professorOfPractice: response.professorOfPractice || "",
+        department: response.departmentId
+          ? {
+              value: response.departmentId.toString(),
+              label: response.departmentName,
+            }
+          : null,
       };
 
       // Update Formik values
@@ -137,6 +136,12 @@ const Staff_Profile: React.FC = () => {
           : null,
         stream: mappedValues.stream
           ? { ...mappedValues.stream, value: String(mappedValues.stream.value) }
+          : null,
+        department: mappedValues.department
+          ? {
+              value: String(mappedValues.department.value),
+              label: mappedValues.department.label || "",
+            }
           : null,
         noOfStaff: response.noOfStaff || "",
         fullTime: response.fullTime || "",
@@ -190,11 +195,13 @@ const Staff_Profile: React.FC = () => {
       guestFaculty: "",
       professorOfPractice: "",
       stream: null as { value: string; label: string } | null,
+      department: null as { value: string; label: string } | null,
     },
     validationSchema: Yup.object({
       academicYear: Yup.object()
         .nullable()
         .required("Please select academic year"),
+      department: Yup.object().nullable().required("Please select department"),
       stream: Yup.object().nullable().required("Please select stream"),
       noOfStaff: Yup.string().required("Please enter no of staff"),
       fullTime: Yup.string().required("Please enter full time"),
@@ -208,6 +215,7 @@ const Staff_Profile: React.FC = () => {
       const payload = {
         academicYear: values.academicYear?.value || "",
         streamId: values.stream?.value || "",
+        departmentId: values.department?.value || "",
         noOfStaff: values.noOfStaff || "",
         fullTime: values.fullTime || "",
         partTime: values.partTime || "",
@@ -248,7 +256,7 @@ const Staff_Profile: React.FC = () => {
     },
   });
 
-   useEffect(() => {
+  useEffect(() => {
     if (bosData.length === 0) return; // wait until data is loaded
 
     const table = $("#id").DataTable({
@@ -345,6 +353,32 @@ const Staff_Profile: React.FC = () => {
                         validation.errors.stream && (
                           <div className="text-danger">
                             {validation.errors.stream}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Department</Label>
+                      <GetAllDepartmentDropdown
+                        value={validation.values.department}
+                        onChange={(selectedOption) => {
+                          validation.setFieldValue(
+                            "department",
+                            selectedOption
+                          );
+                          setSelectedDepartment(selectedOption);
+                        }}
+                        isInvalid={
+                          validation.touched.department &&
+                          !!validation.errors.department
+                        }
+                      />
+                      {validation.touched.department &&
+                        validation.errors.department && (
+                          <div className="text-danger">
+                            {validation.errors.department}
                           </div>
                         )}
                     </div>
@@ -535,25 +569,29 @@ const Staff_Profile: React.FC = () => {
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
-                  <th>Stream</th>
+                  <th>School</th>
+                  <th>Department</th>
                   <th>No.Of Staff</th>
                   <th>Full Time</th>
                   <th>Part Time</th>
                   <th>Guest Faculty</th>
+                  <th>Professor of Practice</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((bos, index) => (
+                {bosData.length > 0 ? (
+                  bosData.map((bos, index) => (
                     <tr key={bos.id}>
                       <td>{index + 1}</td>
                       <td>{bos.academicYear}</td>
                       <td>{bos.streamName}</td>
+                      <td>{bos.departmentName}</td>
                       <td>{bos.noOfStaff}</td>
                       <td>{bos.fullTime}</td>
                       <td>{bos.partTime}</td>
                       <td>{bos.guestFaculty}</td>
+                      <td>{bos.professorOfPractice}</td>
                       <td>
                         <button
                           className="btn btn-sm btn-warning me-2"

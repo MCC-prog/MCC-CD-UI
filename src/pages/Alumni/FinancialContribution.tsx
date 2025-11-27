@@ -377,7 +377,7 @@ const FinancialContribution: React.FC = () => {
             title="Alumini"
             breadcrumbItem="Financial Contribution by Alumini"
           />
-          <Card>
+          <Card style={{ height: "350px" }}>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
                 <Input type="hidden" name="id" value={editId || ""} />

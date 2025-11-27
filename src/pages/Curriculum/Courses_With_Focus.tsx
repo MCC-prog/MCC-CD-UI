@@ -923,7 +923,7 @@ const Courses_With_Focus: React.FC = () => {
     },
     validationSchema: getTabValidationSchema(activeTab),
     enableReinitialize: true,
-    
+
     onSubmit: async (values, { resetForm, setErrors, setSubmitting }) => {
       if (!activeTab) {
         validation.setStatus(
@@ -1060,7 +1060,7 @@ const Courses_With_Focus: React.FC = () => {
               key,
               new Blob([], { type: "application/pdf" }),
               "empty.pdf"
-            ); 
+            );
           }
         } else {
           // For inactive tabs, send empty Blob
@@ -1124,7 +1124,9 @@ const Courses_With_Focus: React.FC = () => {
         setEditId(null);
         handleListCWFClick();
       } catch (error) {
-        toast.error("Failed to save/update Courses With Focus. Please try again.");
+        toast.error(
+          "Failed to save/update Courses With Focus. Please try again."
+        );
         console.error("Form submission error:", error);
       }
     },
@@ -1136,61 +1138,75 @@ const Courses_With_Focus: React.FC = () => {
       <div className="text-danger">{error}</div>
     ) : null;
 
-  useEffect(() => {
-    if (CWFData.length === 0) return;
+useEffect(() => {
+   if (CWFData.length === 0) return;
 
-    const initializeDataTable = () => {
-      const table = $("#exportId").DataTable({
-        destroy: true,
-        dom: "Bfrtip",
-        buttons: [
-          {
-            extend: "copy",
+  const initializeDataTable = () => {
+    const table = $("#exportId").DataTable({
+      destroy: true,
+      dom: "Bfrtip",
+      paging: true,
+      pageLength: 10,
+      info: true,
+      searching: false,
+
+      columnDefs: [
+        {
+          targets: [
+            9, 10, 11,
+            12, 13, 14,
+            15, 16, 17,
+            18, 19, 20,
+            21, 22, 23,
+            24, 25, 26,
+          ],
+          visible: false, // HIDE EXPORT COLUMNS IN UI
+        },
+        { targets: -1, visible: true }, // ACTION COLUMN
+      ],
+
+      buttons: [
+        { extend: "copy" },
+        {
+          extend: "csv",
+          exportOptions: {
+            modifier: { page: "all" },
+            columns: function (idx, data, node) {
+              return idx !== 27; // exclude action column
+            },
           },
-          {
-            extend: "csv",
-          },
-        ],
-        columnDefs: [
-          {
-            targets: [3, 4], // Make sure indexes match actual column positions
-            visible: false,
-          },
-        ],
-        searching: false,
-        paging: false,
+        },
+      ],
+    });
+
+    $(".dt-buttons").addClass("mb-3 gap-2");
+    $(".buttons-copy").addClass("btn btn-success");
+    $(".buttons-csv").addClass("btn btn-info");
+
+    $("#exportId")
+      .off("buttons-action.dt")
+      .on("buttons-action.dt", function (e, buttonApi) {
+        if (buttonApi.text() === "Copy") {
+          toast.success("Copied to clipboard!");
+        }
       });
 
-      $(".dt-buttons").addClass("mb-3 gap-2");
-      $(".buttons-copy").addClass("btn btn-success");
-      $(".buttons-csv").addClass("btn btn-info");
+    return table;
+  };
 
-      // Prevent duplicate toast triggers
-      $("#exportId")
-        .off("buttons-action.dt")
-        .on("buttons-action.dt", function (e, buttonApi) {
-          if (buttonApi.text() === "Copy") {
-            toast.success("Copied to clipboard!");
-          }
-        });
+  const timeout = setTimeout(() => {
+    initializeDataTable();
+  }, 50);
 
-      return table;
-    };
+  return () => {
+    clearTimeout(timeout);
+    if ($.fn.DataTable.isDataTable("#exportId")) {
+      $("#exportId").DataTable().destroy();
+    }
+    $("#exportId").off("buttons-action.dt");
+  };
+}, [CWFData]);
 
-    // Delay DataTable init slightly to allow DOM updates
-    const timeout = setTimeout(() => {
-      const table = initializeDataTable();
-    }, 0);
-
-    return () => {
-      clearTimeout(timeout);
-      const existingTable = $.fn.DataTable.isDataTable("#exportId");
-      if (existingTable) {
-        $("#exportId").DataTable().destroy();
-      }
-      $("#exportId").off("buttons-action.dt");
-    };
-  }, [CWFData]);
 
   return (
     <React.Fragment>
@@ -2569,193 +2585,124 @@ const Courses_With_Focus: React.FC = () => {
                 onChange={handleSearch}
               />
             </div>
-            <Table
-              striped
-              bordered
-              hover
-              responsive
-              className="align-middle text-center"
-              id="exportId"
-              innerRef={tableRef}
-              style={{ display: "none" }}
-            >
-              <thead className="table-dark">
-                <tr>
-                  <th>#</th>
-                  <th>Academic Year</th>
-                  <th>Semester Type</th>
-                  <th>Semester No</th>
-                  <th>Stream</th>
-                  <th>Department</th>
-                  <th>Program Type</th>
-                  <th>Program</th>
-                  <th>Focus Area</th>
-                  <th>Course Title(Gender)</th>
-                  <th>Course Type(Gender)</th>
-                  <th>File Path(Gender)</th>
+       <Table
+  striped
+  bordered
+  hover
+  responsive
+  className="align-middle text-center"
+  id="exportId"
+>
+  <thead className="table-dark">
+    <tr>
+      <th>#</th>
+      <th>Academic Year</th>
+      <th>Semester Type</th>
+      <th>Semester No</th>
+      <th>Stream</th>
+      <th>Department</th>
+      <th>Program Type</th>
+      <th>Program</th>
+      <th>Focus Area</th>
 
-                  <th>Course Title(Sustainability)</th>
-                  <th>Course Type(Sustainability)</th>
-                  <th>File Path(Sustainability)</th>
+      {/* EXPORT-ONLY COLUMNS */}
+      <th className="export-hidden">Course Title (Gender)</th>
+      <th className="export-hidden">Course Type (Gender)</th>
+      <th className="export-hidden">File Path (Gender)</th>
 
-                  <th>Course Title(Indian Knowledge System)</th>
-                  <th>Course Type(Indian Knowledge System)</th>
-                  <th>File Path(Indian Knowledge System)</th>
+      <th className="export-hidden">Course Title (Sustainability)</th>
+      <th className="export-hidden">Course Type (Sustainability)</th>
+      <th className="export-hidden">File Path (Sustainability)</th>
 
-                  <th>Course Title(Employability)</th>
-                  <th>Course Type(Employability)</th>
-                  <th>File Path(Employability)</th>
+      <th className="export-hidden">Course Title (IKS)</th>
+      <th className="export-hidden">Course Type (IKS)</th>
+      <th className="export-hidden">File Path (IKS)</th>
 
-                  <th>Course Title(Skill Enhancement)</th>
-                  <th>Course Type(Skill Enhancement)</th>
-                  <th>File Path(Skill Enhancement)</th>
+      <th className="export-hidden">Course Title (Employability)</th>
+      <th className="export-hidden">Course Type (Employability)</th>
+      <th className="export-hidden">File Path (Employability)</th>
 
-                  <th>Course Title(Entrepreneurship)</th>
-                  <th>Course Type(Entrepreneurship)</th>
-                  <th>File Path(Entrepreneurship)</th>
+      <th className="export-hidden">Course Title (Skill)</th>
+      <th className="export-hidden">Course Type (Skill)</th>
+      <th className="export-hidden">File Path (Skill)</th>
 
-                  {/* <th>Course Title(Ethics)</th>
-                  <th>Course Type(Ethics)</th>
-                  <th>File Path(Ethics)</th> */}
-                </tr>
-              </thead>
-              <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((cwf, index) => (
-                    <tr key={cwf.coursesWithFocusId}>
-                      <td>{indexOfFirstRow + index + 1}</td>
-                      <td>{cwf.academicYear}</td>
-                      <td>{cwf.semType}</td>
-                      <td>{cwf.semNumber}</td>
-                      <td>{cwf.streamName}</td>
-                      <td>{cwf.departmentName}</td>
-                      <td>{cwf.programTypeName}</td>
-                      <td>{cwf.programName}</td>
-                      <td>{cwf.focusArea}</td>
+      <th className="export-hidden">Course Title (Entrepreneurship)</th>
+      <th className="export-hidden">Course Type (Entrepreneurship)</th>
+      <th className="export-hidden">File Path (Entrepreneurship)</th>
 
-                      {/* Gender */}
-                      <td>{cwf.ecoGenderC?.courseTitle || "N/A"}</td>
-                      <td>{cwf.ecoGenderC?.courseType || "N/A"}</td>
-                      <td>{cwf.ecoGenderC?.filePath?.EcoGenderC || "N/A"}</td>
+      {/* ACTIONS */}
+      <th>Actions</th>
+    </tr>
+  </thead>
 
-                      {/* Employability */}
-                      <td>{cwf.ecoEmployC?.courseTitle || "N/A"}</td>
-                      <td>{cwf.ecoEmployC?.courseType || "N/A"}</td>
-                      <td>{cwf.ecoEmployC?.filePath?.EcoEmployC || "N/A"}</td>
+  <tbody>
+    {CWFData.length > 0 ? (
+      CWFData.map((row, index) => (
+        <tr key={row.coursesWithFocusId}>
+          <td>{indexOfFirstRow + index + 1}</td>
+          <td>{row.academicYear}</td>
+          <td>{row.semType}</td>
+          <td>{row.semNumber}</td>
+          <td>{row.streamName}</td>
+          <td>{row.departmentName}</td>
+          <td>{row.programTypeName}</td>
+          <td>{row.programName}</td>
+          <td>{row.focusArea}</td>
 
-                      {/* Skill Enhancement */}
-                      <td>{cwf.ecoSkillC?.courseTitle || "N/A"}</td>
-                      <td>{cwf.ecoSkillC?.courseType || "N/A"}</td>
-                      <td>{cwf.ecoSkillC?.filePath?.EcoSkillC || "N/A"}</td>
+          {/* EXPORT-ONLY VALUES */}
+          <td className="export-hidden">{row.ecoGenderC?.courseTitle}</td>
+          <td className="export-hidden">{row.ecoGenderC?.courseType}</td>
+          <td className="export-hidden">{row.ecoGenderC?.filePath?.EcoGenderC}</td>
 
-                      {/* Entrepreneurship */}
-                      <td>{cwf.ecoEntreC?.courseTitle || "N/A"}</td>
-                      <td>{cwf.ecoEntreC?.courseType || "N/A"}</td>
-                      <td>{cwf.ecoEntreC?.filePath?.EcoEntreC || "N/A"}</td>
+          <td className="export-hidden">{row.ecoEnvironmentalC?.courseTitle}</td>
+          <td className="export-hidden">{row.ecoEnvironmentalC?.courseType}</td>
+          <td className="export-hidden">{row.ecoEnvironmentalC?.filePath?.EcoEnvironmentalC}</td>
 
-                      {/* Ethics (assuming ecoIKSC is for ethics) */}
-                      <td>{cwf.ecoIKSC?.courseTitle || "N/A"}</td>
-                      <td>{cwf.ecoIKSC?.courseType || "N/A"}</td>
-                      <td>{cwf.ecoIKSC?.filePath?.EcoIKSC || "N/A"}</td>
+          <td className="export-hidden">{row.ecoIKSC?.courseTitle}</td>
+          <td className="export-hidden">{row.ecoIKSC?.courseType}</td>
+          <td className="export-hidden">{row.ecoIKSC?.filePath?.EcoIKSC}</td>
 
-                      {/* Sustainability */}
-                      <td>{cwf.ecoEnvironmentalC?.courseTitle || "N/A"}</td>
-                      <td>{cwf.ecoEnvironmentalC?.courseType || "N/A"}</td>
-                      <td>
-                        {cwf.ecoEnvironmentalC?.filePath?.EcoEnvironmentalC ||
-                          "N/A"}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={27} className="text-center">
-                      No Courses With Focus available.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </Table>
-            <Table
-              striped
-              bordered
-              hover
-              responsive
-              className="align-middle text-center"
-            >
-              <thead className="table-dark">
-                <tr>
-                  <th>#</th>
-                  <th>Academic Year</th>
-                  <th>Semester Type</th>
-                  <th>Semester No</th>
-                  <th>Stream</th>
-                  <th>Department</th>
-                  <th>Program Type</th>
-                  <th>Program</th>
-                  <th>Focus Area</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((cwf, index) => (
-                    <tr key={cwf.coursesWithFocusId}>
-                      <td>{indexOfFirstRow + index + 1}</td>
-                      <td>{cwf.academicYear}</td>
-                      <td>{cwf.semType}</td>
-                      <td>{cwf.semNumber}</td>
-                      <td>{cwf.streamName}</td>
-                      <td>{cwf.departmentName}</td>
-                      <td>{cwf.programTypeName}</td>
-                      <td>{cwf.programName}</td>
-                      <td>{cwf.focusArea}</td>
-                      <td>
-                        <div className="d-flex justify-content-center gap-2">
-                          <button
-                            className="btn btn-sm btn-warning"
-                            onClick={() => handleEdit(cwf.coursesWithFocusId)}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            className="btn btn-sm btn-danger"
-                            onClick={() => handleDelete(cwf.coursesWithFocusId)}
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={11} className="text-center">
-                      No Courses With Focus available.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </Table>
-            <div className="d-flex justify-content-between align-items-center mt-3">
-              <Button
-                color="primary"
-                disabled={currentPage === 1}
-                onClick={() => handlePageChange(currentPage - 1)}
+          <td className="export-hidden">{row.ecoEmployC?.courseTitle}</td>
+          <td className="export-hidden">{row.ecoEmployC?.courseType}</td>
+          <td className="export-hidden">{row.ecoEmployC?.filePath?.EcoEmployC}</td>
+
+          <td className="export-hidden">{row.ecoSkillC?.courseTitle}</td>
+          <td className="export-hidden">{row.ecoSkillC?.courseType}</td>
+          <td className="export-hidden">{row.ecoSkillC?.filePath?.EcoSkillC}</td>
+
+          <td className="export-hidden">{row.ecoEntreC?.courseTitle}</td>
+          <td className="export-hidden">{row.ecoEntreC?.courseType}</td>
+          <td className="export-hidden">{row.ecoEntreC?.filePath?.EcoEntreC}</td>
+
+          {/* ACTIONS */}
+          <td>
+            <div className="d-flex justify-content-center gap-3">
+              <button
+                className="btn btn-warning btn-sm"
+                onClick={() => handleEdit(row.coursesWithFocusId)}
               >
-                Previous
-              </Button>
-              <div>
-                Page {currentPage} of {totalPages}
-              </div>
-              <Button
-                color="primary"
-                disabled={currentPage === totalPages}
-                onClick={() => handlePageChange(currentPage + 1)}
+                Edit
+              </button>
+              <button
+                className="btn btn-danger btn-sm"
+                onClick={() => handleDelete(row.coursesWithFocusId)}
               >
-                Next
-              </Button>
+                Delete
+              </button>
             </div>
+          </td>
+        </tr>
+      ))
+    ) : (
+      <tr>
+        <td colSpan={28} className="text-center">
+          No data available.
+        </td>
+      </tr>
+    )}
+  </tbody>
+</Table>
+
           </ModalBody>
         </Modal>
         <Modal

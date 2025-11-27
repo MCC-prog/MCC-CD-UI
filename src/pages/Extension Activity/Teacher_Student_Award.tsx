@@ -110,19 +110,19 @@ const Teacher_Student_Award: React.FC = () => {
           : null,
         organisation: response.organisation || "",
         awardReceivedYear: response.awardReceivedYear || "",
-        file: response.document?.recognitionCertificate || null,
+       // file: response.document?.recognitionCertificate || null,
         certificateFile: response.document?.certificate || null,
       };
       // Update Formik values
       validation.setValues({
         ...mappedValues,
-        file: response.document?.recognitionCertificate || null,
+       // file: response.document?.recognitionCertificate || null,
         certificateFile: response.document?.certificate || null,
       });
 
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
-      setIsFileUploadDisabled(!!response.document?.recognitionCertificate);
+    //  setIsFileUploadDisabled(!!response.document?.recognitionCertificate);
       setIsFile2UploadDisabled(!!response.document?.certificate);
       toggleModal();
     } catch (error) {
@@ -209,10 +209,11 @@ const Teacher_Student_Award: React.FC = () => {
       // Show success message
       toast.success(response.message || "File deleted successfully!");
       // Clear the file from the form
-      if (docType === "recognitionCertificate") {
-        validation.setFieldValue("file", null);
-        setIsFileUploadDisabled(false);
-      } else if (docType === "certificate") {
+      // if (docType === "recognitionCertificate") {
+      //   validation.setFieldValue("file", null);
+      //   setIsFileUploadDisabled(false);
+      // } else 
+      if (docType === "certificate") {
         validation.setFieldValue("certificateFile", null);
         setIsFile2UploadDisabled(false);
       }
@@ -230,7 +231,7 @@ const Teacher_Student_Award: React.FC = () => {
       department: null as { value: string; label: string } | null,
       organisation: "",
       awardReceivedYear: "",
-      file: null as File | string | null,
+    //  file: null as File | string | null,
       certificateFile: null as File | string | null,
     },
     validationSchema: Yup.object({
@@ -245,19 +246,19 @@ const Teacher_Student_Award: React.FC = () => {
       awardReceivedYear: Yup.string().required(
         "Please select Year of Receiving Award"
       ),
-      file: Yup.mixed()
-        .required("Please upload a file")
-        .test("fileSize", "File size is too large", (value: any) => {
-          if (typeof value === "string") return true;
-          return value && value.size <= 2 * 1024 * 1024; // 2MB limit
-        })
-        .test("fileType", "Unsupported file format", (value: any) => {
-          if (typeof value === "string") return true;
-          return (
-            value &&
-            ["application/pdf", "image/jpeg", "image/png"].includes(value.type)
-          );
-        }),
+      // file: Yup.mixed()
+      //   .required("Please upload a file")
+      //   .test("fileSize", "File size is too large", (value: any) => {
+      //     if (typeof value === "string") return true;
+      //     return value && value.size <= 2 * 1024 * 1024; // 2MB limit
+      //   })
+      //   .test("fileType", "Unsupported file format", (value: any) => {
+      //     if (typeof value === "string") return true;
+      //     return (
+      //       value &&
+      //       ["application/pdf", "image/jpeg", "image/png"].includes(value.type)
+      //     );
+      //   }),
       certificateFile: Yup.mixed()
         .required("Please upload a file")
         .test("fileSize", "File size is too large", (value: any) => {
@@ -283,14 +284,14 @@ const Teacher_Student_Award: React.FC = () => {
       formData.append("organisation", values.organisation || "");
       formData.append("awardReceivedYear", values.awardReceivedYear || "");
 
-      if (isEditMode && typeof values.file === "string") {
-        // Pass an empty Blob instead of null
-        formData.append("file", new Blob([]), "empty.pdf");
-      } else if (isEditMode && values.file === null) {
-        formData.append("file", new Blob([]), "empty.pdf");
-      } else if (values.file) {
-        formData.append("file", values.file);
-      }
+      // if (isEditMode && typeof values.file === "string") {
+      //   // Pass an empty Blob instead of null
+      //   formData.append("file", new Blob([]), "empty.pdf");
+      // } else if (isEditMode && values.file === null) {
+      //   formData.append("file", new Blob([]), "empty.pdf");
+      // } else if (values.file) {
+      //   formData.append("file", values.file);
+      // }
       if (isEditMode && typeof values.certificateFile === "string") {
         // Pass an empty Blob instead of null
         formData.append("certificate", new Blob([]), "empty.pdf");
@@ -547,7 +548,7 @@ const Teacher_Student_Award: React.FC = () => {
                         )}
                     </div>
                   </Col>
-                  <Col sm={4}>
+                  {/* <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
                         Upload Teacher Student Awards
@@ -581,20 +582,20 @@ const Teacher_Student_Award: React.FC = () => {
                               : null
                           );
                         }}
-                        disabled={isFileUploadDisabled} // Disable the button if a file exists
+                        disabled={isFileUploadDisabled} 
                       />
                       {validation.touched.file && validation.errors.file && (
                         <div className="text-danger">
                           {validation.errors.file}
                         </div>
                       )}
-                      {/* Show a message if the file upload button is disabled */}
+                      
                       {isFileUploadDisabled && (
                         <div className="text-warning mt-2">
                           Please remove the existing file to upload a new one.
                         </div>
                       )}
-                      {/* Only show the file name if it is a string (from the edit API) */}
+                  
                       {typeof validation.values.file === "string" && (
                         <div className="mt-2 d-flex align-items-center">
                           <span
@@ -626,7 +627,7 @@ const Teacher_Student_Award: React.FC = () => {
                         </div>
                       )}
                     </div>
-                  </Col>
+                  </Col> */}
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
@@ -751,7 +752,7 @@ const Teacher_Student_Award: React.FC = () => {
                   <th>Department</th>
                   <th>Presenting Organization</th>
                   <th>Year Of Receiving Award</th>
-                  <th className="d-none">FilePath</th>
+                      {/* <th className="d-none">FilePath</th> */}
                   <th className="d-none">Certificate File</th>
                   <th>Actions</th>
                 </tr>
@@ -766,9 +767,9 @@ const Teacher_Student_Award: React.FC = () => {
                       <td>{award.departmentName}</td>
                       <td>{award.organisation}</td>
                       <td>{award.awardReceivedYear}</td>
-                      <td className="d-none">
+                      {/* <td className="d-none">
                         {award?.filePath?.recognitionCertificate || "N/A"}
-                      </td>
+                      </td> */}
                       <td className="d-none">
                         {award?.filePath?.certificateFile || "N/A"}
                       </td>

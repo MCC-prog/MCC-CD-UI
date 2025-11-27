@@ -51,8 +51,14 @@ const Remedial_Classes: React.FC = () => {
   const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
   const [selectedProgramType, setSelectedProgramType] = useState<any>(null);
   const [selectedDegree, setSelectedDegree] = useState<any>(null);
-  const [isAttendanceEntryFileUploadDisabled, setIsAttendanceEntryFileUploadDisabled] = useState(false);
-  const [isRemidialClassNoticeFileUploadDisabled, setIsRemidialClassNoticeFileUploadDisabled] = useState(false);
+  const [
+    isAttendanceEntryFileUploadDisabled,
+    setIsAttendanceEntryFileUploadDisabled,
+  ] = useState(false);
+  const [
+    isRemidialClassNoticeFileUploadDisabled,
+    setIsRemidialClassNoticeFileUploadDisabled,
+  ] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [remedialData, setRemedialData] = useState<any[]>([]);
   const [filteredData, setFilteredData] = useState(remedialData);
@@ -239,8 +245,12 @@ const Remedial_Classes: React.FC = () => {
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       // Disable the file upload button if a file exists
-      setIsAttendanceEntryFileUploadDisabled(!!response.documents?.attendanceEntry);
-      setIsRemidialClassNoticeFileUploadDisabled(!!response.documents?.remidialClassNotice);
+      setIsAttendanceEntryFileUploadDisabled(
+        !!response.documents?.attendanceEntry
+      );
+      setIsRemidialClassNoticeFileUploadDisabled(
+        !!response.documents?.remidialClassNotice
+      );
       toggleModal();
     } catch (error) {
       console.error("Error fetching Remedial Classes data by ID:", error);
@@ -329,7 +339,7 @@ const Remedial_Classes: React.FC = () => {
         ""
       );
       // Show success message
-toast.success(response.message || "File deleted successfully!");
+      toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
       validation.setFieldValue(docType, null); // Clear the file from Formik state
       if (docType === "attendanceEntry") {
@@ -535,22 +545,43 @@ toast.success(response.message || "File deleted successfully!");
       const table = $("#bosDataId").DataTable({
         destroy: true,
         dom: "Bfrtip",
+        paging: true,
+        pageLength: 10,
+        searching: false,
+        info: true,
+
+        columnDefs: [
+          {
+            targets: [11, 12], // Hidden file-path columns
+            visible: false,
+          },
+          {
+            targets: 13, // Actions column (last column)
+            orderable: false,
+            searchable: false,
+          },
+        ],
+
         buttons: [
           {
             extend: "copy",
+            exportOptions: {
+              modifier: { page: "all" },
+              columns: function (idx) {
+                return idx !== 13; // Exclude actions
+              },
+            },
           },
           {
             extend: "csv",
+            exportOptions: {
+              modifier: { page: "all" },
+              columns: function (idx) {
+                return idx !== 13; // Exclude actions
+              },
+            },
           },
         ],
-        columnDefs: [
-          {
-            targets: [3, 4], // Make sure indexes match actual column positions
-            visible: false,
-          },
-        ],
-        searching: false,
-        paging: false,
       });
 
       $(".dt-buttons").addClass("mb-3 gap-2");
@@ -852,9 +883,9 @@ toast.success(response.message || "File deleted successfully!");
                             ? "is-invalid"
                             : ""
                         }`}
-                         disabled={isAttendanceEntryFileUploadDisabled}
+                        disabled={isAttendanceEntryFileUploadDisabled}
                         type="file"
-                         innerRef={fileRef}
+                        innerRef={fileRef}
                         id="attendanceEntry"
                         onChange={(event) => {
                           validation.setFieldValue(
@@ -863,14 +894,15 @@ toast.success(response.message || "File deleted successfully!");
                               ? event.currentTarget.files[0]
                               : null
                           );
-                            if (typeof validation.values.attendanceEntry === "string") {
+                          if (
+                            typeof validation.values.attendanceEntry ===
+                            "string"
+                          ) {
                             setIsAttendanceEntryFileUploadDisabled(true);
                           } else {
                             setIsAttendanceEntryFileUploadDisabled(false);
                           }
                         }}
-                        
-                       
                       />
                       {validation.touched.attendanceEntry &&
                         validation.errors.attendanceEntry && (
@@ -879,11 +911,13 @@ toast.success(response.message || "File deleted successfully!");
                           </div>
                         )}
                       {/* Show a message if the file upload button is disabled */}
-                      {isAttendanceEntryFileUploadDisabled &&  typeof validation.values.attendanceEntry === "string" && (
-                        <div className="text-warning mt-2">
-                          Please remove the existing file to upload a new one.
-                        </div>
-                      )}
+                      {isAttendanceEntryFileUploadDisabled &&
+                        typeof validation.values.attendanceEntry ===
+                          "string" && (
+                          <div className="text-warning mt-2">
+                            Please remove the existing file to upload a new one.
+                          </div>
+                        )}
                       {/* Only show the file name if it is a string (from the edit API) */}
                       {typeof validation.values.attendanceEntry ===
                         "string" && (
@@ -944,13 +978,15 @@ toast.success(response.message || "File deleted successfully!");
                               ? event.currentTarget.files[0]
                               : null
                           );
-                          if (typeof validation.values.remidialClassNotice === "string") {
+                          if (
+                            typeof validation.values.remidialClassNotice ===
+                            "string"
+                          ) {
                             setIsRemidialClassNoticeFileUploadDisabled(true);
                           } else {
                             setIsRemidialClassNoticeFileUploadDisabled(false);
                           }
                         }}
-                        
                       />
                       {validation.touched.remidialClassNotice &&
                         validation.errors.remidialClassNotice && (
@@ -959,11 +995,13 @@ toast.success(response.message || "File deleted successfully!");
                           </div>
                         )}
                       {/* Show a message if the file upload button is disabled */}
-                      {isRemidialClassNoticeFileUploadDisabled &&  typeof validation.values.remidialClassNotice === "string" && (
-                        <div className="text-warning mt-2">
-                          Please remove the existing file to upload a new one.
-                        </div>
-                      )}
+                      {isRemidialClassNoticeFileUploadDisabled &&
+                        typeof validation.values.remidialClassNotice ===
+                          "string" && (
+                          <div className="text-warning mt-2">
+                            Please remove the existing file to upload a new one.
+                          </div>
+                        )}
                       {/* Only show the file name if it is a string (from the edit API) */}
                       {typeof validation.values.remidialClassNotice ===
                         "string" && (
@@ -1064,10 +1102,8 @@ toast.success(response.message || "File deleted successfully!");
               bordered
               hover
               responsive
-              className="align-middle text-center"
               id="bosDataId"
-              innerRef={tableRef}
-              style={{ display: "none" }}
+              className="align-middle text-center"
             >
               <thead className="table-dark">
                 <tr>
@@ -1075,79 +1111,43 @@ toast.success(response.message || "File deleted successfully!");
                   <th>Academic Year</th>
                   <th>Semester Type</th>
                   <th>Semester No</th>
-                  <th>Stream</th>
+                  <th>School</th>
                   <th>Department</th>
                   <th>Program Type</th>
                   <th>Degree</th>
                   <th>Program</th>
                   <th>Course Title</th>
-                  <th>Attendance Entry(File Path)</th>
-                  <th>Remedial Class Notice(File Path)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((npi, index) => (
-                    <tr key={npi.remidialClassId}>
-                      <td>{indexOfFirstRow + index + 1}</td>
-                      <td>{npi.academicYear}</td>
-                      <td>{npi.semType}</td>
-                      <td>{npi.semesterNo}</td>
-                      <td>{npi.streamName}</td>
-                      <td>{npi.departmentName}</td>
-                      <td>{npi.programTypeName}</td>
-                      <td>{npi.programName}</td>
-                      <td>{Object.values(npi.courses).join(", ")}</td>
-                      <td>{npi.courseTitle}</td>
-                      <td>{npi.filePath?.attendanceEntry || "N/A"}</td>
-                      <td>{npi.filePath?.remidialClassNotice || "N/A"}</td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={11} className="text-center">
-                      No Remedial Classes data available.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </Table>
-            {/* Table with Pagination */}
-            <Table
-              striped
-              bordered
-              hover
-              responsive
-              className="align-middle text-center"
-            >
-              <thead className="table-dark">
-                <tr>
-                  <th>#</th>
-                  <th>Academic Year</th>
-                  <th>Semester Type</th>
-                  <th>Semester No</th>
-                  <th>Stream</th>
-                  <th>Department</th>
-                  <th>Program Type</th>
-                  <th>Degree</th>
-                  <th>Course Title</th>
+                  <th>No Students</th>
+
+                  {/* HIDDEN EXPORT COLUMNS */}
+                  <th className="export-hidden">Attendance Entry File</th>
+                  <th className="export-hidden">Remedial Class Notice</th>
+
+                  {/* ACTION COLUMN */}
                   <th>Actions</th>
                 </tr>
               </thead>
+
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((npi, index) => (
+                {remedialData.length > 0 ? (
+                  remedialData.map((npi, index) => (
                     <tr key={npi.remidialClassId}>
-                      <td>{indexOfFirstRow + index + 1}</td>
+                      <td>{index + 1}</td>
                       <td>{npi.academicYear}</td>
                       <td>{npi.semType}</td>
                       <td>{npi.semesterNo}</td>
                       <td>{npi.streamName}</td>
                       <td>{npi.departmentName}</td>
                       <td>{npi.programTypeName}</td>
-                      <td>{npi.programName}</td>
-
+                       <td>{npi.programName}</td>
+                      <td>{Object.values(npi.courses).join(", ")}</td>
                       <td>{npi.courseTitle}</td>
+                      <td>{npi.numberOfStudents}</td>
+
+                      {/* Hidden Export Columns */}
+                      <td>{npi.filePath?.attendanceEntry ?? "N/A"}</td>
+                      <td>{npi.filePath?.remidialClassNotice ?? "N/A"}</td>
+
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
@@ -1156,6 +1156,7 @@ toast.success(response.message || "File deleted successfully!");
                           >
                             Edit
                           </button>
+
                           <button
                             className="btn btn-sm btn-danger"
                             onClick={() => handleDelete(npi.remidialClassId)}
@@ -1168,33 +1169,13 @@ toast.success(response.message || "File deleted successfully!");
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={11} className="text-center">
+                    <td colSpan={13} className="text-center">
                       No Remedial Classes data available.
                     </td>
                   </tr>
                 )}
               </tbody>
             </Table>
-            {/* Pagination Controls */}
-            <div className="d-flex justify-content-between align-items-center mt-3">
-              <Button
-                color="primary"
-                disabled={currentPage === 1}
-                onClick={() => handlePageChange(currentPage - 1)}
-              >
-                Previous
-              </Button>
-              <div>
-                Page {currentPage} of {totalPages}
-              </div>
-              <Button
-                color="primary"
-                disabled={currentPage === totalPages}
-                onClick={() => handlePageChange(currentPage + 1)}
-              >
-                Next
-              </Button>
-            </div>
           </ModalBody>
         </Modal>
         {/* Confirmation Modal */}

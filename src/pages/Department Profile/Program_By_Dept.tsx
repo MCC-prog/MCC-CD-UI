@@ -34,6 +34,7 @@ import "datatables.net-buttons/js/buttons.html5.js";
 import "jszip";
 import "pdfmake/build/pdfmake";
 import "pdfmake/build/vfs_fonts";
+import GetAllDepartmentDropdown from "Components/DropDowns/GetAllDepartmentDropdown";
 const api = new APIClient();
 
 const Program_By_Dept: React.FC = () => {
@@ -45,6 +46,7 @@ const Program_By_Dept: React.FC = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [filteredData, setFilteredData] = useState(programDeptData);
+  const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
 
   const tableRef = useRef<HTMLTableElement>(null);
 
@@ -107,6 +109,12 @@ const Program_By_Dept: React.FC = () => {
         ug: response.ug || "",
         pg: response.pg || "",
         phd: response.phd || "",
+        department: response.departmentId
+          ? {
+              value: response.departmentId.toString(),
+              label: response.departmentName,
+            }
+          : null,
       };
 
       // Update Formik values
@@ -122,6 +130,12 @@ const Program_By_Dept: React.FC = () => {
           ? {
               value: String(mappedValues.stream.value),
               label: mappedValues.stream.label || "",
+            }
+          : null,
+        department: mappedValues.department
+          ? {
+              value: String(mappedValues.department.value),
+              label: mappedValues.department.label || "",
             }
           : null,
         ug: response.ug || "",
@@ -183,6 +197,7 @@ const Program_By_Dept: React.FC = () => {
       pg: "",
       phd: "",
       stream: null as OptionType | null,
+      department: null as { value: string; label: string } | null,
     },
     validationSchema: Yup.object({
       academicYear: Yup.object()
@@ -199,6 +214,7 @@ const Program_By_Dept: React.FC = () => {
         })
         .nullable()
         .required("Please select stream"),
+      department: Yup.object().nullable().required("Please select department"),
       ug: Yup.string().required("Please enter ug"),
       pg: Yup.string().required("Please enter pg"),
       phd: Yup.string().required("Please enter ph.d"),
@@ -214,6 +230,7 @@ const Program_By_Dept: React.FC = () => {
           "streamId",
           values.stream?.value ? String(values.stream.value) : ""
         );
+        formData.append("departmentId", values.department?.value || "");
         formData.append("ug", values.ug || "");
         formData.append("pg", values.pg || "");
         formData.append("phd", values.phd || "");
@@ -355,6 +372,32 @@ const Program_By_Dept: React.FC = () => {
                     </div>
                   </Col>
 
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Department</Label>
+                      <GetAllDepartmentDropdown
+                        value={validation.values.department}
+                        onChange={(selectedOption) => {
+                          validation.setFieldValue(
+                            "department",
+                            selectedOption
+                          );
+                          setSelectedDepartment(selectedOption);
+                        }}
+                        isInvalid={
+                          validation.touched.department &&
+                          !!validation.errors.department
+                        }
+                      />
+                      {validation.touched.department &&
+                        validation.errors.department && (
+                          <div className="text-danger">
+                            {validation.errors.department}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
@@ -473,6 +516,7 @@ const Program_By_Dept: React.FC = () => {
                   <th>#</th>
                   <th>Academic Year</th>
                   <th>School</th>
+                  <th>Department</th>
                   <th>No.UG</th>
                   <th>No.PG</th>
                   <th>No.Phd</th>
@@ -486,6 +530,7 @@ const Program_By_Dept: React.FC = () => {
                       <td>{index + 1}</td>
                       <td>{pbd.academicYear}</td>
                       <td>{pbd.streamName}</td>
+                      <td>{pbd.departmentName}</td>
                       <td>{pbd.ug}</td>
                       <td>{pbd.pg}</td>
                       <td>{pbd.phd}</td>

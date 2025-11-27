@@ -384,21 +384,38 @@ toast.success(response.message || "File deleted successfully!");
       scrollX: true,
       autoWidth: false,
       dom: "Bfrtip",
-      buttons: [
-        {
-          extend: "copy",
-          exportOptions: {
-            columns: ":not(:last-child)", // skip Actions column
+      paging: true,
+        pageLength: 10,
+        info: true,
+        searching: false,
+
+
+        // FilePath hidden in UI
+        columnDefs: [
+          { targets: 4, visible: false }, // FilePath
+          { targets: 5, orderable: false, searchable: false }, // Actions
+        ],
+
+        buttons: [
+          { extend: "copy",
+            exportOptions: {
+              modifier: { page: "all" }, 
+              columns: function (idx) {
+                return idx !== 5; 
+              },
+            },
+           },
+          {
+            extend: "csv",
+            exportOptions: {
+              modifier: { page: "all" }, 
+              columns: function (idx) {
+                return idx !== 5; 
+              },
+            },
           },
-        },
-        {
-          extend: "csv",
-          exportOptions: {
-            columns: ":not(:last-child)",
-          },
-        },
-      ],
-    });
+        ],
+      });
     $(".dt-buttons").addClass("mb-3 gap-2");
     $(".buttons-copy").addClass("btn btn-success");
     $(".buttons-csv").addClass("btn btn-info");
@@ -637,19 +654,19 @@ toast.success(response.message || "File deleted successfully!");
                   <th>Academic Year</th>
                   <th>School</th>
                   <th>ProgramType</th>
-                  <th>Documents</th>
+                  <th className="export-hidden">File path</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((bos, index) => (
+                {bosData.length > 0 ? (
+                  bosData.map((bos, index) => (
                     <tr key={bos.totalStudentStrengthId}>
                       <td>{index + 1}</td>
                       <td>{bos.academicYear}</td>
                       <td>{bos.streamName}</td>
                       <td>{bos.programType}</td>
-                      <td>{bos.document?.excel || "No file uploaded"}</td>
+                      <td className="export-hidden">{bos.document?.excel || "No file uploaded"}</td>
                       <td>
                         <button
                           className="btn btn-sm btn-warning me-2"

@@ -1099,7 +1099,13 @@ const Research_Guides = () => {
                   <th>Department</th>
                   <th>Guide Name</th>
                   <th>Guide Afffiliation</th>
+                  <th>Status</th>
                   <th>Number of Students</th>
+                  <th className="d-none">Student Name</th>
+                  <th className="d-none">Student Year of Joining</th>
+                  <th className="d-none">Student Title</th>
+                  <th className="d-none">Student Funding Received</th>
+                  <th className="d-none">Student Scholarship</th>
                   <th className="d-none">File Path</th> {/* Hidden */}
                   <th>Actions</th>
                 </tr>
@@ -1114,7 +1120,13 @@ const Research_Guides = () => {
                       <td>{rg.departmentName}</td>
                       <td>{rg.guideName}</td>
                       <td>{rg.guidesAffiliation}</td>
+                      <td>{rg.status}</td>
                       <td>{rg.noOfStudents}</td>
+                      <td className="d-none">{rg.studentList.map((student) => student.name).join(", ")} </td>
+                      <td className="d-none">{rg.studentList.map((student) => student.joiningYear).join(", ")}</td>
+                      <td className="d-none">{rg.studentList.map((student) => student.title).join(", ")}</td>
+                      <td className="d-none">{rg.studentList.map((student) => student.fundingReceived).join(", ")}</td>
+                      <td className="d-none">{rg.studentList.map((student) => student.scholarship).join(", ")}</td>
                       <td className="d-none">
                         {rg?.filePath?.letter || "N/A"}
                       </td>{" "}

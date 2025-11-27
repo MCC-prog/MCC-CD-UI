@@ -347,7 +347,7 @@ const tableRef = useRef<HTMLTableElement>(null);
       useEffect(() => {
     if (bosData.length === 0) return; // wait until data is loaded
 
-    const table = $("#id").DataTable({
+    const table = $("#bosDataId").DataTable({
       destroy: true, // destroy existing instance if re-rendered
       scrollX: true, 
        autoWidth: false, 
@@ -708,12 +708,12 @@ const tableRef = useRef<HTMLTableElement>(null);
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
+                  <th>School</th>
+                  <th>Department</th>
+                  <th>Program</th>
                   <th>Name</th>
                   <th>Register Number</th>
                   <th>Batch</th>
-                  <th>Stream</th>
-                  <th>Department</th>
-                  <th>Program</th>
                   {/* <th>Job Role</th> */}
                   <th className="d-none">File Path</th> {/* Hidden */}
                   <th>Actions</th>
@@ -725,12 +725,13 @@ const tableRef = useRef<HTMLTableElement>(null);
                     <tr key={alumini.bosDataId}>
                       <td>{index + 1}</td>
                       <td>{alumini.academicYear}</td>
-                      <td>{alumini.name}</td>
-                      <td>{alumini.registerNumber}</td>
-                      <td>{alumini.batchName}</td>
                       <td>{alumini.streamName}</td>
                       <td>{alumini.departmentName}</td>
                       <td>{alumini.programName}</td>
+                      <td>{alumini.name}</td>
+                      <td>{alumini.registerNumber}</td>
+                      <td>{alumini.batchName}</td>
+               
                       {/* <td>{alumini.jobRole}</td> */}
                       <td className="d-none">{alumini?.filePath?.auditorium || "N/A"}</td> {/* Hidden */}
                       <td>

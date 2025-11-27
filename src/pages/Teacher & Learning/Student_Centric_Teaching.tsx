@@ -46,7 +46,6 @@ import "jszip";
 import "pdfmake/build/pdfmake";
 import "pdfmake/build/vfs_fonts";
 
-
 const api = new APIClient();
 // Helper: Check if any field in the current tab is filled
 const getTabValidationSchema = (tab: number | null) => {
@@ -623,7 +622,7 @@ const Student_Centric_Teaching: React.FC = () => {
         ""
       );
       // Show success message
-toast.success(response.message || "File deleted successfully!");
+      toast.success(response.message || "File deleted successfully!");
       if (docType === "projectSanctionLetter") {
         setIsFileUploadDisabled(false);
       } else if (docType === "synopsisReport") {
@@ -804,7 +803,9 @@ toast.success(response.message || "File deleted successfully!");
 
       if (methodologyTab === "ExperientialLearning" && activeTab === 1) {
         additionalDto = {
-          additionalTabId: editResData?.experientialLearningDto?.experientialLearningId || null,
+          additionalTabId:
+            editResData?.experientialLearningDto?.experientialLearningId ||
+            null,
           caseStudy: values.caseStudyEL,
           industrialVisit: values.indVisitEL,
           workShop: values.workShopEL,
@@ -819,7 +820,9 @@ toast.success(response.message || "File deleted successfully!");
         activeTab === 2
       ) {
         additionalDto = {
-          additionalTabId: editResData?.participativeLearningDto?.participativeLearningId || null,
+          additionalTabId:
+            editResData?.participativeLearningDto?.participativeLearningId ||
+            null,
           caseStudy: values.caseStudyPL,
           industrialVisit: values.indVisitPL,
           workShop: values.workShopPL,
@@ -831,7 +834,8 @@ toast.success(response.message || "File deleted successfully!");
         };
       } else if (methodologyTab === "ProblemLearning" && activeTab === 3) {
         additionalDto = {
-          additionalTabId: editResData?.problemLearningDto?.problemLearningId || null,
+          additionalTabId:
+            editResData?.problemLearningDto?.problemLearningId || null,
           caseStudy: values.caseStudyProblemLg,
           industrialVisit: values.indVisitProblemLg,
           workShop: values.workShopProblemLg,
@@ -929,22 +933,40 @@ toast.success(response.message || "File deleted successfully!");
       const table = $("#bosDataId").DataTable({
         destroy: true,
         dom: "Bfrtip",
-        buttons: [
-          {
-            extend: "copy",
-          },
-          {
-            extend: "csv",
-          },
-        ],
+        paging: true,
+        pageLength: 10,
+        searching: false,
+        info: true,
+
         columnDefs: [
           {
-            targets: [3, 4], // Make sure indexes match actual column positions
+            // hide all export-only columns
+            targets: [
+              9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
+              26,27,28,29,30,31,32,33,34,35,
+            ],
             visible: false,
           },
+          {
+            targets: 36, // Action column
+            orderable: false,
+            searchable: false,
+            visible: true,
+          },
         ],
-        searching: false,
-        paging: false,
+
+        buttons: [
+          { extend: "copy" },
+          {
+            extend: "csv",
+            exportOptions: {
+              modifier: { page: "all" },
+              columns: function (idx) {
+                return idx !== 36; // exclude action column
+              },
+            },
+          },
+        ],
       });
 
       $(".dt-buttons").addClass("mb-3 gap-2");
@@ -2205,169 +2227,152 @@ toast.success(response.message || "File deleted successfully!");
               bordered
               hover
               responsive
-              className="align-middle text-center"
               id="bosDataId"
-              innerRef={tableRef}
-              style={{ display: "none" }}
-            >
-              <thead className="table-dark">
-                <tr>
-                  <th>#</th>
-                  <th>Academic Year</th>
-                  <th>Semester Type</th>
-                  <th>Semester No</th>
-                  <th>Stream</th>
-                  <th>Department</th>
-                  <th>Courses</th>
-                  <th>Course Title</th>
-                  <th>Methodology Tab</th>
-
-                  <th>EL - Case Study</th>
-                  <th>EL - Industrial Visit</th>
-                  <th>EL - Workshop</th>
-                  <th>EL - Simulation</th>
-                  <th>EL - Internship</th>
-                  <th>EL - Exhibition</th>
-                  <th>EL - Awareness Drive</th>
-                  <th>EL - Street Plays</th>
-                  <th>EL - File Path</th>
-
-                  <th>PL - Case Study</th>
-                  <th>PL - Industrial Visit</th>
-                  <th>PL - Workshop</th>
-                  <th>PL - Simulation</th>
-                  <th>PL - Internship</th>
-                  <th>PL - Exhibition</th>
-                  <th>PL - Awareness Drive</th>
-                  <th>PL - Street Plays</th>
-                  <th>PL - File Path</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((als, index) => (
-                    <tr key={als.studentCentricMethodologyId}>
-                      <td>{indexOfFirstRow + index + 1}</td>
-                      <td>{als.academicYear}</td>
-                      <td>{als.semType}</td>
-                      <td>{als.semester}</td>
-                      <td>{als.streamName}</td>
-                      <td>{als.departmentName}</td>
-                      <td>{Object.values(als.courses).join(", ")}</td>
-                      <td>{als.courseTitle}</td>
-                      <td>{als.methodologyTab}</td>
-
-                      {/* ExperientialLearningDto */}
-                      <td>{als.experientialLearningDto?.caseStudy || "N/A"}</td>
-                      <td>
-                        {als.experientialLearningDto?.industrialVisit || "N/A"}
-                      </td>
-                      <td>{als.experientialLearningDto?.workShop || "N/A"}</td>
-                      <td>
-                        {als.experientialLearningDto?.simulation || "N/A"}
-                      </td>
-                      <td>
-                        {als.experientialLearningDto?.internship || "N/A"}
-                      </td>
-                      <td>
-                        {als.experientialLearningDto?.exhibition || "N/A"}
-                      </td>
-                      <td>
-                        {als.experientialLearningDto?.awarenessDrive || "N/A"}
-                      </td>
-                      <td>
-                        {als.experientialLearningDto?.streetPlays || "N/A"}
-                      </td>
-                      <td>
-                        {als.experientialLearningDto?.filePath
-                          ?.ExperientialLearning || "N/A"}
-                      </td>
-
-                      {/* ParticipativeLearningDto */}
-                      <td>
-                        {als.participativeLearningDto?.caseStudy || "N/A"}
-                      </td>
-                      <td>
-                        {als.participativeLearningDto?.industrialVisit || "N/A"}
-                      </td>
-                      <td>{als.participativeLearningDto?.workShop || "N/A"}</td>
-                      <td>
-                        {als.participativeLearningDto?.simulation || "N/A"}
-                      </td>
-                      <td>
-                        {als.participativeLearningDto?.internship || "N/A"}
-                      </td>
-                      <td>
-                        {als.participativeLearningDto?.exhibition || "N/A"}
-                      </td>
-                      <td>
-                        {als.participativeLearningDto?.awarenessDrive || "N/A"}
-                      </td>
-                      <td>
-                        {als.participativeLearningDto?.streetPlays || "N/A"}
-                      </td>
-                      <td>
-                        {als.participativeLearningDto?.filePath
-                          ?.ParticipativeLearning || "N/A"}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={27} className="text-center">
-                      No Student Centric Methodology.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </Table>
-            {/* Table with Pagination */}
-            <Table
-              striped
-              bordered
-              hover
-              responsive
               className="align-middle text-center"
             >
               <thead className="table-dark">
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
+                  <th>School</th>
+                  <th>Department</th>
+                  <th>Program</th>
                   <th>Semester Type</th>
                   <th>Semester No</th>
-                  <th>Stream</th>
-                  <th>Department</th>
-                  <th>Courses</th>
                   <th>Course Title</th>
                   <th>Methodology Tab</th>
+
+                  {/* Hidden Export Columns 9–25 */}
+                  <th className="export-hidden">EL - Case Study</th>
+                  <th className="export-hidden">EL - Industrial Visit</th>
+                  <th className="export-hidden">EL - Workshop</th>
+                  <th className="export-hidden">EL - Simulation</th>
+                  <th className="export-hidden">EL - Internship</th>
+                  <th className="export-hidden">EL - Exhibition</th>
+                  <th className="export-hidden">EL - Awareness Drive</th>
+                  <th className="export-hidden">EL - Street Plays</th>
+                  <th className="export-hidden">EL - File Path</th>
+
+                  <th className="export-hidden">PL - Case Study</th>
+                  <th className="export-hidden">PL - Industrial Visit</th>
+                  <th className="export-hidden">PL - Workshop</th>
+                  <th className="export-hidden">PL - Simulation</th>
+                  <th className="export-hidden">PL - Internship</th>
+                  <th className="export-hidden">PL - Exhibition</th>
+                  <th className="export-hidden">PL - Awareness Drive</th>
+                  <th className="export-hidden">PL - Street Plays</th>
+                  <th className="export-hidden">PL - File Path</th>
+
+                  <th className="export-hidden">ProblemL - Case Study</th>
+                  <th className="export-hidden">ProblemL - Industrial Visit</th>
+                  <th className="export-hidden">ProblemL - Workshop</th>
+                  <th className="export-hidden">ProblemL - Simulation</th>
+                  <th className="export-hidden">ProblemL - Internship</th>
+                  <th className="export-hidden">ProblemL - Exhibition</th>
+                  <th className="export-hidden">ProblemL - Awareness Drive</th>
+                  <th className="export-hidden">ProblemL - Street Plays</th>
+                  <th className="export-hidden">ProblemL - File Path</th>
+
                   <th>Actions</th>
                 </tr>
               </thead>
+
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((als, index) => (
+                {CWFData.length > 0 ? (
+                  CWFData.map((als, index) => (
                     <tr key={als.studentCentricMethodologyId}>
-                      <td>{indexOfFirstRow + index + 1}</td>
+                      {/* Visible Columns */}
+                      <td>{index + 1}</td>
                       <td>{als.academicYear}</td>
-                      <td>{als.semType}</td>
-                      <td>{als.semester}</td>
                       <td>{als.streamName}</td>
                       <td>{als.departmentName}</td>
-                      <td>
-                        <ul className="list-disc list-inside">
-                          {Object.values(als.courses).map((courseName, idx) => (
-                            <li key={idx}>
-                              {typeof courseName === "string" ||
-                              typeof courseName === "number"
-                                ? courseName
-                                : String(courseName)}
-                            </li>
-                          ))}
-                        </ul>
-                      </td>
+                      <td>{Object.values(als.courses).join(", ")}</td>
+                      <td>{als.semType}</td>
+                      <td>{als.semester}</td>
                       <td>{als.courseTitle}</td>
                       <td>{als.methodologyTab}</td>
+
+                      {/* Hidden Export Columns */}
+                      <td>{als.experientialLearningDto?.caseStudy ?? "N/A"}</td>
+                      <td>
+                        {als.experientialLearningDto?.industrialVisit ?? "N/A"}
+                      </td>
+                      <td>{als.experientialLearningDto?.workShop ?? "N/A"}</td>
+                      <td>
+                        {als.experientialLearningDto?.simulation ?? "N/A"}
+                      </td>
+                      <td>
+                        {als.experientialLearningDto?.internship ?? "N/A"}
+                      </td>
+                      <td>
+                        {als.experientialLearningDto?.exhibition ?? "N/A"}
+                      </td>
+                      <td>
+                        {als.experientialLearningDto?.awarenessDrive ?? "N/A"}
+                      </td>
+                      <td>
+                        {als.experientialLearningDto?.streetPlays ?? "N/A"}
+                      </td>
+                      <td>
+                        {als.experientialLearningDto?.filePath
+                          ?.ExperientialLearning ?? "N/A"}
+                      </td>
+
+                      <td>
+                        {als.participativeLearningDto?.caseStudy ?? "N/A"}
+                      </td>
+                      <td>
+                        {als.participativeLearningDto?.industrialVisit ?? "N/A"}
+                      </td>
+                      <td>{als.participativeLearningDto?.workShop ?? "N/A"}</td>
+                      <td>
+                        {als.participativeLearningDto?.simulation ?? "N/A"}
+                      </td>
+                      <td>
+                        {als.participativeLearningDto?.internship ?? "N/A"}
+                      </td>
+                      <td>
+                        {als.participativeLearningDto?.exhibition ?? "N/A"}
+                      </td>
+                      <td>
+                        {als.participativeLearningDto?.awarenessDrive ?? "N/A"}
+                      </td>
+                      <td>
+                        {als.participativeLearningDto?.streetPlays ?? "N/A"}
+                      </td>
+                      <td>
+                        {als.participativeLearningDto?.filePath
+                          ?.ParticipativeLearning ?? "N/A"}
+                      </td>
+
+                       <td>
+                        {als.problemLearningDto?.caseStudy ?? "N/A"}
+                      </td>
+                      <td>
+                        {als.problemLearningDto?.industrialVisit ?? "N/A"}
+                      </td>
+                      <td>{als.problemLearningDto?.workShop ?? "N/A"}</td>
+                      <td>
+                        {als.problemLearningDto?.simulation ?? "N/A"}
+                      </td>
+                      <td>
+                        {als.problemLearningDto?.internship ?? "N/A"}
+                      </td>
+                      <td>
+                        {als.problemLearningDto?.exhibition ?? "N/A"}
+                      </td>
+                      <td>
+                        {als.problemLearningDto?.awarenessDrive ?? "N/A"}
+                      </td>
+                      <td>
+                        {als.problemLearningDto?.streetPlays ?? "N/A"}
+                      </td>
+                      <td>
+                        {als.problemLearningDto?.filePath
+                          ?.ProblemLearning ?? "N/A"}
+                      </td>
+
+                      {/* ACTIONS */}
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
@@ -2378,6 +2383,7 @@ toast.success(response.message || "File deleted successfully!");
                           >
                             Edit
                           </button>
+
                           <button
                             className="btn btn-sm btn-danger"
                             onClick={() =>
@@ -2392,33 +2398,13 @@ toast.success(response.message || "File deleted successfully!");
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={11} className="text-center">
+                    <td colSpan={28} className="text-center">
                       No Student Centric Methodology.
                     </td>
                   </tr>
                 )}
               </tbody>
             </Table>
-            {/* Pagination Controls */}
-            <div className="d-flex justify-content-between align-items-center mt-3">
-              <Button
-                color="primary"
-                disabled={currentPage === 1}
-                onClick={() => handlePageChange(currentPage - 1)}
-              >
-                Previous
-              </Button>
-              <div>
-                Page {currentPage} of {totalPages}
-              </div>
-              <Button
-                color="primary"
-                disabled={currentPage === totalPages}
-                onClick={() => handlePageChange(currentPage + 1)}
-              >
-                Next
-              </Button>
-            </div>
           </ModalBody>
         </Modal>
         {/* Confirmation Modal */}

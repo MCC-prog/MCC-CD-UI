@@ -411,7 +411,7 @@ toast.success(response.message || "File deleted successfully!");
       <div className="page-content">
         <Container fluid>
           <Breadcrumb title="Library" breadcrumbItem="Research Journals" />
-          <Card>
+          <Card style={{ height: "350px" }}>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
                 <Row>
@@ -616,7 +616,7 @@ toast.success(response.message || "File deleted successfully!");
           <ModalBody>
             {/* Global Search */}
             <Table striped bordered hover id="id" innerRef={tableRef}>
-              <thead className="table-dark">
+              <thead>
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
@@ -627,8 +627,8 @@ toast.success(response.message || "File deleted successfully!");
                 </tr>
               </thead>
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((cds, index) => (
+                {cswData.length > 0 ? (
+                  cswData.map((cds, index) => (
                     <tr key={cds.id}>
                       <td>{index + 1}</td>
                       <td>{cds.academicYear}</td>

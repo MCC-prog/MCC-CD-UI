@@ -1281,8 +1281,8 @@ toast.success(response.message || "File deleted successfully!");
                 </tr>
               </thead>
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((cds, index) => (
+                {cswData.length > 0 ? (
+                  cswData.map((cds, index) => (
                     <tr key={cds.intercollegiateEventsId}>
                       <td>{index + 1}</td>
                       <td>{cds.academicYear}</td>

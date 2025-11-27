@@ -1238,20 +1238,19 @@ toast.success(response.message || "File deleted successfully!");
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
-                  <th>Stream</th>
+                  <th>School</th>
                   <th>Department</th>
                   <th>Program Type</th>
+                  <th>Degree</th>
                   <th>Program</th>
                   <th>Candidate Name</th>
                   <th>Register Number</th>
-
-                  {/* Hidden columns */}
-                  <th className="d-none">Course</th>
-                  <th className="d-none">Class</th>
-                  <th className="d-none">Exam Name</th>
-                  <th className="d-none">Subject</th>
-                  <th className="d-none">Date of Exam</th>
-                  <th className="d-none">Type of Malpractice</th>
+                  <th>Class</th>
+                  <th>Exam Name</th>
+                  <th>Subject</th>
+                  <th>Date of Exam</th>
+                  <th>Type of Malpractice</th>
+                    {/* Hidden columns */}
                   <th className="d-none">Invigilator Report</th>
                   <th className="d-none">Action Taken Report</th>
 
@@ -1260,8 +1259,8 @@ toast.success(response.message || "File deleted successfully!");
               </thead>
 
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((mcr, index) => (
+                {mcrData.length > 0 ? (
+                  mcrData.map((mcr, index) => (
                     <tr key={mcr.id}>
                       <td>{indexOfFirstRow + index + 1}</td>
                       <td>{mcr.academicYear}</td>
@@ -1269,25 +1268,16 @@ toast.success(response.message || "File deleted successfully!");
                       <td>{mcr.departmentName}</td>
                       <td>{mcr.programTypeName}</td>
                       <td>{mcr.programName}</td>
+                      <td>{mcr.courseName}</td>
                       <td>{mcr.nameOfTheCandidate}</td>
                       <td>{mcr.registerNumber}</td>
-
-                      {/* Hidden fields */}
-                      <td className="d-none">{mcr.courseName || "N/A"}</td>
-                      <td className="d-none">{mcr.className || "N/A"}</td>
-                      <td className="d-none">{mcr.nameOfTheExam || "N/A"}</td>
-                      <td className="d-none">{mcr.subjectName || "N/A"}</td>
-                      <td className="d-none">{mcr.dateOfExam || "N/A"}</td>
-                      <td className="d-none">
-                        {mcr.typeOfMalpractise || "N/A"}
-                      </td>
-                      <td className="d-none">
-                        {mcr.filePath?.Invigilator || "N/A"}
-                      </td>
-                      <td className="d-none">
-                        {mcr.filePath?.ActionTaken || "N/A"}
-                      </td>
-
+                      <td>{mcr.className || "N/A"}</td>
+                      <td>{mcr.nameOfTheExam || "N/A"}</td>
+                      <td>{mcr.subjectName || "N/A"}</td>
+                      <td>{mcr.dateOfExam || "N/A"}</td>
+                      <td>{mcr.typeOfMalpractise || "N/A"}</td>
+                      <td className="d-none">{mcr.filePath?.Invigilator || "N/A"}</td>
+                      <td className="d-none">{mcr.filePath?.ActionTaken || "N/A"}</td>
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button

@@ -911,8 +911,8 @@ toast.success(response.message || "File deleted successfully!");
                 </tr>
               </thead>
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((bos, index) => (
+                {ccgData.length > 0 ? (
+                  ccgData.map((bos, index) => (
                     <tr key={bos.careerCounselingId}>
                       <td>{index + 1}</td>
                       <td>{bos.academicYear}</td>

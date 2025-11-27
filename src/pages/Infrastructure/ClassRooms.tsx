@@ -350,7 +350,7 @@ const ClassRooms: React.FC = () => {
       <div className="page-content">
         <Container fluid>
           <Breadcrumb title="Infrastructure" breadcrumbItem="Class Rooms" />
-          <Card>
+          <Card style={{ height: "350px" }}>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
                 <Row>

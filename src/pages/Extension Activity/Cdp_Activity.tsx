@@ -798,7 +798,7 @@ toast.success(response.message || "File deleted successfully!");
                       <Label>Cdp Activity</Label>
                       <div>
                         <a
-                          href={`${process.env.PUBLIC_URL}/templateFiles/REPORT_DEPT_YEAR.docx`}
+                          href={`${process.env.PUBLIC_URL}/templateFiles/CDP_REPORT_DEPT_YEAR.docx`}
                           download
                           className="btn btn-primary btn-sm"
                         >

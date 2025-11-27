@@ -427,26 +427,47 @@ toast.success(response.message || "File deleted successfully!");
     if (acGbMomData.length === 0) return;
 
     const initializeDataTable = () => {
-      const table = $("#bosDataId").DataTable({
-        destroy: true,
-        dom: "Bfrtip",
-        buttons: [
-          {
-            extend: "copy",
-          },
-          {
-            extend: "csv",
-          },
-        ],
-        columnDefs: [
-          {
-            targets: [3, 4], // Make sure indexes match actual column positions
-            visible: false,
-          },
-        ],
+     const table = $("#bosDataId").DataTable({
+      destroy: true,
+      dom: "Bfrtip",
+        paging: true,
+        pageLength: 10,
+        info: true,
         searching: false,
-        paging: false,
-      });
+
+      columnDefs: [
+        {
+          targets: [5], // Export-only column
+          visible: false,
+        },
+        {
+          targets: [6], // Actions column
+          orderable: false,
+          searchable: false,
+        },
+      ],
+
+      buttons: [
+        {
+          extend: "copy",
+          exportOptions: {
+            modifier: { page: "all" },
+            columns: function (idx) {
+              return idx !== 6; // exclude Actions
+            },
+          },
+        },
+        {
+          extend: "csv",
+          exportOptions: {
+            modifier: { page: "all" },
+            columns: function (idx) {
+              return idx !== 6; // exclude Actions
+            },
+          },
+        },
+      ],
+    });
 
       $(".dt-buttons").addClass("mb-3 gap-2");
       $(".buttons-copy").addClass("btn btn-success");
@@ -796,129 +817,71 @@ toast.success(response.message || "File deleted successfully!");
                 onChange={handleSearch}
               />
             </div>
-            <Table
-              striped
-              bordered
-              hover
-              responsive
-              className="align-middle text-center"
-              id="bosDataId"
-              innerRef={tableRef}
-              style={{ display: "none" }}
+       <Table
+  striped
+  bordered
+  hover
+  responsive
+  className="align-middle text-center"
+  id="bosDataId"
+>
+  <thead className="table-dark">
+    <tr>
+      <th>#</th>
+      <th>Academic Year</th>
+      <th>Type</th>
+      <th>Date</th>
+      <th>File</th>
+      <th className="export-hidden">File Path (Export)</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+
+  <tbody>
+       {acGbMomData.length > 0 ? (
+      acGbMomData.map((row, index) => (
+        <tr key={row.acGbMomId}>
+          <td>{index + 1}</td>
+          <td>{row.academicYear}</td>
+          <td>{row.type}</td>
+          <td>{row.date}</td>
+          <td>
+            {row.documents?.mom ? (
+              <span>{row.documents.mom}</span>
+            ) : (
+              "No file uploaded"
+            )}
+          </td>
+           <td className="export-hidden">{row.filePath?.mom || "N/A"}</td>
+          <td>
+             <div className="d-flex justify-content-center gap-3">
+            <button
+              className="btn btn-sm btn-warning me-2"
+              onClick={() => handleEdit(row.acGbMomId)}
             >
-              <thead className="table-dark">
-                <tr>
-                  <th>#</th>
-                  <th>Academic Year</th>
-                  <th>Type</th>
-                  <th>Date</th>
-                  <th>File</th>
-                  {/* <th>GB File</th> */}
-                </tr>
-              </thead>
-              <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((acgb, index) => (
-                    <tr key={acgb.acGbMomId}>
-                      <td>{index + 1}</td>
-                      <td>{acgb.academicYear}</td>
-                      <td>{acgb.type}</td>
-                      <td>{acgb.date}</td>
-                      <td>{acgb.filePath?.mom || "N/A"}</td>
-                      {/* <td>{acgb.filePath?.GoverningBodyMom || "N/A"}</td> */}
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={5} className="text-center">
-                      No Ac & Gb Mom data available.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </Table>
-            <Table
-              striped
-              bordered
-              hover
-              responsive
-              className="align-middle text-center"
+              Edit
+            </button>
+            <button
+              className="btn btn-sm btn-danger"
+              onClick={() => handleDelete(row.acGbMomId)}
             >
-              <thead className="table-dark">
-                <tr>
-                  <th>#</th>
-                  <th>Academic Year</th>
-                  <th>Date</th>
-                  <th>Type</th>
-                  <th>File</th>
-                  {/* <th>GB File</th> */}
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((acgb, index) => (
-                    <tr key={acgb.acGbMomId}>
-                      <td>{index + 1}</td>
-                      <td>{acgb.academicYear}</td>
-                      <td>{acgb.date}</td>
-                      <td>{acgb.type}</td>
-                      <td>
-                        {acgb.documents?.mom ||
-                          "No file uploaded"}
-                      </td>
-                      {/* <td>
-                        {acgb.documents?.GoverningBodyMom ? (
-                          <span>{acgb.documents.GoverningBodyMom}</span>
-                        ) : (
-                          "No file uploaded"
-                        )}
-                      </td> */}
-                      <td>
-                        <button
-                          className="btn btn-sm btn-warning me-2"
-                          onClick={() => handleEdit(acgb.acGbMomId)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="btn btn-sm btn-danger"
-                          onClick={() => handleDelete(acgb.acGbMomId)}
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={4} className="text-center">
-                      No Ac & Gb Mom data available.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </Table>
-            {/* Pagination Controls */}
-            <div className="d-flex justify-content-between align-items-center mt-3">
-              <Button
-                color="primary"
-                disabled={currentPage === 1}
-                onClick={() => handlePageChange(currentPage - 1)}
-              >
-                Previous
-              </Button>
-              <div>
-                Page {currentPage} of {totalPages}
-              </div>
-              <Button
-                color="primary"
-                disabled={currentPage === totalPages}
-                onClick={() => handlePageChange(currentPage + 1)}
-              >
-                Next
-              </Button>
-            </div>
+              Delete
+            </button>
+          </div>
+          </td>
+        </tr>
+      ))
+    ) : (
+      <tr>
+        <td colSpan={7} className="text-center">
+          No Ac & Gb Mom data available.
+        </td>
+      </tr>
+    )}
+  </tbody>
+</Table>
+
+           
           </ModalBody>
         </Modal>
         {/* Confirmation Modal */}

@@ -894,7 +894,7 @@ toast.success(response.message || "File deleted successfully!");
           </ModalHeader>
           <ModalBody>
             <Table striped bordered hover id="id" innerRef={tableRef}>
-              <thead className="table-dark">
+              <thead>
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
@@ -911,8 +911,8 @@ toast.success(response.message || "File deleted successfully!");
                 </tr>
               </thead>
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((bos, index) => (
+                {swdData.length > 0 ? (
+                  swdData.map((bos, index) => (
                     <tr key={bos.id}>
                       <td>{indexOfFirstRow + index + 1}</td>
                       <td>{bos.year}</td>

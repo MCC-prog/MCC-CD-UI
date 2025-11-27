@@ -378,7 +378,7 @@ const Softwares: React.FC = () => {
       <div className="page-content">
         <Container fluid>
           <Breadcrumb title="Infrastructure" breadcrumbItem="Software" />
-          <Card>
+          <Card style={{ height: "350px" }}>
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
                 <Row>
@@ -633,7 +633,7 @@ const Softwares: React.FC = () => {
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
-                  <th>Stream</th>
+                  <th>School</th>
                   <th>Department</th>
                   <th>Name of Software</th>
                   <th>No of Licenses</th>

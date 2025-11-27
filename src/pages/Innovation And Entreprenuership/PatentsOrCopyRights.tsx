@@ -938,7 +938,7 @@ toast.success(response.message || "File deleted successfully!");
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
-                  <th>Stream</th>
+                  <th>School</th>
                   <th>Department</th>
                   <th>Faculty Name</th>
                   <th>Title of Invention</th>
@@ -953,8 +953,8 @@ toast.success(response.message || "File deleted successfully!");
                 </tr>
               </thead>
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((bos, index) => (
+                {patentData.length > 0 ? (
+                  patentData.map((bos, index) => (
                     <tr key={bos.patentDataId}>
                       <td>{indexOfFirstRow + index + 1}</td>
                       <td>{bos.academicYear}</td>

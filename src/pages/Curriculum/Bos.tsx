@@ -42,7 +42,7 @@ import "datatables.net-buttons/js/buttons.print.js";
 import "jszip";
 import "pdfmake/build/pdfmake";
 import "pdfmake/build/vfs_fonts";
-
+import Select from "react-select";
 
 const api = new APIClient();
 
@@ -127,6 +127,19 @@ const Bos: React.FC = () => {
     fetchBosData();
   };
 
+  const dropdownStyles = {
+    menu: (provided: any) => ({
+      ...provided,
+      overflowY: "auto", // Enable scrolling for additional options
+    }),
+    menuPortal: (base: any) => ({ ...base, zIndex: 9999 }), // Ensure the menu is above other elements
+  };
+
+  const SemesterType = [
+    { value: "EVEN", label: "EVEN" },
+    { value: "ODD", label: "ODD" },
+  ];
+
   // Map value to label for dropdowns
   const mapValueToLabel = (
     value: string | number | null,
@@ -158,13 +171,20 @@ const Bos: React.FC = () => {
       // Map API response to Formik values
       const mappedValues = {
         academicYear: mapValueToLabel(response.academicYear, academicYearList),
+        // semesterType: response.semType
+        //   ? { value: response.semType, label: response.semType.toUpperCase() }
+        //   : null,
+        // semesterNo: mapValueToLabel(
+        //   String(response.semesterNo),
+        //   semesterNoOptions
+        // ) as { value: string; label: string } | null,
+
         semesterType: response.semType
-          ? { value: response.semType, label: response.semType.toUpperCase() }
+          ? {
+              value: String(response.semType),
+              label: String(response.semType).toUpperCase(),
+            }
           : null,
-        semesterNo: mapValueToLabel(
-          String(response.semesterNo),
-          semesterNoOptions
-        ) as { value: string; label: string } | null,
         stream: response.streamId
           ? { value: response.streamId.toString(), label: response.streamName }
           : null,
@@ -194,9 +214,15 @@ const Bos: React.FC = () => {
           : [],
         revisionPercentage: response.percentage || "",
         conductedDate: response.yearOfIntroduction
-          ? response.yearOfIntroduction
+          ? moment(response.yearOfIntroduction, "DD/MM/YYYY").format(
+              "DD/MM/YYYY"
+            )
           : "",
-        introYear: response.introYear ? response.introYear : "",
+
+        introYear: response.introYear
+          ? moment(response.introYear, "YYYY").format("YYYY")
+          : "",
+
         otherDepartment: "", // Add default value for otherDepartment
         file: response.documents?.mom || null,
       };
@@ -211,12 +237,12 @@ const Bos: React.FC = () => {
               value: String(mappedValues.academicYear.value),
             }
           : null,
-        semesterNo: mappedValues.semesterNo
-          ? {
-              ...mappedValues.semesterNo,
-              value: String(mappedValues.semesterNo.value),
-            }
-          : null,
+        // semesterNo: mappedValues.semesterNo
+        //   ? {
+        //       ...mappedValues.semesterNo,
+        //       value: String(mappedValues.semesterNo.value),
+        //     }
+        //   : null,
       });
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
@@ -304,7 +330,7 @@ const Bos: React.FC = () => {
         ""
       );
       // Show success message
-toast.success(response.message || "File deleted successfully!");
+      toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
       validation.setFieldValue("file", null); // Clear the file from Formik state
       setIsFileUploadDisabled(false); // Enable the file upload button
@@ -320,8 +346,9 @@ toast.success(response.message || "File deleted successfully!");
   const validation = useFormik({
     initialValues: {
       academicYear: null as { value: string; label: string } | null,
+      // semesterType: null as { value: string; label: string } | null,
+      // semesterNo: null as { value: string; label: string } | null,
       semesterType: null as { value: string; label: string } | null,
-      semesterNo: null as { value: string; label: string } | null,
       stream: null as { value: string; label: string } | null,
       department: null as { value: string; label: string } | null,
       otherDepartment: "",
@@ -337,12 +364,15 @@ toast.success(response.message || "File deleted successfully!");
       academicYear: Yup.object<{ value: string; label: string }>()
         .nullable()
         .required("Please select academic year"),
-      semesterType: Yup.object<{ value: string; label: string }>()
+      // semesterType: Yup.object<{ value: string; label: string }>()
+      //   .nullable()
+      //   .required("Please select a semester type"), // Single object for single-select
+      // semesterNo: Yup.object<{ value: string; label: string }>()
+      //   .nullable()
+      //   .required("Please select a semester number"),
+      semesterType: Yup.object()
         .nullable()
-        .required("Please select a semester type"), // Single object for single-select
-      semesterNo: Yup.object<{ value: string; label: string }>()
-        .nullable()
-        .required("Please select a semester number"),
+        .required("Please select semester type"),
       stream: Yup.object<{ value: string; label: string }>()
         .nullable()
         .required("Please select school"),
@@ -394,8 +424,13 @@ toast.success(response.message || "File deleted successfully!");
         .typeError("Please enter a valid number")
         .min(0, "Percentage cannot be less than 0")
         .max(100, "Percentage cannot be more than 100"),
-      conductedDate: Yup.date().required("Please select conducted date"),
-      introYear: Yup.date().required("Please select year of introduction"),
+      conductedDate: Yup.string()
+        .required("Please select conducted date")
+        .matches(/^\d{2}\/\d{2}\/\d{4}$/, "Invalid date format (DD/MM/YYYY)"),
+
+      introYear: Yup.string()
+        .required("Please select year of introduction")
+        .matches(/^\d{4}$/, "Invalid year"),
     }),
     onSubmit: async (values, { resetForm }) => {
       // Create FormData object
@@ -406,8 +441,9 @@ toast.success(response.message || "File deleted successfully!");
       formData.append("departmentId", values.department?.value || "");
       formData.append("yearOfIntroduction", values.conductedDate || "");
       formData.append("introYear", values.introYear || "");
+      // formData.append("semType", values.semesterType?.value || "");
+      // formData.append("semesterNo", String(values.semesterNo?.value || ""));
       formData.append("semType", values.semesterType?.value || "");
-      formData.append("semesterNo", String(values.semesterNo?.value || ""));
       formData.append("programTypeId", values.programType?.value || "");
       formData.append("percentage", values.revisionPercentage || "");
       formData.append("streamId", values.stream?.value || "");
@@ -474,24 +510,43 @@ toast.success(response.message || "File deleted successfully!");
       const table = $("#bosDataId").DataTable({
         destroy: true,
         dom: "Bfrtip",
+
+        paging: true,
+        pageLength: 10,
+        info: true,
+        searching: false,
+
+        // FilePath hidden in UI
+        columnDefs: [
+          { targets: 11, visible: false }, // FilePath
+          { targets: 12, orderable: false, searchable: false }, // Actions
+        ],
+
         buttons: [
           {
             extend: "copy",
+            filename: "BOS_Data",
+            title: "BOS Data Export",
+            exportOptions: {
+              modifier: { page: "all" },
+              columns: function (idx) {
+                return idx !== 12;
+              },
+            },
           },
           {
             extend: "csv",
+            filename: "BOS_Data",
+            title: "BOS Data Export",
+            exportOptions: {
+              modifier: { page: "all" },
+              columns: function (idx) {
+                return idx !== 12;
+              },
+            },
           },
         ],
-        columnDefs: [
-          {
-            targets: [3, 4], // Make sure indexes match actual column positions
-            visible: false,
-          },
-        ],
-        searching: false,
-        paging: false,
       });
-
       $(".dt-buttons").addClass("mb-3 gap-2");
       $(".buttons-copy").addClass("btn btn-success");
       $(".buttons-csv").addClass("btn btn-info");
@@ -558,7 +613,7 @@ toast.success(response.message || "File deleted successfully!");
                     </div>
                   </Col>
                   {/* Semester Dropdowns */}
-                  <Col lg={8}>
+                  {/* <Col lg={8}>
                     <SemesterDropdowns
                       semesterTypeValue={validation.values.semesterType}
                       semesterNoValue={validation.values.semesterNo}
@@ -589,6 +644,39 @@ toast.success(response.message || "File deleted successfully!");
                       semesterTypeTouched={!!validation.touched.semesterType}
                       semesterNoTouched={!!validation.touched.semesterNo}
                     />
+                  </Col> */}
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Semester Type</Label>
+                      <Select
+                        options={SemesterType}
+                        value={validation.values.semesterType}
+                        onChange={(selectedOption) =>
+                          validation.setFieldValue(
+                            "semesterType",
+                            selectedOption
+                          )
+                        }
+                        placeholder="Select Semester Type"
+                        styles={dropdownStyles}
+                        menuPortalTarget={document.body}
+                        className={
+                          validation.touched.semesterType &&
+                          validation.errors.semesterType
+                            ? "select-error"
+                            : ""
+                        }
+                        isClearable
+                      />
+                      {validation.touched.semesterType &&
+                        validation.errors.semesterType && (
+                          <div className="text-danger">
+                            {typeof validation.errors.semesterType === "string"
+                              ? validation.errors.semesterType
+                              : ""}
+                          </div>
+                        )}
+                    </div>
                   </Col>
 
                   {/* Stream Dropdown */}
@@ -753,7 +841,7 @@ toast.success(response.message || "File deleted successfully!");
                         )}
                     </div>
                   </Col>
-                  <Col lg={4}>
+                  {/* <Col lg={4}>
                     <div className="mb-3">
                       <Label>Bos Conducted Date</Label>
                       <Input
@@ -791,14 +879,92 @@ toast.success(response.message || "File deleted successfully!");
                           </div>
                         )}
                     </div>
+                  </Col> */}
+
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>BOS Conducted Date</Label>
+                      <Input
+                        type="date"
+                        className={`form-control ${
+                          validation.touched.conductedDate &&
+                          validation.errors.conductedDate
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        value={
+                          validation.values.conductedDate
+                            ? moment(
+                                validation.values.conductedDate,
+                                "DD/MM/YYYY"
+                              ).format("YYYY-MM-DD")
+                            : ""
+                        }
+                        onChange={(e) => {
+                          // Convert to DD/MM/YYYY for backend
+                          const formatted = moment(
+                            e.target.value,
+                            "YYYY-MM-DD"
+                          ).format("DD/MM/YYYY");
+                          validation.setFieldValue("conductedDate", formatted);
+                        }}
+                      />
+                      {validation.touched.conductedDate &&
+                        validation.errors.conductedDate && (
+                          <div className="text-danger">
+                            {validation.errors.conductedDate}
+                          </div>
+                        )}
+                    </div>
                   </Col>
+
+                  {/* <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Year of Introduction</Label>
+                      <DatePicker
+                        selected={
+                          validation.values.introYear
+                            ? new Date(
+                                Number(validation.values.introYear),
+                                0,
+                                1
+                              )
+                            : null
+                        }
+                        onChange={(date) => {
+                          const formattedYear = date
+                            ? moment(date).format("YYYY")
+                            : "";
+                          validation.setFieldValue("introYear", formattedYear);
+                        }}
+                        showYearPicker
+                        dateFormat="yyyy"
+                        className={`form-control ${
+                          validation.touched.introYear &&
+                          validation.errors.introYear
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        placeholderText="Select Year"
+                      />
+                      {validation.touched.introYear &&
+                        validation.errors.introYear && (
+                          <div className="text-danger">
+                            {validation.errors.introYear}
+                          </div>
+                        )}
+                    </div>
+                  </Col> */}
                   <Col lg={4}>
                     <div className="mb-3">
                       <Label>Year of Introduction</Label>
                       <DatePicker
                         selected={
                           validation.values.introYear
-                            ? new Date(Number(validation.values.introYear), 0, 1)
+                            ? moment(
+                                validation.values.introYear,
+                                "YYYY"
+                              ).toDate()
                             : null
                         }
                         onChange={(date) => {
@@ -825,6 +991,7 @@ toast.success(response.message || "File deleted successfully!");
                         )}
                     </div>
                   </Col>
+
                   <Col lg={4}>
                     <div className="mb-3">
                       <Label>Revision Percentage</Label>
@@ -994,138 +1161,72 @@ toast.success(response.message || "File deleted successfully!");
               responsive
               className="align-middle text-center"
               id="bosDataId"
-              innerRef={tableRef}
-              style={{ display: "none" }}
             >
               <thead className="table-dark">
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
                   <th>Semester Type</th>
-                  <th>Semester No</th>
+                  {/* <th>Semester No</th> */}
                   <th>Stream</th>
                   <th>Department</th>
                   <th>Program Type</th>
-                  <th>Program</th>
                   <th>Degree</th>
-                  <th>Bos Conducted Date</th>
-                  <th>Year of Introduction</th>
-                  <th>Percentage</th>
-                  <th>File Path</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((bos, index) => (
-                    <tr key={bos.bosDataId}>
-                      <td>{indexOfFirstRow + index + 1}</td>
-                      <td>{bos.academicYear}</td>
-                      <td>{bos.semType}</td>
-                      <td>{bos.semesterNo}</td>
-                      <td>{bos.streamName}</td>
-                      <td>{bos.departmentName}</td>
-                      <td>{bos.programTypeName}</td>
-                      <td>{bos.programName}</td>
-                      <td>{Object.values(bos.courses).join(", ")}</td>
-                      <td>{bos.yearOfIntroduction}</td>
-                      <td>{bos.introYear}</td>
-                      <td>{bos.percentage}</td>
-                      <td>{bos.filePath?.mom || "N/A"}</td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={11} className="text-center">
-                      No BOS data available.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </Table>
-            {/* Table with Pagination */}
-            <Table
-              striped
-              bordered
-              hover
-              responsive
-              className="align-middle text-center"
-            >
-              <thead className="table-dark">
-                <tr>
-                  <th>#</th>
-                  <th>Academic Year</th>
-                  <th>Semester Type</th>
-                  <th>Semester No</th>
-                  <th>Stream</th>
-                  <th>Department</th>
-                  <th>Program Type</th>
                   <th>Program</th>
+                  <th>BOS Conducted Date</th>
                   <th>Year of Introduction</th>
                   <th>Percentage</th>
+
+                  {/* HIDDEN IN UI – SHOWN IN CSV */}
+                  <th className="export-hidden">File Path</th>
+
+                  {/* ACTIONS – UI only, not exported */}
                   <th>Actions</th>
                 </tr>
               </thead>
+
               <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((bos, index) => (
-                    <tr key={bos.bosDataId}>
-                      <td>{indexOfFirstRow + index + 1}</td>
-                      <td>{bos.academicYear}</td>
-                      <td>{bos.semType}</td>
-                      <td>{bos.semesterNo}</td>
-                      <td>{bos.streamName}</td>
-                      <td>{bos.departmentName}</td>
-                      <td>{bos.programTypeName}</td>
-                      <td>{bos.programName}</td>
-                      <td>{bos.yearOfIntroduction}</td>
-                      <td>{bos.percentage}</td>
-                      <td>
-                        <div className="d-flex justify-content-center gap-2">
-                          <button
-                            className="btn btn-sm btn-warning"
-                            onClick={() => handleEdit(bos.bosDataId)}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            className="btn btn-sm btn-danger"
-                            onClick={() => handleDelete(bos.bosDataId)}
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={11} className="text-center">
-                      No BOS data available.
+                {bosData.map((bos, index) => (
+                  <tr key={bos.bosDataId}>
+                    <td>{index + 1}</td>
+                    <td>{bos.academicYear}</td>
+                    <td>{bos.semType}</td>
+                    {/* <td>{bos.semesterNo}</td> */}
+                    <td>{bos.streamName}</td>
+                    <td>{bos.departmentName}</td>
+                    <td>{bos.programTypeName}</td>
+                    <td>{bos.programName}</td>
+                    <td>{Object.values(bos.courses).join(", ")}</td>
+                    <td>{bos.yearOfIntroduction}</td>
+                    <td>{bos.introYear}</td>
+                    <td>{bos.percentage}</td>
+
+                    {/* HIDDEN IN UI */}
+                    <td className="export-hidden">
+                      {bos.filePath?.mom || "N/A"}
+                    </td>
+
+                    {/* ACTION BUTTONS */}
+                    <td>
+                      <div className="d-flex justify-content-center gap-3">
+                        <button
+                          className="btn btn-warning btn-sm"
+                          onClick={() => handleEdit(bos.bosDataId)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="btn btn-danger btn-sm"
+                          onClick={() => handleDelete(bos.bosDataId)}
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
-                )}
+                ))}
               </tbody>
             </Table>
-            {/* Pagination Controls */}
-            <div className="d-flex justify-content-between align-items-center mt-3">
-              <Button
-                color="primary"
-                disabled={currentPage === 1}
-                onClick={() => handlePageChange(currentPage - 1)}
-              >
-                Previous
-              </Button>
-              <div>
-                Page {currentPage} of {totalPages}
-              </div>
-              <Button
-                color="primary"
-                disabled={currentPage === totalPages}
-                onClick={() => handlePageChange(currentPage + 1)}
-              >
-                Next
-              </Button>
-            </div>
           </ModalBody>
         </Modal>
         {/* Confirmation Modal */}
