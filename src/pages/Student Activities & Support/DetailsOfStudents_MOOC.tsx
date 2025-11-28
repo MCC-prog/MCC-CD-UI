@@ -504,12 +504,16 @@ const DetailsOfStudents_MOOC: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+          filename: "Details_of_Students_Enrolled_for_MOOC_Data",
+          title: "Details of Students Enrolled for MOOC Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Details_of_Students_Enrolled_for_MOOC_Data",
+          title: "Details of Students Enrolled for MOOC Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

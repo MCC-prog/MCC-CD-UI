@@ -260,12 +260,16 @@ const Year_Of_Establishment: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+          filename: "Year_Of_Establishment_Data",
+          title: "Year of Establishment Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Year_Of_Establishment_Data",
+          title: "Year of Establishment Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

@@ -416,12 +416,16 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+          filename: "Equity_Programs_Data",
+          title: "Equity Programs Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Equity_Programs_Data",
+          title: "Equity Programs Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

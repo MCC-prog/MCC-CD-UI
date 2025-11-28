@@ -483,12 +483,16 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+          filename: "Mooc_Data",
+          title: "Mooc Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Mooc_Data",
+          title: "Mooc Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

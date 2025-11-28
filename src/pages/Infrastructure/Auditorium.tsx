@@ -315,12 +315,16 @@ const Auditorium: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+          filename: "Auditorium_Data",
+          title: "Auditorium Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Auditorium_Data",
+          title: "Auditorium Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

@@ -295,6 +295,8 @@ const AAA: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+          filename: "AAA_Data",
+          title: "AAA Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
@@ -302,6 +304,8 @@ const AAA: React.FC = () => {
         },
         {
           extend: "csv",
+          filename: "AAA_Data",
+          title: "AAA Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

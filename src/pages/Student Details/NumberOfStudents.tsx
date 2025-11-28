@@ -434,6 +434,8 @@ const NumberOfStudents: React.FC = () => {
     buttons: [
       {
         extend: "copy",
+          filename: "Number_of_Students_Enrolled_Data",
+          title: "Number of Students Enrolled Data Export",
         exportOptions: {
           modifier: { page: "all" },
           columns: function (idx) {
@@ -443,6 +445,8 @@ const NumberOfStudents: React.FC = () => {
       },
       {
         extend: "csv",
+          filename: "Number_of_Students_Enrolled_Data",
+          title: "Number of Students Enrolled Data Export",
         exportOptions: {
           modifier: { page: "all" },
           columns: function (idx) {

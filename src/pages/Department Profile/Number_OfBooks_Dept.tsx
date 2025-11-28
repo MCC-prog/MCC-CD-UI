@@ -272,12 +272,16 @@ const Number_OfBooks_Dept: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+          filename: "Number_OfBooks_Dept_Data",
+          title: "Number of Books in Department Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Number_OfBooks_Dept_Data",
+          title: "Number of Books in Department Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

@@ -476,12 +476,16 @@ const OffCampus: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+          filename: "Off_Campus_Placement_Data",
+          title: "Off Campus Placement Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Off_Campus_Placement_Data",
+          title: "Off Campus Placement Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

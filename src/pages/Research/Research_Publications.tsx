@@ -452,6 +452,8 @@ toast.success(response.message || "File deleted successfully!");
     buttons: [
       {
         extend: "copy",
+        filename: "Research_Publications_Data",
+        title: "Research Publications Data Export",
         exportOptions: {
           columns: function (idx) {
             return idx !== 17; // exclude Actions column
@@ -460,6 +462,8 @@ toast.success(response.message || "File deleted successfully!");
       },
       {
         extend: "csv",
+        filename: "Research_Publications_Data",
+        title: "Research Publications Data Export",
         exportOptions: {
           columns: function (idx) {
             return idx !== 17; // exclude Actions column

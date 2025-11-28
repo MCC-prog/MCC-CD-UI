@@ -999,6 +999,8 @@ const Advanced_Learners: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+          filename: "Advanced_Learners_Data",
+          title: "Advanced Learners Data Export",
           exportOptions: {
             modifier: { page: "all" },
             columns: function (idx) {
@@ -1008,6 +1010,8 @@ const Advanced_Learners: React.FC = () => {
         },
         {
           extend: "csv",
+          filename: "Advanced_Learners_Data",
+          title: "Advanced Learners Data Export",
           exportOptions: {
             modifier: { page: "all" },
             columns: function (idx) {

@@ -358,12 +358,16 @@ const Teacher_Student_Award: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+          filename: "Teacher_Student_Award_Data",
+          title: "Teacher Student Award Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Teacher_Student_Award_Data",
+          title: "Teacher Student Award Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

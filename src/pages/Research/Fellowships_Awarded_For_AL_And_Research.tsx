@@ -1050,12 +1050,16 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
       buttons: [
         {
           extend: "copy",
+          filename: "Fellowships_Awarded_For_AL_And_Research_Data",
+          title: "Fellowships Awarded For Advanced Learning & Research Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Fellowships_Awarded_For_AL_And_Research_Data",
+          title: "Fellowships Awarded For Advanced Learning & Research Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

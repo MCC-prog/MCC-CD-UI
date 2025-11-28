@@ -585,9 +585,14 @@ const Value_Added_Program: React.FC = () => {
         ],
 
         buttons: [
-          { extend: "copy" },
+          { extend: "copy",
+            filename: "Value_Added_Program_Data",
+            title: "Value Added Program Data Export",
+           },
           {
             extend: "csv",
+            filename: "Value_Added_Program_Data",
+            title: "Value Added Program Data Export",
             exportOptions: {
               modifier: { page: "all" },
               columns: function (idx) {

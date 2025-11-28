@@ -377,12 +377,16 @@ const GreenAudit: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+          filename: "Green_Audit_Data",
+          title: "Green Audit Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Green_Audit_Data",
+          title: "Green Audit Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

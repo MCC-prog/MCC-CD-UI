@@ -322,12 +322,16 @@ const Amphitheatre: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+          filename: "Amphitheatre_Data",
+          title: "Amphitheatre Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Amphitheatre_Data",
+          title: "Amphitheatre Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

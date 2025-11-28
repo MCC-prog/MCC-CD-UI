@@ -323,12 +323,16 @@ const PartTime_Guest: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+          filename: "PartTime_Guest_Data",
+          title: "Part-Time/Guest Faculty Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "PartTime_Guest_Data",
+          title: "Part-Time/Guest Faculty Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

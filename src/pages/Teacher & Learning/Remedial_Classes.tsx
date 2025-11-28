@@ -565,6 +565,8 @@ const Remedial_Classes: React.FC = () => {
         buttons: [
           {
             extend: "copy",
+            filename: "Remedial_Classes_Data",
+            title: "Remedial Classes Data Export",
             exportOptions: {
               modifier: { page: "all" },
               columns: function (idx) {
@@ -574,6 +576,8 @@ const Remedial_Classes: React.FC = () => {
           },
           {
             extend: "csv",
+            filename: "Remedial_Classes_Data",
+            title: "Remedial Classes Data Export",
             exportOptions: {
               modifier: { page: "all" },
               columns: function (idx) {

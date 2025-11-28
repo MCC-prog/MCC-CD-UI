@@ -320,12 +320,16 @@ const ComputerLabs_SimulationLab: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+          filename: "ComputerLabs_SimulationLab_Data",
+          title: "ComputerLabs and SimulationLab Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "ComputerLabs_SimulationLab_Data",
+          title: "ComputerLabs and SimulationLab Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

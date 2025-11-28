@@ -416,12 +416,16 @@ const FP_And_Presentation_Research_Papers = () => {
       buttons: [
         {
           extend: "copy",
+          filename: "Faculty_Participation_And_Presentation_Research_Papers_Data",
+          title: "Faculty Participation And Presentation Research Papers Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Faculty_Participation_And_Presentation_Research_Papers_Data",
+          title: "Faculty Participation And Presentation Research Papers Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

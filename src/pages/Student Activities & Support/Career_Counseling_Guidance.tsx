@@ -439,12 +439,16 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+          filename: "Career_Counseling_Guidance_Data",
+          title: "Career Counseling & Guidance Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Career_Counseling_Guidance_Data",
+          title: "Career Counseling & Guidance Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

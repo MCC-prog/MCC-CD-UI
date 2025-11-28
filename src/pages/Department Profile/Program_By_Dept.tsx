@@ -281,12 +281,16 @@ const Program_By_Dept: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+          filename: "Program_By_Dept_Data",
+          title: "Program offered by the dept Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Program_By_Dept_Data",
+          title: "Program offered by the dept Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

@@ -284,12 +284,16 @@ const Labs: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+          filename: "Labs_Data",
+          title: "Labs Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Labs_Data",
+          title: "Labs Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

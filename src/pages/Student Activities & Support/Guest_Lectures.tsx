@@ -525,12 +525,16 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+          filename: "Guest_Lectures_Data",
+          title: "Guest Lectures Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Guest_Lectures_Data",
+          title: "Guest Lectures Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

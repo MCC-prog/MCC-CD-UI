@@ -407,12 +407,16 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+          filename: "Books_and_Chapters_Data",
+          title: "Books and Chapters Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Books_and_Chapters_Data",  
+          title: "Books and Chapters Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

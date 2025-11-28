@@ -377,12 +377,16 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+          filename: "Research_Journals_Data",
+          title: "Research Journals Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Research_Journals_Data",
+          title: "Research Journals Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

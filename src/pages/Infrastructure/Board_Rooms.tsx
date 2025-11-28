@@ -308,12 +308,16 @@ const Board_Rooms: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+          filename: "Board_Rooms_Data",
+          title: "Board Rooms Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Board_Rooms_Data",
+          title: "Board Rooms Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

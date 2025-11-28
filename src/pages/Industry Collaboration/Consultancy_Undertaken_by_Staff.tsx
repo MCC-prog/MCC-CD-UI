@@ -372,12 +372,16 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+          filename: "Consultancy_Undertaken_By_Staff_Data",
+          title: "Consultancy Undertaken By Staff Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Consultancy_Undertaken_By_Staff_Data",
+          title: "Consultancy Undertaken By Staff Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

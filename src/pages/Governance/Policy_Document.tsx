@@ -306,12 +306,16 @@ const PolicyDocument: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+          filename: "Policy_Document_Data",
+          title: "Policy Document Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Policy_Document_Data",
+          title: "Policy Document Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

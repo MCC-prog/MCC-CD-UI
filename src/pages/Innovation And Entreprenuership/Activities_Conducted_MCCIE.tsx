@@ -468,12 +468,16 @@ const Activities_Conducted_MCCIE: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+          filename: "Activities_Conducted_MCCIE_Data",
+          title: "Activities Conducted MCCIE Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Activities_Conducted_MCCIE_Data",
+          title: "Activities Conducted MCCIE Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

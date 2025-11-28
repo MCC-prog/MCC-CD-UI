@@ -488,12 +488,16 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+          filename: "Cultural_CoCurricularActivities_Conducted_Data",
+          title: "Cultural & Co-Curricular Activities Conducted Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Cultural_CoCurricularActivities_Conducted_Data",
+          title: "Cultural & Co-Curricular Activities Conducted Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

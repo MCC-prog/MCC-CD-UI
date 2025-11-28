@@ -414,12 +414,16 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+          filename: "Constitutional_Values_Data",
+          title: "Constitutional Values Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Constitutional_Values_Data",
+          title: "Constitutional Values Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

@@ -505,12 +505,16 @@ const Research_Guides = () => {
       buttons: [
         {
           extend: "copy",
+          filename: "Research_Guides_Data",
+          title: "Research Guides Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Research_Guides_Data",
+          title: "Research Guides Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

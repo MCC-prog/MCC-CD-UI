@@ -447,12 +447,16 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+          filename: "PatentsOrCopyRights_Data",
+          title: "Patents or CopyRights Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "PatentsOrCopyRights_Data",
+          title: "Patents or CopyRights Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

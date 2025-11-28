@@ -66,6 +66,14 @@ const GetAllSubjectDropdown: React.FC<GetAllSubjectDropdownProps> = ({
       onChange={onChange}
       placeholder={placeholder}
       className={isInvalid ? "select-error" : ""}
+          styles={{
+                menu: (provided) => ({ ...provided, zIndex: 9999 }),
+                menuList: (provided) => ({
+                    ...provided,
+                    maxHeight: "170px",
+                    overflowY: "auto",
+                }),
+            }}
     />
   );
 };

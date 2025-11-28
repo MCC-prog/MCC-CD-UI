@@ -459,12 +459,16 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+          filename: "Skill_Development_Work_Data",
+          title: "Skill Development Work Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Skill_Development_Work_Data",
+          title: "Skill Development Work Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

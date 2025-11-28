@@ -525,6 +525,8 @@ const Boe: React.FC = () => {
         buttons: [
           {
             extend: "copy",
+            filename: "Boe_Data",
+            title: "BOE Data Export",
             exportOptions: {
               modifier: { page: "all" },
               columns: function (idx) {
@@ -534,6 +536,8 @@ const Boe: React.FC = () => {
           },
           {
             extend: "csv",
+            filename: "Boe_Data",
+            title: "BOE Data Export",
             exportOptions: {
               modifier: { page: "all" },
               columns: function (idx) {

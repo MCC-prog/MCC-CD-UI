@@ -578,12 +578,16 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+          filename: "Student_Progression_Competitive_Exams_Data",
+          title: "Student Progression - Competitive Exams Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Student_Progression_Competitive_Exams_Data",
+          title: "Student Progression - Competitive Exams Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

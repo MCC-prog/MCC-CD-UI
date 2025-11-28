@@ -364,12 +364,16 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+          filename: "Sports_Events_Conducted_in_College_Data",
+          title: "Sports Events Conducted in the College Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Sports_Events_Conducted_in_College_Data",
+          title: "Sports Events Conducted in the College Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

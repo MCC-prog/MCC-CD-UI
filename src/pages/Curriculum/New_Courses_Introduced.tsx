@@ -517,9 +517,14 @@ const New_Courses_Introduced: React.FC = () => {
         ],
 
         buttons: [
-          { extend: "copy" },
+          { extend: "copy" ,
+          filename: "New_Courses_Introduced_Data",
+          title: "New Courses Introduced Data Export",
+          },
           {
             extend: "csv",
+            filename: "New_Courses_Introduced_Data",
+            title: "New Courses Introduced Data Export",
             exportOptions: {
               modifier: { page: "all" },
               columns: function (idx) {

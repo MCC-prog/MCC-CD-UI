@@ -511,12 +511,16 @@ const Program_Wise_Exam_Result: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+          filename: "Program_Wise_Exam_Result_Data",
+          title: "Program Wise Exam Result Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Program_Wise_Exam_Result_Data",
+          title: "Program Wise Exam Result Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

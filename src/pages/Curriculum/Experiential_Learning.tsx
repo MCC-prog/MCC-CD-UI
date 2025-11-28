@@ -1730,9 +1730,14 @@ columnDefs: [
 ],
 
 buttons: [
-  { extend: "copy" },
+  { extend: "copy" ,
+    filename: "Experiential_Learning_Data",
+    title: "Experiential Learning Data Export",
+  },
   {
     extend: "csv",
+    filename: "Experiential_Learning_Data",
+    title: "Experiential Learning Data Export",
     exportOptions: {
       modifier: { page: "all" },
       columns: function (idx) {

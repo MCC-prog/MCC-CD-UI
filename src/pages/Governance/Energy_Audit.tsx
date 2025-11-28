@@ -376,12 +376,16 @@ const EnergyAudit: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+          filename: "Energy_Audit_Data",
+          title: "Energy Audit Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Energy_Audit_Data",
+          title: "Energy Audit Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

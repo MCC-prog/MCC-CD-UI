@@ -555,9 +555,14 @@ const New_Programs_Introduced: React.FC = () => {
         ],
 
         buttons: [
-          { extend: "copy" },
+          { extend: "copy",
+            filename: "New_Programs_Introduced_Data",
+            title: "New Programs Introduced Data Export",
+           },
           {
             extend: "csv",
+            filename: "New_Programs_Introduced_Data",
+            title: "New Programs Introduced Data Export",
             exportOptions: {
               modifier: { page: "all" },
               columns: function (idx) {

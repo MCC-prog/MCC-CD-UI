@@ -1025,12 +1025,16 @@ const Management_Funded_Project: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+          filename: "Management_Funded_Project_Data",
+          title: "Management Funded Project Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Management_Funded_Project_Data",
+          title: "Management Funded Project Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

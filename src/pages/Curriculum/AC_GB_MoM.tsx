@@ -450,6 +450,8 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+          filename: "AC_GB_MoM_Data",
+            title: " AC & GB MoM Data Export",
           exportOptions: {
             modifier: { page: "all" },
             columns: function (idx) {
@@ -459,6 +461,8 @@ toast.success(response.message || "File deleted successfully!");
         },
         {
           extend: "csv",
+          filename: "AC_GB_MoM_Data",
+          title: " AC & GB MoM Data Export",
           exportOptions: {
             modifier: { page: "all" },
             columns: function (idx) {

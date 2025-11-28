@@ -415,6 +415,8 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+          filename: "Activities_Peace_Data",
+          title: "Activities Peace Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },

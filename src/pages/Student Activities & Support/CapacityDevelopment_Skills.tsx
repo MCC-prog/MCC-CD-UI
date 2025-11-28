@@ -428,12 +428,16 @@ const CapacityDevelopment_Skills: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+          filename: "Capacity_Development_Skills_Data",
+          title: "Capacity Development & Skills Enhancement Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Capacity_Development_Skills_Data",
+          title: "Capacity Development & Skills Enhancement Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

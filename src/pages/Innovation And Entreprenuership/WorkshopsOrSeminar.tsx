@@ -510,12 +510,16 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+          filename: "WorkshopsOrSeminars_Data",
+          title: "Workshops Or Seminars Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "WorkshopsOrSeminars_Data",
+          title: "Workshops Or Seminars Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

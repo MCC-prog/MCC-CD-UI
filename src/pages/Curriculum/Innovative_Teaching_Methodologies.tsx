@@ -446,9 +446,13 @@ const Innovative_Teaching_Methodologies: React.FC = () => {
         buttons: [
           {
             extend: "copy",
+            filename: "Innovative_Teaching_Methodologies_Data",
+            title: "Innovative Teaching Methodologies Data Export",
           },
           {
             extend: "csv",
+            filename: "Innovative_Teaching_Methodologies_Data",
+            title: "Innovative Teaching Methodologies Data Export",
             exportOptions: {
               modifier: { page: "all" },
               columns: function (idx) {

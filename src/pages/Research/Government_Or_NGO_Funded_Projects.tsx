@@ -893,12 +893,16 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+          filename: "Government_Or_NGO_Funded_Projects_Data",
+          title: "Government Or NGO Funded Projects Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Government_Or_NGO_Funded_Projects_Data",
+          title: "Government Or NGO Funded Projects Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

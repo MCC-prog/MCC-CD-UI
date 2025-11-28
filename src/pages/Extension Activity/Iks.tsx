@@ -353,12 +353,16 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+          filename: "IKS_Activity_Data",
+          title: "IKS Activity Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "IKS_Activity_Data",
+          title: "IKS Activity Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

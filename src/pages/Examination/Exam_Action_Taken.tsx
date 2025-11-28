@@ -396,12 +396,16 @@ const Exam_Action_Taken: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+          filename: "Exam_Action_Taken_Data",
+          title: "Exam Action Taken Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Exam_Action_Taken_Data",
+          title: "Exam Action Taken Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

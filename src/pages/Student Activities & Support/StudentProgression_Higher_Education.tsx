@@ -538,12 +538,16 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+          filename: "Student_Progression_Higher_Education_Data",
+          title: "Student Progression - Higher Education Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Student_Progression_Higher_Education_Data",
+          title: "Student Progression - Higher Education Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

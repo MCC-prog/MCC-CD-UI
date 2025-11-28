@@ -432,12 +432,16 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+          filename: "Innovation_Data",
+          title: "Innovation Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Innovation_Data",
+          title: "Innovation Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

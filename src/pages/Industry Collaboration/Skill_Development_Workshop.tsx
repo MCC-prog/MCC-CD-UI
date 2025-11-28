@@ -464,12 +464,16 @@ const Skill_Development_Workshop: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+          filename: "Skill_Development_Workshop_Data",
+          title: "Skill Development Workshop Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Skill_Development_Workshop_Data",
+          title: "Skill Development Workshop Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

@@ -57,10 +57,18 @@ const DepartmentDropdown: React.FC<DepartmentDropdownProps> = ({
     <Select
       options={options}
       value={value}
-      styles={styles}
       onChange={onChange}
       placeholder={placeholder}
       className={isInvalid ? "select-error" : ""}
+      styles={{
+        ...styles,
+        menu: (provided) => ({ ...provided, zIndex: 9999 }),
+        menuList: (provided) => ({
+          ...provided,
+          maxHeight: "170px",
+          overflowY: "auto",
+        }),
+      }}
     />
   );
 };

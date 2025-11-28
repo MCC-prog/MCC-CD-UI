@@ -503,12 +503,16 @@ const Databases: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+          filename: "Databases_Subscribed_Data",
+          title: "Databases Subscribed Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Databases_Subscribed_Data",
+          title: "Databases Subscribed Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

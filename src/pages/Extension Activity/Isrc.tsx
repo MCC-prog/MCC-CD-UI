@@ -351,12 +351,16 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+          filename: "ISRC_Activity_Data",
+          title: "ISRC Activity Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "ISRC_Activity_Data",
+          title: "ISRC Activity Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

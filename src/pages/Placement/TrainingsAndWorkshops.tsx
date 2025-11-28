@@ -454,12 +454,16 @@ const TrainingsAndWorkshops: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+          filename: "Trainings_and_Workshops_Data",
+          title: "Trainings and Workshops Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Trainings_and_Workshops_Data",
+          title: "Trainings and Workshops Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

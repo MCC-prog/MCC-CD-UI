@@ -267,12 +267,16 @@ const Staff_Profile: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+          filename: "Staff_Profile_Data",
+          title: "Staff Profile Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Staff_Profile_Data",
+          title: "Staff Profile Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

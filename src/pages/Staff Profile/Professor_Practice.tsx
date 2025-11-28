@@ -320,12 +320,16 @@ const Professor_Practice: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+          filename: "Professor_Practice_Data",
+          title: "Professor of Practice Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Professor_Practice_Data",
+          title: "Professor of Practice Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

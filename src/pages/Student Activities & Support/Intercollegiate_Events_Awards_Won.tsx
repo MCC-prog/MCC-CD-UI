@@ -588,12 +588,16 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+          filename: "Intercollegiate_Events_Awards_Won_Data",
+          title: "Intercollegiate Events and Awards Won Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Intercollegiate_Events_Awards_Won_Data",
+          title: "Intercollegiate Events and Awards Won Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

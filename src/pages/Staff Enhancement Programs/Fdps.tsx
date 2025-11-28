@@ -473,12 +473,16 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+          filename: "Fdp_Data",
+          title: "Fdp Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Fdp_Data",
+          title: "Fdp Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

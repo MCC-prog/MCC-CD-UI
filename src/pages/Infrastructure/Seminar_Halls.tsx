@@ -312,12 +312,16 @@ const Seminar_Halls: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+          filename: "Seminar_Halls_Data",
+          title: "Seminar Halls Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Seminar_Halls_Data",
+          title: "Seminar Halls Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

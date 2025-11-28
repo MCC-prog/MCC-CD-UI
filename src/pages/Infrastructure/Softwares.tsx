@@ -344,12 +344,16 @@ const Softwares: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+          filename: "Softwares_Data",
+          title: "Softwares Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Softwares_Data",
+          title: "Softwares Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

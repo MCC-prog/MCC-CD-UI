@@ -374,12 +374,16 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+          filename: "Annual_Expenditure_Data",
+          title: "Annual Expenditure Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Annual_Expenditure_Data",
+          title: "Annual Expenditure Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

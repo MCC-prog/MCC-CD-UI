@@ -379,12 +379,16 @@ const Nss_Yrc: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+          filename: "NSS_YRC_Activity_Data",
+          title: "NSS/YRC Activity Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "NSS_YRC_Activity_Data",
+          title: "NSS/YRC Activity Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

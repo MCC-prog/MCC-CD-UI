@@ -352,6 +352,8 @@ toast.success(response.message || "File deleted successfully!");
 
         buttons: [
           { extend: "copy",
+            filename: "Total_Students_Strength_Data",
+            title: "Total Students Strength Data Export",
             exportOptions: {
               modifier: { page: "all" }, 
               columns: function (idx) {
@@ -361,6 +363,8 @@ toast.success(response.message || "File deleted successfully!");
            },
           {
             extend: "csv",
+            filename: "Total_Students_Strength_Data",
+            title: "Total Students Strength Data Export",
             exportOptions: {
               modifier: { page: "all" }, 
               columns: function (idx) {

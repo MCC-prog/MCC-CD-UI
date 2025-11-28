@@ -363,12 +363,16 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+          filename: "CDP_Activity_Data",
+          title: "CDP Activity Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "CDP_Activity_Data",
+          title: "CDP Activity Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

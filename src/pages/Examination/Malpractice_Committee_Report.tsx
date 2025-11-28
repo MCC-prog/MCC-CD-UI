@@ -634,12 +634,16 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+          filename: "Malpractice_Committee_Report_Data",
+          title: "Malpractice Committee Report Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Malpractice_Committee_Report_Data",
+          title: "Malpractice Committee Report Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

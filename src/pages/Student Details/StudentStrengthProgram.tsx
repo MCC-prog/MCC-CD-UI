@@ -398,6 +398,8 @@ toast.success(response.message || "File deleted successfully!");
 
         buttons: [
           { extend: "copy",
+            filename: "Student_Strength_Program_Wise_Data",
+            title: "Student Strength Program-wise Data Export",
             exportOptions: {
               modifier: { page: "all" }, 
               columns: function (idx) {
@@ -407,6 +409,8 @@ toast.success(response.message || "File deleted successfully!");
            },
           {
             extend: "csv",
+            filename: "Student_Strength_Program_Wise_Data",
+            title: "Student Strength Program-wise Data Export",
             exportOptions: {
               modifier: { page: "all" }, 
               columns: function (idx) {

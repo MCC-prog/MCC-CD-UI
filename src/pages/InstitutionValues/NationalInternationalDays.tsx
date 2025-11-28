@@ -422,12 +422,16 @@ const NationalInternationalDays: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+          filename: "National_International_Days_Data",
+          title: "National International Days Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "National_International_Days_Data",
+          title: "National International Days Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

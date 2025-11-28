@@ -956,9 +956,20 @@ const Student_Centric_Teaching: React.FC = () => {
         ],
 
         buttons: [
-          { extend: "copy" },
+          { extend: "copy", 
+            filename: "Student_Centric_Teaching_Methodology",
+            title: "Student Centric Teaching Methodology Data Export",
+            exportOptions: {
+              modifier: { page: "all" },
+              columns: function (idx) {
+                return idx !== 36; // exclude action column
+              },
+            },
+          },
           {
             extend: "csv",
+            filename: "Student_Centric_Teaching_Methodology",
+            title: "Student Centric Teaching Methodology Data Export",
             exportOptions: {
               modifier: { page: "all" },
               columns: function (idx) {

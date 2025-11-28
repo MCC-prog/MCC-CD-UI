@@ -508,12 +508,16 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+          filename: "Mous_Agreement_Copy_Activities_Data",
+          title: "Mous Agreement Copy & Activities Data Export",
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+          filename: "Mous_Agreement_Copy_Activities_Data",
+          title: "Mous Agreement Copy & Activities Data Export",
           exportOptions: {
             columns: ":not(:last-child)",
           },

@@ -1166,9 +1166,15 @@ useEffect(() => {
       ],
 
       buttons: [
-        { extend: "copy" },
+        { extend: "copy" ,
+          filename: "Courses_With_Focus_Data",
+          title: "Courses With Focus Data Export",
+        },
+        
         {
           extend: "csv",
+          filename: "Courses_With_Focus_Data",
+          title: "Courses With Focus Data Export",
           exportOptions: {
             modifier: { page: "all" },
             columns: function (idx, data, node) {
