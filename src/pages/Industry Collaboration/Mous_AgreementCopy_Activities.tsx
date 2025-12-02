@@ -1112,6 +1112,7 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+        className="delete-popup"
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

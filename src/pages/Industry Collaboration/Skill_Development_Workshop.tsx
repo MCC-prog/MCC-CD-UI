@@ -969,6 +969,7 @@ const Skill_Development_Workshop: React.FC = () => {
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+        className="delete-popup"
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

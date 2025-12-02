@@ -1647,6 +1647,7 @@ const Fellowships_Awarded_For_AL_And_Research = () => {
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+        className="delete-popup"
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

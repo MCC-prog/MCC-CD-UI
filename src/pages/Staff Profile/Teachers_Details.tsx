@@ -799,6 +799,7 @@ const Teachers_Details: React.FC = () => {
           </ModalBody>
         </Modal>
         <Modal
+        className="delete-popup"
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

@@ -765,6 +765,7 @@ const tableRef = useRef<HTMLTableElement>(null);
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+        className="delete-popup"
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

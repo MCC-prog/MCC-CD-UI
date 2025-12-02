@@ -1062,6 +1062,7 @@ const FP_And_Presentation_Research_Papers = () => {
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+        className="delete-popup"
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

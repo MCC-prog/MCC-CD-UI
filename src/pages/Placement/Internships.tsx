@@ -745,6 +745,7 @@ const Internships: React.FC = () => {
       </Modal>
       {/* Confirmation Modal for record */}
       <Modal
+      className="delete-popup"
         isOpen={isDeleteModalOpen}
         toggle={() => setIsDeleteModalOpen(false)}
       >

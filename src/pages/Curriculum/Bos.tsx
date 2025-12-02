@@ -1230,7 +1230,7 @@ const Bos: React.FC = () => {
           </ModalBody>
         </Modal>
         {/* Confirmation Modal */}
-        <Modal
+        <Modal  className="delete-popup"
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

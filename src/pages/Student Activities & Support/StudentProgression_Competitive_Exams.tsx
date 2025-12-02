@@ -1224,6 +1224,7 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+        className="delete-popup"
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

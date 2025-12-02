@@ -2043,12 +2043,19 @@ buttons: [
                   </Col>
 
                   <div className="mb-3 mt-3 d-grid">
-                    <Button
-                      className="btn btn-tabs toggle-wizard-button"
+                    <button
+                      className="btn btn-primary toggle-wizard-button"
+                      onClick={toggleWizard}
+                      type="button"
+                    >
+                     PEDAGOGY
+                    </button>
+                    {/* <Button
+                      className="btn btn-primary toggle-wizard-button"
                       onClick={toggleWizard}
                     >
                       PEDAGOGY
-                    </Button>
+                    </Button> */}
                   </div>
                   {showWizard && (
                     <div className="wizard clearfix">
@@ -4049,6 +4056,7 @@ buttons: [
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+        className="delete-popup"
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

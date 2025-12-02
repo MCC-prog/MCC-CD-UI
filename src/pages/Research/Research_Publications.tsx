@@ -344,7 +344,7 @@ const Research_Publications = () => {
     return matchedOption ? matchedOption : { value, label: String(value) };
   };
 
-  function handleDelete(researchDataId: any): void {
+  const handleDelete = (researchDataId: string) => {
     setDeleteId(researchDataId);
     setIsDeleteModalOpen(true);
   }
@@ -355,7 +355,7 @@ const Research_Publications = () => {
     if (deleteId) {
       try {
         const response = await api.delete(
-          `/researchPublication/delete?researchPublicationId=${id}`,
+          `/researchPublication/deleteResearchPublication?researchPublicationId=${id}`,
           ""
         );
         setIsModalOpen(false);
@@ -1121,6 +1121,7 @@ toast.success(response.message || "File deleted successfully!");
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+        className="delete-popup"
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

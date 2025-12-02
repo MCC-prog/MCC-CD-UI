@@ -744,6 +744,7 @@ const Professor_Practice: React.FC = () => {
           </ModalBody>
         </Modal>
         <Modal
+        className="delete-popup"
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

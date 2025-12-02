@@ -702,6 +702,7 @@ const Innovative_Teaching_Methodologies: React.FC = () => {
         </Container>
         {/* Modal for Listing Innovative Teaching Methodologies */}
         <Modal
+        
           isOpen={isModalOpen}
           toggle={toggleModal}
           size="lg"
@@ -796,6 +797,7 @@ const Innovative_Teaching_Methodologies: React.FC = () => {
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+        className="delete-popup"
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

@@ -1391,6 +1391,7 @@ const Value_Added_Program: React.FC = () => {
           </ModalBody>
         </Modal>
         <Modal
+        className="delete-popup"
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

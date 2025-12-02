@@ -474,13 +474,13 @@ const Boe: React.FC = () => {
       try {
         if (isEditMode && editId) {
           // Call the update API
-          const response = await api.put(`/boe/updateCurriculumBoe`, formData);
+          const response = await api.put(`/boe/updateBoe`, formData);
           toast.success(
             response.message || "Curriculum BOE updated successfully!"
           );
         } else {
           // Call the save API
-          const response = await api.create("/boe/saveCurriculumBoe", formData);
+          const response = await api.create("/boe/saveBoe", formData);
           toast.success(
             response.message || "Curriculum BOE added successfully!"
           );
@@ -1138,6 +1138,7 @@ const Boe: React.FC = () => {
         </Container>
         {/* Modal for Listing BOS */}
         <Modal
+        className="delete-popup"
           isOpen={isModalOpen}
           toggle={toggleModal}
           size="lg"
@@ -1231,6 +1232,7 @@ const Boe: React.FC = () => {
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+        className="delete-popup"
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >
