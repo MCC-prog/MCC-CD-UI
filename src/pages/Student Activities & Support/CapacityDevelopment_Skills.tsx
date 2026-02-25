@@ -549,6 +549,7 @@ const CapacityDevelopment_Skills: React.FC = () => {
                         )}
                     </div>
                   </Col>
+
                   <Col lg={4}>
                     <div className="mb-3">
                       <Label>Semester No</Label>
@@ -574,8 +575,7 @@ const CapacityDevelopment_Skills: React.FC = () => {
                       )}
                     </div>
                   </Col>
-
-                  <Col lg={4}>
+                    <Col lg={4}>
                     <div className="mb-3">
                       <Label>Activity Name</Label>
                       <Input
@@ -598,6 +598,67 @@ const CapacityDevelopment_Skills: React.FC = () => {
                         validation.errors.activityName && (
                           <div className="text-danger">
                             {validation.errors.activityName}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+
+
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Language and communication skills</Label>
+                      <Input
+                        type="text"
+                        className={`form-control ${
+                          validation.touched.LanguageAndCommunication &&
+                          validation.errors.LanguageAndCommunication
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        value={validation.values.LanguageAndCommunication}
+                        onChange={(e) =>
+                          validation.setFieldValue(
+                            "LanguageAndCommunication",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Enter Language and communication skills"
+                      />
+                      {validation.touched.LanguageAndCommunication &&
+                        validation.errors.LanguageAndCommunication && (
+                          <div className="text-danger">
+                            {validation.errors.LanguageAndCommunication}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Life Skills</Label>
+                      <Select
+                        options={lifeSkills}
+                        value={validation.values.lifeSkills}
+                        onChange={(selectedOptions) =>
+                          validation.setFieldValue(
+                            "lifeSkills",
+                            selectedOptions
+                          )
+                        }
+                        placeholder="Select Life Skills"
+                        styles={dropdownStyles}
+                        menuPortalTarget={document.body}
+                        className={
+                          validation.touched.lifeSkills &&
+                          validation.errors.lifeSkills
+                            ? "select-error"
+                            : ""
+                        }
+                      />
+                      {validation.touched.lifeSkills &&
+                        validation.errors.lifeSkills && (
+                          <div className="text-danger">
+                            {validation.errors.lifeSkills}
                           </div>
                         )}
                     </div>
@@ -629,6 +690,34 @@ const CapacityDevelopment_Skills: React.FC = () => {
                     </div>
                   </Col>
 
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Awareness of trends in technology</Label>
+                      <Input
+                        type="text"
+                        className={`form-control ${
+                          validation.touched.awarenessOfTrends &&
+                          validation.errors.awarenessOfTrends
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        value={validation.values.awarenessOfTrends}
+                        onChange={(e) =>
+                          validation.setFieldValue(
+                            "awarenessOfTrends",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Enter awareness of trends in technology"
+                      />
+                      {validation.touched.awarenessOfTrends &&
+                        validation.errors.awarenessOfTrends && (
+                          <div className="text-danger">
+                            {validation.errors.awarenessOfTrends}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
@@ -760,11 +849,11 @@ const CapacityDevelopment_Skills: React.FC = () => {
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
-                  <th>School</th>
-                  <th>Department</th>
-                  <th>Semester No</th>
-                  <th>Activity Name</th>
+                  <th>Soft Skills</th>
+                  <th>Language and Communication Skills</th>
+                  <th>Life Skills</th>
                   <th>Type</th>
+                  <th>Awareness of trends in technology</th>
                   <th className="d-none">File</th>
                   <th>Actions</th>
                 </tr>
