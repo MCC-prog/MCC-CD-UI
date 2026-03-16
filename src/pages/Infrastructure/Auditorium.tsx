@@ -236,7 +236,11 @@ const Auditorium: React.FC = () => {
             return this.createError({ message: "Please upload a file" });
           }
           // Check file size (2MB limit)
+<<<<<<< HEAD
           if (value instanceof File && value.size > 2 * 1024 * 1024) {
+=======
+          if (value instanceof File && value.size > 10 * 1024 * 1024) {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             return this.createError({ message: "File size is too large" });
           }
           // Check file type
@@ -315,12 +319,22 @@ const Auditorium: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+<<<<<<< HEAD
+=======
+          filename: "Auditorium_Data",
+          title: "Auditorium Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+<<<<<<< HEAD
+=======
+          filename: "Auditorium_Data",
+          title: "Auditorium Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)",
           },
@@ -350,7 +364,11 @@ const Auditorium: React.FC = () => {
       <div className="page-content">
         <Container fluid>
           <Breadcrumb title="Infrastructure" breadcrumbItem="Auditorium" />
+<<<<<<< HEAD
           <Card>
+=======
+          <Card style={{ height: "350px" }}>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
                 <Row>
@@ -589,6 +607,10 @@ const Auditorium: React.FC = () => {
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

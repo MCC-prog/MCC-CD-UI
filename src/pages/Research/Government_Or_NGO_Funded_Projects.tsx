@@ -893,12 +893,22 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+<<<<<<< HEAD
+=======
+          filename: "Government_Or_NGO_Funded_Projects_Data",
+          title: "Government Or NGO Funded Projects Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+<<<<<<< HEAD
+=======
+          filename: "Government_Or_NGO_Funded_Projects_Data",
+          title: "Government Or NGO Funded Projects Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)",
           },
@@ -1338,6 +1348,10 @@ toast.success(response.message || "File deleted successfully!");
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

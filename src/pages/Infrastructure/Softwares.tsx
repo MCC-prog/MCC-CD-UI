@@ -262,7 +262,11 @@ const Softwares: React.FC = () => {
             return this.createError({ message: "Please upload a file" });
           }
           // Check file size (2MB limit)
+<<<<<<< HEAD
           if (value instanceof File && value.size > 2 * 1024 * 1024) {
+=======
+          if (value instanceof File && value.size > 10 * 1024 * 1024) {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             return this.createError({ message: "File size is too large" });
           }
           // Check file type
@@ -344,12 +348,22 @@ const Softwares: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+<<<<<<< HEAD
+=======
+          filename: "Softwares_Data",
+          title: "Softwares Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+<<<<<<< HEAD
+=======
+          filename: "Softwares_Data",
+          title: "Softwares Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)",
           },
@@ -378,7 +392,11 @@ const Softwares: React.FC = () => {
       <div className="page-content">
         <Container fluid>
           <Breadcrumb title="Infrastructure" breadcrumbItem="Software" />
+<<<<<<< HEAD
           <Card>
+=======
+          <Card style={{ height: "350px" }}>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
                 <Row>
@@ -633,7 +651,11 @@ const Softwares: React.FC = () => {
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
+<<<<<<< HEAD
                   <th>Stream</th>
+=======
+                  <th>School</th>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                   <th>Department</th>
                   <th>Name of Software</th>
                   <th>No of Licenses</th>
@@ -683,6 +705,10 @@ const Softwares: React.FC = () => {
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

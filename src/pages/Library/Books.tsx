@@ -300,7 +300,11 @@ toast.success(response.message || "File deleted successfully!");
             return this.createError({ message: "Please upload a file" });
           }
           // Check file size (2MB limit)
+<<<<<<< HEAD
           if (value instanceof File && value.size > 2 * 1024 * 1024) {
+=======
+          if (value instanceof File && value.size > 10 * 1024 * 1024) {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             return this.createError({ message: "File size is too large" });
           }
           // Check file type
@@ -382,12 +386,22 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+<<<<<<< HEAD
+=======
+          filename: "Books_Data",
+          title: "Books Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+<<<<<<< HEAD
+=======
+          filename: "Books_Data",
+          title: "Books Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)",
           },
@@ -417,7 +431,11 @@ toast.success(response.message || "File deleted successfully!");
       <div className="page-content">
         <Container fluid>
           <Breadcrumb title="Library" breadcrumbItem="Books" />
+<<<<<<< HEAD
           <Card>
+=======
+          <Card style={{ height: "350px" }}>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
                 <Row>
@@ -668,8 +686,13 @@ toast.success(response.message || "File deleted successfully!");
                 </tr>
               </thead>
               <tbody>
+<<<<<<< HEAD
                 {currentRows.length > 0 ? (
                   currentRows.map((cds, index) => (
+=======
+                {cswData.length > 0 ? (
+                  cswData.map((cds, index) => (
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                     <tr key={cds.id}>
                       <td>{index + 1}</td>
                       <td>{cds.academicYear}</td>
@@ -707,6 +730,10 @@ toast.success(response.message || "File deleted successfully!");
           </ModalBody>
         </Modal>
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

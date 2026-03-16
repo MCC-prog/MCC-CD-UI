@@ -363,7 +363,11 @@ toast.success(response.message || "File deleted successfully!");
             return this.createError({ message: "Please upload a file" });
           }
           // Check file size (2MB limit)
+<<<<<<< HEAD
           if (value instanceof File && value.size > 2 * 1024 * 1024) {
+=======
+          if (value instanceof File && value.size > 10 * 1024 * 1024) {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             return this.createError({ message: "File size is too large" });
           }
           // Check file type
@@ -459,12 +463,22 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+<<<<<<< HEAD
+=======
+          filename: "Skill_Development_Work_Data",
+          title: "Skill Development Work Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+<<<<<<< HEAD
+=======
+          filename: "Skill_Development_Work_Data",
+          title: "Skill Development Work Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)",
           },
@@ -894,7 +908,11 @@ toast.success(response.message || "File deleted successfully!");
           </ModalHeader>
           <ModalBody>
             <Table striped bordered hover id="id" innerRef={tableRef}>
+<<<<<<< HEAD
               <thead className="table-dark">
+=======
+              <thead>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
@@ -911,8 +929,13 @@ toast.success(response.message || "File deleted successfully!");
                 </tr>
               </thead>
               <tbody>
+<<<<<<< HEAD
                 {currentRows.length > 0 ? (
                   currentRows.map((bos, index) => (
+=======
+                {swdData.length > 0 ? (
+                  swdData.map((bos, index) => (
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                     <tr key={bos.id}>
                       <td>{indexOfFirstRow + index + 1}</td>
                       <td>{bos.year}</td>
@@ -956,6 +979,10 @@ toast.success(response.message || "File deleted successfully!");
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

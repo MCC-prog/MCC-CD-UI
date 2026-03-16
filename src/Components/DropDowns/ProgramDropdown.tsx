@@ -5,6 +5,11 @@ import { APIClient } from "../../helpers/api_helper";
 const api = new APIClient();
 
 interface ProgramDropdownProps {
+<<<<<<< HEAD
+=======
+   programTypeId: string | null; // Program Type ID passed from the parent
+  deptId: string | null;
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
   degreeId: string | null; // Degree ID passed from the parent
   value: any[]; // Array for multi-select
   onChange: (selectedOptions: any[]) => void; // Array of selected options
@@ -13,6 +18,11 @@ interface ProgramDropdownProps {
 }
 
 const ProgramDropdown: React.FC<ProgramDropdownProps> = ({
+<<<<<<< HEAD
+=======
+  programTypeId,
+  deptId,
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
   degreeId,
   value,
   onChange,
@@ -24,7 +34,11 @@ const ProgramDropdown: React.FC<ProgramDropdownProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+<<<<<<< HEAD
     if (!degreeId) {
+=======
+    if (!programTypeId || !deptId || !degreeId) {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       setOptions([]);
       return;
     }
@@ -33,7 +47,11 @@ const ProgramDropdown: React.FC<ProgramDropdownProps> = ({
       setLoading(true);
       try {
         // Fetch programs based on the selected degree ID
+<<<<<<< HEAD
         const response = await api.get(`getCourseByProgramId?programId=${degreeId}`, "");
+=======
+        const response = await api.get(`getCoursesByDeptIdProgramTypeIdPId?deptId=${deptId}&programTypeId=${programTypeId}&programId=${degreeId}`, "");
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         const programsList = response.map((program: any) => ({
           value: program.id,
           label: program.courseName,

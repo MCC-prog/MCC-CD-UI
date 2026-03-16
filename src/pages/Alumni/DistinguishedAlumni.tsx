@@ -347,7 +347,11 @@ const tableRef = useRef<HTMLTableElement>(null);
       useEffect(() => {
     if (bosData.length === 0) return; // wait until data is loaded
 
+<<<<<<< HEAD
     const table = $("#id").DataTable({
+=======
+    const table = $("#bosDataId").DataTable({
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       destroy: true, // destroy existing instance if re-rendered
       scrollX: true, 
        autoWidth: false, 
@@ -355,12 +359,22 @@ const tableRef = useRef<HTMLTableElement>(null);
       buttons: [
         {
           extend: "copy",
+<<<<<<< HEAD
+=======
+          filename: "Distinguished_Alumni",
+          title: "Distinguished Alumni Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+<<<<<<< HEAD
+=======
+          filename: "Distinguished_Alumni",
+          title: "Distinguished Alumni Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)",
           },
@@ -619,9 +633,19 @@ const tableRef = useRef<HTMLTableElement>(null);
                         }
                       >
                         <option value="">Select Batch</option>
+<<<<<<< HEAD
                         <option value="2023">b2</option>
                         <option value="2024">b1</option>
                         <option value="2025">b0</option>
+=======
+                        <option value="2020">2019-2020</option>
+                        <option value="2021">2020-2021</option>
+                        <option value="2022">2021-2022</option>
+                        <option value="2023">2022-2023</option>
+                        <option value="2024">2023-2024</option>
+                        <option value="2025">2024-2025</option>
+                        
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       </Input>
                       {validation.touched.batch && validation.errors.batch && (
                         <div className="text-danger">
@@ -708,6 +732,7 @@ const tableRef = useRef<HTMLTableElement>(null);
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
+<<<<<<< HEAD
                   <th>Name</th>
                   <th>Register Number</th>
                   <th>Batch</th>
@@ -716,6 +741,16 @@ const tableRef = useRef<HTMLTableElement>(null);
                   <th>Program</th>
                   {/* <th>Job Role</th> */}
                   <th className="d-none">File Path</th> {/* Hidden */}
+=======
+                  <th>School</th>
+                  <th>Department</th>
+                  <th>Program</th>
+                  <th>Name</th>
+                  <th>Register Number</th>
+                  <th>Batch</th>
+                  {/* <th>Job Role</th> */}
+                  {/* <th className="d-none">File Path</th> */}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -725,6 +760,7 @@ const tableRef = useRef<HTMLTableElement>(null);
                     <tr key={alumini.bosDataId}>
                       <td>{index + 1}</td>
                       <td>{alumini.academicYear}</td>
+<<<<<<< HEAD
                       <td>{alumini.name}</td>
                       <td>{alumini.registerNumber}</td>
                       <td>{alumini.batchName}</td>
@@ -733,6 +769,17 @@ const tableRef = useRef<HTMLTableElement>(null);
                       <td>{alumini.programName}</td>
                       {/* <td>{alumini.jobRole}</td> */}
                       <td className="d-none">{alumini?.filePath?.auditorium || "N/A"}</td> {/* Hidden */}
+=======
+                      <td>{alumini.streamName}</td>
+                      <td>{alumini.departmentName}</td>
+                      <td>{alumini.programName}</td>
+                      <td>{alumini.name}</td>
+                      <td>{alumini.registerNumber}</td>
+                      <td>{alumini.batchName}</td>
+               
+                      {/* <td>{alumini.jobRole}</td> */}
+                      {/* <td className="d-none">{alumini?.filePath?.auditorium || "N/A"}</td> */}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
@@ -764,6 +811,10 @@ const tableRef = useRef<HTMLTableElement>(null);
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

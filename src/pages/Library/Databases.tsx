@@ -56,7 +56,14 @@ const Databases: React.FC = () => {
   });
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+<<<<<<< HEAD
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
+=======
+  const [isFile2UploadDisabled, setIsFile2UploadDisabled] = useState(false);
+  const [disabledUploads, setDisabledUploads] = useState<
+    Record<string, boolean>
+  >({});
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
   // State variables for managing selected options in dropdowns
   const [selectedStream, setSelectedStream] = useState<any>(null);
   const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
@@ -159,6 +166,18 @@ const Databases: React.FC = () => {
         subscriptionDetails: subscriptionFileKeys,
         subscriptionFiles: {}, // optional; will be populated later
       });
+<<<<<<< HEAD
+=======
+      // Disable upload for each subscription type that already has a file
+      const disableMap: Record<string, boolean> = {};
+      subscriptionFileKeys.forEach((type) => {
+        if (files[type]) {
+          disableMap[type] = true;
+        }
+      });
+      setDisabledUploads(disableMap);
+      setIsFile2UploadDisabled(!!files.DayRegister);
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       toggleModal();
@@ -260,13 +279,24 @@ const Databases: React.FC = () => {
         `/dataBasesSubscribed/deleteDataBasesSubscribedDocument?fileName=${fileName}`,
         ""
       );
+<<<<<<< HEAD
 toast.success(response.message || "File deleted successfully!");
+=======
+      toast.success(response.message || "File deleted successfully!");
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       if (docType === "DayRegister") {
         validation.setFieldValue("file", null);
       }
       if (docType === "Subscription") {
         validation.setFieldValue("excel", null);
       }
+<<<<<<< HEAD
+=======
+      setDisabledUploads((prev) => ({
+        ...prev,
+        [docType]: false,
+      }));
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       if (
         [
           "Daily",
@@ -283,7 +313,11 @@ toast.success(response.message || "File deleted successfully!");
         delete updated[docType];
         validation.setFieldValue("subscriptionFileNames", updated);
       }
+<<<<<<< HEAD
       setIsFileUploadDisabled(false); // Enable the file upload button
+=======
+      setIsFile2UploadDisabled(false); // Enable the file upload button
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
     } catch (error) {
       toast.error("Failed to delete the file. Please try again.");
       console.error("Error deleting file:", error);
@@ -308,6 +342,7 @@ toast.success(response.message || "File deleted successfully!");
 
       subscriptionFiles: Yup.object().test(
         "subscriptionFilesValidation",
+<<<<<<< HEAD
         "Invalid subscription file(s)",
         function (value) {
           const { subscriptionDetails, subscriptionFileNames } = this.parent;
@@ -330,17 +365,56 @@ toast.success(response.message || "File deleted successfully!");
               return this.createError({
                 message: `File size too large for ${key} (max 2MB)`,
               });
+=======
+        function (value) {
+          const { subscriptionDetails, subscriptionFileNames } = this.parent;
+
+          const errors: Record<string, string> = {};
+
+          for (const key of subscriptionDetails) {
+            const file = value?.[key];
+            const existing = subscriptionFileNames?.[key];
+
+            // Skip existing API file
+            if (!file && existing) continue;
+
+            // Required
+            if (!file) {
+              errors[key] = `Please upload a file for ${key}`;
+              continue;
+            }
+
+            // File size
+            if (file instanceof File && file.size > 10 * 1024 * 1024) {
+              errors[key] = `File size too large for ${key} (max 2MB)`;
+              continue;
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             }
 
             // Allowed types
             const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
             if (file instanceof File && !allowedTypes.includes(file.type)) {
+<<<<<<< HEAD
               return this.createError({
                 message: `Unsupported file format for ${key}`,
               });
             }
           }
 
+=======
+              errors[key] = `Unsupported file format for ${key}`;
+              continue;
+            }
+          }
+
+          // Inject per-field errors
+          if (Object.keys(errors).length > 0) {
+            return this.createError({
+              message: errors,
+            });
+          }
+
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           return true;
         }
       ),
@@ -352,7 +426,11 @@ toast.success(response.message || "File deleted successfully!");
         "Please upload a valid file",
         function (value) {
           // Skip validation if the file upload is disabled (file exists)
+<<<<<<< HEAD
           if (isFileUploadDisabled) {
+=======
+          if (isFile2UploadDisabled) {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             return true;
           }
           // Perform validation if the file upload is enabled (file doesn't exist)
@@ -360,7 +438,11 @@ toast.success(response.message || "File deleted successfully!");
             return this.createError({ message: "Please upload a file" });
           }
           // Check file size (2MB limit)
+<<<<<<< HEAD
           if (value instanceof File && value.size > 2 * 1024 * 1024) {
+=======
+          if (value instanceof File && value.size > 10 * 1024 * 1024) {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             return this.createError({ message: "File size is too large" });
           }
           // Check file type
@@ -425,6 +507,7 @@ toast.success(response.message || "File deleted successfully!");
         } else if (values.file) {
           formData.append("dayRegister", values.file);
         }
+<<<<<<< HEAD
         // if (isEditMode && typeof values.excel === "string") {
         //   // Pass an empty PDF instead of null
         //   formData.append(
@@ -441,6 +524,9 @@ toast.success(response.message || "File deleted successfully!");
         // } else if (values.excel) {
         //   formData.append("subscription", values.excel);
        // }
+=======
+
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         // If in edit mode, append the edit ID
         if (isEditMode && editId) {
           formData.append("id", editId);
@@ -466,9 +552,14 @@ toast.success(response.message || "File deleted successfully!");
         if (fileRef.current) {
           fileRef.current.value = "";
         }
+<<<<<<< HEAD
         // if (excelRef.current) {
         //   excelRef.current.value = "";
         // }
+=======
+        setIsFile2UploadDisabled(false);
+
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         handleListCSWClick();
@@ -497,12 +588,22 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+<<<<<<< HEAD
+=======
+          filename: "Databases_Subscribed_Data",
+          title: "Databases Subscribed Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+<<<<<<< HEAD
+=======
+          filename: "Databases_Subscribed_Data",
+          title: "Databases Subscribed Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)",
           },
@@ -675,7 +776,11 @@ toast.success(response.message || "File deleted successfully!");
                               : null
                           );
                         }}
+<<<<<<< HEAD
                         disabled={isFileUploadDisabled} // Disable the button if a file exists
+=======
+                        disabled={isFile2UploadDisabled} // Disable the button if a file exists
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       />
                       {validation.touched.file && validation.errors.file && (
                         <div className="text-danger">
@@ -683,7 +788,11 @@ toast.success(response.message || "File deleted successfully!");
                         </div>
                       )}
                       {/* Show a message if the file upload button is disabled */}
+<<<<<<< HEAD
                       {isFileUploadDisabled && (
+=======
+                      {isFile2UploadDisabled && (
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                         <div className="text-warning mt-2">
                           Please remove the existing file to upload a new one.
                         </div>
@@ -715,7 +824,11 @@ toast.success(response.message || "File deleted successfully!");
                             onClick={() =>
                               handleDeleteFile(
                                 validation.values.file as string,
+<<<<<<< HEAD
                                 "SportsEventsReport"
+=======
+                                "DayRegister"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                               )
                             }
                             title="Delete File"
@@ -811,6 +924,10 @@ toast.success(response.message || "File deleted successfully!");
                                 ? "is-invalid"
                                 : ""
                             }`}
+<<<<<<< HEAD
+=======
+                            disabled={disabledUploads[type] === true}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                             onChange={(e) =>
                               validation.setFieldValue(
                                 `subscriptionFiles.${type}`,
@@ -922,12 +1039,20 @@ toast.success(response.message || "File deleted successfully!");
           </ModalHeader>
           <ModalBody>
             <Table striped bordered hover id="DbId" innerRef={tableRef}>
+<<<<<<< HEAD
               <thead className="table-dark">
+=======
+              <thead>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                 <tr>
                   <th>#</th>
                   <th>Academic Year </th>
                   <th>Number of teachers</th>
                   <th>Number of students</th>
+<<<<<<< HEAD
+=======
+                   <th className="d-none">Day Register</th>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                   <th className="d-none">Annual</th>
                   <th className="d-none">Bimonthly</th>
                   <th className="d-none">Monthly</th>
@@ -942,13 +1067,24 @@ toast.success(response.message || "File deleted successfully!");
                 </tr>
               </thead>
               <tbody>
+<<<<<<< HEAD
                 {currentRows.length > 0 ? (
                   currentRows.map((cds, index) => (
+=======
+                {cswData.length > 0 ? (
+                  cswData.map((cds, index) => (
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                     <tr key={cds.id}>
                       <td>{index + 1}</td>
                       <td>{cds.academicYear}</td>
                       <td>{cds.noOfTeachersUsingLibPerDay}</td>
                       <td>{cds.noOfStudentsUsingLibPerDay}</td>
+<<<<<<< HEAD
+=======
+                       <td className="d-none">
+                        {cds.filePath?.DayRegister || "N/A"}
+                      </td>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       <td className="d-none">
                         {cds.filePath?.Annual || "N/A"}
                       </td>
@@ -964,9 +1100,13 @@ toast.success(response.message || "File deleted successfully!");
                       <td className="d-none">
                         {cds.filePath?.Weekly || "N/A"}
                       </td>
+<<<<<<< HEAD
                        <td className="d-none">
                         {cds.filePath?.Daily || "N/A"}
                       </td>
+=======
+                      <td className="d-none">{cds.filePath?.Daily || "N/A"}</td>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       <td className="d-none">
                         {cds.filePath?.Halfyearly || "N/A"}
                       </td>
@@ -974,7 +1114,11 @@ toast.success(response.message || "File deleted successfully!");
                         {cds.filePath?.Subscription || "N/A"}
                       </td>
                       <td className="d-none">
+<<<<<<< HEAD
                         {cds.filePath?.DayRegister || "N/A"}
+=======
+                        {cds.filePath?.Daily || "N/A"}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       </td>
                       <td className="d-none">
                         {cds.filePath?.Quarterly || "N/A"}
@@ -1007,6 +1151,10 @@ toast.success(response.message || "File deleted successfully!");
           </ModalBody>
         </Modal>
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

@@ -81,6 +81,22 @@ const Program_Wise_Exam_Result: React.FC = () => {
 
   const tableRef = useRef<HTMLTableElement>(null);
 
+<<<<<<< HEAD
+=======
+  const [menuOpen, setmenuOpen] = useState(false);
+
+  const ROMAN_MAP: Record<string, string> = {
+  "1": "I",
+  "2": "II",
+  "3": "III",
+  "4": "IV",
+  "5": "V",
+  "6": "VI",
+  "7": "VII",
+  "8": "VIII",
+};
+
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
   // Calculate the paginated data
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
@@ -169,43 +185,78 @@ const Program_Wise_Exam_Result: React.FC = () => {
 
         department: response.departmentId
           ? {
+<<<<<<< HEAD
             value: response.departmentId.toString(),
             label: response.departmentName,
           }
+=======
+              value: response.departmentId.toString(),
+              label: response.departmentName,
+            }
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           : null,
 
         programType: response.programTypeId
           ? {
+<<<<<<< HEAD
             value: response.programTypeId.toString(),
             label: response.programTypeName,
           }
+=======
+              value: response.programTypeId.toString(),
+              label: response.programTypeName,
+            }
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           : null,
 
         degree: response.programId
           ? {
+<<<<<<< HEAD
             value: response.programId.toString(),
             label: response.programName,
           }
+=======
+              value: response.programId.toString(),
+              label: response.programName,
+            }
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           : null,
 
         program: response.courses
           ? Object.entries(response.courses).map(([key, value]) => ({
+<<<<<<< HEAD
             value: key,
             label: String(value),
           }))
+=======
+              value: key,
+              label: String(value),
+            }))
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           : [],
 
         examType: response.typeOfExam
           ? {
+<<<<<<< HEAD
             value: String(response.typeOfExam),
             label: String(response.typeOfExam),
           }
+=======
+              value: String(response.typeOfExam),
+              label: String(response.typeOfExam),
+            }
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           : null,
 
         semester: response.semesters
           ? response.semesters.map((sem: number) =>
+<<<<<<< HEAD
             mapValueToLabel(String(sem), semesterNoOptions)
           )
+=======
+              mapValueToLabel(String(sem), semesterNoOptions)
+            )
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           : [],
 
         file: response.documents?.examResult || null,
@@ -220,9 +271,15 @@ const Program_Wise_Exam_Result: React.FC = () => {
         ...mappedValues,
         academicYear: mappedValues.academicYear
           ? {
+<<<<<<< HEAD
             ...mappedValues.academicYear,
             value: String(mappedValues.academicYear.value),
           }
+=======
+              ...mappedValues.academicYear,
+              value: String(mappedValues.academicYear.value),
+            }
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           : null,
       });
       setSelectedStream(streamOption);
@@ -321,7 +378,11 @@ const Program_Wise_Exam_Result: React.FC = () => {
         ""
       );
       // Show success message
+<<<<<<< HEAD
 toast.success(response.message || "File deleted successfully!");
+=======
+      toast.success(response.message || "File deleted successfully!");
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       // Remove the file from the form
       validation.setFieldValue("file", null); // Clear the file from Formik state
       setIsFileUploadDisabled(false); // Enable the file upload button
@@ -378,7 +439,11 @@ toast.success(response.message || "File deleted successfully!");
             return this.createError({ message: "Please upload a file" });
           }
           // Check file size (2MB limit)
+<<<<<<< HEAD
           if (value instanceof File && value.size > 2 * 1024 * 1024) {
+=======
+          if (value instanceof File && value.size > 10 * 1024 * 1024) {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             return this.createError({ message: "File size is too large" });
           }
           // Check file type
@@ -455,7 +520,11 @@ toast.success(response.message || "File deleted successfully!");
           );
           toast.success(
             response.message ||
+<<<<<<< HEAD
             "Program –wise Exam Results updated successfully!"
+=======
+              "Program –wise Exam Results updated successfully!"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           );
         } else {
           // Call the save API
@@ -498,12 +567,22 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+<<<<<<< HEAD
+=======
+          filename: "Program_Wise_Exam_Result_Data",
+          title: "Program Wise Exam Result Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+<<<<<<< HEAD
+=======
+          filename: "Program_Wise_Exam_Result_Data",
+          title: "Program Wise Exam Result Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)",
           },
@@ -536,7 +615,11 @@ toast.success(response.message || "File deleted successfully!");
             title="EXAMINATION"
             breadcrumbItem="Program –wise Exam Results"
           />
+<<<<<<< HEAD
           <Card>
+=======
+          <Card style={{ height: "450px" }}>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
                 <Row>
@@ -627,11 +710,20 @@ toast.success(response.message || "File deleted successfully!");
                         <Label>Specify Department</Label>
                         <Input
                           type="text"
+<<<<<<< HEAD
                           className={`form-control ${validation.touched.otherDepartment &&
                               validation.errors.otherDepartment
                               ? "is-invalid"
                               : ""
                             }`}
+=======
+                          className={`form-control ${
+                            validation.touched.otherDepartment &&
+                            validation.errors.otherDepartment
+                              ? "is-invalid"
+                              : ""
+                          }`}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                           value={validation.values.otherDepartment}
                           onChange={(e) =>
                             validation.setFieldValue(
@@ -707,6 +799,11 @@ toast.success(response.message || "File deleted successfully!");
                     <div className="mb-3">
                       <Label>Program</Label>
                       <ProgramDropdown
+<<<<<<< HEAD
+=======
+                      programTypeId={selectedProgramType?.value}
+                        deptId={selectedDepartment?.value || null}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                         degreeId={selectedDegree?.value}
                         value={validation.values.program}
                         onChange={(selectedOptions) =>
@@ -730,8 +827,24 @@ toast.success(response.message || "File deleted successfully!");
                   {/* Semester Dropdowns */}
                   <Col lg={4}>
                     <div className="mb-3">
+<<<<<<< HEAD
                       <Label>Semester</Label>
                       <Select
+=======
+                      <Label>Semester No</Label>
+                      <Select
+                        menuIsOpen={menuOpen}
+                        onMenuOpen={() => setmenuOpen(true)}
+                        onMenuClose={() => setmenuOpen(false)}
+                        styles={{
+                          menu: (provided) => ({ ...provided, zIndex: 9999 }),
+                          menuList: (provided) => ({
+                            ...provided,
+                            maxHeight: "170px",
+                            overflowY: "auto",
+                          }),
+                        }}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                         isMulti
                         name="semester"
                         options={[
@@ -750,7 +863,11 @@ toast.success(response.message || "File deleted successfully!");
                         }
                         className={
                           validation.touched.semester &&
+<<<<<<< HEAD
                             validation.errors.semester
+=======
+                          validation.errors.semester
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                             ? "select-error"
                             : ""
                         }
@@ -779,7 +896,11 @@ toast.success(response.message || "File deleted successfully!");
                         menuPortalTarget={document.body}
                         className={
                           validation.touched.examType &&
+<<<<<<< HEAD
                             validation.errors.examType
+=======
+                          validation.errors.examType
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                             ? "select-error"
                             : ""
                         }
@@ -801,10 +922,18 @@ toast.success(response.message || "File deleted successfully!");
                         Upload Results from KP
                       </Label>
                       <Input
+<<<<<<< HEAD
                         className={`form-control ${validation.touched.file && validation.errors.file
                             ? "is-invalid"
                             : ""
                           }`}
+=======
+                        className={`form-control ${
+                          validation.touched.file && validation.errors.file
+                            ? "is-invalid"
+                            : ""
+                        }`}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                         type="file"
                         id="formFile"
                         innerRef={fileRef}
@@ -829,11 +958,20 @@ toast.success(response.message || "File deleted successfully!");
                         </div>
                       )}
                       {/* Show a message if the file upload button is disabled */}
+<<<<<<< HEAD
                       {isFileUploadDisabled && typeof validation.values.file === "string" &&(
                         <div className="text-warning mt-2">
                           Please remove the existing file to upload a new one.
                         </div>
                       )}
+=======
+                      {isFileUploadDisabled &&
+                        typeof validation.values.file === "string" && (
+                          <div className="text-warning mt-2">
+                            Please remove the existing file to upload a new one.
+                          </div>
+                        )}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       {/* Only show the file name if it is a string (from the edit API) */}
                       {typeof validation.values.file === "string" && (
                         <div className="mt-2 d-flex align-items-center">
@@ -904,19 +1042,33 @@ toast.success(response.message || "File deleted successfully!");
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
+<<<<<<< HEAD
                   <th>Stream</th>
                   <th>Department</th>
                   <th>Program Type</th>
                   <th>Program</th>
                   {/* <th>Semester</th> */}
+=======
+                  <th>School</th>
+                  <th>Department</th>
+                  <th>Program Type</th>
+                  <th>Degree</th>
+                  <th>Program</th>
+                  <th>Semester</th>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                   <th>Exam Type</th>
                   <th className="d-none">File</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
+<<<<<<< HEAD
                 {currentRows.length > 0 ? (
                   currentRows.map((bos, index) => (
+=======
+                {pwerData.length > 0 ? (
+                  pwerData.map((bos, index) => (
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                     <tr key={bos.programWiseExamReportId}>
                       <td>{indexOfFirstRow + index + 1}</td>
                       <td>{bos.academicYear}</td>
@@ -924,9 +1076,23 @@ toast.success(response.message || "File deleted successfully!");
                       <td>{bos.departmentName}</td>
                       <td>{bos.programTypeName}</td>
                       <td>{bos.programName}</td>
+<<<<<<< HEAD
                       {/* <td>{bos.semester}</td> */}
                       <td>{bos.typeOfExam}</td>
                       <td className="d-none">{bos?.filePath.examResult}</td>
+=======
+                      <td>{Object.values(bos.courses).join(", ")}</td>
+                      <td>
+                        {Object.values(bos.semesters)
+                          .map((s: any) => ROMAN_MAP[String(s)] || s)
+                          .join(", ")}
+                      </td>
+
+                      <td>{bos.typeOfExam}</td>
+                      <td className="d-none">
+                        {bos?.filePath?.examResult ?? "N/A"}
+                      </td>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
@@ -962,6 +1128,10 @@ toast.success(response.message || "File deleted successfully!");
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

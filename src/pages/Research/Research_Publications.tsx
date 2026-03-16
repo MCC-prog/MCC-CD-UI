@@ -121,10 +121,14 @@ const Research_Publications = () => {
       titleOfPaper: Yup.string().required("Please enter title of paper"),
       volume: Yup.string().required("Please enter volume"),
       issue: Yup.string().required("Please enter issue"),
+<<<<<<< HEAD
       pageNumber: Yup.number()
         .required("Please enter page number")
         .positive("Page number must be positive")
         .integer("Page number must be an integer"),
+=======
+      pageNumber: Yup.string().required("Please enter page number"),
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       issn: Yup.string().required("Please enter ISSN"),
       doi: Yup.string().required("Please enter DOI"),
       publicationDate: Yup.date().required("Please select from date"),
@@ -142,7 +146,11 @@ const Research_Publications = () => {
             return this.createError({ message: "Please upload a file" });
           }
           // Check file size (2MB limit)
+<<<<<<< HEAD
           if (value instanceof File && value.size > 2 * 1024 * 1024) {
+=======
+          if (value instanceof File && value.size > 10 * 1024 * 1024) {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             return this.createError({ message: "File size is too large" });
           }
           // Check file type
@@ -347,7 +355,11 @@ const Research_Publications = () => {
     return matchedOption ? matchedOption : { value, label: String(value) };
   };
 
+<<<<<<< HEAD
   function handleDelete(researchDataId: any): void {
+=======
+  const handleDelete = (researchDataId: string) => {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
     setDeleteId(researchDataId);
     setIsDeleteModalOpen(true);
   }
@@ -358,7 +370,11 @@ const Research_Publications = () => {
     if (deleteId) {
       try {
         const response = await api.delete(
+<<<<<<< HEAD
           `/researchPublication/delete?researchPublicationId=${id}`,
+=======
+          `/researchPublication/deleteResearchPublication?researchPublicationId=${id}`,
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           ""
         );
         setIsModalOpen(false);
@@ -445,6 +461,7 @@ toast.success(response.message || "File deleted successfully!");
     const table = $("#researchPublicationId").DataTable({
       destroy: true, // destroy existing instance if re-rendered
       scrollX: true, 
+<<<<<<< HEAD
        autoWidth: false, 
       dom: "Bfrtip",
       buttons: [
@@ -462,6 +479,38 @@ toast.success(response.message || "File deleted successfully!");
         },
       ],
     });
+=======
+       autoWidth: true, 
+      dom: "Bfrtip",
+      columnDefs: [
+      { targets: 16, visible: false }, // hide File Path column
+      { targets: 17, orderable: false, searchable: false }, // disable sort for Actions
+    ],
+
+    buttons: [
+      {
+        extend: "copy",
+        filename: "Research_Publications_Data",
+        title: "Research Publications Data Export",
+        exportOptions: {
+          columns: function (idx) {
+            return idx !== 17; // exclude Actions column
+          },
+        },
+      },
+      {
+        extend: "csv",
+        filename: "Research_Publications_Data",
+        title: "Research Publications Data Export",
+        exportOptions: {
+          columns: function (idx) {
+            return idx !== 17; // exclude Actions column
+          },
+        },
+      },
+    ],
+  });
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
     $(".dt-buttons").addClass("mb-3 gap-2");
     $(".buttons-copy").addClass("btn btn-success");
     $(".buttons-csv").addClass("btn btn-info");
@@ -678,7 +727,13 @@ toast.success(response.message || "File deleted successfully!");
                         <option value="Scopus">Scopus</option>
                         <option value="Web of Science">Web of Science</option>
                         <option value="ABDC">ABDC</option>
+<<<<<<< HEAD
                         <option value="Research Centre">Research Centre</option>
+=======
+                        {/* <option value="Research Centre">Research Centre</option> */}
+                         <option value="Indian Citation Index">Indian Citation Index</option>
+                         <option value="Others">Others</option>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       </Input>
                       {validation.touched.indexation &&
                         validation.errors.indexation && (
@@ -795,7 +850,11 @@ toast.success(response.message || "File deleted successfully!");
                     <div className="mb-3">
                       <Label>Page Number</Label>
                       <Input
+<<<<<<< HEAD
                         type="number"
+=======
+                        type="text"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                         name="pageNumber"
                         value={validation.values.pageNumber}
                         onChange={validation.handleChange}
@@ -1037,6 +1096,7 @@ toast.success(response.message || "File deleted successfully!");
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
+<<<<<<< HEAD
                   <th>Faculty Name</th>
                   <th>Co-authors</th>
                   <th>Stream</th>
@@ -1045,6 +1105,20 @@ toast.success(response.message || "File deleted successfully!");
                   <th>JournalName</th>
                   <th>PaperTitle</th>
                   <th>ISSN</th>
+=======
+                   <th>School</th>
+                  <th>Department</th>
+                  <th>Faculty Name</th>
+                  <th>Co-authors</th>
+                  <th>Indexation</th>
+                  <th>JournalName</th>
+                  <th>PaperTitle</th>
+                  <th>Volume</th>
+                  <th>Issue</th>
+                  <th>PageNumber</th>
+                  <th>ISSN</th>
+                  <th>DOI</th>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                   <th>PublicationDate</th>
                   <th>Publisher</th>
                   <th className="d-none">File Path</th> {/* Hidden */}
@@ -1057,6 +1131,7 @@ toast.success(response.message || "File deleted successfully!");
                     <tr key={research.researchPublicationId}>
                       <td>{index + 1}</td>
                       <td>{research.academicYear}</td>
+<<<<<<< HEAD
                       <td>{research.facultyName}</td>
                       <td>{research.coAuthors}</td>
                       <td>{research.streamName}</td>
@@ -1065,6 +1140,20 @@ toast.success(response.message || "File deleted successfully!");
                       <td>{research.journalName}</td>
                       <td>{research.paperTitle}</td>
                       <td>{research.issn}</td>
+=======
+                      <td>{research.streamName}</td>
+                      <td>{research.departmentName}</td>
+                      <td>{research.facultyName}</td>
+                      <td>{research.coAuthors}</td>
+                      <td>{research.indexation}</td>
+                      <td>{research.journalName}</td>
+                      <td>{research.paperTitle}</td>
+                      <td>{research.volume}</td>
+                      <td>{research.issue}</td>
+                      <td>{research.pageNumber}</td>
+                      <td>{research.issn}</td>
+                      <td>{research.doi}</td>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       <td>{research.publicationDate}</td>
                       <td>{research.publisher}</td>
                        <td className="d-none">{research?.filePath?.researchPublication || "N/A"}</td> {/* Hidden */}
@@ -1092,7 +1181,11 @@ toast.success(response.message || "File deleted successfully!");
                   ))
                 ) : (
                   <tr>
+<<<<<<< HEAD
                     <td colSpan={11} className="text-center">
+=======
+                    <td colSpan={18} className="text-center">
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       No Research data available.
                     </td>
                   </tr>
@@ -1103,6 +1196,10 @@ toast.success(response.message || "File deleted successfully!");
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

@@ -11,14 +11,22 @@ const Sidebar = (props: any) => {
   return (
     <React.Fragment>
       <div className="vertical-menu">
+<<<<<<< HEAD
         <div className="navbar-brand-box" style={{ padding: "0 10px" }}>
+=======
+        <div className="navbar-brand-box" style={{ padding: "5px 5px" }}>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           <span className="logo-lg" style={{ display: "block", width: "100%" }}>
             <img
               src={logo}
               alt="Logo"
               style={{
                 width: "100%",
+<<<<<<< HEAD
                 height: "auto",
+=======
+                height: "auto", 
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                 objectFit: "contain",
                 display: "block",
                 background: "transparent",

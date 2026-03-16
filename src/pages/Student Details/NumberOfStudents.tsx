@@ -285,7 +285,11 @@ const NumberOfStudents: React.FC = () => {
           }
 
           // File size check (2MB)
+<<<<<<< HEAD
           if (value instanceof File && value.size > 2 * 1024 * 1024) {
+=======
+          if (value instanceof File && value.size > 10 * 1024 * 1024) {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             return this.createError({
               message: "File size is too large (max 2MB)",
             });
@@ -317,7 +321,11 @@ const NumberOfStudents: React.FC = () => {
           }
 
           // File size check (2MB)
+<<<<<<< HEAD
           if (value instanceof File && value.size > 2 * 1024 * 1024) {
+=======
+          if (value instanceof File && value.size > 10 * 1024 * 1024) {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             return this.createError({
               message: "File size is too large (max 2MB)",
             });
@@ -417,6 +425,7 @@ const NumberOfStudents: React.FC = () => {
     if (nosData.length === 0) return; // wait until data is loaded
 
     const table = $("#id").DataTable({
+<<<<<<< HEAD
       destroy: true,
       scrollX: true,
       autoWidth: false,
@@ -436,6 +445,47 @@ const NumberOfStudents: React.FC = () => {
         },
       ],
     });
+=======
+     destroy: true,
+    scrollX: true,
+    autoWidth: false,
+    dom: "Bfrtip",
+    paging: true,
+    pageLength: 10,
+    info: true,
+    searching: false,
+
+    columnDefs: [
+      { targets: [4, 5], visible: false }, // hide UG(file) & PG(file)
+      { targets: 6, orderable: false, searchable: false }, // Actions column
+    ],
+
+    buttons: [
+      {
+        extend: "copy",
+          filename: "Number_of_Students_Enrolled_Data",
+          title: "Number of Students Enrolled Data Export",
+        exportOptions: {
+          modifier: { page: "all" },
+          columns: function (idx) {
+            return idx !== 6; // exclude Actions
+          },
+        },
+      },
+      {
+        extend: "csv",
+          filename: "Number_of_Students_Enrolled_Data",
+          title: "Number of Students Enrolled Data Export",
+        exportOptions: {
+          modifier: { page: "all" },
+          columns: function (idx) {
+            return idx !== 6; // exclude Actions
+          },
+        },
+      },
+    ],
+  });
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
     $(".dt-buttons").addClass("mb-3 gap-2");
     $(".buttons-copy").addClass("btn btn-success");
     $(".buttons-csv").addClass("btn btn-info");
@@ -520,7 +570,11 @@ const NumberOfStudents: React.FC = () => {
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
+<<<<<<< HEAD
                         Upload Report of Ug
+=======
+                        Upload Report of UG
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       </Label>
                       <Input
                         className={`form-control ${validation.touched.ugFile && validation.errors.ugFile
@@ -614,7 +668,11 @@ const NumberOfStudents: React.FC = () => {
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
+<<<<<<< HEAD
                         Upload Report of Pg
+=======
+                        Upload Report of PG
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       </Label>
                       <Input
                         className={`form-control ${validation.touched.pgFile && validation.errors.pgFile
@@ -732,22 +790,39 @@ const NumberOfStudents: React.FC = () => {
                   <th>#</th>
                   <th>Academic Year</th>
                   <th>UG</th>
+<<<<<<< HEAD
                   <th>UG(file)</th>
                   <th>PG</th>
                   <th>PG(file)</th>
+=======
+                  <th>PG</th>
+                  <th className="export-hidden">UG(file)</th>
+                  <th className="export-hidden">PG(file)</th>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
+<<<<<<< HEAD
                 {currentRows.length > 0 ? (
                   currentRows.map((bos, index) => (
+=======
+                {nosData.length > 0 ? (
+                  nosData.map((bos, index) => (
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                     <tr key={bos.studentEnrolledId}>
                       <td>{index + 1}</td>
                       <td>{bos.academicYear}</td>
                       <td>{bos.ug}</td>
+<<<<<<< HEAD
                       <td>{bos.ugFile}</td>
                       <td>{bos.pg}</td>
                       <td>{bos.pgFile}</td>
+=======
+                      <td>{bos.pg}</td>
+                      <td className="export-hidden">{bos.document?.ugFile || "N/A" }</td>
+                      <td className="export-hidden">{bos.document?.pgFile || "N/A"}</td>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       <td>
                         <button
                           className="btn btn-sm btn-warning me-2"
@@ -777,6 +852,10 @@ const NumberOfStudents: React.FC = () => {
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

@@ -258,7 +258,11 @@ toast.success(response.message || "File deleted successfully!");
         .required("Please upload a file")
         .test("fileSize", "File size is too large", (value: any) => {
           if (typeof value === "string") return true;
+<<<<<<< HEAD
           return value && value.size <= 2 * 1024 * 1024; // 2MB limit
+=======
+          return value && value.size <= 10 * 1024 * 1024; // 10MB limit
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         })
         .test("fileType", "Unsupported file format", (value: any) => {
           if (typeof value === "string") return true;
@@ -280,8 +284,17 @@ toast.success(response.message || "File deleted successfully!");
       // date: Yup.date()
       //   .typeError("Please select a valid date")
       //   .required("Please select Date"),
+<<<<<<< HEAD
       startDate: Yup.date().required("Please select conducted date"),
       endDate: Yup.date().required("Please select conducted date"),
+=======
+      startDate: Yup.string()
+              .required("Please select Start Date")
+              .matches(/^\d{2}\/\d{2}\/\d{4}$/, "Invalid date format (DD/MM/YYYY)"),
+      endDate: Yup.string()
+              .required("Please select End Date")
+              .matches(/^\d{2}\/\d{2}\/\d{4}$/, "Invalid date format (DD/MM/YYYY)"),
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
     }),
     onSubmit: async (values, { resetForm }) => {
       // Create FormData object
@@ -299,6 +312,7 @@ toast.success(response.message || "File deleted successfully!");
       formData.append("noOfParticipants", values.noOfParticipants || "");
       formData.append("organisation", values.organisation || "");
       formData.append("location", values.location || "");
+<<<<<<< HEAD
       // formData.append("date", moment(values.date).format("DD/MM/YYYY") || "");
       formData.append(
         "startDate",
@@ -309,6 +323,11 @@ toast.success(response.message || "File deleted successfully!");
         moment(values.endDate).format("DD/MM/YYYY") || ""
       );
 
+=======
+      formData.append("startDate", values.startDate || "");
+      formData.append("endDate", values.endDate || "");
+      // formData.append("date", values.date ? moment(values.date).toISOString() : "");
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       if (isEditMode && typeof values.file === "string") {
         // Pass an empty Blob instead of null
         formData.append("file", new Blob([]), "empty.pdf");
@@ -363,12 +382,22 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+<<<<<<< HEAD
+=======
+          filename: "CDP_Activity_Data",
+          title: "CDP Activity Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+<<<<<<< HEAD
+=======
+          filename: "CDP_Activity_Data",
+          title: "CDP Activity Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)",
           },
@@ -798,7 +827,11 @@ toast.success(response.message || "File deleted successfully!");
                       <Label>Cdp Activity</Label>
                       <div>
                         <a
+<<<<<<< HEAD
                           href={`${process.env.PUBLIC_URL}/templateFiles/REPORT_DEPT_YEAR.docx`}
+=======
+                          href={`${process.env.PUBLIC_URL}/templateFiles/CDP_REPORT_DEPT_YEAR.docx`}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                           download
                           className="btn btn-primary btn-sm"
                         >
@@ -912,6 +945,10 @@ toast.success(response.message || "File deleted successfully!");
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

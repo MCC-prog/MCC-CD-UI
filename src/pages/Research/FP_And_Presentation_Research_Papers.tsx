@@ -32,7 +32,10 @@ import "jszip";
 import "pdfmake/build/pdfmake";
 import "pdfmake/build/vfs_fonts";
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
 const api = new APIClient();
 
 const FP_And_Presentation_Research_Papers = () => {
@@ -117,6 +120,7 @@ const FP_And_Presentation_Research_Papers = () => {
     onSubmit: async (values, { resetForm }) => {
       // Create FormData object
       const formData = new FormData();
+<<<<<<< HEAD
       formData.append("facultyParticipationId", editId || "null");
       formData.append("academicYear", values.academicYear?.value || "null");
       formData.append("departmentId", values.department?.value || "null");
@@ -135,6 +139,42 @@ const FP_And_Presentation_Research_Papers = () => {
       if (typeof values.facultyCertificate === "string") {
         // If the file is just a name, send null
         formData.append("facultyCertificate", new Blob([], { type: "application/pdf" }));
+=======
+      formData.append("facultyParticipationId", editId || "");
+      formData.append("academicYear", values.academicYear?.value || "");
+      formData.append("departmentId", values.department?.value || "");
+      formData.append("streamId", values.stream?.value || "");
+      formData.append("otherDepartment", values.otherDepartment || "null");
+      formData.append("facultyName", values.facultyName || "");
+      formData.append("type", values.type?.value || "");
+      formData.append("mode", values.mode?.value || "");
+      formData.append("level", values.level?.value || "");
+      formData.append("role", values.role?.value || "");
+      formData.append("paperTitle", values.paperTitle || "");
+      formData.append(
+        "organisingInstitute",
+        values.organisingInstitute || ""
+      );
+      formData.append(
+        "fromDate",
+        values.fromDate
+          ? moment(values.fromDate, "YYYY-MM-DD").format("DD/MM/YYYY")
+          : ""
+      );
+      formData.append(
+        "toDate",
+        values.toDate
+          ? moment(values.toDate, "YYYY-MM-DD").format("DD/MM/YYYY")
+          : ""
+      );
+      // Append the file
+      if (typeof values.facultyCertificate === "string") {
+        // If the file is just a name, send null
+        formData.append(
+          "facultyCertificate",
+          new Blob([], { type: "application/pdf" })
+        );
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       } else if (values.facultyCertificate instanceof File) {
         // If the file is a File object, send the file
         formData.append("facultyCertificate", values.facultyCertificate);
@@ -162,7 +202,11 @@ const FP_And_Presentation_Research_Papers = () => {
         }
         // Reset the form fields
         resetForm();
+<<<<<<< HEAD
          if (fileRef.current) {
+=======
+        if (fileRef.current) {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           fileRef.current.value = "";
         }
         setIsEditMode(false); // Reset edit mode
@@ -336,7 +380,11 @@ const FP_And_Presentation_Research_Papers = () => {
         ""
       );
       // Show success message
+<<<<<<< HEAD
 toast.success(response.message || "File deleted successfully!");
+=======
+      toast.success(response.message || "File deleted successfully!");
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       // Remove the file from the form
       validation.setFieldValue("facultyCertificate", null); // Clear the file from Formik state
       setIsFileUploadDisabled(false); // Enable the file upload button
@@ -390,23 +438,42 @@ toast.success(response.message || "File deleted successfully!");
     }
   };
 
+<<<<<<< HEAD
       useEffect(() => {
+=======
+  useEffect(() => {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
     if (facultyParticipationData.length === 0) return; // wait until data is loaded
 
     const table = $("#facultyParticipationId").DataTable({
       destroy: true, // destroy existing instance if re-rendered
+<<<<<<< HEAD
       scrollX: true, 
        autoWidth: false, 
+=======
+      scrollX: true,
+      autoWidth: false,
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       dom: "Bfrtip",
       buttons: [
         {
           extend: "copy",
+<<<<<<< HEAD
+=======
+          filename: "Faculty_Participation_And_Presentation_Research_Papers_Data",
+          title: "Faculty Participation And Presentation Research Papers Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+<<<<<<< HEAD
+=======
+          filename: "Faculty_Participation_And_Presentation_Research_Papers_Data",
+          title: "Faculty Participation And Presentation Research Papers Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)",
           },
@@ -656,6 +723,10 @@ toast.success(response.message || "File deleted successfully!");
                         <option value="">Select Mode</option>
                         <option value="online">Online</option>
                         <option value="offline">Offline</option>
+<<<<<<< HEAD
+=======
+                        <option value="hybrid">Hybrid</option>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       </Input>
                       {validation.touched.mode && validation.errors.mode && (
                         <div className="text-danger">
@@ -968,7 +1039,11 @@ toast.success(response.message || "File deleted successfully!");
               id="facultyParticipationId"
               innerRef={tableRef}
             >
+<<<<<<< HEAD
               <thead >
+=======
+              <thead>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
@@ -1004,7 +1079,14 @@ toast.success(response.message || "File deleted successfully!");
                       <td>{fp.organisingInstitute}</td>
                       <td>{fp.fromDate}</td>
                       <td>{fp.toDate}</td>
+<<<<<<< HEAD
                       <td className="d-none">{fp?.filePath?.facultyCertificate || "N/A"}</td> {/* Hidden */}
+=======
+                      <td className="d-none">
+                        {fp?.filePath?.facultyCertificate || "N/A"}
+                      </td>{" "}
+                      {/* Hidden */}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
@@ -1040,6 +1122,10 @@ toast.success(response.message || "File deleted successfully!");
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

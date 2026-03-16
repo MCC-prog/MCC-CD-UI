@@ -320,12 +320,22 @@ const Professor_Practice: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+<<<<<<< HEAD
+=======
+          filename: "Professor_Practice_Data",
+          title: "Professor of Practice Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+<<<<<<< HEAD
+=======
+          filename: "Professor_Practice_Data",
+          title: "Professor of Practice Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)",
           },
@@ -740,6 +750,10 @@ const Professor_Practice: React.FC = () => {
           </ModalBody>
         </Modal>
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

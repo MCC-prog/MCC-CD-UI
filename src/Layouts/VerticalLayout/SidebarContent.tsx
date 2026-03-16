@@ -199,7 +199,11 @@ if (!dummyPaths.includes(location.pathname)) {
               </Link>
               <ul className="sub-menu">
                 <li>
+<<<<<<< HEAD
                   <Link to="/Bos_Data">{props.t("1.	BoS ")}</Link>
+=======
+                  <Link to="/Bos_Data">{props.t("1.	BOS ")}</Link>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                 </li>
                 <li>
                   <Link to="/New_Programs_Introduced">
@@ -237,8 +241,16 @@ if (!dummyPaths.includes(location.pathname)) {
                     {props.t("7. Innovative Teaching Methodologies ")}
                   </Link>
                 </li>
+<<<<<<< HEAD
                 <li>
                   <Link to="/AC_GB_MoM">{props.t("8. AC & GB MoM ")}</Link>
+=======
+                 <li>
+                  <Link to="/Boe_Data">{props.t("8.	BOE ")}</Link>
+                </li>
+                <li>
+                  <Link to="/AC_GB_MoM">{props.t("9. AC & GB MoM ")}</Link>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                 </li>
               </ul>
             </li>

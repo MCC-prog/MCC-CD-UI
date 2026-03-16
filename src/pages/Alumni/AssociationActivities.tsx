@@ -313,7 +313,11 @@ toast.success(response.message || "File deleted successfully!");
           if (!value) {
             return this.createError({ message: "Please upload a file" });
           }
+<<<<<<< HEAD
           if (value instanceof File && value.size > 2 * 1024 * 1024) {
+=======
+          if (value instanceof File && value.size > 10 * 1024 * 1024) {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             return this.createError({ message: "File size is too large" });
           }
           const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
@@ -394,12 +398,22 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+<<<<<<< HEAD
+=======
+             filename: "Association_Activites",
+            title: "Association Activites Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+<<<<<<< HEAD
+=======
+            filename: "Association_Activites",
+            title: "Association Activites Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)",
           },
@@ -699,7 +713,11 @@ toast.success(response.message || "File deleted successfully!");
                       <Label>Download Template</Label>
                       <div>
                         <a
+<<<<<<< HEAD
                           href="/templateFiles/bos.pdf"
+=======
+                          href={`${process.env.PUBLIC_URL}/templateFiles/Alumni_Template.docx`}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                           download
                           className="btn btn-primary btn-sm"
                         >
@@ -750,7 +768,11 @@ toast.success(response.message || "File deleted successfully!");
                   <th>#</th>
                   <th>Academic Year</th>
                   <th>Semester No</th>
+<<<<<<< HEAD
                   <th>Stream</th>
+=======
+                  <th>School</th>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                   <th>Program</th>
                   <th>Activity Name</th>
                   <th>Date of Activity</th>
@@ -801,6 +823,10 @@ toast.success(response.message || "File deleted successfully!");
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

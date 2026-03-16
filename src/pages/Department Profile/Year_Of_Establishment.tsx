@@ -148,11 +148,19 @@ const Year_Of_Establishment: React.FC = () => {
         department: response.departmentId
           ? { value: response.departmentId.toString(), label: response.departmentName }
           : null,
+<<<<<<< HEAD
         program: response.courses
           ? Object.entries(response.courses).map(([key, value]) => ({
             value: key,
             label: String(value),
           }))
+=======
+      program: response.courses
+          ? Object.entries(response.courses).map(([key, value]) => ({
+              value: key,
+              label: String(value),
+            }))
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           : [],
       };
 
@@ -165,10 +173,13 @@ const Year_Of_Establishment: React.FC = () => {
             label: mappedValues.department.label || "",
           }
           : null,
+<<<<<<< HEAD
         program: mappedValues.program.map((p) => ({
           value: String(p.value),
           label: p.label,
         })),
+=======
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       });
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
@@ -219,7 +230,11 @@ const Year_Of_Establishment: React.FC = () => {
       program: [] as { value: string; label: string }[],
     },
     validationSchema: Yup.object({
+<<<<<<< HEAD
       yearOfEst: Yup.string().required("Please enter year of establishment"),
+=======
+      yearOfEst: Yup.number().required("Please enter year of establishment"),
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       department: Yup.object().nullable().required("Please select department"),
       program: Yup.array()
         .min(1, "Please select at least one program")
@@ -264,12 +279,22 @@ const Year_Of_Establishment: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+<<<<<<< HEAD
+=======
+          filename: "Year_Of_Establishment_Data",
+          title: "Year of Establishment Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+<<<<<<< HEAD
+=======
+          filename: "Year_Of_Establishment_Data",
+          title: "Year of Establishment Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)",
           },
@@ -484,14 +509,23 @@ const Year_Of_Establishment: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
+<<<<<<< HEAD
                 {currentRows.length > 0 ? (
                   currentRows.map((bos, index) => (
+=======
+                {bosData.length > 0 ? (
+                  bosData.map((bos, index) => (
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                     <tr key={bos.establismentYearId}>
                       <td>{index + 1}</td>
                       {/* <td>{bos.academicYear}</td>
                       <td>{bos.streamName}</td> */}
                       <td>{bos.departmentName}</td>
+<<<<<<< HEAD
                       <td>{bos.programName}</td>
+=======
+                     <td>{Object.values(bos.courses).join(", ")}</td>    
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       <td>{bos.yearOfEstablishment}</td>
                       <td>
                         <button
@@ -522,6 +556,10 @@ const Year_Of_Establishment: React.FC = () => {
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

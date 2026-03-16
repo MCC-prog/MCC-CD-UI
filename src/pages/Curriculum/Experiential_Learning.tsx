@@ -45,6 +45,7 @@ import "jszip";
 import "pdfmake/build/pdfmake";
 import "pdfmake/build/vfs_fonts";
 import { di } from "@fullcalendar/core/internal-common";
+import { t } from "i18next";
 
 const api = new APIClient();
 
@@ -99,12 +100,128 @@ const Experiential_Learning: React.FC = () => {
   const communicationLetterRef = useRef<HTMLInputElement>(null);
   //const fieldStudentExcelRef = useRef<HTMLInputElement>(null);
   const internshipFileRef = useRef<HTMLInputElement>(null);
+  const internshipExcelSheetRef = useRef<HTMLInputElement>(null);
   const dissertationFileRef = useRef<HTMLInputElement>(null);
 
   const tableRef = useRef<HTMLTableElement>(null);
 
+  const [editResData, setEditResData] = useState<any>(null);
+
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
+
+  const clearTabFields = async (validation: any, tab: number | null) => {
+    try {
+      // console.log("clearTabFields called with tab:", tab);
+      // console.log("editResData:", editResData);
+      let deleteId = null;
+
+      if (tab === 1 && editResData?.internship?.addOnFieldId) {
+        deleteId = editResData.internship.addOnFieldId;
+      } else if (tab === 2 && editResData?.fieldProject?.addOnFieldId) {
+        deleteId = editResData.fieldProject.addOnFieldId;
+      } else if (tab === 3 && editResData?.dissertations?.addOnFieldId) {
+        deleteId = editResData.dissertations.addOnFieldId;
+      } else if (tab === 4 && editResData?.fellowship?.addOnFieldId) {
+        deleteId = editResData.fellowship.addOnFieldId;
+      } else if (tab === 5 && editResData?.bootcamp?.addOnFieldId) {
+        deleteId = editResData.bootcamp.addOnFieldId;
+      }
+      // console.log("Delete ID:", deleteId);
+      if (deleteId) {
+        console.log("Hitting API...");
+        await api.delete(
+          `/experientialLearning/deleteExperientialLearningTabsAndDoc?experientialLearningAddTabId=${deleteId}`,
+          ""
+        );
+      }
+      switch (tab) {
+        case 1:
+          validation.setFieldValue("internship", {
+            totalJoiningStudentsOfIntern: "",
+            orgNameOfIntern: "",
+            locationOfIntern: "",
+            internshipFile: null,
+            internshipFileName: "",
+            internshipFileKey: "",
+            internshipExcelSheet: null,
+            internshipExcelSheetFileName: "",
+            internshipExcelSheetFileKey: "",
+          });
+          if (internshipFileRef.current) internshipFileRef.current.value = "";
+          if (internshipExcelSheetRef.current)
+            internshipExcelSheetRef.current.value = "";
+          break;
+        case 2:
+          validation.setFieldValue("fieldProject", {
+            totalParticipatingStudents: "",
+            fieldProjectStartDate: "",
+            fieldProjectEndDate: "",
+            locationOfOrganisation: "",
+            fieldProjectFile: null,
+            fieldProjectFileName: "",
+            fieldProjectFileKey: "",
+            communicationLetter: null,
+            communicationLetterFileName: "",
+            communicationLetterFileKey: "",
+            // studentExcelSheet: null,
+            // studentExcelSheetFileName: "",
+            // studentExcelSheetFileKey: "",
+          });
+          if (fieldProjectFileRef.current)
+            fieldProjectFileRef.current.value = "";
+          if (communicationLetterRef.current)
+            communicationLetterRef.current.value = "";
+          // if (fieldStudentExcelRef.current)
+          //   fieldStudentExcelRef.current.value = "";
+          break;
+        case 3:
+          validation.setFieldValue("dissertation", {
+            totalParticipatingStudentsdissertation: "",
+            dissertationsStartDate: "",
+            dissertationsEndDate: "",
+            dissertationTitleOfTheProject: "",
+            dissertationFile: null,
+            dissertationFileName: "",
+            dissertationFileKey: "",
+          });
+          if (dissertationFileRef.current)
+            dissertationFileRef.current.value = "";
+          break;
+        case 4:
+          validation.setFieldValue("fellowship", {
+            studentExcelSheet: null,
+            studentExcelSheetFileName: "",
+            studentExcelSheetFileKey: "",
+            fellowshipFile: null,
+            fellowshipFileName: "",
+            fellowshipFileKey: "",
+          });
+          if (fellowshipStudentExcelRef.current)
+            fellowshipStudentExcelRef.current.value = "";
+          if (fellowshipFileRef.current) fellowshipFileRef.current.value = "";
+          break;
+        case 5:
+          validation.setFieldValue("bootcamp", {
+            studentExcelSheet: null,
+            studentExcelSheetFileName: "",
+            studentExcelSheetFileKey: "",
+            bootcampFile: null,
+            bootcampFileName: "",
+            bootcampFileKey: "",
+          });
+          if (bootcampStudentExcelRef.current)
+            bootcampStudentExcelRef.current.value = "";
+          if (bootcampFileRef.current) bootcampFileRef.current.value = "";
+          break;
+        default:
+          break;
+      }
+    } catch (error) {
+      toast.error("Failed to clear tab data. Please try again.");
+      console.error("Error clearing tab data:", error);
+    }
+  };
 
   // Search/filter logic
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -223,6 +340,7 @@ const Experiential_Learning: React.FC = () => {
     tab: string,
     fileField: string,
     fileNameField: string,
+    fileNameKey: string,
     fileKey?: any
   ) => {
     if (fileKey) {
@@ -241,6 +359,8 @@ const Experiential_Learning: React.FC = () => {
     // Clear Formik fields for the file
     validation.setFieldValue(`${tab}.${fileField}`, null);
     validation.setFieldValue(`${tab}.${fileNameField}`, "");
+    validation.setFieldValue(`${tab}.${fileNameKey}`, "");
+    validation.validateForm();
   };
 
   // ----------- HANDLE EDIT -----------
@@ -251,6 +371,7 @@ const Experiential_Learning: React.FC = () => {
         ""
       );
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
+      setEditResData(response);
       const filteredAcademicYearList = academicYearOptions.filter(
         (year: any) => year.isCurrent || year.isCurrentForAdmission
       );
@@ -288,6 +409,10 @@ const Experiential_Learning: React.FC = () => {
         response.internship?.file,
         "Certificates"
       );
+      const internshipExcelSheetFileInfo = getFileInfoByFolder(
+        response.internship?.file,
+        "ExcelSheet"
+      );
       const communicationLetterFileInfo = getFileInfoByFolder(
         response.fieldProject?.file,
         "CommunicationLetter"
@@ -296,7 +421,7 @@ const Experiential_Learning: React.FC = () => {
       //   response.fieldProject?.file,
       //   "StudentExcelSheet"
       // );
-        const dissertationFileInfo = getFileInfoByFolder(
+      const dissertationFileInfo = getFileInfoByFolder(
         response.dissertations?.file,
         "Dissertation"
       );
@@ -360,24 +485,20 @@ const Experiential_Learning: React.FC = () => {
           internshipFile: null,
           internshipFileName: internshipFileInfo.fileName || "",
           internshipFileKey: internshipFileInfo.fileKey || "",
+          internshipExcelSheet: null,
+          internshipExcelSheetFileName:
+            internshipExcelSheetFileInfo.fileName || "",
+          internshipExcelSheetFileKey:
+            internshipExcelSheetFileInfo.fileKey || "",
           addOnFieldId: response.internship?.addOnFieldId || "",
         },
         fieldProject: {
           addOnFieldId: response.fieldProject?.addOnFieldId || "",
           totalParticipatingStudents:
             response.fieldProject?.totalFieldProjectStudents || "",
-          fieldProjectStartDate: response.fieldProject?.fieldProjectStratDate
-            ? moment(
-                response.fieldProject.fieldProjectStratDate,
-                "YYYY-MM-DD"
-              ).format("DD-MM-YYYY")
-            : "",
-          fieldProjectEndDate: response.fieldProject?.fieldProjectEndDate
-            ? moment(
-                response.fieldProject.fieldProjectEndDate,
-                "YYYY-MM-DD"
-              ).format("DD-MM-YYYY")
-            : "",
+          fieldProjectStartDate:
+            response.fieldProject?.fieldProjectStratDate || "",
+          fieldProjectEndDate: response.fieldProject?.fieldProjectEndDate || "",
           locationOfOrganisation:
             response.fieldProject?.fielsProjectOrgLocation || "",
           fieldProjectFile: null,
@@ -398,20 +519,15 @@ const Experiential_Learning: React.FC = () => {
           totalParticipatingStudentsdissertation:
             response.dissertations?.totalDissertationsStudents || "",
           // convert backend date -> DD-MM-YYYY for Formik storage
-          dissertationsStartDate: response.dissertations?.dissertationsStartDate
-            ? moment(response.dissertations.dissertationsStartDate).format(
-                "DD-MM-YYYY"
-              )
-            : "",
-          dissertationsEndDate: response.dissertations?.dissertationsEndDate
-            ? moment(response.dissertations.dissertationsEndDate).format(
-                "DD-MM-YYYY"
-              )
-            : "",
+          dissertationsStartDate:
+            response.dissertations?.dissertationsStartDate || "",
+          dissertationsEndDate:
+            response.dissertations?.dissertationsEndDate || "",
           dissertationFile: null,
           dissertationFileName: dissertationFileInfo.fileName || "",
           dissertationFileKey: dissertationFileInfo.fileKey || "",
-          dissertationTitleOfTheProject: response.dissertations?.dissertationTitleOfTheProject || "",
+          dissertationTitleOfTheProject:
+            response.dissertations?.dissertationTitleOfTheProject || "",
         },
         fellowship: {
           addOnFieldId: response.fellowship?.addOnFieldId || "",
@@ -490,24 +606,20 @@ const Experiential_Learning: React.FC = () => {
           internshipFile: null,
           internshipFileName: internshipFileInfo.fileName || "",
           internshipFileKey: internshipFileInfo.fileKey || "",
+          internshipExcelSheet: null,
+          internshipExcelSheetFileName:
+            internshipExcelSheetFileInfo.fileName || "",
+          internshipExcelSheetFileKey:
+            internshipExcelSheetFileInfo.fileKey || "",
           addOnFieldId: response.internship?.addOnFieldId || "",
         },
 
         fieldProject: {
           totalParticipatingStudents:
             mappedValues.fieldProject?.totalParticipatingStudents || "",
-          fieldProjectStartDate: response.fieldProject?.fieldProjectStratDate
-            ? moment(
-                response.fieldProject.fieldProjectStratDate,
-                "YYYY-MM-DD"
-              ).format("DD-MM-YYYY")
-            : "",
-          fieldProjectEndDate: response.fieldProject?.fieldProjectEndDate
-            ? moment(
-                response.fieldProject.fieldProjectEndDate,
-                "YYYY-MM-DD"
-              ).format("DD-MM-YYYY")
-            : "",
+          fieldProjectStartDate:
+            response.fieldProject?.fieldProjectStratDate || "",
+          fieldProjectEndDate: response.fieldProject?.fieldProjectEndDate || "",
           locationOfOrganisation:
             mappedValues.fieldProject?.locationOfOrganisation || "",
           fieldProjectFile: null,
@@ -537,7 +649,8 @@ const Experiential_Learning: React.FC = () => {
           dissertationFile: null,
           dissertationFileName: dissertationFileInfo.fileName || "",
           dissertationFileKey: dissertationFileInfo.fileKey || "",
-          dissertationTitleOfTheProject: response.dissertations?.dissertationTitleOfTheProject || "",
+          dissertationTitleOfTheProject:
+            response.dissertations?.dissertationTitleOfTheProject || "",
         },
 
         fellowship: {
@@ -721,283 +834,325 @@ const Experiential_Learning: React.FC = () => {
     ),
     orgNameOfIntern: Yup.string().required("Enter organization name"),
     locationOfIntern: Yup.string().required("Enter organization location"),
-    internshipFile: Yup.mixed().test(
-      "fileValidation",
-      "Please upload a valid file",
-      function (value) {
-        // skip if backend file present in edit mode
-        if (
-          isEditMode &&
-          (this.parent?.internshipFileName || this.parent?.internshipFileKey)
-        )
-          return true;
-        if (!value)
-          return this.createError({ message: "Please upload a file" });
-        if (value instanceof File && value.size > 3 * 1024 * 1024)
-          return this.createError({ message: "File size is too large" });
-        const allowed = [
-          "application/pdf",
-          "application/vnd.ms-excel",
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-          "text/csv",
-        ];
-        if (value instanceof File && !allowed.includes(value.type))
-          return this.createError({ message: "Unsupported file format" });
-        return true;
-      }
-    ),
+    internshipFile: Yup.mixed().when(["internshipFileKey"], {
+      // Skip validation when editing and backend file exists
+      is: (fileKey: any) => isEditMode && !!fileKey,
+
+      // No upload required when backend file exists
+      then: (schema) => schema.nullable(),
+
+      // Require upload when:
+      // create mode OR backend file deleted
+      otherwise: (schema) =>
+        schema
+          .required("Please upload a valid file")
+          .test("fileSize", "File size is too large", (value) => {
+            if (!value || !(value instanceof File)) return false;
+            return value.size <= 50 * 1024 * 1024;
+          })
+          .test("fileType", "Unsupported file format", (value) => {
+            if (!value || !(value instanceof File)) return false;
+
+            const allowed = [
+              "application/pdf",
+              "application/vnd.ms-excel",
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+              "text/csv",
+            ];
+
+            return allowed.includes(value.type);
+          }),
+    }),
+    //  internshipExcelSheet: Yup.mixed().when(
+    //   ["internshipExcelSheetFileKey"],
+    //   {
+    //     // Skip validation when editing and backend file exists
+    //     is: (fileKey: any) => isEditMode && !!fileKey,
+    //     // No upload required when backend file exists
+    //     then: (schema) => schema.nullable(),
+    //     // Require upload when:
+    //     // create mode OR backend file deleted
+    //     otherwise: (schema) =>
+    //       schema
+
+    //         .required("Please upload a valid file")
+    //         .test("fileSize", "File size is too large", (value) => {
+    //           if (!value || !(value instanceof File)) return false;
+    //           return value.size <= 3 * 1024 * 1024;
+    //         })
+    //         .test("fileType", "Unsupported file format", (value) => {
+    //           if (!value || !(value instanceof File)) return false;
+    //           const allowed = [
+    //             "application/vnd.ms-excel",
+    //             "text/csv",
+    //           ];
+    //           return allowed.includes(value.type);
+    //         }),
+    //   }
+    // ),
+    internshipExcelSheet: Yup.mixed().when(["internshipExcelSheetFileKey"], {
+      is: (fileKey: any) => isEditMode && !!fileKey,
+      then: (schema) => schema.nullable(),
+      otherwise: (schema) =>
+        schema
+          .required("Please upload a file")
+          .test("fileSize", "File size is too large", (value) => {
+            if (!value || !(value instanceof File)) return false;
+            return value.size <= 50 * 1024 * 1024;
+          })
+          .test("fileType", "Unsupported file format", (value) => {
+            if (!value || !(value instanceof File)) return false;
+
+            const allowed = [
+              "application/pdf",
+              "application/vnd.ms-excel",
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+              "text/csv",
+            ];
+
+            return allowed.includes(value.type);
+          }),
+    }),
   });
 
   const fieldProjectSchema = Yup.object({
     totalParticipatingStudents: Yup.string().required(
       "Enter total number of participating students"
     ),
-    fieldProjectStartDate: Yup.string().nullable(),
+    fieldProjectStartDate: Yup.string()
+      .nullable()
+      .required("Please select start date")
+      .matches(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format (YYYY-MM-DD)"),
+
     fieldProjectEndDate: Yup.string()
       .nullable()
-      .test(
-        "end-after-start",
-        "End date cannot be before start date",
-        function (value) {
-          const { fieldProjectStartDate } = this.parent || {};
-          if (!value || !fieldProjectStartDate) return true;
-          const start = moment(fieldProjectStartDate, "DD-MM-YYYY", true);
-          const end = moment(value, "DD-MM-YYYY", true);
-          if (!start.isValid() || !end.isValid()) return true;
-          return end.isSameOrAfter(start);
-        }
-      ),
+      .required("Please select end date")
+      .matches(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format (YYYY-MM-DD)"),
+
     locationOfOrganisation: Yup.string().required(
       "Enter location of the organisation"
     ),
-    fieldProjectFile: Yup.mixed().test(
-      "fileValidation",
-      "Please upload a valid file",
-      function (value) {
-        // skip if backend file present in edit mode
-        if (
-          isEditMode &&
-          (this.parent?.fieldProjectFileName ||
-            this.parent?.fieldProjectFileKey)
-        )
-          return true;
-        if (!value)
-          return this.createError({ message: "Please upload a file" });
-        if (value instanceof File && value.size > 3 * 1024 * 1024)
-          return this.createError({ message: "File size is too large" });
-        const allowed = [
-          "application/pdf",
-          "application/vnd.ms-excel",
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-          "text/csv",
-        ];
-        if (value instanceof File && !allowed.includes(value.type))
-          return this.createError({ message: "Unsupported file format" });
-        return true;
-      }
-    ),
-    communicationLetter: Yup.mixed().test(
-      "fileValidation",
-      "Please upload a valid file",
-      function (value) {
-        if (
-          isEditMode &&
-          (this.parent?.communicationLetterFileName ||
-            this.parent?.communicationLetterFileKey)
-        )
-          return true;
-        if (!value)
-          return this.createError({ message: "Please upload a file" });
-        if (value instanceof File && value.size > 3 * 1024 * 1024)
-          return this.createError({ message: "File size is too large" });
-        const allowedTypes = [
-          "application/pdf",
-          "application/vnd.ms-excel",
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-          "text/csv",
-        ];
-        if (value instanceof File && !allowedTypes.includes(value.type))
-          return this.createError({ message: "Unsupported file format" });
-        return true;
-      }
-    ),
-    // studentExcelSheet: Yup.mixed().test(
-    //   "fileValidation",
-    //   "Please upload a valid file",
-    //   function (value) {
-    //     if (
-    //       isEditMode &&
-    //       (this.parent?.studentExcelSheetFileName ||
-    //         this.parent?.studentExcelSheetFileKey)
-    //     )
-    //       return true;
-    //     if (!value)
-    //       return this.createError({ message: "Please upload a file" });
-    //     if (value instanceof File && value.size > 3 * 1024 * 1024)
-    //       return this.createError({ message: "File size is too large" });
-    //     const allowedTypes = [
-    //       "application/pdf",
-    //       "application/vnd.ms-excel",
-    //       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    //       "text/csv",
-    //     ];
-    //     if (value instanceof File && !allowedTypes.includes(value.type))
-    //       return this.createError({ message: "Unsupported file format" });
-    //     return true;
-    //   }
-    // ),
+
+    fieldProjectFile: Yup.mixed().when(["fieldProjectFileKey"], {
+      is: (fileKey: any) => isEditMode && !!fileKey,
+      then: (schema) => schema.nullable(),
+      otherwise: (schema) =>
+        schema
+          .required("Please upload a file")
+          .test("fileSize", "File size is too large", (value) => {
+            if (!value || !(value instanceof File)) return false;
+            return value.size <= 10 * 1024 * 1024;
+          })
+          .test("fileType", "Unsupported file format", (value) => {
+            if (!value || !(value instanceof File)) return false;
+
+            const allowed = [
+              "application/pdf",
+              "application/vnd.ms-excel",
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+              "text/csv",
+            ];
+
+            return allowed.includes(value.type);
+          }),
+    }),
+
+    communicationLetter: Yup.mixed().when(["communicationLetterFileKey"], {
+      is: (fileKey: any) => isEditMode && !!fileKey,
+      // Skip validation if editing and backend file exists
+      then: (schema) => schema.nullable(),
+
+      otherwise: (schema) =>
+        schema
+          .required("Please upload a valid file")
+          .test("fileSize", "File size is too large", (value) => {
+            if (!value || !(value instanceof File)) return false;
+            return value.size <= 50 * 1024 * 1024;
+          })
+          .test("fileType", "Unsupported file format", (value) => {
+            if (!value || !(value instanceof File)) return false;
+
+            const allowedTypes = [
+              "application/pdf",
+              "application/vnd.ms-excel",
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+              "text/csv",
+            ];
+
+            return allowedTypes.includes(value.type);
+          }),
+    }),
   });
 
   const dissertationSchema = Yup.object({
     totalParticipatingStudentsdissertation: Yup.string().required(
       "Enter total number of participating students"
     ),
-    dissertationsStartDate: Yup.string().nullable(),
+    dissertationsStartDate: Yup.string()
+      .nullable()
+      .required("Please select start date")
+      .matches(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format (YYYY-MM-DD)"),
     dissertationsEndDate: Yup.string()
       .nullable()
-      .test(
-        "end-after-start",
-        "End date cannot be before start date",
-        function (value) {
-          const { dissertationsStartDate } = this.parent || {};
-          if (!value || !dissertationsStartDate) return true;
-          const start = moment(dissertationsStartDate, "DD-MM-YYYY", true);
-          const end = moment(value, "DD-MM-YYYY", true);
-          if (!start.isValid() || !end.isValid()) return true;
-          return end.isSameOrAfter(start);
-        }
-      ),
-      dissertationTitleOfTheProject: Yup.string().required(
-        "Enter the title of the dissertation project"
-      ),
-       dissertationFile: Yup.mixed().test(
-      "fileValidation",
-      "Please upload a valid file",
-      function (value) {
-        if (
-          isEditMode &&
-          (this.parent?.dissertationFileName || this.parent?.dissertationFileKey)
-        )
-          return true;
-        if (!value)
-          return this.createError({ message: "Please upload a file" });
-        if (value instanceof File && value.size > 3 * 1024 * 1024)
-          return this.createError({ message: "File size is too large" });
-        const allowedTypes = [
-          "application/pdf",
-          "application/vnd.ms-excel",
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-          "text/csv",
-        ];
-        if (value instanceof File && !allowedTypes.includes(value.type))
-          return this.createError({ message: "Unsupported file format" });
-        return true;
-      }
+      .required("Please select end date")
+      .matches(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format (YYYY-MM-DD)"),
+
+    dissertationTitleOfTheProject: Yup.string().required(
+      "Enter the title of the dissertation project"
     ),
+    dissertationFile: Yup.mixed().when(["dissertationFileKey"], {
+      // Skip validation when editing & backend file exists
+      is: (fileKey: any) => isEditMode && !!fileKey,
+
+      // Allow empty when backend file exists
+      then: (schema) => schema.nullable(),
+
+      // Require file otherwise (create mode or backend file deleted)
+      otherwise: (schema) =>
+        schema
+          .required("Please upload a valid file")
+          .test("fileSize", "File size is too large", (value) => {
+            if (!value || !(value instanceof File)) return false;
+            return value.size <= 50 * 1024 * 1024;
+          })
+          .test("fileType", "Unsupported file format", (value) => {
+            if (!value || !(value instanceof File)) return false;
+
+            const allowedTypes = [
+              "application/pdf",
+              "application/vnd.ms-excel",
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+              "text/csv",
+            ];
+
+            return allowedTypes.includes(value.type);
+          }),
+    }),
   });
 
   const fellowshipSchema = Yup.object({
-    studentExcelSheet: Yup.mixed().test(
-      "fileValidation",
-      "Please upload a valid file",
-      function (value) {
-        if (
-          isEditMode &&
-          (this.parent?.studentExcelSheetFileName ||
-            this.parent?.studentExcelSheetFileKey)
-        )
-          return true;
-        if (!value)
-          return this.createError({ message: "Please upload a file" });
-        if (value instanceof File && value.size > 3 * 1024 * 1024)
-          return this.createError({ message: "File size is too large" });
-        const allowedTypes = [
-          "application/pdf",
-          "application/vnd.ms-excel",
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-          "text/csv",
-        ];
-        if (value instanceof File && !allowedTypes.includes(value.type))
-          return this.createError({ message: "Unsupported file format" });
-        return true;
-      }
-    ),
-    fellowshipFile: Yup.mixed().test(
-      "fileValidation",
-      "Please upload a valid file",
-      function (value) {
-        if (
-          isEditMode &&
-          (this.parent?.fellowshipFileName || this.parent?.fellowshipFileKey)
-        )
-          return true;
-        if (!value)
-          return this.createError({ message: "Please upload a file" });
-        if (value instanceof File && value.size > 3 * 1024 * 1024)
-          return this.createError({ message: "File size is too large" });
-        const allowedTypes = [
-          "application/pdf",
-          "application/vnd.ms-excel",
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-          "text/csv",
-        ];
-        if (value instanceof File && !allowedTypes.includes(value.type))
-          return this.createError({ message: "Unsupported file format" });
-        return true;
-      }
-    ),
+    studentExcelSheet: Yup.mixed().when(["studentExcelSheetFileKey"], {
+      // Skip validation when editing AND backend file exists
+      is: (fileKey: any) => isEditMode && !!fileKey,
+
+      // Allow the field to be empty when the backend already has a file
+      then: (schema) => schema.nullable(),
+
+      // Otherwise enforce validation
+      otherwise: (schema) =>
+        schema
+          .required("Please upload a valid file")
+          .test("fileSize", "File size is too large", (value) => {
+            if (!value || !(value instanceof File)) return false;
+            return value.size <= 50 * 1024 * 1024;
+          })
+          .test("fileType", "Unsupported file format", (value) => {
+            if (!value || !(value instanceof File)) return false;
+
+            const allowedTypes = [
+              "application/pdf",
+              "application/vnd.ms-excel",
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+              "text/csv",
+            ];
+
+            return allowedTypes.includes(value.type);
+          }),
+    }),
+
+    fellowshipFile: Yup.mixed().when(["fellowshipFileKey"], {
+      // Skip validation when editing and backend file exists
+      is: (fileKey) => isEditMode && !!fileKey,
+
+      // Allow no new file upload when backend file exists
+      then: (schema) => schema.nullable(),
+
+      // Validate file when no backend file exists (create mode or after delete)
+      otherwise: (schema) =>
+        schema
+          .required("Please upload a valid file")
+          .test("fileSize", "File size is too large", (value) => {
+            if (!value || !(value instanceof File)) return false;
+            return value.size <= 50 * 1024 * 1024;
+          })
+          .test("fileType", "Unsupported file format", (value) => {
+            if (!value || !(value instanceof File)) return false;
+
+            const allowedTypes = [
+              "application/pdf",
+              "application/vnd.ms-excel",
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+              "text/csv",
+            ];
+
+            return allowedTypes.includes(value.type);
+          }),
+    }),
   });
 
   const bootcampSchema = Yup.object({
-    studentExcelSheet: Yup.mixed().test(
-      "fileValidation",
-      "Please upload a valid file",
-      function (value) {
-        if (
-          isEditMode &&
-          (this.parent?.studentExcelSheetFileName ||
-            this.parent?.studentExcelSheetFileKey)
-        )
-          return true;
-        if (!value)
-          return this.createError({ message: "Please upload a file" });
-        if (value instanceof File && value.size > 3 * 1024 * 1024)
-          return this.createError({ message: "File size is too large" });
-        const allowedTypes = [
-          "application/pdf",
-          "application/vnd.ms-excel",
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-          "text/csv",
-        ];
-        if (value instanceof File && !allowedTypes.includes(value.type))
-          return this.createError({ message: "Unsupported file format" });
-        return true;
+    studentExcelSheet: Yup.mixed().when(
+      ["studentExcelSheetFileKey"], // 👈 Watch the backend fileKey only
+      {
+        // Skip validation when editing AND backend file exists
+        is: (fileKey: any) => isEditMode && !!fileKey,
+
+        // Allow the field to be empty if backend already has a file
+        then: (schema) => schema.nullable(),
+
+        // Otherwise validate normally
+        otherwise: (schema) =>
+          schema
+            .required("Please upload a valid file")
+            .test("fileSize", "File size is too large", (value) => {
+              if (!value || !(value instanceof File)) return false;
+              return value.size <= 50 * 1024 * 1024; // 10MB
+            })
+            .test("fileType", "Unsupported file format", (value) => {
+              if (!value || !(value instanceof File)) return false;
+
+              const allowedTypes = [
+                "application/pdf",
+                "application/vnd.ms-excel",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "text/csv",
+              ];
+
+              return allowedTypes.includes(value.type);
+            }),
       }
     ),
-    bootcampFile: Yup.mixed().test(
-      "fileValidation",
-      "Please upload a valid file",
-      function (value) {
-        if (
-          isEditMode &&
-          (this.parent?.bootcampFileName || this.parent?.bootcampFileKey)
-        )
-          return true;
-        if (!value)
-          return this.createError({ message: "Please upload a file" });
-        if (value instanceof File && value.size > 3 * 1024 * 1024)
-          return this.createError({ message: "File size is too large" });
-        const allowedTypes = [
-          "application/pdf",
-          "application/vnd.ms-excel",
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-          "text/csv",
-        ];
-        if (value instanceof File && !allowedTypes.includes(value.type))
-          return this.createError({ message: "Unsupported file format" });
-        return true;
-      }
-    ),
+
+    bootcampFile: Yup.mixed().when(["bootcampFileKey"], {
+      // Skip validation when editing AND backend file exists
+      is: (fileKey: any) => isEditMode && !!fileKey,
+
+      // No need to upload again when backend file exists
+      then: (schema) => schema.nullable(),
+
+      // Require & validate file when:
+      // - create mode
+      // - edit mode but backend file deleted
+      otherwise: (schema) =>
+        schema
+          .required("Please upload a valid file")
+          .test("fileSize", "File size is too large", (value) => {
+            if (!value || !(value instanceof File)) return false;
+            return value.size <= 50 * 1024 * 1024;
+          })
+          .test("fileType", "Unsupported file format", (value) => {
+            if (!value || !(value instanceof File)) return false;
+
+            const allowedTypes = [
+              "application/pdf",
+              "application/vnd.ms-excel",
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+              "text/csv",
+            ];
+
+            return allowedTypes.includes(value.type);
+          }),
+    }),
   });
 
   const mainSchema = Yup.object({
@@ -1022,12 +1177,14 @@ const Experiential_Learning: React.FC = () => {
   // Add similar ones for Field Project, Dissertation, Fellowship, Bootcamp
   // Removed duplicate combinedSchema declaration to avoid redeclaration error.
   const isAnyTabFilled = (values: typeof validation.values) => {
+    console.log("Checking filled tabs with values:", values);
     const tabs =
       // (values?.pedagogy && values.pedagogy.pedagogyFile) ||
       values?.internship?.totalJoiningStudentsOfIntern ||
       values?.internship?.orgNameOfIntern ||
       values?.internship?.locationOfIntern ||
       values?.internship?.internshipFile ||
+      values?.internship?.internshipExcelSheet ||
       values?.fieldProject?.totalParticipatingStudents ||
       values?.fieldProject?.fieldProjectStartDate ||
       values?.fieldProject?.fieldProjectEndDate ||
@@ -1040,10 +1197,12 @@ const Experiential_Learning: React.FC = () => {
       values?.dissertation?.dissertationsStartDate ||
       values?.dissertation?.dissertationFile ||
       values?.dissertation?.dissertationTitleOfTheProject ||
-      values?.fellowship?.studentExcelSheet ||
-      values?.fellowship?.fellowshipFile ||
-      values?.bootcamp?.studentExcelSheet ||
-      values?.bootcamp?.bootcampFile;
+      values?.fellowship?.studentExcelSheetFileKey ||
+      values?.fellowship?.fellowshipFileKey ||
+      values?.fellowship?.fellowshipFileName ||
+      values?.bootcamp?.studentExcelSheetFileKey ||
+      values?.bootcamp?.bootcampFileName ||
+      values?.bootcamp?.bootcampFileKey;
 
     return !!tabs;
   };
@@ -1130,6 +1289,7 @@ const Experiential_Learning: React.FC = () => {
 
   const combinedSchema = getCombinedSchema(activeTab1);
   const validation = useFormik({
+    enableReinitialize: true,
     initialValues: {
       academicYear: null as { value: string; label: string } | null,
       semType: null as { value: string; label: string } | null,
@@ -1155,12 +1315,15 @@ const Experiential_Learning: React.FC = () => {
         internshipFile: null,
         internshipFileName: "",
         internshipFileKey: "",
+        internshipExcelSheet: null,
+        internshipExcelSheetFileName: "",
+        internshipExcelSheetFileKey: "",
         addOnFieldId: "",
       },
       fieldProject: {
         totalParticipatingStudents: "",
-        fieldProjectStartDate: null,
-        fieldProjectEndDate: null,
+        fieldProjectStartDate: "",
+        fieldProjectEndDate: "",
         locationOfOrganisation: "",
         fieldProjectFile: null,
         fieldProjectFileName: "",
@@ -1175,8 +1338,8 @@ const Experiential_Learning: React.FC = () => {
       },
       dissertation: {
         totalParticipatingStudentsdissertation: "",
-        dissertationsEndDate: null,
-        dissertationsStartDate: null,
+        dissertationsEndDate: "",
+        dissertationsStartDate: "",
         dissertationFile: null,
         dissertationFileName: "",
         dissertationFileKey: "",
@@ -1245,18 +1408,9 @@ const Experiential_Learning: React.FC = () => {
         dtoPayload.fieldProject = {
           totalFieldProjectStudents:
             values.fieldProject.totalParticipatingStudents || null,
-          fieldProjectStratDate: values.fieldProject.fieldProjectStartDate
-            ? moment(
-                values.fieldProject.fieldProjectStartDate,
-                "DD-MM-YYYY"
-              ).format("YYYY-MM-DD")
-            : null,
-          fieldProjectEndDate: values.fieldProject.fieldProjectEndDate
-            ? moment(
-                values.fieldProject.fieldProjectEndDate,
-                "DD-MM-YYYY"
-              ).format("YYYY-MM-DD")
-            : null,
+          fieldProjectStratDate:
+            values.fieldProject.fieldProjectStartDate || null,
+          fieldProjectEndDate: values.fieldProject.fieldProjectEndDate || null,
           fielsProjectOrgLocation:
             values.fieldProject.locationOfOrganisation || null,
           addOnFieldId: values.fieldProject.addOnFieldId || null,
@@ -1266,19 +1420,12 @@ const Experiential_Learning: React.FC = () => {
         dtoPayload.dissertations = {
           totalDissertationsStudents:
             values.dissertation.totalParticipatingStudentsdissertation || null,
-          dissertationsStartDate: values.dissertation.dissertationsStartDate
-            ? moment(
-                values.dissertation.dissertationsStartDate,
-                "DD-MM-YYYY"
-              ).format("YYYY-MM-DD")
-            : null,
-          dissertationsEndDate: values.dissertation.dissertationsEndDate
-            ? moment(
-                values.dissertation.dissertationsEndDate,
-                "DD-MM-YYYY"
-              ).format("YYYY-MM-DD")
-            : null,
-          dissertationTitleOfTheProject: values.dissertation.dissertationTitleOfTheProject || null,
+          dissertationsStartDate:
+            values.dissertation.dissertationsStartDate || null,
+          dissertationsEndDate:
+            values.dissertation.dissertationsEndDate || null,
+          dissertationTitleOfTheProject:
+            values.dissertation.dissertationTitleOfTheProject || null,
           addOnFieldId: values.dissertation.addOnFieldId || null,
         };
       }
@@ -1350,11 +1497,19 @@ const Experiential_Learning: React.FC = () => {
       if (activeTab1 === "internship") {
         if (values.internship?.internshipFile)
           formData.append("i_certificates", values.internship.internshipFile);
+        if (values.internship?.internshipExcelSheet)
+          formData.append(
+            "i_excelSheet",
+            values.internship.internshipExcelSheet
+          );
       }
 
-       if (activeTab1 === "dissertation") {
+      if (activeTab1 === "dissertation") {
         if (values.dissertation?.dissertationFile)
-          formData.append("d_dissertation", values.dissertation.dissertationFile);
+          formData.append(
+            "d_dissertation",
+            values.dissertation.dissertationFile
+          );
       }
 
       try {
@@ -1382,6 +1537,161 @@ const Experiential_Learning: React.FC = () => {
         console.error("Error creating/updating Experiential Learning:", error);
       }
     },
+    //     onSubmit: async (values, { resetForm }) => {
+    //   console.log("Submit triggered with values:", values);
+    //   console.log("activeTab1:", activeTab1);
+    //   console.log("isFilled(currentTab):", isFilled(values[activeTab1 || ""]));
+    //   console.log("isAnyTabFilled:", isAnyTabFilled(values));
+    //   console.log("validation errors:", validation.errors);
+
+    //   await validation.validateForm();
+
+    //   if (Object.keys(validation.errors).length) {
+    //     toast.error("Fix validation errors (see console)");
+    //     return;
+    //   }
+
+    //   if (!isAnyTabFilled(values)) {
+    //     toast.warning("You must fill at least one experiential tab.");
+    //     return;
+    //   }
+
+    //   const formData = new FormData();
+
+    //   const dtoPayload: any = {
+    //     id: isEditMode && editId ? editId : null,
+    //     academicYear: values.academicYear?.value || "",
+    //     semType: values.semType?.value || "",
+    //     semNumber: values.semNumber?.value || "",
+    //     streamId: values.stream?.value || "",
+    //     departmentId: values.department?.value || "",
+    //     programTypeId: values.programType?.value || "",
+    //     programId: values.degree?.value || "",
+    //     programName: values.degree?.label || "",
+    //     programTitle: values.programTitle,
+    //     courseTitle: values.courseTitle,
+    //     courseType: values.courseType?.value || "",
+    //   };
+
+    //   // ====== Decide which tab is filled and attach object ======
+    //   const mapTab = {
+    //     internship: values.internship,
+    //     fieldProject: values.fieldProject,
+    //     dissertation: values.dissertation,
+    //     fellowship: values.fellowship,
+    //     bootcamp: values.bootcamp,
+    //   };
+
+    //   // build DTO for only that tab
+    //   if (activeTab1 === "internship") {
+    //     dtoPayload.internship = {
+    //       totalInternStudents: values.internship.totalJoiningStudentsOfIntern || null,
+    //       internOrgName: values.internship.orgNameOfIntern || null,
+    //       internOrgLocation: values.internship.locationOfIntern || null,
+    //       addOnFieldId: values.internship.addOnFieldId || null,
+    //     };
+    //   }
+
+    //   if (activeTab1 === "fieldProject") {
+    //     dtoPayload.fieldProject = {
+    //       totalFieldProjectStudents: values.fieldProject.totalParticipatingStudents || null,
+    //       fieldProjectStratDate: values.fieldProject.fieldProjectStartDate
+    //         ? moment(values.fieldProject.fieldProjectStartDate, "DD-MM-YYYY").format("YYYY-MM-DD")
+    //         : null,
+    //       fieldProjectEndDate: values.fieldProject.fieldProjectEndDate
+    //         ? moment(values.fieldProject.fieldProjectEndDate, "DD-MM-YYYY").format("YYYY-MM-DD")
+    //         : null,
+    //       fielsProjectOrgLocation: values.fieldProject.locationOfOrganisation || null,
+    //       addOnFieldId: values.fieldProject.addOnFieldId || null,
+    //     };
+    //   }
+
+    //   if (activeTab1 === "dissertation") {
+    //     dtoPayload.dissertations = {
+    //       totalDissertationsStudents: values.dissertation.totalParticipatingStudentsdissertation || null,
+    //       dissertationsStartDate: values.dissertation.dissertationsStartDate
+    //         ? moment(values.dissertation.dissertationsStartDate, "DD-MM-YYYY").format("YYYY-MM-DD")
+    //         : null,
+    //       dissertationsEndDate: values.dissertation.dissertationsEndDate
+    //         ? moment(values.dissertation.dissertationsEndDate, "DD-MM-YYYY").format("YYYY-MM-DD")
+    //         : null,
+    //       dissertationTitleOfTheProject: values.dissertation.dissertationTitleOfTheProject || null,
+    //       addOnFieldId: values.dissertation.addOnFieldId || null,
+    //     };
+    //   }
+
+    //   if (activeTab1 === "fellowship") {
+    //     dtoPayload.fellowship = {
+    //       addOnFieldId: values.fellowship.addOnFieldId || null,
+    //     };
+    //   }
+
+    //   if (activeTab1 === "bootcamp") {
+    //     dtoPayload.bootcamp = {
+    //       addOnFieldId: values.bootcamp.addOnFieldId || null,
+    //     };
+    //   }
+
+    //   // ===========================================
+    //   //        APPEND DTO JSON
+    //   // ===========================================
+    //   formData.append(
+    //     "experientialLearningRequestDto",
+    //     new Blob([JSON.stringify(dtoPayload)], { type: "application/json" })
+    //   );
+
+    //   // ===========================================
+    //   //        FILE APPEND LOGIC (WORKS LIKE YOUR CWF FORM)
+    //   // ===========================================
+    //   const safeAppend = (key: string, file: any, tab: string) => {
+    //     if (activeTab1 === tab) {
+    //       if (isEditMode && file === null) {
+    //         // send empty file so backend keeps old file
+    //         formData.append(key, new Blob([], { type: "application/pdf" }), "empty.pdf");
+    //       } else if (file instanceof File) {
+    //         formData.append(key, file);
+    //       } else {
+    //         formData.append(key, new Blob([], { type: "application/pdf" }), "empty.pdf");
+    //       }
+    //     } else {
+    //       // inactive tabs → send empty file
+    //       formData.append(key, new Blob([], { type: "application/pdf" }), "empty.pdf");
+    //     }
+    //   };
+    //   safeAppend("fP_fieldProject", values.fieldProject?.fieldProjectFile, "fieldProject");
+    //   safeAppend("fP_communicationLetter", values.fieldProject?.communicationLetter, "fieldProject");
+    //   safeAppend("d_dissertation", values.dissertation?.dissertationFile, "dissertation");
+    //   safeAppend("f_fellowship", values.fellowship?.fellowshipFile, "fellowship");
+    //   safeAppend("f_studentExcelSheet", values.fellowship?.studentExcelSheet, "fellowship");
+    //   safeAppend("b_bootcamp", values.bootcamp?.bootcampFile, "bootcamp");
+    //   safeAppend("b_studentExcelSheet", values.bootcamp?.studentExcelSheet, "bootcamp");
+
+    //   // ===========================================
+    //   //      CALL API
+    //   // ===========================================
+    //   try {
+    //     const response =
+    //       isEditMode && editId
+    //         ? await api.put(`/experientialLearning`, formData, {
+    //             headers: { "Content-Type": "multipart/form-data" },
+    //           })
+    //         : await api.create(`/experientialLearning`, formData, {
+    //             headers: { "Content-Type": "multipart/form-data" },
+    //           });
+
+    //     toast.success(
+    //       response.message ||
+    //         (isEditMode ? "Experiential Learning updated!" : "Experiential Learning created!")
+    //     );
+
+    //     resetForm();
+    //     setIsEditMode(false);
+    //     setEditId(null);
+    //   } catch (err) {
+    //     console.error(err);
+    //     toast.error("Failed to save/update. Try again.");
+    //   }
+    // }
   });
 
   useEffect(() => {
@@ -1391,22 +1701,45 @@ const Experiential_Learning: React.FC = () => {
       const table = $("#id").DataTable({
         destroy: true,
         dom: "Bfrtip",
+        paging: true,
+        pageLength: 10,
+        info: true,
+        searching: false,
+        columnDefs: [
+          {
+            // hide columns 11–29 (your exact hidden count)
+            targets: [
+              11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
+              27, 28, 29,
+            ],
+            visible: false,
+          },
+          {
+            targets: 30, // ACTION column
+            visible: true,
+            orderable: false,
+            searchable: false,
+          },
+        ],
+
         buttons: [
           {
             extend: "copy",
+            filename: "Experiential_Learning_Data",
+            title: "Experiential Learning Data Export",
           },
           {
             extend: "csv",
+            filename: "Experiential_Learning_Data",
+            title: "Experiential Learning Data Export",
+            exportOptions: {
+              modifier: { page: "all" },
+              columns: function (idx) {
+                return idx !== 30; // exclude ONLY Actions
+              },
+            },
           },
         ],
-        columnDefs: [
-          {
-            targets: [3, 4], // Make sure indexes match actual column positions
-            visible: false,
-          },
-        ],
-        searching: false,
-        paging: false,
       });
 
       $(".dt-buttons").addClass("mb-3 gap-2");
@@ -1645,7 +1978,7 @@ const Experiential_Learning: React.FC = () => {
                         )}
                     </div>
                   </Col>
-                    <Col lg={4}>
+                  <Col lg={4}>
                     <div className="mb-3">
                       <Label>Course Type</Label>
                       <Select
@@ -1698,14 +2031,21 @@ const Experiential_Learning: React.FC = () => {
                         )}
                     </div>
                   </Col>
-                
+
                   <div className="mb-3 mt-3 d-grid">
-                    <Button
-                      className="btn btn-tabs toggle-wizard-button"
+                    <button
+                      className="btn btn-primary toggle-wizard-button"
+                      onClick={toggleWizard}
+                      type="button"
+                    >
+                      PEDAGOGY
+                    </button>
+                    {/* <Button
+                      className="btn btn-primary toggle-wizard-button"
                       onClick={toggleWizard}
                     >
                       PEDAGOGY
-                    </Button>
+                    </Button> */}
                   </div>
                   {showWizard && (
                     <div className="wizard clearfix">
@@ -1996,6 +2336,7 @@ const Experiential_Learning: React.FC = () => {
                                             "internship",
                                             "internshipFile",
                                             "internshipFileName",
+                                            "internshipFileKey",
                                             validation.values.internship
                                               .internshipFileKey
                                           );
@@ -2021,6 +2362,7 @@ const Experiential_Learning: React.FC = () => {
                                             "internship",
                                             "internshipFile",
                                             "internshipFileName",
+                                            "internshipFileKey",
                                             validation.values.internship
                                               .internshipFileKey
                                           );
@@ -2067,13 +2409,125 @@ const Experiential_Learning: React.FC = () => {
                                   )}
                                 </div>
                               </Col>
+                              <Col sm={4}>
+                                <div className="mb-3">
+                                  <Label
+                                    htmlFor="internshipExcelSheet"
+                                    className="form-label"
+                                  >
+                                    Upload Excel Sheet
+                                  </Label>
+                                  {isEditMode &&
+                                  validation.values.internship
+                                    .internshipExcelSheetFileName ? (
+                                    <div className="d-flex align-items-center gap-2">
+                                      <span>
+                                        {validation.values.internship
+                                          .internshipExcelSheetFileName ||
+                                          "No file selected"}
+                                      </span>
+                                      <Button
+                                        color="link"
+                                        className="text-primary"
+                                        onClick={() =>
+                                          handleDownloadFile(
+                                            validation.values.internship
+                                              .internshipExcelSheetFileName ||
+                                              ""
+                                          )
+                                        }
+                                        title="Download File"
+                                      >
+                                        <i className="bi bi-download"></i>
+                                      </Button>
+                                      <Button
+                                        color="link"
+                                        className="text-danger"
+                                        onClick={() => {
+                                          handleDeleteFileWithKey(
+                                            "internship",
+                                            "internshipExcelSheet",
+                                            "internshipExcelSheetFileName",
+                                            "internshipExcelSheetFileKey",
+                                            validation.values.internship
+                                              .internshipExcelSheetFileKey
+                                          );
+                                        }}
+                                        title="Delete File"
+                                      >
+                                        <i className="bi bi-trash"></i>
+                                      </Button>
+                                    </div>
+                                  ) : validation.values.internship
+                                      .internshipExcelSheetFileName ? (
+                                    <div className="d-flex align-items-center gap-2">
+                                      <span>
+                                        {validation.values.internship
+                                          .internshipExcelSheetFileName ||
+                                          "No file selected"}
+                                      </span>
+                                      <Button
+                                        color="link"
+                                        className="text-danger"
+                                        onClick={() => {
+                                          handleDeleteFileWithKey(
+                                            "internship",
+                                            "internshipExcelSheet",
+                                            "internshipExcelSheetFileName",
+                                            "internshipExcelSheetFileKey",
+                                            validation.values.internship
+                                              .internshipExcelSheetFileKey
+                                          );
+                                        }}
+                                        title="Delete File"
+                                      >
+                                        <i className="bi bi-trash"></i>
+                                      </Button>
+                                    </div>
+                                  ) : (
+                                    <Input
+                                      className={`form-control ${
+                                        validation.touched.internship
+                                          ?.internshipExcelSheet &&
+                                        validation.errors.internship
+                                          ?.internshipExcelSheet
+                                          ? "is-invalid"
+                                          : ""
+                                      }`}
+                                      type="file"
+                                      id="internshipExcelSheet"
+                                      disabled={
+                                        !!validation.values.internship
+                                          .internshipExcelSheet
+                                      }
+                                      onChange={(event) => {
+                                        const file =
+                                          event.currentTarget.files?.[0] ||
+                                          null;
+                                        validation.setFieldValue(
+                                          "internship.internshipExcelSheet",
+                                          file
+                                        );
+                                        validation.setFieldValue(
+                                          "internship.internshipExcelSheetFileName",
+                                          file ? file.name : ""
+                                        );
+                                        validation.setFieldValue(
+                                          "internship.internshipExcelSheetFileKey",
+                                          undefined
+                                        );
+                                      }}
+                                    />
+                                  )}
+                                </div>
+                              </Col>
 
                               <Col lg={4}>
                                 <div className="mb-3">
                                   <Label>Download Template</Label>
                                   <div>
                                     <a
-                                      href={`${process.env.PUBLIC_URL}/templateFiles/BOS_MoM_DeptName_Aug24.docx`}
+                                      href={`${process.env.PUBLIC_URL}/templateFiles/Experiential_Internship_Format.xlsx`}
                                       download
                                       className="btn btn-primary btn-sm"
                                     >
@@ -2086,47 +2540,19 @@ const Experiential_Learning: React.FC = () => {
 
                             <Row className="mt-3">
                               <Col className="d-flex justify-content-center">
-                                <button
-                                  type="button"
-                                  className="btn btn-danger"
-                                  onClick={async () => {
-                                    // In edit mode, delete backend files if keys exist
-                                    if (isEditMode) {
-                                      try {
-                                        if (
-                                          validation.values.internship
-                                            ?.internshipFileKey
-                                        ) {
-                                          await handleDeleteFileWithKey(
-                                            "internship",
-                                            "internshipFile",
-                                            "internshipFileName",
-                                            validation.values.internship
-                                              .internshipFileKey
-                                          );
-                                        }
-                                      } catch (err) {
-                                        /* handleDeleteFileWithKey shows toast on error */
+                                <div className="mb-2 mt-2">
+                                  {activeTab && (
+                                    <button
+                                      type="button"
+                                      className="btn btn-outline-warning btn-sm"
+                                      onClick={() =>
+                                        clearTabFields(validation, activeTab)
                                       }
-                                    }
-
-                                    // Clear all Formik values for internship
-                                    validation.setFieldValue("internship", {
-                                      totalJoiningStudentsOfIntern: "",
-                                      orgNameOfIntern: "",
-                                      locationOfIntern: "",
-                                      internshipFile: null,
-                                      internshipFileName: "",
-                                      internshipFileKey: "",
-                                    });
-
-                                    // Clear DOM file inputs so same file can be re-uploaded
-                                    if (internshipFileRef.current)
-                                      internshipFileRef.current.value = "";
-                                  }}
-                                >
-                                  Clear
-                                </button>
+                                    >
+                                      Clear
+                                    </button>
+                                  )}
+                                </div>
                               </Col>
                             </Row>
                           </Form>
@@ -2171,22 +2597,12 @@ const Experiential_Learning: React.FC = () => {
                                     type="date"
                                     value={
                                       validation.values.fieldProject
-                                        ?.fieldProjectStartDate
-                                        ? moment(
-                                            validation.values.fieldProject
-                                              .fieldProjectStartDate,
-                                            "DD-MM-YYYY"
-                                          ).format("YYYY-MM-DD")
-                                        : ""
+                                        ?.fieldProjectStartDate || ""
                                     }
                                     onChange={(e) => {
-                                      const formatted = moment(
-                                        e.target.value,
-                                        "YYYY-MM-DD"
-                                      ).format("DD-MM-YYYY");
                                       validation.setFieldValue(
                                         "fieldProject.fieldProjectStartDate",
-                                        formatted
+                                        e.target.value
                                       );
                                     }}
                                     className={`form-control ${
@@ -2208,19 +2624,10 @@ const Experiential_Learning: React.FC = () => {
                                     type="date"
                                     value={
                                       validation.values.fieldProject
-                                        ?.fieldProjectEndDate
-                                        ? moment(
-                                            validation.values.fieldProject
-                                              .fieldProjectEndDate,
-                                            "DD-MM-YYYY"
-                                          ).format("YYYY-MM-DD")
-                                        : ""
+                                        ?.fieldProjectEndDate || ""
                                     }
                                     onChange={(e) => {
-                                      const formatted = moment(
-                                        e.target.value,
-                                        "YYYY-MM-DD"
-                                      ).format("DD-MM-YYYY");
+                                      const formatted = e.target.value;
                                       validation.setFieldValue(
                                         "fieldProject.fieldProjectEndDate",
                                         formatted
@@ -2303,6 +2710,7 @@ const Experiential_Learning: React.FC = () => {
                                             "fieldProject",
                                             "fieldProjectFile",
                                             "fieldProjectFileName",
+                                            "fieldProjectFileKey",
                                             validation.values.fieldProject
                                               .fieldProjectFileKey
                                           );
@@ -2328,6 +2736,7 @@ const Experiential_Learning: React.FC = () => {
                                             "fieldProject",
                                             "fieldProjectFile",
                                             "fieldProjectFileName",
+                                            "fieldProjectFileKey",
                                             validation.values.fieldProject
                                               .fieldProjectFileKey
                                           );
@@ -2413,6 +2822,7 @@ const Experiential_Learning: React.FC = () => {
                                             "fieldProject",
                                             "communicationLetter",
                                             "communicationLetterFileName",
+                                            "communicationLetterFileKey",
                                             validation.values.fieldProject
                                               .communicationLetterFileKey
                                           );
@@ -2438,6 +2848,7 @@ const Experiential_Learning: React.FC = () => {
                                             "fieldProject",
                                             "communicationLetter",
                                             "communicationLetterFileName",
+                                            "communicationLetterFileKey",
                                             validation.values.fieldProject
                                               .communicationLetterFileKey
                                           );
@@ -2489,7 +2900,7 @@ const Experiential_Learning: React.FC = () => {
                                   <Label>Download Template</Label>
                                   <div>
                                     <a
-                                      href={`${process.env.PUBLIC_URL}/templateFiles/BOS_MoM_DeptName_Aug24.docx`}
+                                      href={`${process.env.PUBLIC_URL}/templateFiles/Field_visit.docx`}
                                       download
                                       className="btn btn-primary btn-sm"
                                     >
@@ -2581,86 +2992,19 @@ const Experiential_Learning: React.FC = () => {
                             </Row>
                             <Row className="mt-3">
                               <Col className="d-flex justify-content-center">
-                                <button
-                                  type="button"
-                                  className="btn btn-danger"
-                                  onClick={async () => {
-                                    // In edit mode, delete backend files if keys exist
-                                    if (isEditMode) {
-                                      try {
-                                        if (
-                                          validation.values.fieldProject
-                                            ?.fieldProjectFileKey
-                                        ) {
-                                          await handleDeleteFileWithKey(
-                                            "fieldProject",
-                                            "fieldProjectFile",
-                                            "fieldProjectFileName",
-                                            validation.values.fieldProject
-                                              .fieldProjectFileKey
-                                          );
-                                        }
-                                      } catch (err) {
-                                        /* handleDeleteFileWithKey shows toast on error */
+                                <div className="mb-2 mt-2">
+                                  {activeTab && (
+                                    <button
+                                      type="button"
+                                      className="btn btn-outline-warning btn-sm"
+                                      onClick={() =>
+                                        clearTabFields(validation, activeTab)
                                       }
-                                      try {
-                                        if (
-                                          validation.values.fieldProject
-                                            ?.communicationLetterFileKey
-                                        ) {
-                                          await handleDeleteFileWithKey(
-                                            "fieldProject",
-                                            "communicationLetter",
-                                            "communicationLetterFileName",
-                                            validation.values.fieldProject
-                                              .communicationLetterFileKey
-                                          );
-                                        }
-                                      } catch (err) {}
-                                      // try {
-                                      //   if (
-                                      //     validation.values.fieldProject
-                                      //       ?.studentExcelSheetFileKey
-                                      //   ) {
-                                      //     await handleDeleteFileWithKey(
-                                      //       "fieldProject",
-                                      //       "studentExcelSheet",
-                                      //       "studentExcelSheetFileName",
-                                      //       validation.values.fieldProject
-                                      //         .studentExcelSheetFileKey
-                                      //     );
-                                      //   }
-                                      // } catch (err) {}
-                                    }
-
-                                    // Clear all Formik values for fieldProject
-                                    validation.setFieldValue("fieldProject", {
-                                      totalParticipatingStudents: "",
-                                      fieldProjectStartDate: "",
-                                      fieldProjectEndDate: "",
-                                      locationOfOrganisation: "",
-                                      fieldProjectFile: null,
-                                      fieldProjectFileName: "",
-                                      fieldProjectFileKey: "",
-                                      communicationLetter: null,
-                                      communicationLetterFileName: "",
-                                      communicationLetterFileKey: "",
-                                      // studentExcelSheet: null,
-                                      // studentExcelSheetFileName: "",
-                                      // studentExcelSheetFileKey: "",
-                                    });
-
-                                    // Clear DOM file inputs so same file can be re-uploaded
-                                    if (fieldProjectFileRef.current)
-                                      fieldProjectFileRef.current.value = "";
-                                    if (communicationLetterRef.current)
-                                      communicationLetterRef.current.value = "";
-                                    // if (fieldStudentExcelRef.current)
-                                    //   fieldStudentExcelRef.current.value = "";
-                                  }}
-                                >
-                                  Clear
-                                </button>
+                                    >
+                                      Clear
+                                    </button>
+                                  )}
+                                </div>
                               </Col>
                             </Row>
                           </Form>
@@ -2706,19 +3050,10 @@ const Experiential_Learning: React.FC = () => {
                                     placeholder="Enter Start Date"
                                     value={
                                       validation.values.dissertation
-                                        ?.dissertationsStartDate
-                                        ? moment(
-                                            validation.values.dissertation
-                                              .dissertationsStartDate,
-                                            "DD-MM-YYYY"
-                                          ).format("YYYY-MM-DD")
-                                        : ""
+                                        ?.dissertationsStartDate || ""
                                     }
                                     onChange={(e) => {
-                                      const formattedDate = moment(
-                                        e.target.value,
-                                        "YYYY-MM-DD"
-                                      ).format("DD-MM-YYYY");
+                                      const formattedDate = e.target.value;
                                       validation.setFieldValue(
                                         "dissertation.dissertationsStartDate",
                                         formattedDate
@@ -2744,19 +3079,10 @@ const Experiential_Learning: React.FC = () => {
                                     placeholder="Enter End Date"
                                     value={
                                       validation.values.dissertation
-                                        ?.dissertationsEndDate
-                                        ? moment(
-                                            validation.values.dissertation
-                                              .dissertationsEndDate,
-                                            "DD-MM-YYYY"
-                                          ).format("YYYY-MM-DD")
-                                        : ""
+                                        ?.dissertationsEndDate || ""
                                     }
                                     onChange={(e) => {
-                                      const formattedDate = moment(
-                                        e.target.value,
-                                        "YYYY-MM-DD"
-                                      ).format("DD-MM-YYYY");
+                                      const formattedDate = e.target.value;
                                       validation.setFieldValue(
                                         "dissertation.dissertationsEndDate",
                                         formattedDate
@@ -2824,7 +3150,8 @@ const Experiential_Learning: React.FC = () => {
                                     target="infoIcon"
                                     toggle={toggleTooltip}
                                   >
-                                    For more than 1 student, upload a merged document
+                                    For more than 1 student, upload a merged
+                                    document
                                   </Tooltip>
                                   {isEditMode &&
                                   validation.values.dissertation
@@ -2856,6 +3183,7 @@ const Experiential_Learning: React.FC = () => {
                                             "dissertation",
                                             "dissertationFile",
                                             "dissertationFileName",
+                                            "dissertationFileKey",
                                             validation.values.dissertation
                                               .dissertationFileKey
                                           );
@@ -2881,6 +3209,7 @@ const Experiential_Learning: React.FC = () => {
                                             "dissertation",
                                             "dissertationFile",
                                             "dissertationFileName",
+                                            "dissertationFileKey",
                                             validation.values.dissertation
                                               .dissertationFileKey
                                           );
@@ -2933,7 +3262,7 @@ const Experiential_Learning: React.FC = () => {
                                   <Label>Report Template</Label>
                                   <div>
                                     <a
-                                      href={`${process.env.PUBLIC_URL}/templateFiles/BOS_MoM_DeptName_Aug24.docx`}
+                                      href={`${process.env.PUBLIC_URL}/templateFiles/Format_for_Project_dissertation_report.docx`}
                                       download
                                       className="btn btn-primary btn-sm"
                                     >
@@ -2945,48 +3274,19 @@ const Experiential_Learning: React.FC = () => {
                             </Row>
                             <Row className="mt-3">
                               <Col className="d-flex justify-content-center">
-                                <button
-                                  type="button"
-                                  className="btn btn-danger"
-                                  onClick={async () => {
-                                    // In edit mode, delete backend files if keys exist
-                                    if (isEditMode) {
-                                      try {
-                                        if (
-                                          validation.values.dissertation
-                                            ?.dissertationFileKey
-                                        ) {
-                                          await handleDeleteFileWithKey(
-                                            "dissertation",
-                                            "dissertationFile",
-                                            "dissertationFileName",
-                                            validation.values.dissertation
-                                              .dissertationFileKey
-                                          );
-                                        }
-                                      } catch (err) {
-                                        /* handleDeleteFileWithKey shows toast on error */
+                                <div className="mb-2 mt-2">
+                                  {activeTab && (
+                                    <button
+                                      type="button"
+                                      className="btn btn-outline-warning btn-sm"
+                                      onClick={() =>
+                                        clearTabFields(validation, activeTab)
                                       }
-                                    }
-
-                                    // Clear all Formik values for internship
-                                    validation.setFieldValue("dissertation", {
-                                      totalParticipatingStudentsdissertation: "",
-                                      dissertationsStartDate: "",
-                                      dissertationsEndDate: "",
-                                      dissertationTitleOfTheProject: "",
-                                      dissertationFile: null,
-                                      dissertationFileName: "",
-                                      dissertationFileKey: "",
-                                    });
-
-                                    // Clear DOM file inputs so same file can be re-uploaded
-                                    if (dissertationFileRef.current)
-                                      dissertationFileRef.current.value = "";
-                                  }}
-                                >
-                                  Clear
-                                </button>
+                                    >
+                                      Clear
+                                    </button>
+                                  )}
+                                </div>
                               </Col>
                             </Row>
                           </Form>
@@ -3034,6 +3334,7 @@ const Experiential_Learning: React.FC = () => {
                                             "fellowship",
                                             "studentExcelSheet",
                                             "studentExcelSheetFileName",
+                                            "studentExcelSheetFileKey",
                                             validation.values.fellowship
                                               .studentExcelSheetFileKey
                                           );
@@ -3059,6 +3360,7 @@ const Experiential_Learning: React.FC = () => {
                                             "fellowship",
                                             "studentExcelSheet",
                                             "studentExcelSheetFileName",
+                                            "studentExcelSheetFileKey",
                                             validation.values.fellowship
                                               .studentExcelSheetFileKey
                                           );
@@ -3144,6 +3446,7 @@ const Experiential_Learning: React.FC = () => {
                                             "fellowship",
                                             "fellowshipFile",
                                             "fellowshipFileName",
+                                            "fellowshipFileKey",
                                             validation.values.fellowship
                                               .fellowshipFileKey
                                           );
@@ -3169,6 +3472,7 @@ const Experiential_Learning: React.FC = () => {
                                             "fellowship",
                                             "fellowshipFile",
                                             "fellowshipFileName",
+                                            "fellowshipFileKey",
                                             validation.values.fellowship
                                               .fellowshipFileKey
                                           );
@@ -3218,67 +3522,19 @@ const Experiential_Learning: React.FC = () => {
                             </Row>
                             <Row className="mt-3">
                               <Col className="d-flex justify-content-center">
-                                <Button
-                                  type="button"
-                                  className="btn btn-danger"
-                                  onClick={async () => {
-                                    // In edit mode delete backend files if keys exist
-                                    if (isEditMode) {
-                                      try {
-                                        if (
-                                          validation.values.fellowship
-                                            ?.studentExcelSheetFileKey
-                                        ) {
-                                          await handleDeleteFileWithKey(
-                                            "fellowship",
-                                            "studentExcelSheet",
-                                            "studentExcelSheetFileName",
-                                            validation.values.fellowship
-                                              .studentExcelSheetFileKey
-                                          );
-                                        }
-                                      } catch (err) {
-                                        /* noop - handleDeleteFileWithKey shows toast */
+                                <div className="mb-2 mt-2">
+                                  {activeTab && (
+                                    <button
+                                      type="button"
+                                      className="btn btn-outline-warning btn-sm"
+                                      onClick={() =>
+                                        clearTabFields(validation, activeTab)
                                       }
-
-                                      try {
-                                        if (
-                                          validation.values.fellowship
-                                            ?.fellowshipFileKey
-                                        ) {
-                                          await handleDeleteFileWithKey(
-                                            "fellowship",
-                                            "fellowshipFile",
-                                            "fellowshipFileName",
-                                            validation.values.fellowship
-                                              .fellowshipFileKey
-                                          );
-                                        }
-                                      } catch (err) {
-                                        /* noop */
-                                      }
-                                    }
-
-                                    // Clear all Formik values for fellowship
-                                    validation.setFieldValue("fellowship", {
-                                      studentExcelSheet: null,
-                                      studentExcelSheetFileName: "",
-                                      studentExcelSheetFileKey: "",
-                                      fellowshipFile: null,
-                                      fellowshipFileName: "",
-                                      fellowshipFileKey: "",
-                                    });
-
-                                    // Clear DOM file inputs so same file can be re-uploaded
-                                    if (fellowshipStudentExcelRef.current)
-                                      fellowshipStudentExcelRef.current.value =
-                                        "";
-                                    if (fellowshipFileRef.current)
-                                      fellowshipFileRef.current.value = "";
-                                  }}
-                                >
-                                  Clear
-                                </Button>
+                                    >
+                                      Clear
+                                    </button>
+                                  )}
+                                </div>
                               </Col>
                             </Row>
                           </Form>
@@ -3326,6 +3582,7 @@ const Experiential_Learning: React.FC = () => {
                                             "bootcamp",
                                             "studentExcelSheet",
                                             "studentExcelSheetFileName",
+                                            "studentExcelSheetFileKey",
                                             validation.values.bootcamp
                                               .studentExcelSheetFileKey
                                           );
@@ -3351,6 +3608,7 @@ const Experiential_Learning: React.FC = () => {
                                             "bootcamp",
                                             "studentExcelSheet",
                                             "studentExcelSheetFileName",
+                                            "studentExcelSheetFileKey",
                                             validation.values.bootcamp
                                               .studentExcelSheetFileKey
                                           );
@@ -3436,6 +3694,7 @@ const Experiential_Learning: React.FC = () => {
                                             "bootcamp",
                                             "bootcampFile",
                                             "bootcampFileName",
+                                            "bootcampFileKey",
                                             validation.values.bootcamp
                                               .bootcampFileKey
                                           );
@@ -3461,6 +3720,7 @@ const Experiential_Learning: React.FC = () => {
                                             "bootcamp",
                                             "bootcampFile",
                                             "bootcampFileName",
+                                            "bootcampFileKey",
                                             validation.values.bootcamp
                                               .bootcampFileKey
                                           );
@@ -3509,67 +3769,19 @@ const Experiential_Learning: React.FC = () => {
                             </Row>
                             <Row className="mt-3">
                               <Col className="d-flex justify-content-center">
-                                <Button
-                                  type="button"
-                                  className="btn btn-danger"
-                                  onClick={async () => {
-                                    // In edit mode delete backend files if keys exist
-                                    if (isEditMode) {
-                                      try {
-                                        if (
-                                          validation.values.bootcamp
-                                            ?.studentExcelSheetFileKey
-                                        ) {
-                                          await handleDeleteFileWithKey(
-                                            "bootcamp",
-                                            "studentExcelSheet",
-                                            "studentExcelSheetFileName",
-                                            validation.values.bootcamp
-                                              .studentExcelSheetFileKey
-                                          );
-                                        }
-                                      } catch (err) {
-                                        /* noop */
+                                <div className="mb-2 mt-2">
+                                  {activeTab && (
+                                    <button
+                                      type="button"
+                                      className="btn btn-outline-warning btn-sm"
+                                      onClick={() =>
+                                        clearTabFields(validation, activeTab)
                                       }
-
-                                      try {
-                                        if (
-                                          validation.values.bootcamp
-                                            ?.bootcampFileKey
-                                        ) {
-                                          await handleDeleteFileWithKey(
-                                            "bootcamp",
-                                            "bootcampFile",
-                                            "bootcampFileName",
-                                            validation.values.bootcamp
-                                              .bootcampFileKey
-                                          );
-                                        }
-                                      } catch (err) {
-                                        /* noop */
-                                      }
-                                    }
-
-                                    // Clear all Formik values for bootcamp
-                                    validation.setFieldValue("bootcamp", {
-                                      studentExcelSheet: null,
-                                      studentExcelSheetFileName: "",
-                                      studentExcelSheetFileKey: "",
-                                      bootcampFile: null,
-                                      bootcampFileName: "",
-                                      bootcampFileKey: "",
-                                    });
-
-                                    // Clear DOM file inputs so same file can be re-uploaded
-                                    if (bootcampStudentExcelRef.current)
-                                      bootcampStudentExcelRef.current.value =
-                                        "";
-                                    if (bootcampFileRef.current)
-                                      bootcampFileRef.current.value = "";
-                                  }}
-                                >
-                                  Clear
-                                </Button>
+                                    >
+                                      Clear
+                                    </button>
+                                  )}
+                                </div>
                               </Col>
                             </Row>
                           </Form>
@@ -3621,7 +3833,7 @@ const Experiential_Learning: React.FC = () => {
                 onChange={handleSearch}
               />
             </div>
-            <Table
+            {/* <Table
               striped
               bordered
               hover
@@ -3644,9 +3856,6 @@ const Experiential_Learning: React.FC = () => {
                   <th>Program Title</th>
                   <th>Course Title</th>
                   <th>Course Type</th>
-
-                  {/* <th>File Path (Pedagogy)</th> */}
-
                   <th>Total number of Interning student(Internship)</th>
                   <th>Organisation name(Internship)</th>
                   <th>Location of the organisation(Internship)</th>
@@ -3658,14 +3867,15 @@ const Experiential_Learning: React.FC = () => {
                   <th>Location of Organisation(Field Visit)</th>
                   <th>Field Project File(Field Visit)</th>
                   <th>Communication Letter(Field Visit)</th>
-                  {/* <th>Student Excel Sheet(Field Visit)</th> */}
 
                   <th>
                     Total number of participating student(Projects/Dissertation)
                   </th>
                   <th>Duration of Project start date(Projects/Dissertation)</th>
                   <th>Duration of Project end date(Projects/Dissertation)</th>
-                  <th>Dissertation Title of the Project(Projects/Dissertation)</th>
+                  <th>
+                    Dissertation Title of the Project(Projects/Dissertation)
+                  </th>
                   <th>Dissertation File(Projects/Dissertation)</th>
 
                   <th>Student Excel Sheet(Fellowship)</th>
@@ -3690,8 +3900,6 @@ const Experiential_Learning: React.FC = () => {
                       <td>{el.programTitle}</td>
                       <td>{el.courseTitle}</td>
                       <td>{el.courseType}</td>
-
-                      {/* <td>{el.pedagogy?.filePath?.Pedagogy || "N/A"}</td> */}
                       <td>{el.internship?.totalInterningStudents || "N/A"}</td>
                       <td>{el.internship?.internOrgName || "N/A"}</td>
                       <td>{el.internship?.internOrgLocation || "N/A"}</td>
@@ -3712,10 +3920,6 @@ const Experiential_Learning: React.FC = () => {
                         {el.fieldProject?.filePath?.CommunicationLetter ||
                           "N/A"}
                       </td>
-                      {/* <td>
-                        {el.fieldProject?.filePath?.StudentExcelSheet || "N/A"}
-                      </td> */}
-
                       <td>
                         {el.dissertation
                           ?.totalParticipatingStudentsdissertation || "N/A"}
@@ -3754,9 +3958,9 @@ const Experiential_Learning: React.FC = () => {
                   </tr>
                 )}
               </tbody>
-            </Table>
-            {/* Table with Pagination */}
-            <Table
+            </Table> */}
+
+            {/* <Table
               striped
               bordered
               hover
@@ -3820,30 +4024,178 @@ const Experiential_Learning: React.FC = () => {
                   </tr>
                 )}
               </tbody>
+            </Table> */}
+            <Table
+              striped
+              bordered
+              hover
+              responsive
+              id="id"
+              className="align-middle text-center"
+            >
+              <thead className="table-dark">
+                <tr>
+                  {/* 11 VISIBLE COLUMNS */}
+                  <th>#</th>
+                  <th>Academic Year</th>
+                  <th>Semester Type</th>
+                  <th>Semester No</th>
+                  <th>School</th>
+                  <th>Department</th>
+                  <th>Program Type</th>
+                  <th>Degree</th>
+                  <th>Program Title</th>
+                  <th>Course Title</th>
+                  <th>Course Type</th>
+
+                  {/* 20 HIDDEN COLUMNS */}
+                  <th className="export-hidden">Total Interning Students</th>
+                  <th className="export-hidden">Intern Org Name</th>
+                  <th className="export-hidden">Intern Org Location</th>
+                  <th className="export-hidden">Intern Certificates File</th>
+
+                  <th className="export-hidden">
+                    Total Field Project Students
+                  </th>
+                  <th className="export-hidden">Field Start Date</th>
+                  <th className="export-hidden">Field End Date</th>
+                  <th className="export-hidden">Field Org Location</th>
+                  <th className="export-hidden">Field Project File</th>
+                  <th className="export-hidden">Communication Letter</th>
+
+                  <th className="export-hidden">Dissertation Students</th>
+                  <th className="export-hidden">Dissertation Start</th>
+                  <th className="export-hidden">Dissertation End</th>
+                  <th className="export-hidden">Dissertation Title</th>
+                  <th className="export-hidden">Dissertation File</th>
+
+                  <th className="export-hidden">Fellowship Excel</th>
+                  <th className="export-hidden">Fellowship Report</th>
+
+                  <th className="export-hidden">Bootcamp Excel</th>
+                  <th className="export-hidden">Bootcamp Report</th>
+
+                  {/* ACTIONS COLUMN (VISIBLE) */}
+                  <th>Actions</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {experientialLearningData.length > 0 ? (
+                  experientialLearningData.map((el, index) => (
+                    <tr key={el.id}>
+                      {/* 11 visible columns */}
+                      <td>{index + 1}</td>
+                      <td>{el.academicYear ?? "N/A"}</td>
+                      <td>{el.semType ?? "N/A"}</td>
+                      <td>{el.semNumber ?? "N/A"}</td>
+                      <td>{el.streamName ?? "N/A"}</td>
+                      <td>{el.departmentName ?? "N/A"}</td>
+                      <td>{el.programTypeName ?? "N/A"}</td>
+                      <td>{el.programName ?? "N/A"}</td>
+                      <td>{el.programTitle ?? "N/A"}</td>
+                      <td>{el.courseTitle ?? "N/A"}</td>
+                      <td>{el.courseType ?? "N/A"}</td>
+
+                      {/* 20 HIDDEN EXPORT-ONLY columns */}
+                      <td className="export-hidden">
+                        {el.internship?.totalInterningStudents ?? "N/A"}
+                      </td>
+                      <td className="export-hidden">
+                        {el.internship?.internOrgName ?? "N/A"}
+                      </td>
+                      <td className="export-hidden">
+                        {el.internship?.internOrgLocation ?? "N/A"}
+                      </td>
+                      <td className="export-hidden">
+                        {el.internship?.filePath?.certificates ?? "N/A"}
+                      </td>
+
+                      <td className="export-hidden">
+                        {el.fieldProject?.totalFieldProjectStudents ?? "N/A"}
+                      </td>
+                      <td className="export-hidden">
+                        {el.fieldProject?.fieldProjectStratDate ?? "N/A"}
+                      </td>
+                      <td className="export-hidden">
+                        {el.fieldProject?.fieldProjectEndDate ?? "N/A"}
+                      </td>
+                      <td className="export-hidden">
+                        {el.fieldProject?.fielsProjectOrgLocation ?? "N/A"}
+                      </td>
+                      <td className="export-hidden">
+                        {el.fieldProject?.filePath?.FieldProject ?? "N/A"}
+                      </td>
+                      <td className="export-hidden">
+                        {el.fieldProject?.filePath?.CommunicationLetter ??
+                          "N/A"}
+                      </td>
+
+                      <td className="export-hidden">
+                        {el.dissertation
+                          ?.totalParticipatingStudentsdissertation ?? "N/A"}
+                      </td>
+                      <td className="export-hidden">
+                        {el.dissertation?.dissertationsStartDate ?? "N/A"}
+                      </td>
+                      <td className="export-hidden">
+                        {el.dissertation?.dissertationsEndDate ?? "N/A"}
+                      </td>
+                      <td className="export-hidden">
+                        {el.dissertation?.dissertationTitleOfTheProject ??
+                          "N/A"}
+                      </td>
+                      <td className="export-hidden">
+                        {el.dissertation?.filePath?.dissertation ?? "N/A"}
+                      </td>
+
+                      <td className="export-hidden">
+                        {el.fellowship?.filePath?.studentExcelSheetFileName ??
+                          "N/A"}
+                      </td>
+                      <td className="export-hidden">
+                        {el.fellowship?.filePath?.fellowshipFileName ?? "N/A"}
+                      </td>
+
+                      <td className="export-hidden">
+                        {el.bootcamp?.filePath?.studentExcelSheetFileName ??
+                          "N/A"}
+                      </td>
+                      <td className="export-hidden">
+                        {el.bootcamp?.filePath?.Bootcamp ?? "N/A"}
+                      </td>
+
+                      {/* ACTIONS column */}
+                      <td>
+                        <div className="d-flex justify-content-center gap-2">
+                          <button
+                            className="btn btn-warning btn-sm"
+                            onClick={() => handleEdit(el.id)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="btn btn-danger btn-sm"
+                            onClick={() => handleDelete(el.id)}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={32}>No EL data available.</td>
+                  </tr>
+                )}
+              </tbody>
             </Table>
-            <div className="d-flex justify-content-between align-items-center mt-3">
-              <Button
-                color="primary"
-                disabled={currentPage === 1}
-                onClick={() => handlePageChange(currentPage - 1)}
-              >
-                Previous
-              </Button>
-              <div>
-                Page {currentPage} of {totalPages}
-              </div>
-              <Button
-                color="primary"
-                disabled={currentPage === totalPages}
-                onClick={() => handlePageChange(currentPage + 1)}
-              >
-                Next
-              </Button>
-            </div>
           </ModalBody>
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+          className="delete-popup"
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

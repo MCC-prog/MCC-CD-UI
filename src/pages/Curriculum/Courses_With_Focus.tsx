@@ -42,9 +42,15 @@ import "pdfmake/build/vfs_fonts";
 const api = new APIClient();
 
 const courseType = [
+<<<<<<< HEAD
   { value: "T", label: "Core" },
   { value: "P", label: "Elective" },
   { value: "A", label: "Allied" },
+=======
+  { value: "Core", label: "Core" },
+  { value: "Elective", label: "Elective" },
+  { value: "Allied", label: "Allied" },
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
 ];
 
 const dropdownStyles = {
@@ -125,7 +131,11 @@ const getTabValidationSchema = (tab: number | null) => {
           .test("fileSize", "File size is too large", (value: any) => {
             // Only check size if value is a File
             if (!value || typeof value === "string") return true;
+<<<<<<< HEAD
             return value.size <= 2 * 1024 * 1024;
+=======
+            return value.size <= 10 * 1024 * 1024;
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           })
           .test("fileType", "Unsupported file format", (value: any) => {
             // Only check type if value is a File
@@ -270,6 +280,7 @@ const isTabFilled = (validation: any, tab: number | null) => {
 };
 
 // Helper: Clear fields for a tab
+<<<<<<< HEAD
 const clearTabFields = (validation: any, tab: number | null) => {
   switch (tab) {
     case 1:
@@ -311,6 +322,8 @@ const clearTabFields = (validation: any, tab: number | null) => {
       break;
   }
 };
+=======
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
 
 const Courses_With_Focus: React.FC = () => {
   // State
@@ -343,9 +356,137 @@ const Courses_With_Focus: React.FC = () => {
     yearOfIntroduction: "",
     percentage: "",
   });
+<<<<<<< HEAD
 
   const tableRef = useRef<HTMLTableElement>(null);
 
+=======
+  const fileRef = useRef<HTMLInputElement>(null);
+  const file2Ref = useRef<HTMLInputElement>(null);
+  const file3Ref = useRef<HTMLInputElement>(null);
+  const file4Ref = useRef<HTMLInputElement>(null);
+  const file5Ref = useRef<HTMLInputElement>(null);
+  const file6Ref = useRef<HTMLInputElement>(null);
+  const file7Ref = useRef<HTMLInputElement>(null);
+
+  const [editResData, setEditResData] = useState<any>(null);
+
+  const tableRef = useRef<HTMLTableElement>(null);
+
+  const clearTabFields = async (validation: any, tab: number | null) => {
+    try {
+      // console.log("clearTabFields called with tab:", tab);
+      // console.log("editResData:", editResData);
+      let deleteId = null;
+
+      if (tab === 1 && editResData?.ecoGenderC?.coursesWithFocusAddOnFieldID) {
+        deleteId = editResData.ecoGenderC.coursesWithFocusAddOnFieldID;
+      } else if (
+        tab === 2 &&
+        editResData?.ecoEnvironmentalC?.coursesWithFocusAddOnFieldID
+      ) {
+        deleteId = editResData.ecoEnvironmentalC.coursesWithFocusAddOnFieldID;
+      } else if (
+        tab === 3 &&
+        editResData?.ecoIKSC?.coursesWithFocusAddOnFieldID
+      ) {
+        deleteId = editResData.ecoIKSC.coursesWithFocusAddOnFieldID;
+      } else if (
+        tab === 4 &&
+        editResData?.ecoEmployC?.coursesWithFocusAddOnFieldID
+      ) {
+        deleteId = editResData.ecoEmployC.coursesWithFocusAddOnFieldID;
+      } else if (
+        tab === 5 &&
+        editResData?.ecoSkillC?.coursesWithFocusAddOnFieldID
+      ) {
+        deleteId = editResData.ecoSkillC.coursesWithFocusAddOnFieldID;
+      } else if (
+        tab === 6 &&
+        editResData?.ecoEntreC?.coursesWithFocusAddOnFieldID
+      ) {
+        deleteId = editResData.ecoEntreC.coursesWithFocusAddOnFieldID;
+      } else if (
+        tab === 7 &&
+        editResData?.ecoEthicsC?.coursesWithFocusAddOnFieldID
+      ) {
+        deleteId = editResData.ecoEthicsC.coursesWithFocusAddOnFieldID;
+      }
+      // console.log("Delete ID:", deleteId);
+      if (deleteId) {
+        console.log("Hitting API...");
+        await api.delete(
+          `/CoursesWithFocus/deleteCoursesWithFocusTabsAndDoc?coursesWithFocusAddOnFieldId=${deleteId}`,
+          ""
+        );
+      }
+      switch (tab) {
+        case 1:
+          validation.setFieldValue("courseTitileG", "");
+          validation.setFieldValue("courseTypeG", null);
+          validation.setFieldValue("fileG", null);
+          if (fileRef.current) {
+            fileRef.current.value = "";
+          }
+          break;
+        case 2:
+          validation.setFieldValue("courseTitileES", "");
+          validation.setFieldValue("courseTypeES", null);
+          validation.setFieldValue("fileES", null);
+          if (file2Ref.current) {
+            file2Ref.current.value = "";
+          }
+          break;
+        case 3:
+          validation.setFieldValue("courseTitileIK", "");
+          validation.setFieldValue("courseTypeIK", null);
+          validation.setFieldValue("fileIK", null);
+          if (file3Ref.current) {
+            file3Ref.current.value = "";
+          }
+          break;
+        case 4:
+          validation.setFieldValue("courseTitileEM", "");
+          validation.setFieldValue("courseTypeEM", null);
+          validation.setFieldValue("fileEM", null);
+          if (file4Ref.current) {
+            file4Ref.current.value = "";
+          }
+          break;
+        case 5:
+          validation.setFieldValue("courseTitileSE", "");
+          validation.setFieldValue("courseTypeSE", null);
+          validation.setFieldValue("fileSE", null);
+          if (file5Ref.current) {
+            file5Ref.current.value = "";
+          }
+          break;
+        case 6:
+          validation.setFieldValue("courseTitileEN", "");
+          validation.setFieldValue("courseTypeEN", null);
+          validation.setFieldValue("fileEN", null);
+          if (file6Ref.current) {
+            file6Ref.current.value = "";
+          }
+          break;
+        case 7:
+          validation.setFieldValue("courseTitileET", "");
+          validation.setFieldValue("courseTypeET", null);
+          validation.setFieldValue("fileET", null);
+          if (file7Ref.current) {
+            file7Ref.current.value = "";
+          }
+          break;
+        default:
+          break;
+      }
+    } catch (error) {
+      toast.error("Failed to clear tab data. Please try again.");
+      console.error("Error clearing tab data:", error);
+    }
+  };
+
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
   // Utility
   const mapValueToLabel = (
     value: string | number | null,
@@ -388,6 +529,7 @@ const Courses_With_Focus: React.FC = () => {
     setIsModalOpen(!isModalOpen);
   };
 
+<<<<<<< HEAD
   const handleFilterChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     column: string
@@ -406,6 +548,8 @@ const Courses_With_Focus: React.FC = () => {
     setFilteredData(filtered);
   };
 
+=======
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
   const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
@@ -441,6 +585,10 @@ const Courses_With_Focus: React.FC = () => {
       );
 
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
+<<<<<<< HEAD
+=======
+      setEditResData(response);
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       // Filter the response where isCurrent or isCurrentForAdmission is true
       const filteredAcademicYearList = academicYearOptions.filter(
         (year: any) => year.isCurrent || year.isCurrentForAdmission
@@ -574,7 +722,11 @@ const Courses_With_Focus: React.FC = () => {
         );
         validation.setFieldValue(
           "courseTypeES",
+<<<<<<< HEAD
           getCourseTypeOption(response.ecoEnvironmentalC.courseTypeES)
+=======
+          getCourseTypeOption(response.ecoEnvironmentalC.courseType)
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         );
         validation.setFieldValue(
           "fileES",
@@ -780,10 +932,17 @@ const Courses_With_Focus: React.FC = () => {
         ""
       );
       // Show success message
+<<<<<<< HEAD
 toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
       validation.setFieldValue(tabKey, null); // Clear the file from Formik state
       validation.setFieldValue(tabKey + "Id", null);
+=======
+      toast.success(response.message || "File deleted successfully!");
+      // Remove the file from the form
+      validation.setFieldValue(tabKey, null); // Clear the file from Formik state
+      // validation.setFieldValue(tabKey + "Id", null);
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
     } catch (error) {
       // Show error message
       toast.error("Failed to delete the file. Please try again.");
@@ -859,8 +1018,13 @@ toast.success(response.message || "File deleted successfully!");
     },
     validationSchema: getTabValidationSchema(activeTab),
     enableReinitialize: true,
+<<<<<<< HEAD
     onSubmit: async (values, { resetForm, setErrors, setSubmitting }) => {
       // Block submit if no Focus Area tab is active
+=======
+
+    onSubmit: async (values, { resetForm, setErrors, setSubmitting }) => {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       if (!activeTab) {
         validation.setStatus(
           "Please select a Focus Area and fill at least one focus area type."
@@ -869,6 +1033,7 @@ toast.success(response.message || "File deleted successfully!");
         return;
       }
 
+<<<<<<< HEAD
       const formData = new FormData();
       // Determine focusArea based on activeTab
       let focusArea = "";
@@ -898,6 +1063,13 @@ toast.success(response.message || "File deleted successfully!");
           focusArea = "";
       }
       const coursesWithFocusRequestDto: any = {
+=======
+      console.log("Submit triggered with values:", values);
+      const formData = new FormData();
+
+      const coursesWithFocusRequestDto = {
+        coursesWithFocusId: isEditMode && editId ? Number(editId) : null,
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         academicYear: Number(values.academicYear?.value) || null,
         semType: values.semesterType?.value || null,
         semNumber: Number(values.semesterNo?.value) || null,
@@ -905,6 +1077,7 @@ toast.success(response.message || "File deleted successfully!");
         departmentId: Number(values.department?.value) || null,
         programTypeId: Number(values.programType?.value) || null,
         programId: Number(values.degree?.value) || null,
+<<<<<<< HEAD
         focusArea: focusArea,
         courseId: Array.isArray(values.program)
           ? values.program.map((option: any) => Number(option.value))
@@ -947,6 +1120,94 @@ toast.success(response.message || "File deleted successfully!");
         coursesWithFocusId: isEditMode && editId ? Number(editId) : null,
       };
 
+=======
+        courseId: Array.isArray(values.program)
+          ? values.program.map((option: any) => Number(option.value))
+          : [],
+        focusArea:
+          activeTab === 1
+            ? "Gender"
+            : activeTab === 2
+            ? "Environment & Sustainability"
+            : activeTab === 3
+            ? "Indian Knowledge System"
+            : activeTab === 4
+            ? "Employability"
+            : activeTab === 5
+            ? "Skill Enhancement"
+            : activeTab === 6
+            ? "Entrepreneurship"
+            : activeTab === 7
+            ? "Ethics"
+            : null,
+
+        ecoGenderC:
+          activeTab === 1
+            ? {
+                coursesWithFocusAddOnFieldsId: values.fileGId || null,
+                courseTitle: values.courseTitileG || "",
+                courseType: values.courseTypeG?.value || "",
+              }
+            : null,
+
+        ecoEnvironmentalC:
+          activeTab === 2
+            ? {
+                coursesWithFocusAddOnFieldsId: values.fileESId || null,
+                courseTitle: values.courseTitileES || "",
+                courseType: values.courseTypeES?.value || "",
+              }
+            : null,
+
+        ecoIKSC:
+          activeTab === 3
+            ? {
+                coursesWithFocusAddOnFieldsId: values.fileIKId || null,
+                courseTitle: values.courseTitileIK || "",
+                courseType: values.courseTypeIK?.value || "",
+              }
+            : null,
+
+        ecoEmployC:
+          activeTab === 4
+            ? {
+                coursesWithFocusAddOnFieldsId: values.fileEMId || null,
+                courseTitle: values.courseTitileEM || "",
+                courseType: values.courseTypeEM?.value || "",
+              }
+            : null,
+
+        ecoSkillC:
+          activeTab === 5
+            ? {
+                coursesWithFocusAddOnFieldsId: values.fileSEId || null,
+                courseTitle: values.courseTitileSE || "",
+                courseType: values.courseTypeSE?.value || "",
+              }
+            : null,
+
+        ecoEntreC:
+          activeTab === 6
+            ? {
+                coursesWithFocusAddOnFieldsId: values.fileENId || null,
+                courseTitle: values.courseTitileEN || "",
+                courseType: values.courseTypeEN?.value || "",
+              }
+            : null,
+
+        ecoEthicsC:
+          activeTab === 7
+            ? {
+                coursesWithFocusAddOnFieldsId: values.fileETId || null,
+                courseTitle: values.courseTitileET || "",
+                courseType: values.courseTypeET?.value || "",
+              }
+            : null,
+      };
+
+      console.log("Request DTO:", coursesWithFocusRequestDto);
+
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       formData.append(
         "coursesWithFocusRequestDto",
         new Blob([JSON.stringify(coursesWithFocusRequestDto)], {
@@ -954,6 +1215,7 @@ toast.success(response.message || "File deleted successfully!");
         })
       );
 
+<<<<<<< HEAD
       formData.append("ecoGenderC", values.fileG || new Blob());
       formData.append("ecoIKSC", values.fileIK || new Blob());
       formData.append("ecoEmployC", values.fileEM || new Blob());
@@ -981,12 +1243,102 @@ toast.success(response.message || "File deleted successfully!");
           );
         }
         resetForm();
+=======
+      // Helper for file appending (only active tab sends file)
+      const appendFile = (key: string, file: any, tabNumber: number) => {
+        if (activeTab === tabNumber) {
+          if (isEditMode && typeof file === "string") {
+            formData.append(
+              key,
+              new Blob([], { type: "application/pdf" }),
+              "empty.pdf"
+            );
+          } else if (isEditMode && file === null) {
+            formData.append(
+              key,
+              new Blob([], { type: "application/pdf" }),
+              "empty.pdf"
+            );
+          } else if (file) {
+            formData.append(key, file);
+          } else {
+            formData.append(
+              key,
+              new Blob([], { type: "application/pdf" }),
+              "empty.pdf"
+            );
+          }
+        } else {
+          // For inactive tabs, send empty Blob
+          formData.append(
+            key,
+            new Blob([], { type: "application/pdf" }),
+            "empty.pdf"
+          );
+        }
+      };
+
+      appendFile("ecoGenderC", values.fileG, 1);
+      appendFile("ecoEnvironmentalC", values.fileES, 2);
+      appendFile("ecoIKSC", values.fileIK, 3);
+      appendFile("ecoEmployC", values.fileEM, 4);
+      appendFile("ecoSkillC", values.fileSE, 5);
+      appendFile("ecoEntreC", values.fileEN, 6);
+      appendFile("ecoEthicsC", values.fileET, 7);
+
+      try {
+        const response =
+          isEditMode && editId
+            ? await api.put(`/CoursesWithFocus`, formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+              })
+            : await api.create(`/CoursesWithFocus`, formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+              });
+
+        toast.success(
+          response.message ||
+            (isEditMode
+              ? "Courses With Focus updated successfully!"
+              : "Courses With Focus added successfully!")
+        );
+
+        resetForm();
+        if (fileRef.current) {
+          fileRef.current.value = "";
+        }
+        if (file2Ref.current) {
+          file2Ref.current.value = "";
+        }
+        if (file3Ref.current) {
+          file3Ref.current.value = "";
+        }
+        if (file4Ref.current) {
+          file4Ref.current.value = "";
+        }
+        if (file5Ref.current) {
+          file5Ref.current.value = "";
+        }
+        if (file6Ref.current) {
+          file6Ref.current.value = "";
+        }
+        if (file7Ref.current) {
+          file7Ref.current.value = "";
+        }
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
 
         setIsEditMode(false);
         setEditId(null);
         handleListCWFClick();
       } catch (error) {
+<<<<<<< HEAD
         toast.error("Failed to save Courses With Focus. Please try again.");
+=======
+        toast.error(
+          "Failed to save/update Courses With Focus. Please try again."
+        );
+        console.error("Form submission error:", error);
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       }
     },
   });
@@ -997,6 +1349,7 @@ toast.success(response.message || "File deleted successfully!");
       <div className="text-danger">{error}</div>
     ) : null;
 
+<<<<<<< HEAD
   useEffect(() => {
     if (CWFData.length === 0) return;
 
@@ -1052,6 +1405,83 @@ toast.success(response.message || "File deleted successfully!");
       $("#exportId").off("buttons-action.dt");
     };
   }, [CWFData]);
+=======
+useEffect(() => {
+   if (CWFData.length === 0) return;
+
+  const initializeDataTable = () => {
+    const table = $("#exportId").DataTable({
+      destroy: true,
+      dom: "Bfrtip",
+      paging: true,
+      pageLength: 10,
+      info: true,
+      searching: false,
+
+      columnDefs: [
+        {
+          targets: [
+            9, 10, 11,
+            12, 13, 14,
+            15, 16, 17,
+            18, 19, 20,
+            21, 22, 23,
+            24, 25, 26,
+          ],
+          visible: false, // HIDE EXPORT COLUMNS IN UI
+        },
+        { targets: -1, visible: true }, // ACTION COLUMN
+      ],
+
+      buttons: [
+        { extend: "copy" ,
+          filename: "Courses_With_Focus_Data",
+          title: "Courses With Focus Data Export",
+        },
+        
+        {
+          extend: "csv",
+          filename: "Courses_With_Focus_Data",
+          title: "Courses With Focus Data Export",
+          exportOptions: {
+            modifier: { page: "all" },
+            columns: function (idx, data, node) {
+              return idx !== 27; // exclude action column
+            },
+          },
+        },
+      ],
+    });
+
+    $(".dt-buttons").addClass("mb-3 gap-2");
+    $(".buttons-copy").addClass("btn btn-success");
+    $(".buttons-csv").addClass("btn btn-info");
+
+    $("#exportId")
+      .off("buttons-action.dt")
+      .on("buttons-action.dt", function (e, buttonApi) {
+        if (buttonApi.text() === "Copy") {
+          toast.success("Copied to clipboard!");
+        }
+      });
+
+    return table;
+  };
+
+  const timeout = setTimeout(() => {
+    initializeDataTable();
+  }, 50);
+
+  return () => {
+    clearTimeout(timeout);
+    if ($.fn.DataTable.isDataTable("#exportId")) {
+      $("#exportId").DataTable().destroy();
+    }
+    $("#exportId").off("buttons-action.dt");
+  };
+}, [CWFData]);
+
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
 
   return (
     <React.Fragment>
@@ -1258,6 +1688,11 @@ toast.success(response.message || "File deleted successfully!");
                     <div className="mb-3">
                       <Label>Program</Label>
                       <ProgramDropdown
+<<<<<<< HEAD
+=======
+                      programTypeId={selectedProgramType?.value}
+                        deptId={selectedDepartment?.value || null}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                         degreeId={selectedDegree?.value}
                         value={validation.values.program}
                         onChange={(selectedOption) =>
@@ -1428,6 +1863,10 @@ toast.success(response.message || "File deleted successfully!");
                                         : null
                                     );
                                   }}
+<<<<<<< HEAD
+=======
+                                  innerRef={fileRef}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                                   disabled={
                                     typeof validation.values.fileG ===
                                       "string" && validation.values.fileG
@@ -1575,6 +2014,10 @@ toast.success(response.message || "File deleted successfully!");
                                         : null
                                     );
                                   }}
+<<<<<<< HEAD
+=======
+                                  innerRef={file2Ref}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                                   disabled={
                                     typeof validation.values.fileES ===
                                       "string" && validation.values.fileES
@@ -1722,6 +2165,10 @@ toast.success(response.message || "File deleted successfully!");
                                         : null
                                     );
                                   }}
+<<<<<<< HEAD
+=======
+                                  innerRef={file3Ref}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                                   disabled={
                                     typeof validation.values.fileIK ===
                                       "string" && validation.values.fileIK
@@ -1869,6 +2316,10 @@ toast.success(response.message || "File deleted successfully!");
                                         : null
                                     );
                                   }}
+<<<<<<< HEAD
+=======
+                                  innerRef={file4Ref}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                                   disabled={
                                     typeof validation.values.fileEM ===
                                       "string" && validation.values.fileEM
@@ -2016,6 +2467,10 @@ toast.success(response.message || "File deleted successfully!");
                                         : null
                                     );
                                   }}
+<<<<<<< HEAD
+=======
+                                  innerRef={file5Ref}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                                   disabled={
                                     typeof validation.values.fileSE ===
                                       "string" && validation.values.fileSE
@@ -2163,6 +2618,10 @@ toast.success(response.message || "File deleted successfully!");
                                         : null
                                     );
                                   }}
+<<<<<<< HEAD
+=======
+                                  innerRef={file6Ref}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                                   disabled={
                                     typeof validation.values.fileEN ===
                                       "string" && validation.values.fileEN
@@ -2310,6 +2769,10 @@ toast.success(response.message || "File deleted successfully!");
                                         : null
                                     );
                                   }}
+<<<<<<< HEAD
+=======
+                                  innerRef={file7Ref}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                                   disabled={
                                     typeof validation.values.fileET ===
                                       "string" && validation.values.fileET
@@ -2423,6 +2886,7 @@ toast.success(response.message || "File deleted successfully!");
                 onChange={handleSearch}
               />
             </div>
+<<<<<<< HEAD
             <Table
               striped
               bordered
@@ -2613,6 +3077,130 @@ toast.success(response.message || "File deleted successfully!");
           </ModalBody>
         </Modal>
         <Modal
+=======
+       <Table
+  striped
+  bordered
+  hover
+  responsive
+  className="align-middle text-center"
+  id="exportId"
+>
+  <thead className="table-dark">
+    <tr>
+      <th>#</th>
+      <th>Academic Year</th>
+      <th>Semester Type</th>
+      <th>Semester No</th>
+      <th>Stream</th>
+      <th>Department</th>
+      <th>Program Type</th>
+      <th>Program</th>
+      <th>Focus Area</th>
+
+      {/* EXPORT-ONLY COLUMNS */}
+      <th className="export-hidden">Course Title (Gender)</th>
+      <th className="export-hidden">Course Type (Gender)</th>
+      <th className="export-hidden">File Path (Gender)</th>
+
+      <th className="export-hidden">Course Title (Sustainability)</th>
+      <th className="export-hidden">Course Type (Sustainability)</th>
+      <th className="export-hidden">File Path (Sustainability)</th>
+
+      <th className="export-hidden">Course Title (IKS)</th>
+      <th className="export-hidden">Course Type (IKS)</th>
+      <th className="export-hidden">File Path (IKS)</th>
+
+      <th className="export-hidden">Course Title (Employability)</th>
+      <th className="export-hidden">Course Type (Employability)</th>
+      <th className="export-hidden">File Path (Employability)</th>
+
+      <th className="export-hidden">Course Title (Skill)</th>
+      <th className="export-hidden">Course Type (Skill)</th>
+      <th className="export-hidden">File Path (Skill)</th>
+
+      <th className="export-hidden">Course Title (Entrepreneurship)</th>
+      <th className="export-hidden">Course Type (Entrepreneurship)</th>
+      <th className="export-hidden">File Path (Entrepreneurship)</th>
+
+      {/* ACTIONS */}
+      <th>Actions</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {CWFData.length > 0 ? (
+      CWFData.map((row, index) => (
+        <tr key={row.coursesWithFocusId}>
+          <td>{indexOfFirstRow + index + 1}</td>
+          <td>{row.academicYear}</td>
+          <td>{row.semType}</td>
+          <td>{row.semNumber}</td>
+          <td>{row.streamName}</td>
+          <td>{row.departmentName}</td>
+          <td>{row.programTypeName}</td>
+          <td>{row.programName}</td>
+          <td>{row.focusArea}</td>
+
+          {/* EXPORT-ONLY VALUES */}
+          <td className="export-hidden">{row.ecoGenderC?.courseTitle}</td>
+          <td className="export-hidden">{row.ecoGenderC?.courseType}</td>
+          <td className="export-hidden">{row.ecoGenderC?.filePath?.EcoGenderC}</td>
+
+          <td className="export-hidden">{row.ecoEnvironmentalC?.courseTitle}</td>
+          <td className="export-hidden">{row.ecoEnvironmentalC?.courseType}</td>
+          <td className="export-hidden">{row.ecoEnvironmentalC?.filePath?.EcoEnvironmentalC}</td>
+
+          <td className="export-hidden">{row.ecoIKSC?.courseTitle}</td>
+          <td className="export-hidden">{row.ecoIKSC?.courseType}</td>
+          <td className="export-hidden">{row.ecoIKSC?.filePath?.EcoIKSC}</td>
+
+          <td className="export-hidden">{row.ecoEmployC?.courseTitle}</td>
+          <td className="export-hidden">{row.ecoEmployC?.courseType}</td>
+          <td className="export-hidden">{row.ecoEmployC?.filePath?.EcoEmployC}</td>
+
+          <td className="export-hidden">{row.ecoSkillC?.courseTitle}</td>
+          <td className="export-hidden">{row.ecoSkillC?.courseType}</td>
+          <td className="export-hidden">{row.ecoSkillC?.filePath?.EcoSkillC}</td>
+
+          <td className="export-hidden">{row.ecoEntreC?.courseTitle}</td>
+          <td className="export-hidden">{row.ecoEntreC?.courseType}</td>
+          <td className="export-hidden">{row.ecoEntreC?.filePath?.EcoEntreC}</td>
+
+          {/* ACTIONS */}
+          <td>
+            <div className="d-flex justify-content-center gap-3">
+              <button
+                className="btn btn-warning btn-sm"
+                onClick={() => handleEdit(row.coursesWithFocusId)}
+              >
+                Edit
+              </button>
+              <button
+                className="btn btn-danger btn-sm"
+                onClick={() => handleDelete(row.coursesWithFocusId)}
+              >
+                Delete
+              </button>
+            </div>
+          </td>
+        </tr>
+      ))
+    ) : (
+      <tr>
+        <td colSpan={28} className="text-center">
+          No data available.
+        </td>
+      </tr>
+    )}
+  </tbody>
+</Table>
+
+          </ModalBody>
+        </Modal>
+        <Modal
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

@@ -221,6 +221,7 @@ const Malpractice_committee_Report: React.FC = () => {
       const mappedValues = {
         academicYear: response.academicYear
           ? {
+<<<<<<< HEAD
             value: String(response.academicYear),
             label:
               academicYearList.find(
@@ -240,10 +241,32 @@ const Malpractice_committee_Report: React.FC = () => {
             value: String(response.departmentId),
             label: response.departmentName,
           }
+=======
+              value: String(response.academicYear),
+              label:
+                academicYearList.find(
+                  (opt: any) =>
+                    String(opt.value) === String(response.academicYear)
+                )?.label || String(response.academicYear),
+            }
+          : null,
+        stream: response.streamId
+          ? {
+              value: String(response.streamId),
+              label: response.streamName,
+            }
+          : null,
+        department: response.departmentId
+          ? {
+              value: String(response.departmentId),
+              label: response.departmentName,
+            }
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           : null,
         otherDepartment: "",
         subject: response.subjectId
           ? {
+<<<<<<< HEAD
             value: String(response.subjectId),
             label: response.subjectName,
           }
@@ -253,11 +276,23 @@ const Malpractice_committee_Report: React.FC = () => {
             value: String(response.classId),
             label: response.className,
           }
+=======
+              value: String(response.subjectId),
+              label: response.subjectName,
+            }
+          : null,
+        class: response.classId
+          ? {
+              value: String(response.classId),
+              label: response.className,
+            }
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           : null,
         file: response.file?.Invigilator || null,
         actionTaken: response.file?.ActionTaken || null,
         programType: response.programTypeId
           ? {
+<<<<<<< HEAD
             value: String(response.programTypeId),
             label: response.programTypeName,
           }
@@ -273,6 +308,23 @@ const Malpractice_committee_Report: React.FC = () => {
             value: String(response.courseId),
             label: response.courseName,
           }
+=======
+              value: String(response.programTypeId),
+              label: response.programTypeName,
+            }
+          : null,
+        degree: response.programId
+          ? {
+              value: String(response.programId),
+              label: response.programName,
+            }
+          : null,
+        program: response.courseId
+          ? {
+              value: String(response.courseId),
+              label: response.courseName,
+            }
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           : null,
         revisionPercentage: "", // Assuming not in API
         conductedDate: "", // Assuming not in API
@@ -282,9 +334,15 @@ const Malpractice_committee_Report: React.FC = () => {
         dateOfExam: response.dateOfExam || "",
         malpracticeType: response.typeOfMalpractise
           ? {
+<<<<<<< HEAD
             value: String(response.typeOfMalpractise),
             label: String(response.typeOfMalpractise),
           }
+=======
+              value: String(response.typeOfMalpractise),
+              label: String(response.typeOfMalpractise),
+            }
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           : null,
       };
       const streamOption = mapValueToLabel(response.streamId, []); // Replace [] with stream options array if available
@@ -330,7 +388,11 @@ const Malpractice_committee_Report: React.FC = () => {
 
         toast.success(
           response.message ||
+<<<<<<< HEAD
           "Malpractice Committee report removed successfully!"
+=======
+            "Malpractice Committee report removed successfully!"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         );
 
         fetchMCRData();
@@ -395,7 +457,11 @@ const Malpractice_committee_Report: React.FC = () => {
         ""
       );
       // Show success message
+<<<<<<< HEAD
 toast.success(response.message || "File deleted successfully!");
+=======
+      toast.success(response.message || "File deleted successfully!");
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       // Remove the file from the form
       if (docType === "file") {
         validation.setFieldValue("file", null);
@@ -466,7 +532,11 @@ toast.success(response.message || "File deleted successfully!");
             return this.createError({ message: "Please upload a file" });
           }
           // Check file size (2MB limit)
+<<<<<<< HEAD
           if (value instanceof File && value.size > 2 * 1024 * 1024) {
+=======
+          if (value instanceof File && value.size > 10 * 1024 * 1024) {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             return this.createError({ message: "File size is too large" });
           }
           // Check file type
@@ -490,7 +560,11 @@ toast.success(response.message || "File deleted successfully!");
             return this.createError({ message: "Please upload a file" });
           }
           // Check file size (2MB limit)
+<<<<<<< HEAD
           if (value instanceof File && value.size > 2 * 1024 * 1024) {
+=======
+          if (value instanceof File && value.size > 10 * 1024 * 1024) {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             return this.createError({ message: "File size is too large" });
           }
           // Check file type
@@ -586,7 +660,11 @@ toast.success(response.message || "File deleted successfully!");
           );
           toast.success(
             response.message ||
+<<<<<<< HEAD
             "Malpractice Committee report updated successfully!"
+=======
+              "Malpractice Committee report updated successfully!"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           );
         } else {
           // Call the save API
@@ -596,7 +674,11 @@ toast.success(response.message || "File deleted successfully!");
           );
           toast.success(
             response.message ||
+<<<<<<< HEAD
             "Malpractice Committee report added successfully!"
+=======
+              "Malpractice Committee report added successfully!"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           );
         }
         // Reset the form fields
@@ -634,12 +716,22 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+<<<<<<< HEAD
+=======
+          filename: "Malpractice_Committee_Report_Data",
+          title: "Malpractice Committee Report Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+<<<<<<< HEAD
+=======
+          filename: "Malpractice_Committee_Report_Data",
+          title: "Malpractice Committee Report Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)",
           },
@@ -762,11 +854,20 @@ toast.success(response.message || "File deleted successfully!");
                         <Label>Specify Department</Label>
                         <Input
                           type="text"
+<<<<<<< HEAD
                           className={`form-control ${validation.touched.otherDepartment &&
                             validation.errors.otherDepartment
                             ? "is-invalid"
                             : ""
                             }`}
+=======
+                          className={`form-control ${
+                            validation.touched.otherDepartment &&
+                            validation.errors.otherDepartment
+                              ? "is-invalid"
+                              : ""
+                          }`}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                           value={validation.values.otherDepartment}
                           onChange={(e) =>
                             validation.setFieldValue(
@@ -841,6 +942,7 @@ toast.success(response.message || "File deleted successfully!");
                   <Col lg={4}>
                     <div className="mb-3">
                       <Label>Program</Label>
+<<<<<<< HEAD
                       <Select
                         options={options}
                         value={validation.values.program}
@@ -852,6 +954,25 @@ toast.success(response.message || "File deleted successfully!");
                             validation.errors.program
                             ? "select-error"
                             : ""
+=======
+                      <ProgramDropdown
+                        programTypeId={selectedProgramType?.value}
+                        deptId={selectedDepartment?.value || null}
+                        degreeId={selectedDegree?.value}
+                        value={validation.values.program ? [validation.values.program] : []}
+                        onChange={(selectedOptions: any) => {
+                          // ProgramDropdown expects/returns an array, but the form stores a single object or null.
+                          const valueToSet = Array.isArray(selectedOptions)
+                            ? selectedOptions.length > 0
+                              ? selectedOptions[0]
+                              : null
+                            : selectedOptions;
+                          validation.setFieldValue("program", valueToSet);
+                        }}
+                        isInvalid={
+                          validation.touched.program &&
+                          !!validation.errors.program
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                         }
                       />
                       {validation.touched.program &&
@@ -899,7 +1020,11 @@ toast.success(response.message || "File deleted successfully!");
                         placeholder="Enter Name of the Candidate"
                         className={
                           validation.touched.candidateName &&
+<<<<<<< HEAD
                             validation.errors.candidateName
+=======
+                          validation.errors.candidateName
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                             ? "is-invalid"
                             : ""
                         }
@@ -928,7 +1053,11 @@ toast.success(response.message || "File deleted successfully!");
                         placeholder="Enter Register Number"
                         className={
                           validation.touched.registerNumber &&
+<<<<<<< HEAD
                             validation.errors.registerNumber
+=======
+                          validation.errors.registerNumber
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                             ? "is-invalid"
                             : ""
                         }
@@ -957,7 +1086,11 @@ toast.success(response.message || "File deleted successfully!");
                         placeholder="Enter Name of the Exam"
                         className={
                           validation.touched.nameOfTheExam &&
+<<<<<<< HEAD
                             validation.errors.nameOfTheExam
+=======
+                          validation.errors.nameOfTheExam
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                             ? "is-invalid"
                             : ""
                         }
@@ -1008,7 +1141,11 @@ toast.success(response.message || "File deleted successfully!");
                         }
                         className={
                           validation.touched.dateOfExam &&
+<<<<<<< HEAD
                             validation.errors.dateOfExam
+=======
+                          validation.errors.dateOfExam
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                             ? "is-invalid"
                             : ""
                         }
@@ -1038,7 +1175,11 @@ toast.success(response.message || "File deleted successfully!");
                         menuPortalTarget={document.body}
                         className={
                           validation.touched.malpracticeType &&
+<<<<<<< HEAD
                             validation.errors.malpracticeType
+=======
+                          validation.errors.malpracticeType
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                             ? "select-error"
                             : ""
                         }
@@ -1047,7 +1188,11 @@ toast.success(response.message || "File deleted successfully!");
                         validation.errors.malpracticeType && (
                           <div className="text-danger">
                             {typeof validation.errors.malpracticeType ===
+<<<<<<< HEAD
                               "string"
+=======
+                            "string"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                               ? validation.errors.malpracticeType
                               : ""}
                           </div>
@@ -1061,10 +1206,18 @@ toast.success(response.message || "File deleted successfully!");
                         Upload Report of Invigilator
                       </Label>
                       <Input
+<<<<<<< HEAD
                         className={`form-control ${validation.touched.file && validation.errors.file
                           ? "is-invalid"
                           : ""
                           }`}
+=======
+                        className={`form-control ${
+                          validation.touched.file && validation.errors.file
+                            ? "is-invalid"
+                            : ""
+                        }`}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                         type="file"
                         id="formFile"
                         innerRef={fileRef}
@@ -1133,11 +1286,20 @@ toast.success(response.message || "File deleted successfully!");
                         Upload Action Taken File
                       </Label>
                       <Input
+<<<<<<< HEAD
                         className={`form-control ${validation.touched.actionTaken &&
                           validation.errors.actionTaken
                           ? "is-invalid"
                           : ""
                           }`}
+=======
+                        className={`form-control ${
+                          validation.touched.actionTaken &&
+                          validation.errors.actionTaken
+                            ? "is-invalid"
+                            : ""
+                        }`}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                         type="file"
                         id="formFile"
                         innerRef={fileActRef}
@@ -1238,6 +1400,7 @@ toast.success(response.message || "File deleted successfully!");
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
+<<<<<<< HEAD
                   <th>Stream</th>
                   <th>Department</th>
                   <th>Program Type</th>
@@ -1252,6 +1415,21 @@ toast.success(response.message || "File deleted successfully!");
                   <th className="d-none">Subject</th>
                   <th className="d-none">Date of Exam</th>
                   <th className="d-none">Type of Malpractice</th>
+=======
+                  <th>School</th>
+                  <th>Department</th>
+                  <th>Program Type</th>
+                  <th>Degree</th>
+                  <th>Program</th>
+                  <th>Candidate Name</th>
+                  <th>Register Number</th>
+                  <th>Class</th>
+                  <th>Exam Name</th>
+                  <th>Subject</th>
+                  <th>Date of Exam</th>
+                  <th>Type of Malpractice</th>
+                  {/* Hidden columns */}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                   <th className="d-none">Invigilator Report</th>
                   <th className="d-none">Action Taken Report</th>
 
@@ -1260,8 +1438,13 @@ toast.success(response.message || "File deleted successfully!");
               </thead>
 
               <tbody>
+<<<<<<< HEAD
                 {currentRows.length > 0 ? (
                   currentRows.map((mcr, index) => (
+=======
+                {mcrData.length > 0 ? (
+                  mcrData.map((mcr, index) => (
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                     <tr key={mcr.id}>
                       <td>{indexOfFirstRow + index + 1}</td>
                       <td>{mcr.academicYear}</td>
@@ -1269,6 +1452,7 @@ toast.success(response.message || "File deleted successfully!");
                       <td>{mcr.departmentName}</td>
                       <td>{mcr.programTypeName}</td>
                       <td>{mcr.programName}</td>
+<<<<<<< HEAD
                       <td>{mcr.nameOfTheCandidate}</td>
                       <td>{mcr.registerNumber}</td>
 
@@ -1281,13 +1465,26 @@ toast.success(response.message || "File deleted successfully!");
                       <td className="d-none">
                         {mcr.typeOfMalpractise || "N/A"}
                       </td>
+=======
+                      <td>{mcr.courseName}</td>
+                      <td>{mcr.nameOfTheCandidate}</td>
+                      <td>{mcr.registerNumber}</td>
+                      <td>{mcr.className || "N/A"}</td>
+                      <td>{mcr.nameOfTheExam || "N/A"}</td>
+                      <td>{mcr.subjectName || "N/A"}</td>
+                      <td>{mcr.dateOfExam || "N/A"}</td>
+                      <td>{mcr.typeOfMalpractise || "N/A"}</td>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       <td className="d-none">
                         {mcr.filePath?.Invigilator || "N/A"}
                       </td>
                       <td className="d-none">
                         {mcr.filePath?.ActionTaken || "N/A"}
                       </td>
+<<<<<<< HEAD
 
+=======
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
@@ -1339,6 +1536,10 @@ toast.success(response.message || "File deleted successfully!");
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+<<<<<<< HEAD
+=======
+          className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

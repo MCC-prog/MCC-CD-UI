@@ -87,7 +87,11 @@ const ActivitiesPeace: React.FC = () => {
   const fetchActivitiesData = async () => {
     try {
       const response = await api.get(
+<<<<<<< HEAD
         "/institutionalValues/getAllInstitutionalValues?screenType=institutional",
+=======
+        "/institutionalValues/getAllInstitutionalValues?screenType=activitiesPeace",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         ""
       );
       setActivityData(response);
@@ -118,7 +122,11 @@ const ActivitiesPeace: React.FC = () => {
   const handleEdit = async (id: string) => {
     try {
       const response = await api.get(
+<<<<<<< HEAD
         `/institutionalValues?institutionalValuesId=${id}&screenType=institutional`,
+=======
+        `/institutionalValues?institutionalValuesId=${id}&screenType=activitiesPeace`,
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         ""
       );
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
@@ -330,7 +338,11 @@ toast.success(response.message || "File deleted successfully!");
             return this.createError({ message: "Please upload a file" });
           }
           // Check file size (2MB limit)
+<<<<<<< HEAD
           if (value instanceof File && value.size > 2 * 1024 * 1024) {
+=======
+          if (value instanceof File && value.size > 10 * 1024 * 1024) {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             return this.createError({ message: "File size is too large" });
           }
           // Check file type
@@ -348,7 +360,11 @@ toast.success(response.message || "File deleted successfully!");
 
       // Append fields to FormData
       formData.append("id", editId || "");
+<<<<<<< HEAD
       formData.append("screenType", "institutional");
+=======
+      formData.append("screenType", "activitiesPeace");
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       formData.append("academicYear", values.academicYear?.value || "");
       formData.append("departmentId", values.department?.value || "");
       formData.append("semester", String(values.semesterNo?.value || ""));
@@ -415,12 +431,22 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+<<<<<<< HEAD
+=======
+          filename: "Activities_Peace_Data",
+          title: "Activities Peace Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+<<<<<<< HEAD
+=======
+          filename: "Activities_Peace_Data",
+          title: "Activities Peace Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)",
           },
@@ -778,7 +804,11 @@ toast.success(response.message || "File deleted successfully!");
                       <Label>Download Template</Label>
                       <div>
                         <a
+<<<<<<< HEAD
                           href={`${process.env.PUBLIC_URL}/templateFiles/BOS_MoM_DeptName_Aug24.docx`}
+=======
+                          href={`${process.env.PUBLIC_URL}/templateFiles/YEAR_DEPT_REPORT.docx`}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                           download
                           className="btn btn-primary btn-sm"
                         >
@@ -843,7 +873,11 @@ toast.success(response.message || "File deleted successfully!");
                       <td>{activity.associationName}</td>
                       <td>{activity.eventObjective}</td>
                       <td className="d-none">
+<<<<<<< HEAD
                         {activity?.filePath?.Institutional || "N/A"}
+=======
+                        {activity?.filePath?.activitiesPeace || "N/A"}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       </td>{" "}
                       {/* Hidden */}
                       <td>
@@ -877,6 +911,10 @@ toast.success(response.message || "File deleted successfully!");
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

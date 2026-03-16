@@ -185,7 +185,11 @@ const Innovative_Teaching_Methodologies: React.FC = () => {
       });
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
+<<<<<<< HEAD
        if (response.documents?.innovativePedagogy) {
+=======
+      if (response.documents?.innovativePedagogy) {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         setIsFileUploadDisabled(true);
       }
       toggleModal();
@@ -283,7 +287,11 @@ const Innovative_Teaching_Methodologies: React.FC = () => {
         ""
       );
       // Show success message
+<<<<<<< HEAD
 toast.success(response.message || "File deleted successfully!");
+=======
+      toast.success(response.message || "File deleted successfully!");
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       // Remove the file from the form
       validation.setFieldValue("file", null); // Clear the file from Formik state
       setIsFileUploadDisabled(false); // Enable the file upload button
@@ -329,8 +337,13 @@ toast.success(response.message || "File deleted successfully!");
           if (!value) {
             return this.createError({ message: "Please upload a file" });
           }
+<<<<<<< HEAD
           // Check file size (2MB limit)
           if (value instanceof File && value.size > 2 * 1024 * 1024) {
+=======
+          // Check file size (10MB limit)
+          if (value instanceof File && value.size > 10 * 1024 * 1024) {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             return this.createError({ message: "File size is too large" });
           }
           // Check file type
@@ -426,6 +439,7 @@ toast.success(response.message || "File deleted successfully!");
       const table = $("#bosDataId").DataTable({
         destroy: true,
         dom: "Bfrtip",
+<<<<<<< HEAD
         buttons: [
           {
             extend: "copy",
@@ -444,6 +458,44 @@ toast.success(response.message || "File deleted successfully!");
         paging: false,
       });
 
+=======
+        paging: true,
+        searching: false,
+        pageLength: 10,
+
+        columnDefs: [
+          {
+            targets: [6], // hide file path column
+            visible: false,
+          },
+          {
+            targets: [7], // actions
+            orderable: false,
+            searchable: false,
+            visible: true,
+          },
+        ],
+
+        buttons: [
+          {
+            extend: "copy",
+            filename: "Innovative_Teaching_Methodologies_Data",
+            title: "Innovative Teaching Methodologies Data Export",
+          },
+          {
+            extend: "csv",
+            filename: "Innovative_Teaching_Methodologies_Data",
+            title: "Innovative Teaching Methodologies Data Export",
+            exportOptions: {
+              modifier: { page: "all" },
+              columns: function (idx) {
+                return idx !== 7; // exclude actions column
+              },
+            },
+          },
+        ],
+      });
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       $(".dt-buttons").addClass("mb-3 gap-2");
       $(".buttons-copy").addClass("btn btn-success");
       $(".buttons-csv").addClass("btn btn-info");
@@ -483,7 +535,11 @@ toast.success(response.message || "File deleted successfully!");
             title="Curriculum"
             breadcrumbItem="Innovative teaching methodology"
           />
+<<<<<<< HEAD
           <Card>
+=======
+          <Card style={{ height: "350px" }}>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
                 <Row>
@@ -684,6 +740,10 @@ toast.success(response.message || "File deleted successfully!");
         </Container>
         {/* Modal for Listing Innovative Teaching Methodologies */}
         <Modal
+<<<<<<< HEAD
+=======
+        
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isModalOpen}
           toggle={toggleModal}
           size="lg"
@@ -702,7 +762,10 @@ toast.success(response.message || "File deleted successfully!");
                 onChange={handleSearch}
               />
             </div>
+<<<<<<< HEAD
 
+=======
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             <Table
               striped
               bordered
@@ -710,8 +773,11 @@ toast.success(response.message || "File deleted successfully!");
               responsive
               className="align-middle text-center"
               id="bosDataId"
+<<<<<<< HEAD
               innerRef={tableRef}
               style={{ display: "none" }}
+=======
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             >
               <thead className="table-dark">
                 <tr>
@@ -719,6 +785,7 @@ toast.success(response.message || "File deleted successfully!");
                   <th>Academic Year</th>
                   <th>Semester Type</th>
                   <th>Semester No</th>
+<<<<<<< HEAD
                   <th>Stream</th>
                   <th>Program</th>
                   <th>File Path</th>
@@ -727,6 +794,22 @@ toast.success(response.message || "File deleted successfully!");
               <tbody>
                 {currentRows.length > 0 ? (
                   currentRows.map((bos, index) => (
+=======
+                  <th>Program</th>
+                  <th>Course Title</th>
+
+                  {/* HIDDEN EXPORT COLUMN */}
+                  <th className="export-hidden">File Path</th>
+
+                  {/* ACTIONS */}
+                  <th>Actions</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {ITMData.length > 0 ? (
+                  ITMData.map((bos, index) => (
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                     <tr key={bos.innovativeTeachingMethodologyId}>
                       <td>{indexOfFirstRow + index + 1}</td>
                       <td>{bos.academicYear || "N/A"}</td>
@@ -734,6 +817,7 @@ toast.success(response.message || "File deleted successfully!");
                       <td>{bos.semesterNo || "N/A"}</td>
                       <td>{Object.values(bos.courses).join(", ") || "N/A"}</td>
                       <td>{bos.courseTitle || "N/A"}</td>
+<<<<<<< HEAD
                       <td>{bos.filePath?.innovativePedagogy || "N/A"}</td>
                     </tr>
                   ))
@@ -784,6 +868,14 @@ toast.success(response.message || "File deleted successfully!");
                       </td>
 
                       <td>{bos.courseTitle}</td>
+=======
+
+                      {/* HIDDEN EXPORT COLUMN */}
+                      <td className="export-hidden">
+                        {bos.filePath?.innovativePedagogy || "N/A"}
+                      </td>
+
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
@@ -808,13 +900,18 @@ toast.success(response.message || "File deleted successfully!");
                   ))
                 ) : (
                   <tr>
+<<<<<<< HEAD
                     <td colSpan={11} className="text-center">
+=======
+                    <td colSpan={8} className="text-center">
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       No Innovative Teaching Methodologies data available.
                     </td>
                   </tr>
                 )}
               </tbody>
             </Table>
+<<<<<<< HEAD
             {/* Pagination Controls */}
             <div className="d-flex justify-content-between align-items-center mt-3">
               <Button
@@ -835,10 +932,16 @@ toast.success(response.message || "File deleted successfully!");
                 Next
               </Button>
             </div>
+=======
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           </ModalBody>
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

@@ -138,7 +138,11 @@ const Research_Guides = () => {
             return this.createError({ message: "Please upload a file" });
           }
           // Check file size (2MB limit)
+<<<<<<< HEAD
           if (value instanceof File && value.size > 2 * 1024 * 1024) {
+=======
+          if (value instanceof File && value.size > 10 * 1024 * 1024) {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             return this.createError({ message: "File size is too large" });
           }
           // Check file type
@@ -505,12 +509,22 @@ const Research_Guides = () => {
       buttons: [
         {
           extend: "copy",
+<<<<<<< HEAD
+=======
+          filename: "Research_Guides_Data",
+          title: "Research Guides Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+<<<<<<< HEAD
+=======
+          filename: "Research_Guides_Data",
+          title: "Research Guides Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)",
           },
@@ -1099,7 +1113,17 @@ const Research_Guides = () => {
                   <th>Department</th>
                   <th>Guide Name</th>
                   <th>Guide Afffiliation</th>
+<<<<<<< HEAD
                   <th>Number of Students</th>
+=======
+                  <th>Status</th>
+                  <th>Number of Students</th>
+                  <th className="d-none">Student Name</th>
+                  <th className="d-none">Student Year of Joining</th>
+                  <th className="d-none">Student Title</th>
+                  <th className="d-none">Student Funding Received</th>
+                  <th className="d-none">Student Scholarship</th>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                   <th className="d-none">File Path</th> {/* Hidden */}
                   <th>Actions</th>
                 </tr>
@@ -1114,7 +1138,17 @@ const Research_Guides = () => {
                       <td>{rg.departmentName}</td>
                       <td>{rg.guideName}</td>
                       <td>{rg.guidesAffiliation}</td>
+<<<<<<< HEAD
                       <td>{rg.noOfStudents}</td>
+=======
+                      <td>{rg.status}</td>
+                      <td>{rg.noOfStudents}</td>
+                      <td className="d-none">{rg.studentList.map((student) => student.name).join(", ")} </td>
+                      <td className="d-none">{rg.studentList.map((student) => student.joiningYear).join(", ")}</td>
+                      <td className="d-none">{rg.studentList.map((student) => student.title).join(", ")}</td>
+                      <td className="d-none">{rg.studentList.map((student) => student.fundingReceived).join(", ")}</td>
+                      <td className="d-none">{rg.studentList.map((student) => student.scholarship).join(", ")}</td>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       <td className="d-none">
                         {rg?.filePath?.letter || "N/A"}
                       </td>{" "}
@@ -1150,6 +1184,10 @@ const Research_Guides = () => {
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

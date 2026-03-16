@@ -3,7 +3,11 @@ import { Col, Modal, ModalBody, Row } from "reactstrap"
 
 const DeleteModal = ({ show, onDeleteClick, onCloseClick }: any) => {
   return (
+<<<<<<< HEAD
     <Modal isOpen={show} toggle={onCloseClick} centered={true}>
+=======
+    <Modal className="delete-popup" isOpen={show} toggle={onCloseClick} centered={true}>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       <ModalBody className="py-3 px-5">
         <Row>
           <Col lg={12}>

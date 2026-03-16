@@ -224,12 +224,22 @@ const FinancialContribution: React.FC = () => {
         buttons: [
           {
             extend: "copy",
+<<<<<<< HEAD
+=======
+          filename: "Financial_Contribution",
+          title: "Financial Contribution Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             exportOptions: {
               columns: ":not(:last-child)",
             },
           },
           {
             extend: "csv",
+<<<<<<< HEAD
+=======
+            filename: "Financial_Contribution",
+            title: "Financial Contribution Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             exportOptions: {
               columns: ":not(:last-child)",
             },
@@ -302,7 +312,11 @@ const FinancialContribution: React.FC = () => {
             return this.createError({ message: "Please upload a file" });
           }
           // Check file size (2MB limit)
+<<<<<<< HEAD
           if (value instanceof File && value.size > 2 * 1024 * 1024) {
+=======
+          if (value instanceof File && value.size > 10 * 1024 * 1024) {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             return this.createError({ message: "File size is too large" });
           }
           // Check file type
@@ -377,7 +391,11 @@ const FinancialContribution: React.FC = () => {
             title="Alumini"
             breadcrumbItem="Financial Contribution by Alumini"
           />
+<<<<<<< HEAD
           <Card>
+=======
+          <Card style={{ height: "350px" }}>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
                 <Input type="hidden" name="id" value={editId || ""} />
@@ -590,6 +608,10 @@ const FinancialContribution: React.FC = () => {
         </ModalBody>
       </Modal>
       <Modal
+<<<<<<< HEAD
+=======
+      className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         isOpen={isDeleteModalOpen}
         toggle={() => setIsDeleteModalOpen(false)}
       >

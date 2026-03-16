@@ -363,8 +363,13 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
           if (!value) {
             return this.createError({ message: "Please upload a file" });
           }
+<<<<<<< HEAD
           // Check file size (2MB limit)
           if (value instanceof File && value.size > 2 * 1024 * 1024) {
+=======
+          // Check file size (10MB limit)
+          if (value instanceof File && value.size > 10 * 1024 * 1024) {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             return this.createError({ message: "File size is too large" });
           }
           // Check file type
@@ -387,8 +392,13 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
           if (!value) {
             return this.createError({ message: "Please upload a file" });
           }
+<<<<<<< HEAD
           // Check file size (2MB limit)
           if (value instanceof File && value.size > 2 * 1024 * 1024) {
+=======
+          // Check file size (10MB limit)
+          if (value instanceof File && value.size > 10 * 1024 * 1024) {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             return this.createError({ message: "File size is too large" });
           }
           // Check file type
@@ -499,20 +509,38 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
   useEffect(() => {
     if (agreementData.length === 0) return; // wait until data is loaded
 
+<<<<<<< HEAD
     const table = $("#agreementId").DataTable({
       destroy: true, // destroy existing instance if re-rendered
       scrollX: true,
       autoWidth: false,
+=======
+    const table = $("#mousAgreementCopyActivitiesId").DataTable({
+      destroy: true, // destroy existing instance if re-rendered
+      scrollX: true,
+      autoWidth: false,
+      info: true,
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       dom: "Bfrtip",
       buttons: [
         {
           extend: "copy",
+<<<<<<< HEAD
+=======
+          filename: "Mous_Agreement_Copy_Activities_Data",
+          title: "Mous Agreement Copy & Activities Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+<<<<<<< HEAD
+=======
+          filename: "Mous_Agreement_Copy_Activities_Data",
+          title: "Mous Agreement Copy & Activities Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)",
           },
@@ -980,18 +1008,30 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
                     </div>
                   </Col>
                   <Col lg={4}>
+<<<<<<< HEAD
                     <div className="mb-3">
                       <Label>Download Template of Report</Label>
                       <div>
                         <a
                           href="/templateFiles/bos.pdf"
+=======
+                    {/* <div className="mb-3">
+                      <Label>Download Template of Report</Label>
+                      <div>
+                        <a
+                          href={`${process.env.PUBLIC_URL}/templateFiles/Industry_collaboration _ skill_enhancement.docx`}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                           download
                           className="btn btn-primary btn-sm"
                         >
                           Sample Report Template
                         </a>
                       </div>
+<<<<<<< HEAD
                     </div>
+=======
+                    </div> */}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                   </Col>
                 </Row>
                 <Row>
@@ -1032,7 +1072,11 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
               id="mousAgreementCopyActivitiesId"
               innerRef={tableRef}
             >
+<<<<<<< HEAD
               <thead className="table-dark">
+=======
+              <thead>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
@@ -1045,7 +1089,12 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
                   <th>Mou Valid</th>
                   <th>Type Of Activity</th>
                   <th>Target Audience</th>
+<<<<<<< HEAD
                   <th className="d-none">File Path</th> {/* Hidden */}
+=======
+                  <th className="d-none">Report of the Activity File</th> {/* Hidden */}
+                  <th className="d-none">Letter/MOU File Path</th> {/* Hidden */}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -1073,6 +1122,10 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
                         </ul>
                       </td>
                       <td className="d-none">{agreement?.filePath?.Mous || "N/A"}</td> {/* Hidden */}
+<<<<<<< HEAD
+=======
+                      <td className="d-none">{agreement?.filePath?.Activity || "N/A"}</td> {/* Hidden */}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       <td>
                         <div className="d-flex justify-content-center gap-2">
 
@@ -1105,6 +1158,10 @@ const Mous_AgreementCopy_Activities: React.FC = () => {
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

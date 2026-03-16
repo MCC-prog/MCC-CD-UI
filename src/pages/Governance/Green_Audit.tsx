@@ -250,7 +250,11 @@ const GreenAudit: React.FC = () => {
         .required("Please upload a file")
         .test("fileSize", "File size is too large", (value: any) => {
           if (typeof value === "string") return true;
+<<<<<<< HEAD
           return value && value.size <= 2 * 1024 * 1024; // 2MB limit
+=======
+          return value && value.size <= 10 * 1024 * 1024; // 2MB limit
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         })
         .test("fileType", "Unsupported file format", (value: any) => {
           if (typeof value === "string") return true;
@@ -263,7 +267,11 @@ const GreenAudit: React.FC = () => {
         .required("Please upload a file")
         .test("fileSize", "File size is too large", (value: any) => {
           if (typeof value === "string") return true;
+<<<<<<< HEAD
           return value && value.size <= 2 * 1024 * 1024; // 2MB limit
+=======
+          return value && value.size <= 10 * 1024 * 1024; // 2MB limit
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         })
         .test("fileType", "Unsupported file format", (value: any) => {
           if (typeof value === "string") return true;
@@ -276,7 +284,11 @@ const GreenAudit: React.FC = () => {
         .required("Please upload a file")
         .test("fileSize", "File size is too large", (value: any) => {
           if (typeof value === "string") return true;
+<<<<<<< HEAD
           return value && value.size <= 2 * 1024 * 1024; // 2MB limit
+=======
+          return value && value.size <= 10 * 1024 * 1024; // 2MB limit
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         })
         .test("fileType", "Unsupported file format", (value: any) => {
           if (typeof value === "string") return true;
@@ -377,12 +389,22 @@ const GreenAudit: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+<<<<<<< HEAD
+=======
+          filename: "Green_Audit_Data",
+          title: "Green Audit Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+<<<<<<< HEAD
+=======
+          filename: "Green_Audit_Data",
+          title: "Green Audit Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)",
           },
@@ -412,7 +434,11 @@ const GreenAudit: React.FC = () => {
       <div className="page-content">
         <Container fluid>
           <Breadcrumb title="Governance" breadcrumbItem="Green Audit" />
+<<<<<<< HEAD
           <Card>
+=======
+          <Card style={{ height: "350px" }}>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
                 <Row>
@@ -750,7 +776,11 @@ const GreenAudit: React.FC = () => {
                       </td>
                       <td className="d-none">{greenAudit.filePath?.greenAudit || "N/A"}</td> {/* Hidden */}
                       <td className="d-none">{greenAudit.filePath?.geoTaggedPhotos || "N/A"}</td> {/* Hidden */}
+<<<<<<< HEAD
                       <td className="d-none">{greenAudit.filePath?.certificate || "N/A"}</td> {/* Hidden */}
+=======
+                      <td className="d-none">{greenAudit.filePath?.certificateFile || "N/A"}</td> {/* Hidden */}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       <td>
                         <button
                           className="btn btn-sm btn-warning me-2"
@@ -780,6 +810,10 @@ const GreenAudit: React.FC = () => {
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

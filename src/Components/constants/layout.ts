@@ -58,7 +58,11 @@ const megaMenuContents = [
   {
     title: "CURRICULUM",
     items: [
+<<<<<<< HEAD
       { label: "1. BoS", path: "/Bos_Data" },
+=======
+      { label: "1. BOS", path: "/Bos_Data" },
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       { label: "2. Courses with focus", path: "/Courses_With_Focus" },
       { label: "3. New Programs Introduced", path: "/New_Programs_Introduced" },
       { label: "4. New Courses Introduced", path: "/New_Courses_Introduced" },
@@ -68,7 +72,12 @@ const megaMenuContents = [
         label: "7. Innovative Teaching Methodologies",
         path: "/Innovative_Teaching_Methodologies",
       },
+<<<<<<< HEAD
       { label: "8. AC & GB MoM", path: "/AC_GB_MoM" },
+=======
+      { label: "8. BOE", path: "/Boe_Data" },
+      { label: "9. AC & GB MoM", path: "/AC_GB_MoM" },
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
     ],
   },
   {
@@ -80,10 +89,17 @@ const megaMenuContents = [
         label: "3. Student Centric Teaching Methodology",
         path: "/Student_Centric_Teaching",
       },
+<<<<<<< HEAD
       {
         label: "4. Usage of ICT tools in classroom",
         path: "/UsageOf_ICT_Tools",
       },
+=======
+      // {
+      //   label: "4. Usage of ICT tools in classroom",
+      //   path: "/UsageOf_ICT_Tools",
+      // },
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
     ],
   },
   {
@@ -104,12 +120,17 @@ const megaMenuContents = [
     ],
   },
   {
+<<<<<<< HEAD
     title: "STAFF PROFILE",
+=======
+    title: "FACULTY DETAILS",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
     items: [
       {
         label: "1. Teachers' details",
         path: "/Teachers_Details",
       },
+<<<<<<< HEAD
       {
         label: "2. Part Time/Guest Faculty",
         path: "/PartTime_Guest",
@@ -118,6 +139,16 @@ const megaMenuContents = [
         label: "3. Professor Practice",
         path: "/Professor_Practice",
       },
+=======
+      // {
+      //   label: "2. Part Time/Guest Faculty",
+      //   path: "/PartTime_Guest",
+      // },
+      // {
+      //   label: "3. Professor Practice",
+      //   path: "/Professor_Practice",
+      // },
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
     ],
   },
   {
@@ -165,6 +196,7 @@ const megaMenuContents = [
         label: "1. Management funded Project",
         path: "/Management_Funded_Project",
       },
+<<<<<<< HEAD
       {
         label: "2. Government/ NGO funded projects",
         path: "/Government_Or_NGO_Funded_Projects",
@@ -179,6 +211,22 @@ const megaMenuContents = [
       {
         label:
           "7. Faculty participation & presentation of Research Papers in Conference/Seminars and going as Resource Persons",
+=======
+     // {
+     //      label: "2. Government/ NGO funded projects",
+     //   path: "/Government_Or_NGO_Funded_Projects",
+     // },
+      {
+        label: "2. Fellowships awarded for advanced learning & research",
+        path: "/Felloships_Awarded",
+      },
+      { label: "3. Research Guides", path: "/Research_Guides" },
+      { label: "4. Research Publications", path: "/Research_Publications" },
+      { label: "5. Books/Chapters", path: "/Books_Chapters" },
+      {
+        label:
+          "6. Faculty participation & presentation of Research Papers in Conference/Seminars and going as Resource Persons",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         path: "/FP_And_Presentation_Research_Papers",
       },
     ],

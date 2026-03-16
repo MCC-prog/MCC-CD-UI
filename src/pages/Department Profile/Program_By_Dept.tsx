@@ -34,6 +34,10 @@ import "datatables.net-buttons/js/buttons.html5.js";
 import "jszip";
 import "pdfmake/build/pdfmake";
 import "pdfmake/build/vfs_fonts";
+<<<<<<< HEAD
+=======
+import GetAllDepartmentDropdown from "Components/DropDowns/GetAllDepartmentDropdown";
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
 const api = new APIClient();
 
 const Program_By_Dept: React.FC = () => {
@@ -45,6 +49,10 @@ const Program_By_Dept: React.FC = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [filteredData, setFilteredData] = useState(programDeptData);
+<<<<<<< HEAD
+=======
+  const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
 
   const tableRef = useRef<HTMLTableElement>(null);
 
@@ -107,6 +115,15 @@ const Program_By_Dept: React.FC = () => {
         ug: response.ug || "",
         pg: response.pg || "",
         phd: response.phd || "",
+<<<<<<< HEAD
+=======
+        department: response.departmentId
+          ? {
+              value: response.departmentId.toString(),
+              label: response.departmentName,
+            }
+          : null,
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       };
 
       // Update Formik values
@@ -124,6 +141,15 @@ const Program_By_Dept: React.FC = () => {
               label: mappedValues.stream.label || "",
             }
           : null,
+<<<<<<< HEAD
+=======
+        department: mappedValues.department
+          ? {
+              value: String(mappedValues.department.value),
+              label: mappedValues.department.label || "",
+            }
+          : null,
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         ug: response.ug || "",
         pg: response.pg || "",
         phd: response.phd || "",
@@ -183,6 +209,10 @@ const Program_By_Dept: React.FC = () => {
       pg: "",
       phd: "",
       stream: null as OptionType | null,
+<<<<<<< HEAD
+=======
+      department: null as { value: string; label: string } | null,
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
     },
     validationSchema: Yup.object({
       academicYear: Yup.object()
@@ -199,6 +229,10 @@ const Program_By_Dept: React.FC = () => {
         })
         .nullable()
         .required("Please select stream"),
+<<<<<<< HEAD
+=======
+      department: Yup.object().nullable().required("Please select department"),
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       ug: Yup.string().required("Please enter ug"),
       pg: Yup.string().required("Please enter pg"),
       phd: Yup.string().required("Please enter ph.d"),
@@ -214,6 +248,10 @@ const Program_By_Dept: React.FC = () => {
           "streamId",
           values.stream?.value ? String(values.stream.value) : ""
         );
+<<<<<<< HEAD
+=======
+        formData.append("departmentId", values.department?.value || "");
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         formData.append("ug", values.ug || "");
         formData.append("pg", values.pg || "");
         formData.append("phd", values.phd || "");
@@ -264,12 +302,22 @@ const Program_By_Dept: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+<<<<<<< HEAD
+=======
+          filename: "Program_By_Dept_Data",
+          title: "Program offered by the dept Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+<<<<<<< HEAD
+=======
+          filename: "Program_By_Dept_Data",
+          title: "Program offered by the dept Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)",
           },
@@ -355,6 +403,35 @@ const Program_By_Dept: React.FC = () => {
                     </div>
                   </Col>
 
+<<<<<<< HEAD
+=======
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Department</Label>
+                      <GetAllDepartmentDropdown
+                        value={validation.values.department}
+                        onChange={(selectedOption) => {
+                          validation.setFieldValue(
+                            "department",
+                            selectedOption
+                          );
+                          setSelectedDepartment(selectedOption);
+                        }}
+                        isInvalid={
+                          validation.touched.department &&
+                          !!validation.errors.department
+                        }
+                      />
+                      {validation.touched.department &&
+                        validation.errors.department && (
+                          <div className="text-danger">
+                            {validation.errors.department}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
@@ -473,6 +550,10 @@ const Program_By_Dept: React.FC = () => {
                   <th>#</th>
                   <th>Academic Year</th>
                   <th>School</th>
+<<<<<<< HEAD
+=======
+                  <th>Department</th>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                   <th>No.UG</th>
                   <th>No.PG</th>
                   <th>No.Phd</th>
@@ -486,6 +567,10 @@ const Program_By_Dept: React.FC = () => {
                       <td>{index + 1}</td>
                       <td>{pbd.academicYear}</td>
                       <td>{pbd.streamName}</td>
+<<<<<<< HEAD
+=======
+                      <td>{pbd.departmentName}</td>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       <td>{pbd.ug}</td>
                       <td>{pbd.pg}</td>
                       <td>{pbd.phd}</td>
@@ -518,6 +603,10 @@ const Program_By_Dept: React.FC = () => {
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

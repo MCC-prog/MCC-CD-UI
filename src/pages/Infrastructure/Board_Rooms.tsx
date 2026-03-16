@@ -235,7 +235,11 @@ const Board_Rooms: React.FC = () => {
         .required("Please upload a file")
         .test("fileSize", "File size is too large", (value: any) => {
           if (typeof value === "string") return true;
+<<<<<<< HEAD
           return value && value.size <= 2 * 1024 * 1024; // 2MB limit
+=======
+          return value && value.size <= 10 * 1024 * 1024; // 2MB limit
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         })
         .test("fileType", "Unsupported file format", (value: any) => {
           if (typeof value === "string") return true;
@@ -308,12 +312,22 @@ const Board_Rooms: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+<<<<<<< HEAD
+=======
+          filename: "Board_Rooms_Data",
+          title: "Board Rooms Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+<<<<<<< HEAD
+=======
+          filename: "Board_Rooms_Data",
+          title: "Board Rooms Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)",
           },
@@ -567,6 +581,10 @@ const Board_Rooms: React.FC = () => {
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

@@ -294,7 +294,11 @@ toast.success(response.message || "File deleted successfully!");
         .test("fileSize", "File size is too large", (value: any) => {
           // Skip size validation if file is a string (from existing data)
           if (typeof value === "string") return true;
+<<<<<<< HEAD
           return value && value.size <= 50 * 1024 * 1024; // 50MB
+=======
+          return value && value.size <= 500 * 1024 * 1024; // 50MB
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         })
         .test("fileType", "Unsupported file format", (value: any) => {
           // Skip type validation if file is a string
@@ -384,6 +388,7 @@ toast.success(response.message || "File deleted successfully!");
       scrollX: true,
       autoWidth: false,
       dom: "Bfrtip",
+<<<<<<< HEAD
       buttons: [
         {
           extend: "copy",
@@ -399,6 +404,44 @@ toast.success(response.message || "File deleted successfully!");
         },
       ],
     });
+=======
+      paging: true,
+        pageLength: 10,
+        info: true,
+        searching: false,
+
+
+        // FilePath hidden in UI
+        columnDefs: [
+          { targets: 4, visible: false }, // FilePath
+          { targets: 5, orderable: false, searchable: false }, // Actions
+        ],
+
+        buttons: [
+          { extend: "copy",
+            filename: "Student_Strength_Program_Wise_Data",
+            title: "Student Strength Program-wise Data Export",
+            exportOptions: {
+              modifier: { page: "all" }, 
+              columns: function (idx) {
+                return idx !== 5; 
+              },
+            },
+           },
+          {
+            extend: "csv",
+            filename: "Student_Strength_Program_Wise_Data",
+            title: "Student Strength Program-wise Data Export",
+            exportOptions: {
+              modifier: { page: "all" }, 
+              columns: function (idx) {
+                return idx !== 5; 
+              },
+            },
+          },
+        ],
+      });
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
     $(".dt-buttons").addClass("mb-3 gap-2");
     $(".buttons-copy").addClass("btn btn-success");
     $(".buttons-csv").addClass("btn btn-info");
@@ -637,19 +680,32 @@ toast.success(response.message || "File deleted successfully!");
                   <th>Academic Year</th>
                   <th>School</th>
                   <th>ProgramType</th>
+<<<<<<< HEAD
                   <th>Documents</th>
+=======
+                  <th className="export-hidden">File path</th>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
+<<<<<<< HEAD
                 {currentRows.length > 0 ? (
                   currentRows.map((bos, index) => (
+=======
+                {bosData.length > 0 ? (
+                  bosData.map((bos, index) => (
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                     <tr key={bos.totalStudentStrengthId}>
                       <td>{index + 1}</td>
                       <td>{bos.academicYear}</td>
                       <td>{bos.streamName}</td>
                       <td>{bos.programType}</td>
+<<<<<<< HEAD
                       <td>{bos.document?.excel || "No file uploaded"}</td>
+=======
+                      <td className="export-hidden">{bos.document?.excel || "No file uploaded"}</td>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       <td>
                         <button
                           className="btn btn-sm btn-warning me-2"
@@ -681,6 +737,10 @@ toast.success(response.message || "File deleted successfully!");
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

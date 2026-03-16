@@ -83,7 +83,10 @@ const Activities_Conducted_MCCIE: React.FC = () => {
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
   const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
   // Toggle the modal for listing Activities Conducted MCCIE
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
@@ -154,9 +157,15 @@ const Activities_Conducted_MCCIE: React.FC = () => {
       validation.setValues({
         academicYear: mappedValues.academicYear
           ? {
+<<<<<<< HEAD
             ...mappedValues.academicYear,
             value: String(mappedValues.academicYear.value),
           }
+=======
+              ...mappedValues.academicYear,
+              value: String(mappedValues.academicYear.value),
+            }
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           : null,
         startDate: response.startDate
           ? moment(response.startDate, "DD/MM/YYYY").format("DD/MM/YYYY")
@@ -207,7 +216,11 @@ const Activities_Conducted_MCCIE: React.FC = () => {
 
         toast.success(
           response.message ||
+<<<<<<< HEAD
           "Activities Conducted MCCIIE removed successfully!"
+=======
+            "Activities Conducted MCCIIE removed successfully!"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         );
         fetchACMData();
       } catch (error) {
@@ -271,16 +284,26 @@ const Activities_Conducted_MCCIE: React.FC = () => {
         ""
       );
       // Show success message
+<<<<<<< HEAD
 toast.success(response.message || "File deleted successfully!");
       if (docType === "activityPhoto") {
         validation.setFieldValue("activityPhoto", null);
         setIsFileUploadDisabled(false); // Enable the file upload button
 
+=======
+      toast.success(response.message || "File deleted successfully!");
+      if (docType === "activityPhoto") {
+        validation.setFieldValue("activityPhoto", null);
+        setIsFileUploadDisabled(false); // Enable the file upload button
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       }
       if (docType === "activityLetter") {
         validation.setFieldValue("activityLetter", null);
         setIsFile2UploadDisabled(false); // Enable the file upload button
+<<<<<<< HEAD
 
+=======
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       }
       // Remove the file from the form
       validation.setFieldValue("file", null); // Clear the file from Formik state
@@ -313,7 +336,13 @@ toast.success(response.message || "File deleted successfully!");
       academicYear: Yup.object<{ value: string; label: string }>()
         .nullable()
         .required("Please select academic year"),
+<<<<<<< HEAD
       agencyName: Yup.string().required("Please enter Collaborating Organisation"),
+=======
+      agencyName: Yup.string().required(
+        "Please enter Collaborating Organisation"
+      ),
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       activityName: Yup.string().required("Please enter Activity Title"),
       noOfStudents: Yup.number()
         .typeError("Enter a valid number")
@@ -336,10 +365,14 @@ toast.success(response.message || "File deleted successfully!");
         .test("fileType", "Only image files allowed", (value) => {
           if (!value) return false;
           if (typeof value === "string") return true;
+<<<<<<< HEAD
           return (
             value instanceof File &&
             ["image/jpeg", "image/png", "image/jpg"].includes(value.type)
           );
+=======
+         return value instanceof File && value.type === "application/pdf";
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         }),
       activityLetter: Yup.mixed()
         .required("Please upload letter/MOU")
@@ -361,12 +394,27 @@ toast.success(response.message || "File deleted successfully!");
       formData.append("agencyName", values.agencyName || "");
       formData.append("activityName", values.activityName || "");
       formData.append("noOfStudents", values.noOfStudents || "");
+<<<<<<< HEAD
       formData.append("startDate", values.startDate ? moment(values.startDate, "DD/MM/YYYY").format("DD/MM/YYYY")
         : "");
       formData.append("endDate", values.endDate ? moment(values.endDate, "DD/MM/YYYY").format("DD/MM/YYYY")
         : "");
 
 
+=======
+      formData.append(
+        "startDate",
+        values.startDate
+          ? moment(values.startDate, "DD/MM/YYYY").format("DD/MM/YYYY")
+          : ""
+      );
+      formData.append(
+        "endDate",
+        values.endDate
+          ? moment(values.endDate, "DD/MM/YYYY").format("DD/MM/YYYY")
+          : ""
+      );
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
 
       formData.append(
         "sourceFinancialSupport",
@@ -415,7 +463,11 @@ toast.success(response.message || "File deleted successfully!");
           );
           toast.success(
             response.message ||
+<<<<<<< HEAD
             "Activities Conducted MCCIIE updated successfully!"
+=======
+              "Activities Conducted MCCIIE updated successfully!"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           );
         } else {
           // Call the save API
@@ -425,7 +477,11 @@ toast.success(response.message || "File deleted successfully!");
           );
           toast.success(
             response.message ||
+<<<<<<< HEAD
             "Activities Conducted MCCIIE added successfully!"
+=======
+              "Activities Conducted MCCIIE added successfully!"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           );
         }
         // Reset the form fields
@@ -463,12 +519,22 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+<<<<<<< HEAD
+=======
+          filename: "Activities_Conducted_MCCIE_Data",
+          title: "Activities Conducted MCCIE Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+<<<<<<< HEAD
+=======
+          filename: "Activities_Conducted_MCCIE_Data",
+          title: "Activities Conducted MCCIE Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)",
           },
@@ -625,7 +691,11 @@ toast.success(response.message || "File deleted successfully!");
                         }
                         className={
                           validation.touched.agencyName &&
+<<<<<<< HEAD
                             validation.errors.agencyName
+=======
+                          validation.errors.agencyName
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                             ? "is-invalid"
                             : ""
                         }
@@ -653,7 +723,11 @@ toast.success(response.message || "File deleted successfully!");
                         }
                         className={
                           validation.touched.activityName &&
+<<<<<<< HEAD
                             validation.errors.activityName
+=======
+                          validation.errors.activityName
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                             ? "is-invalid"
                             : ""
                         }
@@ -682,7 +756,11 @@ toast.success(response.message || "File deleted successfully!");
                         }
                         className={
                           validation.touched.noOfStudents &&
+<<<<<<< HEAD
                             validation.errors.noOfStudents
+=======
+                          validation.errors.noOfStudents
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                             ? "is-invalid"
                             : ""
                         }
@@ -710,7 +788,11 @@ toast.success(response.message || "File deleted successfully!");
                         }
                         className={
                           validation.touched.financialSupportSource &&
+<<<<<<< HEAD
                             validation.errors.financialSupportSource
+=======
+                          validation.errors.financialSupportSource
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                             ? "is-invalid"
                             : ""
                         }
@@ -756,9 +838,15 @@ toast.success(response.message || "File deleted successfully!");
                         value={
                           validation.values.startDate
                             ? moment(
+<<<<<<< HEAD
                               validation.values.startDate,
                               "DD/MM/YYYY"
                             ).format("YYYY-MM-DD")
+=======
+                                validation.values.startDate,
+                                "DD/MM/YYYY"
+                              ).format("YYYY-MM-DD")
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                             : ""
                         }
                         onChange={(e) => {
@@ -770,7 +858,11 @@ toast.success(response.message || "File deleted successfully!");
                         }}
                         className={
                           validation.touched.startDate &&
+<<<<<<< HEAD
                             validation.errors.startDate
+=======
+                          validation.errors.startDate
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                             ? "is-invalid"
                             : ""
                         }
@@ -791,9 +883,15 @@ toast.success(response.message || "File deleted successfully!");
                         value={
                           validation.values.endDate
                             ? moment(
+<<<<<<< HEAD
                               validation.values.endDate,
                               "DD/MM/YYYY"
                             ).format("YYYY-MM-DD")
+=======
+                                validation.values.endDate,
+                                "DD/MM/YYYY"
+                              ).format("YYYY-MM-DD")
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                             : ""
                         }
                         onChange={(e) => {
@@ -804,7 +902,12 @@ toast.success(response.message || "File deleted successfully!");
                           validation.setFieldValue("endDate", formattedDate);
                         }}
                         className={
+<<<<<<< HEAD
                           validation.touched.endDate && validation.errors.endDate
+=======
+                          validation.touched.endDate &&
+                          validation.errors.endDate
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                             ? "is-invalid"
                             : ""
                         }
@@ -823,7 +926,11 @@ toast.success(response.message || "File deleted successfully!");
                       <Input
                         type="file"
                         innerRef={fileRef}
+<<<<<<< HEAD
                         accept="image/*"
+=======
+                        accept="application/pdf"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                         onChange={(e) =>
                           validation.setFieldValue(
                             "activityPhoto",
@@ -832,7 +939,11 @@ toast.success(response.message || "File deleted successfully!");
                         }
                         className={
                           validation.touched.activityPhoto &&
+<<<<<<< HEAD
                             validation.errors.activityPhoto
+=======
+                          validation.errors.activityPhoto
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                             ? "is-invalid"
                             : ""
                         }
@@ -903,7 +1014,11 @@ toast.success(response.message || "File deleted successfully!");
                         }
                         className={
                           validation.touched.activityLetter &&
+<<<<<<< HEAD
                             validation.errors.activityLetter
+=======
+                          validation.errors.activityLetter
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                             ? "is-invalid"
                             : ""
                         }
@@ -959,6 +1074,23 @@ toast.success(response.message || "File deleted successfully!");
                       )}
                     </div>
                   </Col>
+<<<<<<< HEAD
+=======
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Report Template</Label>
+                      <div>
+                        <a
+                          href={`${process.env.PUBLIC_URL}/templateFiles/REPORT_DEPT_YEAR.docx`}
+                          download
+                          className="btn btn-primary btn-sm"
+                        >
+                          Template
+                        </a>
+                      </div>
+                    </div>
+                  </Col>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                 </Row>
                 <Row>
                   <Col lg={12}>
@@ -1011,8 +1143,13 @@ toast.success(response.message || "File deleted successfully!");
                 </tr>
               </thead>
               <tbody>
+<<<<<<< HEAD
                 {currentRows.length > 0 ? (
                   currentRows.map((acm, index) => (
+=======
+                {acmData.length > 0 ? (
+                  acmData.map((acm, index) => (
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                     <tr key={acm.id}>
                       <td>{indexOfFirstRow + index + 1}</td>
                       <td>{acm.academicYear}</td>
@@ -1062,6 +1199,10 @@ toast.success(response.message || "File deleted successfully!");
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

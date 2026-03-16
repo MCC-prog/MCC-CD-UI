@@ -46,7 +46,10 @@ import "jszip";
 import "pdfmake/build/pdfmake";
 import "pdfmake/build/vfs_fonts";
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
 const api = new APIClient();
 // Helper: Check if any field in the current tab is filled
 const getTabValidationSchema = (tab: number | null) => {
@@ -123,6 +126,7 @@ const getTabValidationSchema = (tab: number | null) => {
         );
       },
       then: (schema) => schema, // No validation if file exists (string)
+<<<<<<< HEAD
       otherwise: (schema) =>
         schema
           .required("Please upload a file")
@@ -138,6 +142,31 @@ const getTabValidationSchema = (tab: number | null) => {
               value.type
             );
           }),
+=======
+     otherwise: (schema) =>
+  schema
+    .required("Please upload a file")
+    .test("fileSize", "File size is too large", (value: any) => {
+      if (!value || typeof value === "string") return true;
+      return value.size <= 10 * 1024 * 1024; // 10 MB
+    })
+    .test("fileType", "Unsupported file format", (value: any) => {
+      if (!value || typeof value === "string") return true;
+
+      const allowedTypes = [
+        "application/pdf",
+        "image/jpeg",
+        "image/png",
+
+        // Excel formats
+        "application/vnd.ms-excel", // .xls
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
+      ];
+
+      return allowedTypes.includes(value.type);
+    }),
+
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
     });
 
   switch (tab) {
@@ -623,7 +652,11 @@ const Student_Centric_Teaching: React.FC = () => {
         ""
       );
       // Show success message
+<<<<<<< HEAD
 toast.success(response.message || "File deleted successfully!");
+=======
+      toast.success(response.message || "File deleted successfully!");
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       if (docType === "projectSanctionLetter") {
         setIsFileUploadDisabled(false);
       } else if (docType === "synopsisReport") {
@@ -804,7 +837,13 @@ toast.success(response.message || "File deleted successfully!");
 
       if (methodologyTab === "ExperientialLearning" && activeTab === 1) {
         additionalDto = {
+<<<<<<< HEAD
           additionalTabId: editResData?.experientialLearningDto?.experientialLearningId || null,
+=======
+          additionalTabId:
+            editResData?.experientialLearningDto?.experientialLearningId ||
+            null,
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           caseStudy: values.caseStudyEL,
           industrialVisit: values.indVisitEL,
           workShop: values.workShopEL,
@@ -819,7 +858,13 @@ toast.success(response.message || "File deleted successfully!");
         activeTab === 2
       ) {
         additionalDto = {
+<<<<<<< HEAD
           additionalTabId: editResData?.participativeLearningDto?.participativeLearningId || null,
+=======
+          additionalTabId:
+            editResData?.participativeLearningDto?.participativeLearningId ||
+            null,
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           caseStudy: values.caseStudyPL,
           industrialVisit: values.indVisitPL,
           workShop: values.workShopPL,
@@ -831,7 +876,12 @@ toast.success(response.message || "File deleted successfully!");
         };
       } else if (methodologyTab === "ProblemLearning" && activeTab === 3) {
         additionalDto = {
+<<<<<<< HEAD
           additionalTabId: editResData?.problemLearningDto?.problemLearningId || null,
+=======
+          additionalTabId:
+            editResData?.problemLearningDto?.problemLearningId || null,
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           caseStudy: values.caseStudyProblemLg,
           industrialVisit: values.indVisitProblemLg,
           workShop: values.workShopProblemLg,
@@ -929,6 +979,7 @@ toast.success(response.message || "File deleted successfully!");
       const table = $("#bosDataId").DataTable({
         destroy: true,
         dom: "Bfrtip",
+<<<<<<< HEAD
         buttons: [
           {
             extend: "copy",
@@ -945,6 +996,53 @@ toast.success(response.message || "File deleted successfully!");
         ],
         searching: false,
         paging: false,
+=======
+        paging: true,
+        pageLength: 10,
+        searching: false,
+        info: true,
+
+        columnDefs: [
+          {
+            // hide all export-only columns
+            targets: [
+              9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
+              26,27,28,29,30,31,32,33,34,35,
+            ],
+            visible: false,
+          },
+          {
+            targets: 36, // Action column
+            orderable: false,
+            searchable: false,
+            visible: true,
+          },
+        ],
+
+        buttons: [
+          { extend: "copy", 
+            filename: "Student_Centric_Teaching_Methodology",
+            title: "Student Centric Teaching Methodology Data Export",
+            exportOptions: {
+              modifier: { page: "all" },
+              columns: function (idx) {
+                return idx !== 36; // exclude action column
+              },
+            },
+          },
+          {
+            extend: "csv",
+            filename: "Student_Centric_Teaching_Methodology",
+            title: "Student Centric Teaching Methodology Data Export",
+            exportOptions: {
+              modifier: { page: "all" },
+              columns: function (idx) {
+                return idx !== 36; // exclude action column
+              },
+            },
+          },
+        ],
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       });
 
       $(".dt-buttons").addClass("mb-3 gap-2");
@@ -2205,6 +2303,7 @@ toast.success(response.message || "File deleted successfully!");
               bordered
               hover
               responsive
+<<<<<<< HEAD
               className="align-middle text-center"
               id="bosDataId"
               innerRef={tableRef}
@@ -2328,12 +2427,16 @@ toast.success(response.message || "File deleted successfully!");
               bordered
               hover
               responsive
+=======
+              id="bosDataId"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
               className="align-middle text-center"
             >
               <thead className="table-dark">
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
+<<<<<<< HEAD
                   <th>Semester Type</th>
                   <th>Semester No</th>
                   <th>Stream</th>
@@ -2368,6 +2471,147 @@ toast.success(response.message || "File deleted successfully!");
                       </td>
                       <td>{als.courseTitle}</td>
                       <td>{als.methodologyTab}</td>
+=======
+                  <th>School</th>
+                  <th>Department</th>
+                  <th>Program</th>
+                  <th>Semester Type</th>
+                  <th>Semester No</th>
+                  <th>Course Title</th>
+                  <th>Methodology Tab</th>
+
+                  {/* Hidden Export Columns 9–25 */}
+                  <th className="export-hidden">EL - Case Study</th>
+                  <th className="export-hidden">EL - Industrial Visit</th>
+                  <th className="export-hidden">EL - Workshop</th>
+                  <th className="export-hidden">EL - Simulation</th>
+                  <th className="export-hidden">EL - Internship</th>
+                  <th className="export-hidden">EL - Exhibition</th>
+                  <th className="export-hidden">EL - Awareness Drive</th>
+                  <th className="export-hidden">EL - Street Plays</th>
+                  <th className="export-hidden">EL - File Path</th>
+
+                  <th className="export-hidden">PL - Case Study</th>
+                  <th className="export-hidden">PL - Industrial Visit</th>
+                  <th className="export-hidden">PL - Workshop</th>
+                  <th className="export-hidden">PL - Simulation</th>
+                  <th className="export-hidden">PL - Internship</th>
+                  <th className="export-hidden">PL - Exhibition</th>
+                  <th className="export-hidden">PL - Awareness Drive</th>
+                  <th className="export-hidden">PL - Street Plays</th>
+                  <th className="export-hidden">PL - File Path</th>
+
+                  <th className="export-hidden">ProblemL - Case Study</th>
+                  <th className="export-hidden">ProblemL - Industrial Visit</th>
+                  <th className="export-hidden">ProblemL - Workshop</th>
+                  <th className="export-hidden">ProblemL - Simulation</th>
+                  <th className="export-hidden">ProblemL - Internship</th>
+                  <th className="export-hidden">ProblemL - Exhibition</th>
+                  <th className="export-hidden">ProblemL - Awareness Drive</th>
+                  <th className="export-hidden">ProblemL - Street Plays</th>
+                  <th className="export-hidden">ProblemL - File Path</th>
+
+                  <th>Actions</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {CWFData.length > 0 ? (
+                  CWFData.map((als, index) => (
+                    <tr key={als.studentCentricMethodologyId}>
+                      {/* Visible Columns */}
+                      <td>{index + 1}</td>
+                      <td>{als.academicYear}</td>
+                      <td>{als.streamName}</td>
+                      <td>{als.departmentName}</td>
+                      <td>{Object.values(als.courses).join(", ")}</td>
+                      <td>{als.semType}</td>
+                      <td>{als.semester}</td>
+                      <td>{als.courseTitle}</td>
+                      <td>{als.methodologyTab}</td>
+
+                      {/* Hidden Export Columns */}
+                      <td>{als.experientialLearningDto?.caseStudy ?? "N/A"}</td>
+                      <td>
+                        {als.experientialLearningDto?.industrialVisit ?? "N/A"}
+                      </td>
+                      <td>{als.experientialLearningDto?.workShop ?? "N/A"}</td>
+                      <td>
+                        {als.experientialLearningDto?.simulation ?? "N/A"}
+                      </td>
+                      <td>
+                        {als.experientialLearningDto?.internship ?? "N/A"}
+                      </td>
+                      <td>
+                        {als.experientialLearningDto?.exhibition ?? "N/A"}
+                      </td>
+                      <td>
+                        {als.experientialLearningDto?.awarenessDrive ?? "N/A"}
+                      </td>
+                      <td>
+                        {als.experientialLearningDto?.streetPlays ?? "N/A"}
+                      </td>
+                      <td>
+                        {als.experientialLearningDto?.filePath
+                          ?.ExperientialLearning ?? "N/A"}
+                      </td>
+
+                      <td>
+                        {als.participativeLearningDto?.caseStudy ?? "N/A"}
+                      </td>
+                      <td>
+                        {als.participativeLearningDto?.industrialVisit ?? "N/A"}
+                      </td>
+                      <td>{als.participativeLearningDto?.workShop ?? "N/A"}</td>
+                      <td>
+                        {als.participativeLearningDto?.simulation ?? "N/A"}
+                      </td>
+                      <td>
+                        {als.participativeLearningDto?.internship ?? "N/A"}
+                      </td>
+                      <td>
+                        {als.participativeLearningDto?.exhibition ?? "N/A"}
+                      </td>
+                      <td>
+                        {als.participativeLearningDto?.awarenessDrive ?? "N/A"}
+                      </td>
+                      <td>
+                        {als.participativeLearningDto?.streetPlays ?? "N/A"}
+                      </td>
+                      <td>
+                        {als.participativeLearningDto?.filePath
+                          ?.ParticipativeLearning ?? "N/A"}
+                      </td>
+
+                       <td>
+                        {als.problemLearningDto?.caseStudy ?? "N/A"}
+                      </td>
+                      <td>
+                        {als.problemLearningDto?.industrialVisit ?? "N/A"}
+                      </td>
+                      <td>{als.problemLearningDto?.workShop ?? "N/A"}</td>
+                      <td>
+                        {als.problemLearningDto?.simulation ?? "N/A"}
+                      </td>
+                      <td>
+                        {als.problemLearningDto?.internship ?? "N/A"}
+                      </td>
+                      <td>
+                        {als.problemLearningDto?.exhibition ?? "N/A"}
+                      </td>
+                      <td>
+                        {als.problemLearningDto?.awarenessDrive ?? "N/A"}
+                      </td>
+                      <td>
+                        {als.problemLearningDto?.streetPlays ?? "N/A"}
+                      </td>
+                      <td>
+                        {als.problemLearningDto?.filePath
+                          ?.ProblemLearning ?? "N/A"}
+                      </td>
+
+                      {/* ACTIONS */}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
@@ -2378,6 +2622,10 @@ toast.success(response.message || "File deleted successfully!");
                           >
                             Edit
                           </button>
+<<<<<<< HEAD
+=======
+
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                           <button
                             className="btn btn-sm btn-danger"
                             onClick={() =>
@@ -2392,13 +2640,18 @@ toast.success(response.message || "File deleted successfully!");
                   ))
                 ) : (
                   <tr>
+<<<<<<< HEAD
                     <td colSpan={11} className="text-center">
+=======
+                    <td colSpan={28} className="text-center">
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       No Student Centric Methodology.
                     </td>
                   </tr>
                 )}
               </tbody>
             </Table>
+<<<<<<< HEAD
             {/* Pagination Controls */}
             <div className="d-flex justify-content-between align-items-center mt-3">
               <Button
@@ -2419,10 +2672,16 @@ toast.success(response.message || "File deleted successfully!");
                 Next
               </Button>
             </div>
+=======
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           </ModalBody>
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

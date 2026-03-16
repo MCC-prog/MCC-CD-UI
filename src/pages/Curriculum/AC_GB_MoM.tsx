@@ -296,7 +296,11 @@ toast.success(response.message || "File deleted successfully!");
         .test("fileSize", "File size is too large", (value: any) => {
           if (typeof value === "string") return true; // Skip check for string (edit mode)
           if (!value) return true; // Let 'required' test handle null/undefined
+<<<<<<< HEAD
           return value.size <= 2 * 1024 * 1024; // Max 2MB
+=======
+          return value.size <= 10 * 1024 * 1024; // Max 2MB
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         })
         .test("fileType", "Unsupported file format", (value: any) => {
           if (typeof value === "string") return true; // Allow URLs or previously uploaded files
@@ -427,6 +431,7 @@ toast.success(response.message || "File deleted successfully!");
     if (acGbMomData.length === 0) return;
 
     const initializeDataTable = () => {
+<<<<<<< HEAD
       const table = $("#bosDataId").DataTable({
         destroy: true,
         dom: "Bfrtip",
@@ -447,6 +452,53 @@ toast.success(response.message || "File deleted successfully!");
         searching: false,
         paging: false,
       });
+=======
+     const table = $("#bosDataId").DataTable({
+      destroy: true,
+      dom: "Bfrtip",
+        paging: true,
+        pageLength: 10,
+        info: true,
+        searching: false,
+
+      columnDefs: [
+        {
+          targets: [5], // Export-only column
+          visible: false,
+        },
+        {
+          targets: [6], // Actions column
+          orderable: false,
+          searchable: false,
+        },
+      ],
+
+      buttons: [
+        {
+          extend: "copy",
+          filename: "AC_GB_MoM_Data",
+            title: " AC & GB MoM Data Export",
+          exportOptions: {
+            modifier: { page: "all" },
+            columns: function (idx) {
+              return idx !== 6; // exclude Actions
+            },
+          },
+        },
+        {
+          extend: "csv",
+          filename: "AC_GB_MoM_Data",
+          title: " AC & GB MoM Data Export",
+          exportOptions: {
+            modifier: { page: "all" },
+            columns: function (idx) {
+              return idx !== 6; // exclude Actions
+            },
+          },
+        },
+      ],
+    });
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
 
       $(".dt-buttons").addClass("mb-3 gap-2");
       $(".buttons-copy").addClass("btn btn-success");
@@ -796,6 +848,7 @@ toast.success(response.message || "File deleted successfully!");
                 onChange={handleSearch}
               />
             </div>
+<<<<<<< HEAD
             <Table
               striped
               bordered
@@ -919,10 +972,81 @@ toast.success(response.message || "File deleted successfully!");
                 Next
               </Button>
             </div>
+=======
+       <Table
+  striped
+  bordered
+  hover
+  responsive
+  className="align-middle text-center"
+  id="bosDataId"
+>
+  <thead className="table-dark">
+    <tr>
+      <th>#</th>
+      <th>Academic Year</th>
+      <th>Type</th>
+      <th>Date</th>
+      <th>File</th>
+      <th className="export-hidden">File Path (Export)</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+
+  <tbody>
+       {acGbMomData.length > 0 ? (
+      acGbMomData.map((row, index) => (
+        <tr key={row.acGbMomId}>
+          <td>{index + 1}</td>
+          <td>{row.academicYear}</td>
+          <td>{row.type}</td>
+          <td>{row.date}</td>
+          <td>
+            {row.documents?.mom ? (
+              <span>{row.documents.mom}</span>
+            ) : (
+              "No file uploaded"
+            )}
+          </td>
+           <td className="export-hidden">{row.filePath?.mom || "N/A"}</td>
+          <td>
+             <div className="d-flex justify-content-center gap-3">
+            <button
+              className="btn btn-sm btn-warning me-2"
+              onClick={() => handleEdit(row.acGbMomId)}
+            >
+              Edit
+            </button>
+            <button
+              className="btn btn-sm btn-danger"
+              onClick={() => handleDelete(row.acGbMomId)}
+            >
+              Delete
+            </button>
+          </div>
+          </td>
+        </tr>
+      ))
+    ) : (
+      <tr>
+        <td colSpan={7} className="text-center">
+          No Ac & Gb Mom data available.
+        </td>
+      </tr>
+    )}
+  </tbody>
+</Table>
+
+           
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           </ModalBody>
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

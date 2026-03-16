@@ -38,6 +38,10 @@ import "datatables.net-buttons/js/buttons.print.js";
 import "jszip";
 import "pdfmake/build/pdfmake";
 import "pdfmake/build/vfs_fonts";
+<<<<<<< HEAD
+=======
+import { t } from "i18next";
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
 
 const api = new APIClient();
 const Value_Added_Program: React.FC = () => {
@@ -54,15 +58,29 @@ const Value_Added_Program: React.FC = () => {
   const rowsPerPage = 10;
   const [filteredData, setFilteredData] = useState(vapData);
   // const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
+<<<<<<< HEAD
   const [isValueAddedCourseUploadDisabled, setIsValueAddedCourseUploadDisabled] = useState(false);
   const [isCourseBrochureUploadDisabled, setIsCourseBrochureUploadDisabled] = useState(false);
+=======
+  const [
+    isValueAddedCourseUploadDisabled,
+      setIsValueAddedCourseUploadDisabled,
+  ] = useState(false);
+  const [isCourseBrochureUploadDisabled, setIsCourseBrochureUploadDisabled] =
+    useState(false);
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
   const fileRef = useRef<HTMLInputElement | null>(null);
   const fileRef1 = useRef<HTMLInputElement | null>(null);
 
   const tableRef = useRef<HTMLTableElement>(null);
 
+<<<<<<< HEAD
    const [tooltipOpen, setTooltipOpen] = useState(false);
     const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
+=======
+  const [tooltipOpen, setTooltipOpen] = useState(false);
+  const toggleTooltip = () => setTooltipOpen(!tooltipOpen);
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
 
   // Handle global search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -220,7 +238,13 @@ const Value_Added_Program: React.FC = () => {
       });
       setIsEditMode(true);
       setEditId(id);
+<<<<<<< HEAD
       setIsValueAddedCourseUploadDisabled(!!response.documents?.valueAddedCourse);
+=======
+      setIsValueAddedCourseUploadDisabled(
+        !!response.documents?.valueAddedCourse
+      );
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       setIsCourseBrochureUploadDisabled(!!response.documents?.courseBrochure);
       toggleModal();
     } catch (error) {
@@ -305,7 +329,11 @@ const Value_Added_Program: React.FC = () => {
         `/valueAddedCourse/deleteNewProgramDocument?valueAddedCourseId=${editId}&docType=${docType}`,
         ""
       );
+<<<<<<< HEAD
  toast.success(response.message || "File deleted successfully!");
+=======
+      toast.success(response.message || "File deleted successfully!");
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       // Show success message
       if (docType === "valueAddedCourse") {
         validation.setFieldValue("file", null);
@@ -408,7 +436,11 @@ const Value_Added_Program: React.FC = () => {
           }
 
           // File size check (2MB)
+<<<<<<< HEAD
           if (value instanceof File && value.size > 2 * 1024 * 1024) {
+=======
+          if (value instanceof File && value.size > 10 * 1024 * 1024) {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             return this.createError({
               message: "File size is too large (max 2MB)",
             });
@@ -428,6 +460,7 @@ const Value_Added_Program: React.FC = () => {
         }
       ),
       file1: Yup.mixed().test(
+<<<<<<< HEAD
              "fileValidation",
              "Please upload a valid file",
              function (value) {
@@ -451,6 +484,31 @@ const Value_Added_Program: React.FC = () => {
                return true;
              }
            ),
+=======
+        "fileValidation",
+        "Please upload a valid file",
+        function (value) {
+          // Skip validation if the file upload is disabled (file exists)
+          if (isCourseBrochureUploadDisabled) {
+            return true;
+          }
+          // Perform validation if the file upload is enabled (file doesn't exist)
+          if (!value) {
+            return this.createError({ message: "Please upload a file" });
+          }
+          // Check file size (2MB limit)
+          if (value instanceof File && value.size > 10 * 1024 * 1024) {
+            return this.createError({ message: "File size is too large" });
+          }
+          // Check file type
+          const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
+          if (value instanceof File && !allowedTypes.includes(value.type)) {
+            return this.createError({ message: "Unsupported file format" });
+          }
+          return true;
+        }
+      ),
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
     }),
     onSubmit: async (values, { resetForm }) => {
       // Create FormData object
@@ -498,7 +556,10 @@ const Value_Added_Program: React.FC = () => {
         formData.append("valueAddedCourse", values.file);
       }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       if (isEditMode && typeof values.file1 === "string") {
         formData.append(
           "courseBrochure",
@@ -514,7 +575,10 @@ const Value_Added_Program: React.FC = () => {
       } else if (values.file1) {
         formData.append("courseBrochure", values.file1);
       }
+<<<<<<< HEAD
       
+=======
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
 
       try {
         if (isEditMode && editId) {
@@ -538,7 +602,11 @@ const Value_Added_Program: React.FC = () => {
         if (fileRef.current) {
           fileRef.current.value = ""; // Clear the file input
         }
+<<<<<<< HEAD
          if (fileRef1.current) {
+=======
+        if (fileRef1.current) {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           fileRef1.current.value = ""; // Clear the file input
         }
         setIsEditMode(false); // Reset edit mode
@@ -562,6 +630,7 @@ const Value_Added_Program: React.FC = () => {
       const table = $("#bosDataId").DataTable({
         destroy: true,
         dom: "Bfrtip",
+<<<<<<< HEAD
         buttons: [
           {
             extend: "copy",
@@ -578,6 +647,42 @@ const Value_Added_Program: React.FC = () => {
         ],
         searching: false,
         paging: false,
+=======
+        paging: true,
+        searching: false,
+        pageLength: 10,
+        info: true,
+
+        columnDefs: [
+          {
+            targets: [14, 15], // ONLY FILE PATH COLUMNS HIDDEN
+            visible: false,
+          },
+          {
+            targets: 16, // ACTION COLUMN
+            orderable: false,
+            searchable: false,
+          },
+        ],
+
+        buttons: [
+          { extend: "copy",
+            filename: "Value_Added_Program_Data",
+            title: "Value Added Program Data Export",
+           },
+          {
+            extend: "csv",
+            filename: "Value_Added_Program_Data",
+            title: "Value Added Program Data Export",
+            exportOptions: {
+              modifier: { page: "all" },
+              columns: function (idx) {
+                return idx !== 16; // exclude only actions
+              },
+            },
+          },
+        ],
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       });
 
       $(".dt-buttons").addClass("mb-3 gap-2");
@@ -1096,11 +1201,20 @@ const Value_Added_Program: React.FC = () => {
                         </div>
                       )}
                       {/* Show a message if the file upload button is disabled */}
+<<<<<<< HEAD
                       {isValueAddedCourseUploadDisabled && typeof validation.values.file === "string" && (
                         <div className="text-warning mt-2">
                           Please remove the existing file to upload a new one.
                         </div>
                       )}
+=======
+                      {isValueAddedCourseUploadDisabled &&
+                        typeof validation.values.file === "string" && (
+                          <div className="text-warning mt-2">
+                            Please remove the existing file to upload a new one.
+                          </div>
+                        )}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       {/* Only show the file name if it is a string (from the edit API) */}
                       {typeof validation.values.file === "string" && (
                         <div className="mt-2 d-flex align-items-center">
@@ -1125,7 +1239,16 @@ const Value_Added_Program: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
+<<<<<<< HEAD
                             onClick={() => handleDeleteFile(validation.values.file as string, "valueAddedCourse")}
+=======
+                            onClick={() =>
+                              handleDeleteFile(
+                                validation.values.file as string,
+                                "valueAddedCourse"
+                              )
+                            }
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>
@@ -1134,17 +1257,29 @@ const Value_Added_Program: React.FC = () => {
                       )}
                     </div>
                   </Col>
+<<<<<<< HEAD
                     <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
                         Upload Course Brochure
                          <i
+=======
+                  <Col sm={4}>
+                    <div className="mb-3">
+                      <Label htmlFor="formFile" className="form-label">
+                        Upload Course Brochure
+                        <i
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                           id="infoIcon"
                           className="bi bi-info-circle ms-2"
                           style={{ cursor: "pointer", color: "#0d6efd" }}
                         ></i>
                       </Label>
+<<<<<<< HEAD
                           <Tooltip
+=======
+                      <Tooltip
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                         placement="right"
                         isOpen={tooltipOpen}
                         target="infoIcon"
@@ -1177,11 +1312,20 @@ const Value_Added_Program: React.FC = () => {
                         </div>
                       )}
                       {/* Show a message if the file upload button is disabled */}
+<<<<<<< HEAD
                       {isCourseBrochureUploadDisabled && typeof validation.values.file1 === "string" && (
                         <div className="text-warning mt-2">
                           Please remove the existing file to upload a new one.
                         </div>
                       )}
+=======
+                      {isCourseBrochureUploadDisabled &&
+                        typeof validation.values.file1 === "string" && (
+                          <div className="text-warning mt-2">
+                            Please remove the existing file to upload a new one.
+                          </div>
+                        )}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       {/* Only show the file name if it is a string (from the edit API) */}
                       {typeof validation.values.file1 === "string" && (
                         <div className="mt-2 d-flex align-items-center">
@@ -1206,7 +1350,16 @@ const Value_Added_Program: React.FC = () => {
                           <Button
                             color="link"
                             className="text-danger"
+<<<<<<< HEAD
                             onClick={() => handleDeleteFile(validation.values.file as string, "courseBrochure")}
+=======
+                            onClick={() =>
+                              handleDeleteFile(
+                                validation.values.file as string,
+                                "courseBrochure"
+                              )
+                            }
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                             title="Delete File"
                           >
                             <i className="bi bi-trash"></i>
@@ -1220,7 +1373,11 @@ const Value_Added_Program: React.FC = () => {
                       <Label>Download Template</Label>
                       <div>
                         <a
+<<<<<<< HEAD
                           href={`${process.env.PUBLIC_URL}/templateFiles/BOS_MoM_DeptName_Aug24.docx`}
+=======
+                          href={`${process.env.PUBLIC_URL}/templateFiles/Value_Added_Program.xlsx`}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                           download
                           className="btn btn-primary btn-sm"
                         >
@@ -1274,8 +1431,11 @@ const Value_Added_Program: React.FC = () => {
               responsive
               className="align-middle text-center"
               id="bosDataId"
+<<<<<<< HEAD
               innerRef={tableRef}
               style={{ display: "none" }}
+=======
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             >
               <thead className="table-dark">
                 <tr>
@@ -1292,6 +1452,7 @@ const Value_Added_Program: React.FC = () => {
                   <th>End Date</th>
                   <th>Resource Person</th>
                   <th>Organization</th>
+<<<<<<< HEAD
                   <th>No. of Credits</th>
                   <th>File Path of valueAddedCourse</th>
                   <th>File Path of courseBrochure</th>
@@ -1355,12 +1516,47 @@ const Value_Added_Program: React.FC = () => {
                     <tr key={vap.id}>
                       <td>{index + 1}</td>
                       <td>{vap.academicYear}</td>
+=======
+                  <th>No of Credits</th>
+
+                  {/* HIDDEN ONLY IN UI */}
+                  <th className="export-hidden">
+                    File Path (Value Added Course)
+                  </th>
+                  <th className="export-hidden">File Path (Course Brochure)</th>
+
+                  <th>Actions</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {vapData.length > 0 ? (
+                  vapData.map((vap, index) => (
+                    <tr key={vap.valueAddedCourseId}>
+                      <td>{index + 1}</td>
+                      <td>{vap.academicYear}</td>
+                      <td>{vap.streamName}</td>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       <td>{vap.departmentName}</td>
                       <td>{vap.semesterNo}</td>
                       <td>{vap.semType}</td>
                       <td>{vap.courseTitle}</td>
                       <td>{vap.noOfStudentsEnrolled}</td>
                       <td>{vap.noOfStudentsCompleted}</td>
+<<<<<<< HEAD
+=======
+
+                      <td>{vap.startDate}</td>
+                      <td>{vap.endDate}</td>
+                      <td>{vap.resourcePerson}</td>
+                      <td>{vap.organization}</td>
+                      <td>{vap.noOfCredits}</td>
+
+                      {/* Export-hidden */}
+                      <td>{vap.filePath?.valueAddedCourse || "N/A"}</td>
+                      <td>{vap.filePath?.courseBrochure || "N/A"}</td>
+
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
@@ -1381,13 +1577,18 @@ const Value_Added_Program: React.FC = () => {
                   ))
                 ) : (
                   <tr>
+<<<<<<< HEAD
                     <td colSpan={4} className="text-center">
+=======
+                    <td colSpan={17} className="text-center">
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       No Value Added Program data available.
                     </td>
                   </tr>
                 )}
               </tbody>
             </Table>
+<<<<<<< HEAD
             {/* Pagination Controls */}
             <div className="d-flex justify-content-between align-items-center mt-3">
               <Button
@@ -1411,6 +1612,12 @@ const Value_Added_Program: React.FC = () => {
           </ModalBody>
         </Modal>
         <Modal
+=======
+          </ModalBody>
+        </Modal>
+        <Modal
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

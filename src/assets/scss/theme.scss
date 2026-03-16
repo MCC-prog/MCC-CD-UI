@@ -1011,7 +1011,68 @@ table.dataTable {
     margin-left: 30px;
   }
   .modal-content{
+<<<<<<< HEAD
     max-height: 90vh;
     overflow-y: auto;
   }
+=======
+    height: auto;
+    overflow-y: auto;
+
+  }
+  .delete-popup .modal-content{
+    width: 40%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .checklist-modal .modal-content{
+      min-height: 90vh;
+      overflow-y: auto;
+  }
+
+  .popup .modal-content{
+    width: 60%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  table.dataTable.fixedHeader-floating,
+table.dataTable.fixedHeader-locked {
+  background: white !important;
+  margin-left: 0 !important;
+}
+/* Make full dashboard height = screen height */
+.dashboard-page {
+  height: calc(100vh - 80px); /* adjust depending on topbar height */
+  overflow: hidden; /* prevent page scrolling */
+}
+
+/* The row with left + right panel */
+.dashboard-row {
+  height: 100%;
+  display: flex;
+}
+
+/* LEFT SIDE (Calendar) must scroll internally if needed */
+.dashboard-left {
+  height: 100%;
+  overflow-y: auto;
+}
+
+/* RIGHT SIDE (Activity + Checklist + WelcomeBack) */
+.dashboard-right {
+  height: 100%;
+  overflow-y: auto;
+}
+
+.custom-modal-height {
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+
+
+
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
 }

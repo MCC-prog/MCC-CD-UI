@@ -291,8 +291,13 @@ const Guest_Lectures: React.FC = () => {
   };
 
   const semType = [
+<<<<<<< HEAD
     { value: "T", label: "Even" },
     { value: "P", label: "Odd" },
+=======
+    { value: "Even", label: "Even" },
+    { value: "Odd", label: "Odd" },
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
   ];
 
   // Handle file download actions
@@ -424,7 +429,11 @@ toast.success(response.message || "File deleted successfully!");
             return this.createError({ message: "Please upload a file" });
           }
           // Check file size (2MB limit)
+<<<<<<< HEAD
           if (value instanceof File && value.size > 2 * 1024 * 1024) {
+=======
+          if (value instanceof File && value.size > 10 * 1024 * 1024) {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             return this.createError({ message: "File size is too large" });
           }
           // Check file type
@@ -525,12 +534,22 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+<<<<<<< HEAD
+=======
+          filename: "Guest_Lectures_Data",
+          title: "Guest Lectures Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+<<<<<<< HEAD
+=======
+          filename: "Guest_Lectures_Data",
+          title: "Guest Lectures Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)",
           },
@@ -1063,9 +1082,17 @@ toast.success(response.message || "File deleted successfully!");
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
+<<<<<<< HEAD
                   <th>Stream</th>
                   <th>Department</th>
                   <th>Semester Type</th>
+=======
+                  <th>School</th>
+                  <th>Department</th>
+                  <th>Program</th>
+                  <th>Semester Type</th>
+                  <th>Date</th>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                   <th>Resource Person</th>
                   <th>Resource Person Designation</th>
                   <th>Organisation</th>
@@ -1077,14 +1104,25 @@ toast.success(response.message || "File deleted successfully!");
                 </tr>
               </thead>
               <tbody>
+<<<<<<< HEAD
                 {currentRows.length > 0 ? (
                   currentRows.map((gl, index) => (
+=======
+                {gLData.length > 0 ? (
+                  gLData.map((gl, index) => (
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                     <tr key={gl.guestLectureId}>
                       <td>{index + 1}</td>
                       <td>{gl.academicYear}</td>
                       <td>{gl.streamName}</td>
                       <td>{gl.departmentName}</td>
+<<<<<<< HEAD
                       <td>{gl.semType}</td>
+=======
+                      <td>{Object.values(gl.courses).join(", ")}</td>
+                      <td>{gl.semType}</td>
+                      <td>{gl.date}</td>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       <td>{gl.resourcePersonName}</td>
                       <td>{gl.resourcePersonDesignation}</td>
                       <td>{gl.organisation}</td>
@@ -1123,6 +1161,10 @@ toast.success(response.message || "File deleted successfully!");
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

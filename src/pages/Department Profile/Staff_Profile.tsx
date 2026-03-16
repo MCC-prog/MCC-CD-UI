@@ -34,6 +34,10 @@ import "datatables.net-buttons/js/buttons.html5.js";
 import "jszip";
 import "pdfmake/build/pdfmake";
 import "pdfmake/build/vfs_fonts";
+<<<<<<< HEAD
+=======
+import GetAllDepartmentDropdown from "Components/DropDowns/GetAllDepartmentDropdown";
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
 const api = new APIClient();
 
 const Staff_Profile: React.FC = () => {
@@ -47,16 +51,24 @@ const Staff_Profile: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
   const [filteredData, setFilteredData] = useState(bosData);
+<<<<<<< HEAD
   const [searchTerm, setSearchTerm] = useState("");
 
   const tableRef = useRef<HTMLTableElement>(null);
 
 
+=======
+  const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
+
+  const tableRef = useRef<HTMLTableElement>(null);
+
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
   // Calculate the paginated data
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
   const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
 
+<<<<<<< HEAD
   // Handle page change
   const handlePageChange = (pageNumber: number) => {
     setCurrentPage(pageNumber);
@@ -64,6 +76,8 @@ const Staff_Profile: React.FC = () => {
 
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
+=======
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };
@@ -125,6 +139,15 @@ const Staff_Profile: React.FC = () => {
         partTime: response.partTime || "",
         guestFaculty: response.guestFaculty || "",
         professorOfPractice: response.professorOfPractice || "",
+<<<<<<< HEAD
+=======
+        department: response.departmentId
+          ? {
+              value: response.departmentId.toString(),
+              label: response.departmentName,
+            }
+          : null,
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       };
 
       // Update Formik values
@@ -138,6 +161,15 @@ const Staff_Profile: React.FC = () => {
         stream: mappedValues.stream
           ? { ...mappedValues.stream, value: String(mappedValues.stream.value) }
           : null,
+<<<<<<< HEAD
+=======
+        department: mappedValues.department
+          ? {
+              value: String(mappedValues.department.value),
+              label: mappedValues.department.label || "",
+            }
+          : null,
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         noOfStaff: response.noOfStaff || "",
         fullTime: response.fullTime || "",
         partTime: response.partTime || "",
@@ -190,11 +222,19 @@ const Staff_Profile: React.FC = () => {
       guestFaculty: "",
       professorOfPractice: "",
       stream: null as { value: string; label: string } | null,
+<<<<<<< HEAD
+=======
+      department: null as { value: string; label: string } | null,
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
     },
     validationSchema: Yup.object({
       academicYear: Yup.object()
         .nullable()
         .required("Please select academic year"),
+<<<<<<< HEAD
+=======
+      department: Yup.object().nullable().required("Please select department"),
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       stream: Yup.object().nullable().required("Please select stream"),
       noOfStaff: Yup.string().required("Please enter no of staff"),
       fullTime: Yup.string().required("Please enter full time"),
@@ -208,6 +248,10 @@ const Staff_Profile: React.FC = () => {
       const payload = {
         academicYear: values.academicYear?.value || "",
         streamId: values.stream?.value || "",
+<<<<<<< HEAD
+=======
+        departmentId: values.department?.value || "",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         noOfStaff: values.noOfStaff || "",
         fullTime: values.fullTime || "",
         partTime: values.partTime || "",
@@ -248,7 +292,11 @@ const Staff_Profile: React.FC = () => {
     },
   });
 
+<<<<<<< HEAD
    useEffect(() => {
+=======
+  useEffect(() => {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
     if (bosData.length === 0) return; // wait until data is loaded
 
     const table = $("#id").DataTable({
@@ -259,12 +307,22 @@ const Staff_Profile: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+<<<<<<< HEAD
+=======
+          filename: "Staff_Profile_Data",
+          title: "Staff Profile Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+<<<<<<< HEAD
+=======
+          filename: "Staff_Profile_Data",
+          title: "Staff Profile Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)",
           },
@@ -350,6 +408,35 @@ const Staff_Profile: React.FC = () => {
                     </div>
                   </Col>
 
+<<<<<<< HEAD
+=======
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Department</Label>
+                      <GetAllDepartmentDropdown
+                        value={validation.values.department}
+                        onChange={(selectedOption) => {
+                          validation.setFieldValue(
+                            "department",
+                            selectedOption
+                          );
+                          setSelectedDepartment(selectedOption);
+                        }}
+                        isInvalid={
+                          validation.touched.department &&
+                          !!validation.errors.department
+                        }
+                      />
+                      {validation.touched.department &&
+                        validation.errors.department && (
+                          <div className="text-danger">
+                            {validation.errors.department}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
@@ -535,25 +622,47 @@ const Staff_Profile: React.FC = () => {
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
+<<<<<<< HEAD
                   <th>Stream</th>
+=======
+                  <th>School</th>
+                  <th>Department</th>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                   <th>No.Of Staff</th>
                   <th>Full Time</th>
                   <th>Part Time</th>
                   <th>Guest Faculty</th>
+<<<<<<< HEAD
+=======
+                  <th>Professor of Practice</th>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
+<<<<<<< HEAD
                 {currentRows.length > 0 ? (
                   currentRows.map((bos, index) => (
+=======
+                {bosData.length > 0 ? (
+                  bosData.map((bos, index) => (
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                     <tr key={bos.id}>
                       <td>{index + 1}</td>
                       <td>{bos.academicYear}</td>
                       <td>{bos.streamName}</td>
+<<<<<<< HEAD
+=======
+                      <td>{bos.departmentName}</td>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       <td>{bos.noOfStaff}</td>
                       <td>{bos.fullTime}</td>
                       <td>{bos.partTime}</td>
                       <td>{bos.guestFaculty}</td>
+<<<<<<< HEAD
+=======
+                      <td>{bos.professorOfPractice}</td>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       <td>
                         <button
                           className="btn btn-sm btn-warning me-2"
@@ -583,6 +692,10 @@ const Staff_Profile: React.FC = () => {
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

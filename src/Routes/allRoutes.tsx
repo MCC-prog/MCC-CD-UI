@@ -94,6 +94,10 @@ import Annual_Expenditure from "pages/Library/Annual_Expenditure";
 import Books from "pages/Library/Books";
 import Research_Journals from "pages/Library/Research_Journals";
 import Databases from "pages/Library/Databases";
+<<<<<<< HEAD
+=======
+import Boe from "pages/Curriculum/Boe";
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
 
 const authProtectedRoutes = [
   { path: "/dashboard", component: <Dashboard /> },
@@ -107,6 +111,10 @@ const authProtectedRoutes = [
     path: "/Innovative_Teaching_Methodologies",
     component: <Innovative_Teaching_Methodologies />,
   },
+<<<<<<< HEAD
+=======
+   { path: "/Boe_Data", component: <Boe /> },
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
   { path: "/AC_GB_MoM", component: <AC_GB_MoM /> },
   { path: "/Value_Added_Program", component: <Value_Added_Program /> },
 

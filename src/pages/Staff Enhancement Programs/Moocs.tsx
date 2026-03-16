@@ -387,7 +387,11 @@ toast.success(response.message || "File deleted successfully!");
             return this.createError({ message: "Please upload a file" });
           }
           // Check file size (2MB limit)
+<<<<<<< HEAD
           if (value instanceof File && value.size > 2 * 1024 * 1024) {
+=======
+          if (value instanceof File && value.size > 10 * 1024 * 1024) {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             return this.createError({ message: "File size is too large" });
           }
           // Check file type
@@ -483,12 +487,22 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+<<<<<<< HEAD
+=======
+          filename: "Mooc_Data",
+          title: "Mooc Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+<<<<<<< HEAD
+=======
+          filename: "Mooc_Data",
+          title: "Mooc Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)",
           },
@@ -654,7 +668,11 @@ toast.success(response.message || "File deleted successfully!");
                             e.target.value
                           )
                         }
+<<<<<<< HEAD
                         placeholder="Enter Student name"
+=======
+                        placeholder="Enter Faculty Name"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       />
                       {validation.touched.facultyName &&
                         validation.errors.facultyName && (
@@ -667,7 +685,11 @@ toast.success(response.message || "File deleted successfully!");
 
                   <Col lg={4}>
                     <div className="mb-3">
+<<<<<<< HEAD
                       <Label>Title of Moocs</Label>
+=======
+                      <Label>Title of Mooc</Label>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       <Input
                         type="text"
                         className={`form-control ${
@@ -680,7 +702,11 @@ toast.success(response.message || "File deleted successfully!");
                         onChange={(e) =>
                           validation.setFieldValue("titleOfFdp", e.target.value)
                         }
+<<<<<<< HEAD
                         placeholder="Enter Title of Moocs"
+=======
+                        placeholder="Enter Title of Mooc"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       />
                       {validation.touched.titleOfFdp &&
                         validation.errors.titleOfFdp && (
@@ -916,7 +942,11 @@ toast.success(response.message || "File deleted successfully!");
           <ModalHeader toggle={toggleModal}>List Moocs</ModalHeader>
           <ModalBody>
             <Table striped bordered hover id="id" innerRef={tableRef}>
+<<<<<<< HEAD
               <thead className="table-dark">
+=======
+              <thead>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
@@ -933,8 +963,13 @@ toast.success(response.message || "File deleted successfully!");
                 </tr>
               </thead>
               <tbody>
+<<<<<<< HEAD
                 {currentRows.length > 0 ? (
                   currentRows.map((bos, index) => (
+=======
+                {bosData.length > 0 ? (
+                  bosData.map((bos, index) => (
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                     <tr key={bos.id}>
                       <td>{indexOfFirstRow + index + 1}</td>
                       <td>{bos.year}</td>
@@ -978,6 +1013,10 @@ toast.success(response.message || "File deleted successfully!");
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

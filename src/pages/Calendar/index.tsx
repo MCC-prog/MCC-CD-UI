@@ -22,6 +22,10 @@ import { APIClient } from "../../helpers/api_helper";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { toast } from "react-toastify";
+<<<<<<< HEAD
+=======
+import { Alert, Snackbar } from "@mui/material";
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
 
 const api = new APIClient();
 
@@ -59,6 +63,23 @@ const CalendarComponent: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(
     null
   );
+<<<<<<< HEAD
+=======
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMsg, setSnackbarMsg] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState<
+    "success" | "error" | "warning" | "info"
+  >("success");
+
+  const showSnackbar = (
+    msg: string,
+    severity: "success" | "error" | "warning" | "info" = "success"
+  ) => {
+    setSnackbarMsg(msg);
+    setSnackbarSeverity(severity);
+    setSnackbarOpen(true);
+  };
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
 
   const fetchEvents = async () => {
     try {
@@ -138,7 +159,11 @@ const CalendarComponent: React.FC = () => {
     if (deleteId) {
       try {
         const response = await api.delete(`/calendarEvent/delete?id=${id}`, "");
+<<<<<<< HEAD
         toast.success(response.message || "Event removed successfully!");
+=======
+        showSnackbar(response.message || "Event removed successfully!", "success");
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         fetchEvents();
         setModalOpen(false);
       } catch (error: any) {
@@ -149,6 +174,7 @@ const CalendarComponent: React.FC = () => {
           typeof error === "string" ? error : "Something went wrong";
 
         if (errMsg.includes("403")) {
+<<<<<<< HEAD
           toast.error("You are not authorized to delete this event.");
         } else if (errMsg.includes("500")) {
           toast.error("Internal Server Error while deleting.");
@@ -156,6 +182,15 @@ const CalendarComponent: React.FC = () => {
           toast.error("Event not found or already deleted.");
         } else {
           toast.error(`${errMsg}`);
+=======
+          showSnackbar("You are not authorized to delete this event.", "error");
+        } else if (errMsg.includes("500")) {
+          showSnackbar("Internal Server Error while deleting.", "error");
+        } else if (errMsg.includes("404")) {
+          showSnackbar("Event not found or already deleted.", "error");
+        } else {
+          showSnackbar(`${errMsg}`, "error");
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         }
       } finally {
         setIsDeleteModalOpen(false);
@@ -177,7 +212,11 @@ const CalendarComponent: React.FC = () => {
 
     try {
       const response = await api.put(`/calendarEvent/update`, updatedEvent);
+<<<<<<< HEAD
       toast.success(response.message || "Event updated after drag!");
+=======
+      showSnackbar(response.message || "Event updated after drag!", "success");
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
     } catch (error: any) {
       console.error("Full error:", error);
 
@@ -185,6 +224,7 @@ const CalendarComponent: React.FC = () => {
 
       // Show appropriate error toast
       if (errMsg.includes("403")) {
+<<<<<<< HEAD
         toast.error("You are not authorized to perform this action.");
       } else if (errMsg.includes("500")) {
         toast.error("Internal Server Error. Please try again.");
@@ -192,6 +232,15 @@ const CalendarComponent: React.FC = () => {
         toast.error("Resource not found.");
       } else {
         toast.error(`${errMsg}`);
+=======
+        showSnackbar("You are not authorized to perform this action.", "error");
+      } else if (errMsg.includes("500")) {
+        showSnackbar("Internal Server Error. Please try again.", "error");
+      } else if (errMsg.includes("404")) {
+        showSnackbar("Resource not found.", "error");
+      } else {
+        showSnackbar(`${errMsg}`, "error");
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       }
 
       // Revert the event back to original position
@@ -236,6 +285,7 @@ const CalendarComponent: React.FC = () => {
 
       if (isEditMode && selectedEvent?.id) {
         const response = await api.put(`/calendarEvent/update`, payload);
+<<<<<<< HEAD
         toast.success(response.message || "Event updated!", {
           autoClose: 2000,
         });
@@ -244,11 +294,18 @@ const CalendarComponent: React.FC = () => {
         toast.success(response.message || "Event created!", {
           autoClose: 2000,
         });
+=======
+        showSnackbar(response.message || "Event updated!", "success");
+      } else {
+        const response = await api.create("/calendarEvent/save", payload);
+        showSnackbar(response.message || "Event created!","success");
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       }
     } catch (error: any) {
       const errMsg = typeof error === "string" ? error : "Something went wrong";
 
       if (errMsg.includes("403")) {
+<<<<<<< HEAD
         toast.error("You are not authorized.");
       } else if (errMsg.includes("500")) {
         toast.error("Internal Server Error.");
@@ -256,6 +313,15 @@ const CalendarComponent: React.FC = () => {
         toast.error("Resource not found.");
       } else {
         toast.error(`${errMsg}`);
+=======
+        showSnackbar("You are not authorized.", "error");
+      } else if (errMsg.includes("500")) {
+        showSnackbar("Internal Server Error.", "error");
+      } else if (errMsg.includes("404")) {
+        showSnackbar("Resource not found.", "error");
+      } else {
+        showSnackbar(`${errMsg}`, "error");
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       }
     } finally {
       setModalOpen(false);
@@ -274,6 +340,7 @@ const CalendarComponent: React.FC = () => {
 
   return (
     <React.Fragment>
+<<<<<<< HEAD
         <FullCalendar
           plugins={[dayGridPlugin, interactionPlugin, bootstrapPlugin]}
           initialView="dayGridMonth"
@@ -373,8 +440,126 @@ const CalendarComponent: React.FC = () => {
           </ModalFooter>
         </Modal>  
        <ToastContainer />
+=======
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setSnackbarOpen(false)}
+          severity={snackbarSeverity}
+          elevation={6}
+        >
+          {snackbarMsg}
+        </Alert>
+      </Snackbar>
+
+      <FullCalendar
+        plugins={[dayGridPlugin, interactionPlugin, bootstrapPlugin]}
+        initialView="dayGridMonth"
+        themeSystem="bootstrap"
+        selectable={true}
+        editable={true}
+        events={events}
+        select={handleSelect}
+        eventClick={handleEventClick}
+        eventDrop={handleEventDrop}
+        height="auto"
+        eventContent={(arg) => {
+          return {
+            html: `<div class="fc-event-title">${arg.event.title}</div>`, // only show title
+          };
+        }}
+      />
+
+      <Modal className="popup" isOpen={modalOpen} toggle={() => setModalOpen(!modalOpen)}>
+        <ModalHeader toggle={() => setModalOpen(!modalOpen)}>
+          {selectedEvent ? "Edit Event" : "Add Event"}
+        </ModalHeader>
+        <ModalBody>
+          <Form onSubmit={handleFormSubmit}>
+            <FormGroup>
+              <Label for="eventTitle">Title</Label>
+              <Input
+                type="text"
+                id="eventTitle"
+                value={formData.title}
+                onChange={(e) =>
+                  setFormData({ ...formData, title: e.target.value })
+                }
+                required
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <Label for="eventColor">Color</Label>
+              <Input
+                type="color"
+                id="eventColor"
+                value={formData.color}
+                onChange={(e) =>
+                  setFormData({ ...formData, color: e.target.value })
+                }
+              />
+            </FormGroup>
+
+            <div className="d-flex justify-content-between">
+              {selectedEvent && (
+                <Button
+                  color="danger"
+                  onClick={() => handleDelete(selectedEvent.id)}
+                >
+                  Delete
+                </Button>
+              )}
+              <div className="ms-auto">
+                <Button
+                  type="button"
+                  color="secondary"
+                  onClick={() => setModalOpen(false)}
+                  className="me-2"
+                >
+                  Cancel
+                </Button>
+                <button className="btn btn-primary" type="submit">
+                  {isEditMode ? "Update" : "Save"}
+                </button>
+              </div>
+            </div>
+          </Form>
+        </ModalBody>
+      </Modal>
+      <Modal
+      className="delete-popup"
+        isOpen={isDeleteModalOpen}
+        toggle={() => setIsDeleteModalOpen(false)}
+      >
+        <ModalHeader toggle={() => setIsDeleteModalOpen(false)}>
+          Confirm Deletion
+        </ModalHeader>
+        <ModalBody>
+          Are you sure you want to delete this record? This action cannot be
+          undone.
+        </ModalBody>
+        <ModalFooter>
+          <Button color="danger" onClick={() => confirmDelete(deleteId!)}>
+            Delete
+          </Button>
+          <Button color="secondary" onClick={() => setIsDeleteModalOpen(false)}>
+            Cancel
+          </Button>
+        </ModalFooter>
+      </Modal>
+      <ToastContainer />
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
     </React.Fragment>
   );
 };
 
+<<<<<<< HEAD
 export default CalendarComponent;
+=======
+export default CalendarComponent;
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181

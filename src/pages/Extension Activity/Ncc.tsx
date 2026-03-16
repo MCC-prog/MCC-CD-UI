@@ -267,7 +267,11 @@ toast.success(response.message || "File deleted successfully!");
         .required("Please upload a file")
         .test("fileSize", "File size is too large", (value: any) => {
           if (typeof value === "string") return true;
+<<<<<<< HEAD
           return value && value.size <= 2 * 1024 * 1024; // 2MB limit
+=======
+          return value && value.size <= 10 * 1024 * 1024; // 10MB limit
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         })
         .test("fileType", "Unsupported file format", (value: any) => {
           if (typeof value === "string") return true;
@@ -314,6 +318,7 @@ toast.success(response.message || "File deleted successfully!");
       formData.append("location", values.location || "");
       formData.append(
         "startDate",
+<<<<<<< HEAD
         values.startDate
           ? moment(values.startDate, "DD/MM/YYYY").format("DD/MM/YYYY")
           : ""
@@ -323,6 +328,14 @@ toast.success(response.message || "File deleted successfully!");
         values.endDate
           ? moment(values.endDate, "DD/MM/YYYY").format("DD/MM/YYYY")
           : ""
+=======
+        values.startDate || ""
+      );
+      formData.append(
+        "endDate",
+        values.endDate || ""
+         
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       );
       if (isEditMode && typeof values.file === "string") {
         // Pass an empty Blob instead of null
@@ -375,12 +388,22 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+<<<<<<< HEAD
+=======
+          filename: "NCC_Activity_Data",
+          title: "NCC Activity Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+<<<<<<< HEAD
+=======
+          filename: "NCC_Activity_Data",
+          title: "NCC Activity Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)",
           },
@@ -918,6 +941,10 @@ toast.success(response.message || "File deleted successfully!");
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

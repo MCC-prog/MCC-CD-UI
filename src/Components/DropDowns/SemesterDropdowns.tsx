@@ -41,7 +41,12 @@ const SemesterDropdowns: React.FC<SemesterDropdownsProps> = ({
       options.push(
         { value: "1", label: "I" },
         { value: "3", label: "III" },
+<<<<<<< HEAD
         { value: "5", label: "V" }
+=======
+        { value: "5", label: "V" },
+        { value: "7", label: "VII" }
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       );
     }
 
@@ -49,7 +54,12 @@ const SemesterDropdowns: React.FC<SemesterDropdownsProps> = ({
       options.push(
         { value: "2", label: "II" },
         { value: "4", label: "IV" },
+<<<<<<< HEAD
         { value: "6", label: "VI" }
+=======
+        { value: "6", label: "VI" },
+        { value: "8", label: "VIII" }
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       );
     }
 

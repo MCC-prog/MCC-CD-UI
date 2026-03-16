@@ -326,7 +326,11 @@ toast.success(response.message || "File deleted successfully!");
         ),
       file: Yup.mixed().test(
         "fileValidation",
+<<<<<<< HEAD
         "Please upload a valid file",
+=======
+        "Please upload a valid Excel file",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         function (value) {
           // Skip validation if the file upload is disabled (file exists)
           if (isFileUploadDisabled) {
@@ -337,11 +341,19 @@ toast.success(response.message || "File deleted successfully!");
             return this.createError({ message: "Please upload a file" });
           }
           // Check file size (2MB limit)
+<<<<<<< HEAD
           if (value instanceof File && value.size > 2 * 1024 * 1024) {
             return this.createError({ message: "File size is too large" });
           }
           // Check file type
           const allowedTypes = ["application/pdf"];
+=======
+          if (value instanceof File && value.size > 10 * 1024 * 1024) {
+            return this.createError({ message: "File size is too large" });
+          }
+          // Check file type
+          const allowedTypes = ["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/vnd.ms-excel"];
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           if (value instanceof File && !allowedTypes.includes(value.type)) {
             return this.createError({ message: "Unsupported file format" });
           }
@@ -350,7 +362,11 @@ toast.success(response.message || "File deleted successfully!");
       ),
       imageStudent: Yup.mixed().test(
         "fileValidation",
+<<<<<<< HEAD
         "Please upload a valid JPEG file",
+=======
+        "Please upload a valid pdf file",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         function (value) {
           if (isFileUploadDisabled) {
             return true;
@@ -362,9 +378,15 @@ toast.success(response.message || "File deleted successfully!");
           if (value instanceof File && value.size > 10 * 1024 * 1024) {
             return this.createError({ message: "File size is too large" });
           }
+<<<<<<< HEAD
           const allowedTypes = ["image/jpeg"]; // Only JPEG allowed
           if (value instanceof File && !allowedTypes.includes(value.type)) {
             return this.createError({ message: "Only JPEG format is allowed" });
+=======
+          const allowedTypes = ["application/pdf"]; // Only PDF allowed
+          if (value instanceof File && !allowedTypes.includes(value.type)) {
+            return this.createError({ message: "Only PDF format is allowed" });
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           }
           return true;
         }
@@ -488,12 +510,22 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+<<<<<<< HEAD
+=======
+          filename: "Cultural_CoCurricularActivities_Conducted_Data",
+          title: "Cultural & Co-Curricular Activities Conducted Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+<<<<<<< HEAD
+=======
+          filename: "Cultural_CoCurricularActivities_Conducted_Data",
+          title: "Cultural & Co-Curricular Activities Conducted Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)",
           },
@@ -862,7 +894,11 @@ toast.success(response.message || "File deleted successfully!");
                         open={tooltipOpen}
                         onClose={() => setTooltipOpen(false)}
                         onOpen={() => setTooltipOpen(true)}
+<<<<<<< HEAD
                         title={<span>Upload Jpeg. Max size 10MB.</span>}
+=======
+                        title={<span>Upload pdf. Max size 10MB.</span>}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                         arrow
                       >
                         <i
@@ -889,7 +925,11 @@ toast.success(response.message || "File deleted successfully!");
                               : null
                           );
                         }}
+<<<<<<< HEAD
                         accept="image/jpeg" // Accept only image files
+=======
+                  
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                         disabled={isFile2UploadDisabled} // Disable the button if a file exists
                       />
                       {validation.touched.imageStudent &&
@@ -989,7 +1029,11 @@ toast.success(response.message || "File deleted successfully!");
           </ModalHeader>
           <ModalBody>
             <Table striped bordered hover id="id" innerRef={tableRef}>
+<<<<<<< HEAD
               <thead className="table-dark">
+=======
+              <thead>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
@@ -1006,8 +1050,13 @@ toast.success(response.message || "File deleted successfully!");
                 </tr>
               </thead>
               <tbody>
+<<<<<<< HEAD
                 {currentRows.length > 0 ? (
                   currentRows.map((cds, index) => (
+=======
+                {ccacData.length > 0 ? (
+                  ccacData.map((cds, index) => (
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                     <tr key={cds.coCurricularActivityId}>
                       <td>{index + 1}</td>
                       <td>{cds.academicYear}</td>
@@ -1057,6 +1106,10 @@ toast.success(response.message || "File deleted successfully!");
           </ModalBody>
         </Modal>
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

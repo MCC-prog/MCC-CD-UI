@@ -51,8 +51,19 @@ const Remedial_Classes: React.FC = () => {
   const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
   const [selectedProgramType, setSelectedProgramType] = useState<any>(null);
   const [selectedDegree, setSelectedDegree] = useState<any>(null);
+<<<<<<< HEAD
   const [isAttendanceEntryFileUploadDisabled, setIsAttendanceEntryFileUploadDisabled] = useState(false);
   const [isRemidialClassNoticeFileUploadDisabled, setIsRemidialClassNoticeFileUploadDisabled] = useState(false);
+=======
+  const [
+    isAttendanceEntryFileUploadDisabled,
+    setIsAttendanceEntryFileUploadDisabled,
+  ] = useState(false);
+  const [
+    isRemidialClassNoticeFileUploadDisabled,
+    setIsRemidialClassNoticeFileUploadDisabled,
+  ] = useState(false);
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
   const [editId, setEditId] = useState<string | null>(null);
   const [remedialData, setRemedialData] = useState<any[]>([]);
   const [filteredData, setFilteredData] = useState(remedialData);
@@ -239,8 +250,17 @@ const Remedial_Classes: React.FC = () => {
       setIsEditMode(true); // Set edit mode
       setEditId(id); // Store the ID of the record being edited
       // Disable the file upload button if a file exists
+<<<<<<< HEAD
       setIsAttendanceEntryFileUploadDisabled(!!response.documents?.attendanceEntry);
       setIsRemidialClassNoticeFileUploadDisabled(!!response.documents?.remidialClassNotice);
+=======
+      setIsAttendanceEntryFileUploadDisabled(
+        !!response.documents?.attendanceEntry
+      );
+      setIsRemidialClassNoticeFileUploadDisabled(
+        !!response.documents?.remidialClassNotice
+      );
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       toggleModal();
     } catch (error) {
       console.error("Error fetching Remedial Classes data by ID:", error);
@@ -329,7 +349,11 @@ const Remedial_Classes: React.FC = () => {
         ""
       );
       // Show success message
+<<<<<<< HEAD
 toast.success(response.message || "File deleted successfully!");
+=======
+      toast.success(response.message || "File deleted successfully!");
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       // Remove the file from the form
       validation.setFieldValue(docType, null); // Clear the file from Formik state
       if (docType === "attendanceEntry") {
@@ -400,7 +424,11 @@ toast.success(response.message || "File deleted successfully!");
             return this.createError({ message: "Please upload a file" });
           }
           // Check file size (2MB limit)
+<<<<<<< HEAD
           if (value instanceof File && value.size > 2 * 1024 * 1024) {
+=======
+          if (value instanceof File && value.size > 10 * 1024 * 1024) {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             return this.createError({ message: "File size is too large" });
           }
           // Check file type
@@ -424,7 +452,11 @@ toast.success(response.message || "File deleted successfully!");
             return this.createError({ message: "Please upload a file" });
           }
           // Check file size (2MB limit)
+<<<<<<< HEAD
           if (value instanceof File && value.size > 2 * 1024 * 1024) {
+=======
+          if (value instanceof File && value.size > 10 * 1024 * 1024) {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             return this.createError({ message: "File size is too large" });
           }
           // Check file type
@@ -535,6 +567,7 @@ toast.success(response.message || "File deleted successfully!");
       const table = $("#bosDataId").DataTable({
         destroy: true,
         dom: "Bfrtip",
+<<<<<<< HEAD
         buttons: [
           {
             extend: "copy",
@@ -551,6 +584,49 @@ toast.success(response.message || "File deleted successfully!");
         ],
         searching: false,
         paging: false,
+=======
+        paging: true,
+        pageLength: 10,
+        searching: false,
+        info: true,
+
+        columnDefs: [
+          {
+            targets: [11, 12], // Hidden file-path columns
+            visible: false,
+          },
+          {
+            targets: 13, // Actions column (last column)
+            orderable: false,
+            searchable: false,
+          },
+        ],
+
+        buttons: [
+          {
+            extend: "copy",
+            filename: "Remedial_Classes_Data",
+            title: "Remedial Classes Data Export",
+            exportOptions: {
+              modifier: { page: "all" },
+              columns: function (idx) {
+                return idx !== 13; // Exclude actions
+              },
+            },
+          },
+          {
+            extend: "csv",
+            filename: "Remedial_Classes_Data",
+            title: "Remedial Classes Data Export",
+            exportOptions: {
+              modifier: { page: "all" },
+              columns: function (idx) {
+                return idx !== 13; // Exclude actions
+              },
+            },
+          },
+        ],
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       });
 
       $(".dt-buttons").addClass("mb-3 gap-2");
@@ -768,6 +844,11 @@ toast.success(response.message || "File deleted successfully!");
                     <div className="mb-3">
                       <Label>Program</Label>
                       <ProgramDropdown
+<<<<<<< HEAD
+=======
+                      programTypeId={selectedProgramType?.value}
+                        deptId={selectedDepartment?.value || null}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                         degreeId={selectedDegree?.value}
                         value={validation.values.program}
                         onChange={(selectedOptions) =>
@@ -852,9 +933,15 @@ toast.success(response.message || "File deleted successfully!");
                             ? "is-invalid"
                             : ""
                         }`}
+<<<<<<< HEAD
                          disabled={isAttendanceEntryFileUploadDisabled}
                         type="file"
                          innerRef={fileRef}
+=======
+                        disabled={isAttendanceEntryFileUploadDisabled}
+                        type="file"
+                        innerRef={fileRef}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                         id="attendanceEntry"
                         onChange={(event) => {
                           validation.setFieldValue(
@@ -863,14 +950,24 @@ toast.success(response.message || "File deleted successfully!");
                               ? event.currentTarget.files[0]
                               : null
                           );
+<<<<<<< HEAD
                             if (typeof validation.values.attendanceEntry === "string") {
+=======
+                          if (
+                            typeof validation.values.attendanceEntry ===
+                            "string"
+                          ) {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                             setIsAttendanceEntryFileUploadDisabled(true);
                           } else {
                             setIsAttendanceEntryFileUploadDisabled(false);
                           }
                         }}
+<<<<<<< HEAD
                         
                        
+=======
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       />
                       {validation.touched.attendanceEntry &&
                         validation.errors.attendanceEntry && (
@@ -879,11 +976,21 @@ toast.success(response.message || "File deleted successfully!");
                           </div>
                         )}
                       {/* Show a message if the file upload button is disabled */}
+<<<<<<< HEAD
                       {isAttendanceEntryFileUploadDisabled &&  typeof validation.values.attendanceEntry === "string" && (
                         <div className="text-warning mt-2">
                           Please remove the existing file to upload a new one.
                         </div>
                       )}
+=======
+                      {isAttendanceEntryFileUploadDisabled &&
+                        typeof validation.values.attendanceEntry ===
+                          "string" && (
+                          <div className="text-warning mt-2">
+                            Please remove the existing file to upload a new one.
+                          </div>
+                        )}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       {/* Only show the file name if it is a string (from the edit API) */}
                       {typeof validation.values.attendanceEntry ===
                         "string" && (
@@ -944,13 +1051,23 @@ toast.success(response.message || "File deleted successfully!");
                               ? event.currentTarget.files[0]
                               : null
                           );
+<<<<<<< HEAD
                           if (typeof validation.values.remidialClassNotice === "string") {
+=======
+                          if (
+                            typeof validation.values.remidialClassNotice ===
+                            "string"
+                          ) {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                             setIsRemidialClassNoticeFileUploadDisabled(true);
                           } else {
                             setIsRemidialClassNoticeFileUploadDisabled(false);
                           }
                         }}
+<<<<<<< HEAD
                         
+=======
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       />
                       {validation.touched.remidialClassNotice &&
                         validation.errors.remidialClassNotice && (
@@ -959,11 +1076,21 @@ toast.success(response.message || "File deleted successfully!");
                           </div>
                         )}
                       {/* Show a message if the file upload button is disabled */}
+<<<<<<< HEAD
                       {isRemidialClassNoticeFileUploadDisabled &&  typeof validation.values.remidialClassNotice === "string" && (
                         <div className="text-warning mt-2">
                           Please remove the existing file to upload a new one.
                         </div>
                       )}
+=======
+                      {isRemidialClassNoticeFileUploadDisabled &&
+                        typeof validation.values.remidialClassNotice ===
+                          "string" && (
+                          <div className="text-warning mt-2">
+                            Please remove the existing file to upload a new one.
+                          </div>
+                        )}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       {/* Only show the file name if it is a string (from the edit API) */}
                       {typeof validation.values.remidialClassNotice ===
                         "string" && (
@@ -1024,15 +1151,24 @@ toast.success(response.message || "File deleted successfully!");
                     <div className="mt-3 d-flex justify-content-between">
                       <button className="btn btn-primary" type="submit">
                         {isEditMode
+<<<<<<< HEAD
                           ? "Update Remidial Classes"
                           : "Save Remidial Classes"}
+=======
+                          ? "Update Remedial Classes"
+                          : "Save Remedial Classes"}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       </button>
                       <button
                         className="btn btn-secondary"
                         type="button"
                         onClick={handleRemedialClick}
                       >
+<<<<<<< HEAD
                         List Remidial Classes
+=======
+                        List Remedial Classes
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       </button>
                     </div>
                   </Col>
@@ -1064,10 +1200,15 @@ toast.success(response.message || "File deleted successfully!");
               bordered
               hover
               responsive
+<<<<<<< HEAD
               className="align-middle text-center"
               id="bosDataId"
               innerRef={tableRef}
               style={{ display: "none" }}
+=======
+              id="bosDataId"
+              className="align-middle text-center"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             >
               <thead className="table-dark">
                 <tr>
@@ -1075,12 +1216,17 @@ toast.success(response.message || "File deleted successfully!");
                   <th>Academic Year</th>
                   <th>Semester Type</th>
                   <th>Semester No</th>
+<<<<<<< HEAD
                   <th>Stream</th>
+=======
+                  <th>School</th>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                   <th>Department</th>
                   <th>Program Type</th>
                   <th>Degree</th>
                   <th>Program</th>
                   <th>Course Title</th>
+<<<<<<< HEAD
                   <th>Attendance Entry(File Path)</th>
                   <th>Remedial Class Notice(File Path)</th>
                 </tr>
@@ -1139,15 +1285,45 @@ toast.success(response.message || "File deleted successfully!");
                   currentRows.map((npi, index) => (
                     <tr key={npi.remidialClassId}>
                       <td>{indexOfFirstRow + index + 1}</td>
+=======
+                  <th>No Students</th>
+
+                  {/* HIDDEN EXPORT COLUMNS */}
+                  <th className="export-hidden">Attendance Entry File</th>
+                  <th className="export-hidden">Remedial Class Notice</th>
+
+                  {/* ACTION COLUMN */}
+                  <th>Actions</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {remedialData.length > 0 ? (
+                  remedialData.map((npi, index) => (
+                    <tr key={npi.remidialClassId}>
+                      <td>{index + 1}</td>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       <td>{npi.academicYear}</td>
                       <td>{npi.semType}</td>
                       <td>{npi.semesterNo}</td>
                       <td>{npi.streamName}</td>
                       <td>{npi.departmentName}</td>
                       <td>{npi.programTypeName}</td>
+<<<<<<< HEAD
                       <td>{npi.programName}</td>
 
                       <td>{npi.courseTitle}</td>
+=======
+                       <td>{npi.programName}</td>
+                      <td>{Object.values(npi.courses).join(", ")}</td>
+                      <td>{npi.courseTitle}</td>
+                      <td>{npi.numberOfStudents}</td>
+
+                      {/* Hidden Export Columns */}
+                      <td>{npi.filePath?.attendanceEntry ?? "N/A"}</td>
+                      <td>{npi.filePath?.remidialClassNotice ?? "N/A"}</td>
+
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
@@ -1156,6 +1332,10 @@ toast.success(response.message || "File deleted successfully!");
                           >
                             Edit
                           </button>
+<<<<<<< HEAD
+=======
+
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                           <button
                             className="btn btn-sm btn-danger"
                             onClick={() => handleDelete(npi.remidialClassId)}
@@ -1168,13 +1348,18 @@ toast.success(response.message || "File deleted successfully!");
                   ))
                 ) : (
                   <tr>
+<<<<<<< HEAD
                     <td colSpan={11} className="text-center">
+=======
+                    <td colSpan={13} className="text-center">
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       No Remedial Classes data available.
                     </td>
                   </tr>
                 )}
               </tbody>
             </Table>
+<<<<<<< HEAD
             {/* Pagination Controls */}
             <div className="d-flex justify-content-between align-items-center mt-3">
               <Button
@@ -1195,10 +1380,16 @@ toast.success(response.message || "File deleted successfully!");
                 Next
               </Button>
             </div>
+=======
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           </ModalBody>
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

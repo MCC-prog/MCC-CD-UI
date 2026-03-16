@@ -336,7 +336,11 @@ const New_Programs_Introduced: React.FC = () => {
         ""
       );
       // Show success message
+<<<<<<< HEAD
 toast.success(response.message || "File deleted successfully!");
+=======
+      toast.success(response.message || "File deleted successfully!");
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       if (docType === "mom") {
         validation.setFieldValue("file", null);
         setIsMomUploadDisabled(false); // Re-enable only MOM upload
@@ -403,8 +407,13 @@ toast.success(response.message || "File deleted successfully!");
           if (!value) {
             return this.createError({ message: "Please upload a file" });
           }
+<<<<<<< HEAD
           // Check file size (2MB limit)
           if (value instanceof File && value.size > 2 * 1024 * 1024) {
+=======
+          // Check file size (10MB limit)
+          if (value instanceof File && value.size > 10 * 1024 * 1024) {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             return this.createError({ message: "File size is too large" });
           }
           // Check file type
@@ -427,8 +436,13 @@ toast.success(response.message || "File deleted successfully!");
           if (!value) {
             return this.createError({ message: "Please upload a file" });
           }
+<<<<<<< HEAD
           // Check file size (2MB limit)
           if (value instanceof File && value.size > 2 * 1024 * 1024) {
+=======
+          // Check file size (10MB limit)
+          if (value instanceof File && value.size > 10 * 1024 * 1024) {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             return this.createError({ message: "File size is too large" });
           }
           // Check file type
@@ -535,6 +549,7 @@ toast.success(response.message || "File deleted successfully!");
       const table = $("#bosDataId").DataTable({
         destroy: true,
         dom: "Bfrtip",
+<<<<<<< HEAD
         buttons: [
           {
             extend: "copy",
@@ -551,6 +566,44 @@ toast.success(response.message || "File deleted successfully!");
         ],
         searching: false,
         paging: false,
+=======
+
+        paging: true,
+        searching: false,
+        pageLength: 10,
+        info: true,
+
+        columnDefs: [
+          {
+            targets: [10, 11], // hide MOM & Syllabus columns
+            visible: false,
+          },
+          {
+            targets: 12, // Actions column
+            orderable: false,
+            searchable: false,
+            visible: true,
+          },
+        ],
+
+        buttons: [
+          { extend: "copy",
+            filename: "New_Programs_Introduced_Data",
+            title: "New Programs Introduced Data Export",
+           },
+          {
+            extend: "csv",
+            filename: "New_Programs_Introduced_Data",
+            title: "New Programs Introduced Data Export",
+            exportOptions: {
+              modifier: { page: "all" },
+              columns: function (idx) {
+                return idx !== 12; // Exclude actions only
+              },
+            },
+          },
+        ],
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       });
 
       $(".dt-buttons").addClass("mb-3 gap-2");
@@ -1113,8 +1166,11 @@ toast.success(response.message || "File deleted successfully!");
               responsive
               className="align-middle text-center"
               id="bosDataId"
+<<<<<<< HEAD
               innerRef={tableRef}
               style={{ display: "none" }}
+=======
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             >
               <thead className="table-dark">
                 <tr>
@@ -1122,6 +1178,7 @@ toast.success(response.message || "File deleted successfully!");
                   <th>Academic Year</th>
                   <th>Semester Type</th>
                   <th>Semester No</th>
+<<<<<<< HEAD
                   <th>Stream</th>
                   <th>Department</th>
                   <th>Program Type</th>
@@ -1174,17 +1231,35 @@ toast.success(response.message || "File deleted successfully!");
                   <th>Semester Type</th>
                   <th>Semester No</th>
                   <th>Stream</th>
+=======
+                  <th>School</th>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                   <th>Department</th>
                   <th>Program Type</th>
                   <th>Degree</th>
                   <th>Program Name</th>
                   <th>Introduction Year</th>
+<<<<<<< HEAD
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {currentRows.length > 0 ? (
                   currentRows.map((npi, index) => (
+=======
+
+                  {/* HIDDEN EXPORT-ONLY */}
+                  <th className="export-hidden">MOM (File Path)</th>
+                  <th className="export-hidden">Syllabus (File Path)</th>
+
+                  <th>Actions</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {bosData.length > 0 ? (
+                  bosData.map((npi, index) => (
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                     <tr key={npi.newProgramId}>
                       <td>{indexOfFirstRow + index + 1}</td>
                       <td>{npi.academicYear}</td>
@@ -1196,6 +1271,14 @@ toast.success(response.message || "File deleted successfully!");
                       <td>{npi.degreeName}</td>
                       <td>{npi.programName}</td>
                       <td>{npi.introductionYear}</td>
+<<<<<<< HEAD
+=======
+
+                      {/* Hidden Export Columns */}
+                      <td>{npi.filePath?.mom || "N/A"}</td>
+                      <td>{npi.filePath?.syllabus || "N/A"}</td>
+
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
@@ -1216,13 +1299,18 @@ toast.success(response.message || "File deleted successfully!");
                   ))
                 ) : (
                   <tr>
+<<<<<<< HEAD
                     <td colSpan={11} className="text-center">
+=======
+                    <td colSpan={13} className="text-center">
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       No New Program Introduced data available.
                     </td>
                   </tr>
                 )}
               </tbody>
             </Table>
+<<<<<<< HEAD
             {/* Pagination Controls */}
             <div className="d-flex justify-content-between align-items-center mt-3">
               <div className="d-flex gap-2">
@@ -1245,10 +1333,16 @@ toast.success(response.message || "File deleted successfully!");
                 Next
               </Button>
             </div>
+=======
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           </ModalBody>
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

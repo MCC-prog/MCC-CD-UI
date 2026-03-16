@@ -21,6 +21,11 @@ const AcademicYearDropdown: React.FC<AcademicYearDropdownProps> = ({
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
+<<<<<<< HEAD
+=======
+    const [menuOpen, setmenuOpen] = useState(false);
+
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
     useEffect(() => {
         const fetchAcademicYears = async () => {
             try {
@@ -59,6 +64,12 @@ const AcademicYearDropdown: React.FC<AcademicYearDropdownProps> = ({
 
     return (
         <Select
+<<<<<<< HEAD
+=======
+        menuIsOpen ={menuOpen}
+        onMenuOpen ={()=>setmenuOpen(true)}
+        onMenuClose ={()=>setmenuOpen(false)}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             options={options}
             value={value}
             onChange={onChange}
@@ -66,6 +77,14 @@ const AcademicYearDropdown: React.FC<AcademicYearDropdownProps> = ({
             className={isInvalid ? "select-error" : ""}
             styles={{
                 menu: (provided) => ({ ...provided, zIndex: 9999 }),
+<<<<<<< HEAD
+=======
+                menuList: (provided) => ({
+                    ...provided,
+                    maxHeight: "170px",
+                    overflowY: "auto",
+                }),
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             }}
         />
     );

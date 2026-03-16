@@ -219,12 +219,22 @@ const Scholarships: React.FC = () => {
         buttons: [
           {
             extend: "copy",
+<<<<<<< HEAD
+=======
+                filename: "Scholarships",
+            title: "Scholarships Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             exportOptions: {
               columns: ":not(:last-child)",
             },
           },
           {
             extend: "csv",
+<<<<<<< HEAD
+=======
+                filename: "Scholarships",
+            title: "Scholarships Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             exportOptions: {
               columns: ":not(:last-child)",
             },
@@ -297,7 +307,11 @@ const Scholarships: React.FC = () => {
             return this.createError({ message: "Please upload a file" });
           }
           // Check file size (2MB limit)
+<<<<<<< HEAD
           if (value instanceof File && value.size > 2 * 1024 * 1024) {
+=======
+          if (value instanceof File && value.size > 10 * 1024 * 1024) {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             return this.createError({ message: "File size is too large" });
           }
           // Check file type
@@ -369,7 +383,11 @@ const Scholarships: React.FC = () => {
       <div className="page-content">
         <Container fluid>
           <Breadcrumb title="Alumini" breadcrumbItem="Scholarships" />
+<<<<<<< HEAD
           <Card>
+=======
+          <Card style={{ height: "350px" }}>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             <CardBody>
               <form onSubmit={validation.handleSubmit}>
                 <Input type="hidden" name="id" value={editId || ""} />
@@ -502,7 +520,11 @@ const Scholarships: React.FC = () => {
                       <Label>Download Template</Label>
                       <div>
                         <a
+<<<<<<< HEAD
                           href={`${process.env.PUBLIC_URL}/templateFiles/BOS_MoM_DeptName_Aug24.docx`}
+=======
+                          href={`${process.env.PUBLIC_URL}/templateFiles/`}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                           download
                           className="btn btn-primary btn-sm"
                         >
@@ -597,6 +619,10 @@ const Scholarships: React.FC = () => {
       </Modal>
       {/* Confirmation Modal */}
       <Modal
+<<<<<<< HEAD
+=======
+      className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         isOpen={isDeleteModalOpen}
         toggle={() => setIsDeleteModalOpen(false)}
       >

@@ -270,7 +270,11 @@ const Nss_Yrc: React.FC = () => {
         .required("Please upload a file")
         .test("fileSize", "File size is too large", (value: any) => {
           if (typeof value === "string") return true;
+<<<<<<< HEAD
           return value && value.size <= 2 * 1024 * 1024; // 2MB limit
+=======
+          return value && value.size <= 10 * 1024 * 1024; // 10MB limit
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         })
         .test("fileType", "Unsupported file format", (value: any) => {
           if (typeof value === "string") return true;
@@ -289,6 +293,7 @@ const Nss_Yrc: React.FC = () => {
       organisation: Yup.string().required("Please select Organization"),
       location: Yup.string().required("Please select Location"),
       startDate: Yup.string()
+<<<<<<< HEAD
         .required("Start date is required")
         .test("is-valid-date", "Invalid start date", (value) =>
           moment(value, "DD/MM/YYYY", true).isValid()
@@ -298,6 +303,11 @@ const Nss_Yrc: React.FC = () => {
         .test("is-valid-date", "Invalid start date", (value) =>
           moment(value, "DD/MM/YYYY", true).isValid()
         ),
+=======
+        .required("Start date is required"),
+      endDate: Yup.string()
+        .required("End date is required"),
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
     }),
     onSubmit: async (values, { resetForm }) => {
       // Create FormData object
@@ -317,15 +327,23 @@ const Nss_Yrc: React.FC = () => {
       formData.append("location", values.location || "");
       formData.append(
         "startDate",
+<<<<<<< HEAD
         values.startDate
           ? moment(values.startDate, "DD/MM/YYYY").format("DD/MM/YYYY")
           : ""
+=======
+        values.startDate || ""
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       );
       formData.append(
         "endDate",
         values.endDate
+<<<<<<< HEAD
           ? moment(values.endDate, "DD/MM/YYYY").format("DD/MM/YYYY")
           : ""
+=======
+         || ""
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       );
 
       if (isEditMode && typeof values.file === "string") {
@@ -379,12 +397,22 @@ const Nss_Yrc: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+<<<<<<< HEAD
+=======
+          filename: "NSS_YRC_Activity_Data",
+          title: "NSS/YRC Activity Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+<<<<<<< HEAD
+=======
+          filename: "NSS_YRC_Activity_Data",
+          title: "NSS/YRC Activity Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)",
           },
@@ -919,6 +947,10 @@ const Nss_Yrc: React.FC = () => {
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

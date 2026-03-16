@@ -311,11 +311,19 @@ toast.success(response.message || "File deleted successfully!");
       // Append the file
       if (isEditMode && typeof values.file === "string") {
         // Pass an empty Blob instead of null
+<<<<<<< HEAD
         formData.append("file", new Blob([]), "empty.pdf");
       } else if (isEditMode && values.file === null) {
         formData.append("file", new Blob([]), "empty.pdf");
       } else if (values.file) {
         formData.append("file", values.file);
+=======
+        formData.append("certificate", new Blob([]), "empty.pdf");
+      } else if (isEditMode && values.file === null) {
+        formData.append("certificate", new Blob([]), "empty.pdf");
+      } else if (values.file) {
+        formData.append("certificate", values.file);
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       }
 
       // If editing, include ID
@@ -372,12 +380,22 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+<<<<<<< HEAD
+=======
+          filename: "Consultancy_Undertaken_By_Staff_Data",
+          title: "Consultancy Undertaken By Staff Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+<<<<<<< HEAD
+=======
+          filename: "Consultancy_Undertaken_By_Staff_Data",
+          title: "Consultancy Undertaken By Staff Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)",
           },
@@ -573,7 +591,11 @@ toast.success(response.message || "File deleted successfully!");
                     <div className="mb-3">
                       <Label>Number of Trainees</Label>
                       <Input
+<<<<<<< HEAD
                         type="text"
+=======
+                        type="number"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                         className={`form-control ${validation.touched.numberTrainees &&
                             validation.errors.numberTrainees
                             ? "is-invalid"
@@ -730,12 +752,20 @@ toast.success(response.message || "File deleted successfully!");
                       )}
                     </div>
                   </Col>
+<<<<<<< HEAD
                   <Col lg={4}>
+=======
+                  {/* <Col lg={4}>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                     <div className="mb-3">
                       <Label>Report Template</Label>
                       <div>
                         <a
+<<<<<<< HEAD
                           href={`${process.env.PUBLIC_URL}/templateFiles/BOS_MoM_DeptName_Aug24.docx`}
+=======
+                          href={`${process.env.PUBLIC_URL}/templateFiles/Industry_collaboration _ skill_enhancement.docx`}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                           download
                           className="btn btn-primary btn-sm"
                         >
@@ -743,7 +773,11 @@ toast.success(response.message || "File deleted successfully!");
                         </a>
                       </div>
                     </div>
+<<<<<<< HEAD
                   </Col>
+=======
+                  </Col> */}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                 </Row>
                 <Row>
                   <Col lg={12}>
@@ -795,6 +829,10 @@ toast.success(response.message || "File deleted successfully!");
                   <th>Number Trainees</th>
                   <th>Address Agency</th>
                   <th>Revenue Generated</th>
+<<<<<<< HEAD
+=======
+                  <th className="d-none">File Path</th> {/* Hidden */}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -815,7 +853,17 @@ toast.success(response.message || "File deleted successfully!");
                         <td>{consultancyUndertaken.noOfTrainees}</td>
                         <td>{consultancyUndertaken.addressOfAgency}</td>
                         <td>{consultancyUndertaken.revenueGenerated}</td>
+<<<<<<< HEAD
                         <td>
+=======
+                        <td className="d-none">
+                          {consultancyUndertaken?.filePath
+                            ?.ConsultancyUndertaken || "N/A"}
+                        </td>{" "}
+                        {/* Hidden */}
+                        <td>
+                          <div className="d-flex justify-content-center gap-2">
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                           <button
                             className="btn btn-sm btn-warning me-2"
                             onClick={() => handleEdit(consultancyUndertaken.id)}
@@ -830,6 +878,10 @@ toast.success(response.message || "File deleted successfully!");
                           >
                             Delete
                           </button>
+<<<<<<< HEAD
+=======
+                          </div>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                         </td>
                       </tr>
                     )
@@ -847,6 +899,10 @@ toast.success(response.message || "File deleted successfully!");
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

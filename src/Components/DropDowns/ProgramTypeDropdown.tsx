@@ -58,6 +58,17 @@ const ProgramTypeDropdown: React.FC<ProgramTypeDropdownProps> = ({
       onChange={onChange}
       placeholder={placeholder}
       className={isInvalid ? "select-error" : ""}
+<<<<<<< HEAD
+=======
+          styles={{
+                menu: (provided) => ({ ...provided, zIndex: 9999 }),
+                menuList: (provided) => ({
+                    ...provided,
+                    maxHeight: "170px",
+                    overflowY: "auto",
+                }),
+            }}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
     />
   );
 };

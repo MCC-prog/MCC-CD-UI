@@ -335,7 +335,11 @@ const CapacityDevelopment_Skills: React.FC = () => {
             return this.createError({ message: "Please upload a file" });
           }
           // Check file size (2MB limit)
+<<<<<<< HEAD
           if (value instanceof File && value.size > 2 * 1024 * 1024) {
+=======
+          if (value instanceof File && value.size > 10 * 1024 * 1024) {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             return this.createError({ message: "File size is too large" });
           }
           // Check file type
@@ -428,12 +432,22 @@ const CapacityDevelopment_Skills: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+<<<<<<< HEAD
+=======
+          filename: "Capacity_Development_Skills_Data",
+          title: "Capacity Development & Skills Enhancement Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+<<<<<<< HEAD
+=======
+          filename: "Capacity_Development_Skills_Data",
+          title: "Capacity Development & Skills Enhancement Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)",
           },
@@ -545,6 +559,10 @@ const CapacityDevelopment_Skills: React.FC = () => {
                         )}
                     </div>
                   </Col>
+<<<<<<< HEAD
+=======
+
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                   <Col lg={4}>
                     <div className="mb-3">
                       <Label>Semester No</Label>
@@ -570,8 +588,12 @@ const CapacityDevelopment_Skills: React.FC = () => {
                       )}
                     </div>
                   </Col>
+<<<<<<< HEAD
 
                   <Col lg={4}>
+=======
+                    <Col lg={4}>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                     <div className="mb-3">
                       <Label>Activity Name</Label>
                       <Input
@@ -599,6 +621,70 @@ const CapacityDevelopment_Skills: React.FC = () => {
                     </div>
                   </Col>
 
+<<<<<<< HEAD
+=======
+
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Language and communication skills</Label>
+                      <Input
+                        type="text"
+                        className={`form-control ${
+                          validation.touched.LanguageAndCommunication &&
+                          validation.errors.LanguageAndCommunication
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        value={validation.values.LanguageAndCommunication}
+                        onChange={(e) =>
+                          validation.setFieldValue(
+                            "LanguageAndCommunication",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Enter Language and communication skills"
+                      />
+                      {validation.touched.LanguageAndCommunication &&
+                        validation.errors.LanguageAndCommunication && (
+                          <div className="text-danger">
+                            {validation.errors.LanguageAndCommunication}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Life Skills</Label>
+                      <Select
+                        options={lifeSkills}
+                        value={validation.values.lifeSkills}
+                        onChange={(selectedOptions) =>
+                          validation.setFieldValue(
+                            "lifeSkills",
+                            selectedOptions
+                          )
+                        }
+                        placeholder="Select Life Skills"
+                        styles={dropdownStyles}
+                        menuPortalTarget={document.body}
+                        className={
+                          validation.touched.lifeSkills &&
+                          validation.errors.lifeSkills
+                            ? "select-error"
+                            : ""
+                        }
+                      />
+                      {validation.touched.lifeSkills &&
+                        validation.errors.lifeSkills && (
+                          <div className="text-danger">
+                            {validation.errors.lifeSkills}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                   <Col lg={4}>
                     <div className="mb-3">
                       <Label>Type</Label>
@@ -625,6 +711,37 @@ const CapacityDevelopment_Skills: React.FC = () => {
                     </div>
                   </Col>
 
+<<<<<<< HEAD
+=======
+                  <Col lg={4}>
+                    <div className="mb-3">
+                      <Label>Awareness of trends in technology</Label>
+                      <Input
+                        type="text"
+                        className={`form-control ${
+                          validation.touched.awarenessOfTrends &&
+                          validation.errors.awarenessOfTrends
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        value={validation.values.awarenessOfTrends}
+                        onChange={(e) =>
+                          validation.setFieldValue(
+                            "awarenessOfTrends",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Enter awareness of trends in technology"
+                      />
+                      {validation.touched.awarenessOfTrends &&
+                        validation.errors.awarenessOfTrends && (
+                          <div className="text-danger">
+                            {validation.errors.awarenessOfTrends}
+                          </div>
+                        )}
+                    </div>
+                  </Col>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
@@ -752,6 +869,7 @@ const CapacityDevelopment_Skills: React.FC = () => {
           </ModalHeader>
           <ModalBody>
             <Table striped bordered hover id="id" innerRef={tableRef}>
+<<<<<<< HEAD
               <thead className="table-dark">
                 <tr>
                   <th>#</th>
@@ -759,17 +877,39 @@ const CapacityDevelopment_Skills: React.FC = () => {
                   <th>Department</th>
                   <th>Activity Name</th>
                   <th>Type</th>
+=======
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Academic Year</th>
+                  <th>Soft Skills</th>
+                  <th>Language and Communication Skills</th>
+                  <th>Life Skills</th>
+                  <th>Type</th>
+                  <th>Awareness of trends in technology</th>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                   <th className="d-none">File</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
+<<<<<<< HEAD
                 {currentRows.length > 0 ? (
                   currentRows.map((cds, index) => (
                     <tr key={cds.capacityDevelopmentId}>
                       <td>{index + 1}</td>
                       <td>{cds.academicYear}</td>
                       <td>{cds.departmentName}</td>
+=======
+                {cdsData.length > 0 ? (
+                  cdsData.map((cds, index) => (
+                    <tr key={cds.capacityDevelopmentId}>
+                      <td>{index + 1}</td>
+                      <td>{cds.academicYear}</td>
+                      <td>{cds.streamName}</td>
+                      <td>{cds.departmentName}</td>
+                      <td>{cds.semNo}</td>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       <td>{cds.activityName}</td>
                       <td>{cds.type}</td>
                       <td className="d-none">
@@ -810,6 +950,10 @@ const CapacityDevelopment_Skills: React.FC = () => {
           </ModalBody>
         </Modal>
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

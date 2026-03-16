@@ -510,12 +510,22 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+<<<<<<< HEAD
+=======
+          filename: "WorkshopsOrSeminars_Data",
+          title: "Workshops Or Seminars Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+<<<<<<< HEAD
+=======
+          filename: "WorkshopsOrSeminars_Data",
+          title: "Workshops Or Seminars Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)",
           },
@@ -894,7 +904,11 @@ toast.success(response.message || "File deleted successfully!");
                   </Col>
                   <Col lg={4}>
                     <div className="mb-3">
+<<<<<<< HEAD
                       <Label>Certificate</Label>
+=======
+                      <Label>Upload Report</Label>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       <Input
                         type="file"
                         innerRef={fileRef}
@@ -961,10 +975,17 @@ toast.success(response.message || "File deleted successfully!");
                           </Button>
                         </div>
                       )}
+<<<<<<< HEAD
                       <div className="form-text">
                         Name should be{" "}
                         <b>Workshop-School-Dept_faculty-title-year</b>
                       </div>
+=======
+                      {/* <div className="form-text">
+                        Name should be{" "}
+                        <b>Workshop-School-Dept_faculty-title-year</b>
+                      </div> */}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                     </div>
                   </Col>
                 </Row>
@@ -1019,8 +1040,13 @@ toast.success(response.message || "File deleted successfully!");
                 </tr>
               </thead>
               <tbody>
+<<<<<<< HEAD
                 {currentRows.length > 0 ? (
                   currentRows.map((wos, index) => (
+=======
+                {wosData.length > 0 ? (
+                  wosData.map((wos, index) => (
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                     <tr key={wos.id}>
                       <td>{indexOfFirstRow + index + 1}</td>
                       <td>{wos.academicYear}</td>
@@ -1068,6 +1094,10 @@ toast.success(response.message || "File deleted successfully!");
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

@@ -414,7 +414,11 @@ const Details_of_Programs_offered: React.FC = () => {
   useEffect(() => {
     if (detailsProgramOfferedData.length === 0) return; // wait until data is loaded
 
+<<<<<<< HEAD
     const table = $("#id").DataTable({
+=======
+    const table = $("#detailsProgramOfferedDataId").DataTable({
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       destroy: true, // destroy existing instance if re-rendered
       scrollX: true,
       autoWidth: false,
@@ -422,12 +426,22 @@ const Details_of_Programs_offered: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+<<<<<<< HEAD
+=======
+          filename: "Details_of_Programs_Offered_Data",
+          title: "Details of Programs Offered Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+<<<<<<< HEAD
+=======
+          filename: "Details_of_Programs_Offered_Data",
+          title: "Details of Programs Offered Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)",
           },
@@ -600,6 +614,11 @@ const Details_of_Programs_offered: React.FC = () => {
                     <div className="mb-3">
                       <Label>Program</Label>
                       <ProgramDropdown
+<<<<<<< HEAD
+=======
+                      programTypeId={selectedProgramType?.value}
+                        deptId={selectedDepartment?.value || null}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                         degreeId={selectedDegree?.value}
                         value={validation.values.program}
                         onChange={(selectedOptions) =>
@@ -844,19 +863,33 @@ const Details_of_Programs_offered: React.FC = () => {
               hover
               id="detailsProgramOfferedDataId"
               innerRef={tableRef}>
+<<<<<<< HEAD
               <thead className="table-dark">
+=======
+              <thead>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                 <tr>
                   <th>Sl.No</th>
                   <th>Academic Year</th>
                   <th>Schools</th>
                   <th>Department</th>
                   <th>Program Type</th>
+<<<<<<< HEAD
                   <th>Program</th>
                   <th>Course</th>
                   <th>Agency Name</th>
                   <th>Number Of Student</th>
                   <th>Durationt</th>
                   <th className="d-none">File Path</th> {/* Hidden */}
+=======
+                  <th>Degree</th>
+                  <th>Program</th>
+                  <th>Agency Name</th>
+                  <th>Number Of Student</th>
+                  <th>Durationt</th>
+                  <th>Mode Type</th>
+                  <th className="d-none">Letter/MOU File Path</th> {/* Hidden */}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -884,7 +917,12 @@ const Details_of_Programs_offered: React.FC = () => {
                       <td>{detailsProgramOffered.agencyName}</td>
                       <td>{detailsProgramOffered.noOfStudent}</td>
                       <td>{detailsProgramOffered.duration}</td>
+<<<<<<< HEAD
                       <td className="d-none">{detailsProgramOffered?.filePath?.mou || "N/A"}</td> {/* Hidden */}
+=======
+                      <td>{detailsProgramOffered.mode}</td>
+                      <td className="d-none">{detailsProgramOffered?.filePath?.ProgramOffered || "N/A"}</td> {/* Hidden */}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       <td>
                         <button
                           className="btn btn-sm btn-warning me-2"
@@ -921,6 +959,10 @@ const Details_of_Programs_offered: React.FC = () => {
           </ModalBody>
         </Modal>
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

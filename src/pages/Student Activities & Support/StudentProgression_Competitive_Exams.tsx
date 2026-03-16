@@ -180,6 +180,7 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
               label: String(value),
             }))
           : [],
+<<<<<<< HEAD
         noOfStaff: response.noOfStaff || "",
         studentName: response.studentName || "",
         date: response.date
@@ -190,6 +191,18 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
         status: response.status
           ? { value: response.status, label: response.status }
           : null,
+=======
+        // noOfStaff: response.noOfStaff || "",
+        // studentName: response.studentName || "",
+        // date: response.date
+        //   ? moment(response.date).format("DD/MM/YYYY") // Convert to dd/mm/yyyy format
+        //   : "",
+        // compExamName: response.competitiveExamName || "",
+        // proofOfCAE: response.appearedForExam || "",
+        // status: response.status
+        //   ? { value: response.status, label: response.status }
+        //   : null,
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         excel: response.documents?.excel || null,
         idCard: response.documents?.idCard || null,
         // competitiveExam: response.documents?.competitiveExam || null,
@@ -215,6 +228,7 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
             }
           : null,
         courses: mappedValues.courses || [],
+<<<<<<< HEAD
         noOfStaff: response.noOfStaff || "",
         studentName: response.studentName || "",
         date: response.date
@@ -228,6 +242,21 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
               value: String(mappedValues.status.value),
             }
           : null,
+=======
+        // noOfStaff: response.noOfStaff || "",
+        // studentName: response.studentName || "",
+        // date: response.date
+        //   ? moment(response.date).format("DD/MM/YYYY") // Convert to dd/mm/yyyy format
+        //   : "",
+        // compExamName: response.competitiveExamName || "",
+        // proofOfCAE: response.appearedForExam || "",
+        // status: mappedValues.status
+        //   ? {
+        //       ...mappedValues.status,
+        //       value: String(mappedValues.status.value),
+        //     }
+        //   : null,
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         excel: response.documents?.excel || null, // Use the file from the response
         idCard: response.documents?.idCard || null,
         // competitiveExam: response.documents?.competitiveExam || null,
@@ -326,14 +355,22 @@ const StudentProgression_Competitive_Exams: React.FC = () => {
         `/studentProgressionCompetitiveExam/deleteCompetitiveExamDocument?competitiveExamId=${editId}&docType=${docType}`,
         ""
       );
+<<<<<<< HEAD
 toast.success(response.message || "File deleted successfully!");
+=======
+      toast.success(response.message || "File deleted successfully!");
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       if (docType === "excel") {
         validation.setFieldValue("excel", null);
         setIsFileUploadDisabled(false);
       } else if (docType === "idCard") {
         validation.setFieldValue("idCard", null);
         setIsFile2UploadDisabled(false); // Enable the file upload button
+<<<<<<< HEAD
       } 
+=======
+      }
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
     } catch (error) {
       toast.error("Failed to delete the file. Please try again.");
       console.error("Error deleting file:", error);
@@ -343,6 +380,7 @@ toast.success(response.message || "File deleted successfully!");
   const validation = useFormik({
     initialValues: {
       academicYear: null as { value: string; label: string } | null,
+<<<<<<< HEAD
       noOfStaff: "",
       studentName: "",
       date: "",
@@ -352,6 +390,17 @@ toast.success(response.message || "File deleted successfully!");
       department: null as { value: string; label: string } | null,
       courses: [] as { value: string; label: string }[],
       status: null as { value: string; label: string } | null,
+=======
+      // noOfStaff: "",
+      // studentName: "",
+      // date: "",
+      // compExamName: "",
+      // proofOfCAE: "",
+      stream: null as { value: string; label: string } | null,
+      department: null as { value: string; label: string } | null,
+      courses: [] as { value: string; label: string }[],
+      // status: null as { value: string; label: string } | null,
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       excel: null as File | string | null,
       idCard: null as File | string | null,
       // competitiveExam: null as File | string | null,
@@ -361,11 +410,19 @@ toast.success(response.message || "File deleted successfully!");
         .nullable()
         .required("Please select academic year"),
       stream: Yup.object().nullable().required("Please select stream"),
+<<<<<<< HEAD
       studentName: Yup.string().required("Please enter area of guidance"),
       compExamName: Yup.string().required("Please enter competitive exam name"),
       proofOfCAE: Yup.string().required(
         "Please enter proof of Completion/Appeared for exam"
       ),
+=======
+      // studentName: Yup.string().required("Please enter area of guidance"),
+      // compExamName: Yup.string().required("Please enter competitive exam name"),
+      // proofOfCAE: Yup.string().required(
+      //   "Please enter proof of Completion/Appeared for exam"
+      // ),
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       department: Yup.object().nullable().required("Please select department"),
       courses: Yup.array()
         .of(
@@ -376,7 +433,11 @@ toast.success(response.message || "File deleted successfully!");
         )
         .min(1, "Please select at least one program")
         .required("Please select program"),
+<<<<<<< HEAD
       status: Yup.object().nullable().required("Please select status"),
+=======
+      // status: Yup.object().nullable().required("Please select status"),
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       excel: Yup.mixed()
         .required("Please upload a file")
         .test("fileSize", "File size is too large", (value: any) => {
@@ -395,6 +456,7 @@ toast.success(response.message || "File deleted successfully!");
             ].includes(value.type)
           );
         }),
+<<<<<<< HEAD
       idCard: Yup.mixed()
         .required("Please upload a file")
         .test("fileSize", "File size is too large", (value: any) => {
@@ -413,6 +475,32 @@ toast.success(response.message || "File deleted successfully!");
             ].includes(value.type)
           );
         }),
+=======
+      idCard: Yup.mixed().test(
+        "fileValidation",
+        "Please upload a valid file",
+        function (value) {
+          // Skip validation if the file upload is disabled (file exists)
+          if (isFileUploadDisabled) {
+            return true;
+          }
+          // Perform validation if the file upload is enabled (file doesn't exist)
+          if (!value) {
+            return this.createError({ message: "Please upload a file" });
+          }
+          // Check file size (2MB limit)
+          if (value instanceof File && value.size > 100 * 1024 * 1024) {
+            return this.createError({ message: "File size is too large" });
+          }
+          // Check file type
+          const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
+          if (value instanceof File && !allowedTypes.includes(value.type)) {
+            return this.createError({ message: "Unsupported file format" });
+          }
+          return true;
+        }
+      ),
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       // competitiveExam: Yup.mixed()
       //   .required("Please upload a file")
       //   .test("fileSize", "File size is too large", (value: any) => {
@@ -436,14 +524,21 @@ toast.success(response.message || "File deleted successfully!");
       try {
         const formData = new FormData();
         formData.append("academicYear", values.academicYear?.value || "");
+<<<<<<< HEAD
         formData.append("studentName", values.studentName);
         formData.append("competitiveExamName", values.compExamName);
         formData.append("appearedForExam", values.proofOfCAE);
+=======
+        // formData.append("studentName", values.studentName);
+        // formData.append("competitiveExamName", values.compExamName);
+        // formData.append("appearedForExam", values.proofOfCAE);
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         formData.append("streamId", values.stream?.value || "");
         formData.append("departmentId", values.department?.value || "");
         values.courses.forEach((course, index) => {
           formData.append(`courseIds[${index}]`, course.value);
         });
+<<<<<<< HEAD
         formData.append("status", values.status?.value || "");
         // If the date is provided, format it to YYYY-MM-DD
         if (values.date) {
@@ -452,6 +547,16 @@ toast.success(response.message || "File deleted successfully!");
           );
           formData.append("date", formattedDate);
         }
+=======
+        // formData.append("status", values.status?.value || "");
+        // // If the date is provided, format it to YYYY-MM-DD
+        // if (values.date) {
+        //   const formattedDate = moment(values.date, "DD/MM/YYYY").format(
+        //     "YYYY-MM-DD"
+        //   );
+        //   formData.append("date", formattedDate);
+        // }
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         if (isEditMode && typeof values.excel === "string") {
           formData.append(
             "excel",
@@ -475,18 +580,28 @@ toast.success(response.message || "File deleted successfully!");
         if (isEditMode && typeof values.idCard === "string") {
           formData.append(
             "idCard",
+<<<<<<< HEAD
             new Blob([], {
               type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             }),
             "empty.xlsx"
+=======
+            new Blob([], { type: "application/pdf" }),
+          "empty.pdf"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           );
         } else if (isEditMode && values.idCard === null) {
           formData.append(
             "idCard",
+<<<<<<< HEAD
             new Blob([], {
               type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             }),
             "empty.xlsx"
+=======
+           new Blob([], { type: "application/pdf" }),
+          "empty.pdf"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           );
         } else if (values.idCard) {
           formData.append("idCard", values.idCard);
@@ -550,7 +665,11 @@ toast.success(response.message || "File deleted successfully!");
         }
         setIsFileUploadDisabled(false);
         setIsFile2UploadDisabled(false);
+<<<<<<< HEAD
         setIsFile3UploadDisabled(false);
+=======
+        // setIsFile3UploadDisabled(false);
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         // display the BOS List
@@ -576,12 +695,22 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+<<<<<<< HEAD
+=======
+          filename: "Student_Progression_Competitive_Exams_Data",
+          title: "Student Progression - Competitive Exams Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+<<<<<<< HEAD
+=======
+          filename: "Student_Progression_Competitive_Exams_Data",
+          title: "Student Progression - Competitive Exams Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)",
           },
@@ -716,7 +845,11 @@ toast.success(response.message || "File deleted successfully!");
                         )}
                     </div>
                   </Col>
+<<<<<<< HEAD
                   <Col sm={4}>
+=======
+                  {/* <Col sm={4}>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
                         Student Name
@@ -789,7 +922,11 @@ toast.success(response.message || "File deleted successfully!");
                         onChange={(selectedOptions) =>
                           validation.setFieldValue("status", selectedOptions)
                         }
+<<<<<<< HEAD
                         placeholder="Select Semester"
+=======
+                        placeholder="Select Status"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                         styles={dropdownStyles}
                         menuPortalTarget={document.body}
                         className={
@@ -824,7 +961,11 @@ toast.success(response.message || "File deleted successfully!");
                         onChange={(e) =>
                           validation.setFieldValue("proofOfCAE", e.target.value)
                         }
+<<<<<<< HEAD
                         placeholder="Enter professor of practice"
+=======
+                        placeholder="Enter Proof of Completion/Appeared for exam"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                         value={validation.values.proofOfCAE}
                       />
                       {validation.touched.proofOfCAE &&
@@ -834,7 +975,11 @@ toast.success(response.message || "File deleted successfully!");
                           </div>
                         )}
                     </div>
+<<<<<<< HEAD
                   </Col>
+=======
+                  </Col> */}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
 
                   <Col sm={4}>
                     <div className="mb-3">
@@ -942,8 +1087,12 @@ toast.success(response.message || "File deleted successfully!");
                       </Tooltip>
                       <Input
                         className={`form-control ${
+<<<<<<< HEAD
                           validation.touched.idCard &&
                           validation.errors.idCard
+=======
+                          validation.touched.idCard && validation.errors.idCard
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                             ? "is-invalid"
                             : ""
                         }`}
@@ -1102,7 +1251,11 @@ toast.success(response.message || "File deleted successfully!");
                       <Label>Excel Template</Label>
                       <div>
                         <a
+<<<<<<< HEAD
                           href={`${process.env.PUBLIC_URL}/templateFiles/YEAR_DEPT_NAME_COMPETITIVE_EXAM.xlsx`}
+=======
+                           href={`${process.env.PUBLIC_URL}/templateFiles/YEAR_DEPT NAME_COMPETITVE EXAM.xlsx`}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                           download
                           className="btn btn-primary btn-sm"
                         >
@@ -1144,6 +1297,7 @@ toast.success(response.message || "File deleted successfully!");
           </ModalHeader>
           <ModalBody>
             <Table striped bordered hover id="id" innerRef={tableRef}>
+<<<<<<< HEAD
               <thead className="table-dark">
                 <tr>
                   <th>#</th>
@@ -1154,6 +1308,18 @@ toast.success(response.message || "File deleted successfully!");
                   <th>Program</th>
                   <th>Competitive Exam Name</th>
                   <th>Status</th>
+=======
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Academic Year</th>
+                  {/* <th>Student Name</th> */}
+                  <th>School</th>
+                  <th>Department</th>
+                  <th>Program</th>
+                  {/* <th>Competitive Exam Name</th>
+                  <th>Status</th> */}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                   <th className="d-none">File Path(Excel)</th>
                   <th className="d-none">File Path(ID Proof)</th>
                   <th className="d-none">File Path(Competitive Exam)</th>
@@ -1161,12 +1327,21 @@ toast.success(response.message || "File deleted successfully!");
                 </tr>
               </thead>
               <tbody>
+<<<<<<< HEAD
                 {currentRows.length > 0 ? (
                   currentRows.map((bos, index) => (
                     <tr key={bos.competitiveExamId}>
                       <td>{index + 1}</td>
                       <td>{bos.academicYear}</td>
                       <td>{bos.studentName}</td>
+=======
+                {sceData.length > 0 ? (
+                  sceData.map((bos, index) => (
+                    <tr key={bos.competitiveExamId}>
+                      <td>{index + 1}</td>
+                      <td>{bos.academicYear}</td>
+                      {/* <td>{bos.studentName}</td> */}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       <td>{bos.streamName}</td>
                       <td>{bos.departmentName}</td>
                       <td>
@@ -1181,8 +1356,13 @@ toast.success(response.message || "File deleted successfully!");
                           ))}
                         </ul>
                       </td>
+<<<<<<< HEAD
                       <td>{bos.competitiveExamName}</td>
                       <td>{bos.status}</td>
+=======
+                      {/* <td>{bos.competitiveExamName}</td>
+                      <td>{bos.status}</td> */}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       <td className="d-none">
                         {bos.filePath?.competitiveExam || "N/A"}
                       </td>
@@ -1219,6 +1399,10 @@ toast.success(response.message || "File deleted successfully!");
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

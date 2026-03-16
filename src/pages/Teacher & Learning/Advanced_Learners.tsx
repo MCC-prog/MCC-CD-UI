@@ -44,7 +44,11 @@ import "datatables.net-buttons/js/buttons.print.js";
 import "jszip";
 import "pdfmake/build/pdfmake";
 import "pdfmake/build/vfs_fonts";
+<<<<<<< HEAD
 
+=======
+import { t } from "i18next";
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
 
 const api = new APIClient();
 
@@ -109,7 +113,11 @@ const getTabValidationSchema = (tab: number | null) => {
           .test("fileSize", "File size is too large", (value: any) => {
             // Only check size if value is a File
             if (!value || typeof value === "string") return true;
+<<<<<<< HEAD
             return value.size <= 2 * 1024 * 1024;
+=======
+            return value.size <= 10 * 1024 * 1024;
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           })
           .test("fileType", "Unsupported file format", (value: any) => {
             // Only check type if value is a File
@@ -729,7 +737,11 @@ const Advanced_Learners: React.FC = () => {
         ""
       );
       // Show success message
+<<<<<<< HEAD
 toast.success(response.message || "File deleted successfully!");
+=======
+      toast.success(response.message || "File deleted successfully!");
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       if (docType === "projectSanctionLetter") {
         formik.setFieldValue("file", null);
         setIsFileProjUploadDisabled(false);
@@ -978,15 +990,47 @@ toast.success(response.message || "File deleted successfully!");
     const table = $("#advanceLearnerId").DataTable({
       destroy: true,
       dom: "Bfrtip",
+<<<<<<< HEAD
       buttons: [
         {
           extend: "copy",
           exportOptions: {
             columns: ":not(:last-child)",
+=======
+      paging: true,
+      pageLength: 10,
+      searching: false,
+      info: true,
+
+      columnDefs: [
+        {
+          targets: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21], // HIDDEN EXPORT COLUMNS
+          visible: false,
+        },
+        {
+          targets: 22, // ACTION COLUMN (last column)
+          orderable: false,
+          searchable: false,
+          visible: true,
+        },
+      ],
+
+      buttons: [
+        {
+          extend: "copy",
+          filename: "Advanced_Learners_Data",
+          title: "Advanced Learners Data Export",
+          exportOptions: {
+            modifier: { page: "all" },
+            columns: function (idx) {
+              return idx !== 22; // do not export Actions
+            },
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           },
         },
         {
           extend: "csv",
+<<<<<<< HEAD
           exportOptions: {
             columns: ":not(:last-child)",
           },
@@ -1000,6 +1044,18 @@ toast.success(response.message || "File deleted successfully!");
       ],
       searching: false,
       paging: false,
+=======
+          filename: "Advanced_Learners_Data",
+          title: "Advanced Learners Data Export",
+          exportOptions: {
+            modifier: { page: "all" },
+            columns: function (idx) {
+              return idx !== 22; // do not export Actions
+            },
+          },
+        },
+      ],
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
     });
 
     $(".dt-buttons").addClass("mb-3 gap-2");
@@ -1841,7 +1897,11 @@ toast.success(response.message || "File deleted successfully!");
                                 <Label>Peer Teaching (Download)</Label>
                                 <div>
                                   <a
+<<<<<<< HEAD
                                     href={`${process.env.PUBLIC_URL}/templateFiles/Format for Peer to Peer Teaching.docx`}
+=======
+                                    href={`${process.env.PUBLIC_URL}/templateFiles/Format_for_Peer_to_Peer_Teaching.docx`}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                                     download
                                     className="btn btn-primary btn-sm"
                                   >
@@ -1902,12 +1962,16 @@ toast.success(response.message || "File deleted successfully!");
               />
             </div>
 
+<<<<<<< HEAD
             {/* Table with Pagination */}
+=======
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             <Table
               striped
               bordered
               hover
               responsive
+<<<<<<< HEAD
               className="align-middle text-center"
               id="advanceLearnerId"
               innerRef={tableRef}
@@ -2000,6 +2064,9 @@ toast.success(response.message || "File deleted successfully!");
               bordered
               hover
               responsive
+=======
+              id="advanceLearnerId"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
               className="align-middle text-center"
             >
               <thead className="table-dark">
@@ -2008,6 +2075,7 @@ toast.success(response.message || "File deleted successfully!");
                   <th>Academic Year</th>
                   <th>Semester Type</th>
                   <th>Semester No</th>
+<<<<<<< HEAD
                   <th>Stream</th>
                   <th>Department</th>
                   <th>Program Type</th>
@@ -2021,6 +2089,41 @@ toast.success(response.message || "File deleted successfully!");
                   currentRows.map((als, index) => (
                     <tr key={als.advanceLearnerId}>
                       <td>{indexOfFirstRow + index + 1}</td>
+=======
+                  <th>School</th>
+                  <th>Department</th>
+                  <th>Program Type</th>
+                  <th>Degree</th>
+                  <th>Advance Learner Type</th>
+
+                  {/* HIDDEN EXPORT ONLY COLUMNS */}
+                  <th className="export-hidden">Project Title</th>
+                  <th className="export-hidden">Duration</th>
+                  <th className="export-hidden">Type Of Project</th>
+                  <th className="export-hidden">Guide Name</th>
+                  <th className="export-hidden">Fund Type</th>
+                  <th className="export-hidden">Amount</th>
+
+                  <th className="export-hidden">Project Sanction Letter</th>
+                  <th className="export-hidden">Synopsis Letter</th>
+
+                  <th className="export-hidden">Course</th>
+                  <th className="export-hidden">Mentorship</th>
+                  <th className="export-hidden">Register Number</th>
+                  <th className="export-hidden">Teacher Coordinator</th>
+                  <th className="export-hidden">Peer Teaching File</th>
+
+                  {/* ACTIONS (VISIBLE) */}
+                  <th>Actions</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {advancedLearnerData.length > 0 ? (
+                  advancedLearnerData.map((als, index) => (
+                    <tr key={als.advanceLearnerId}>
+                      <td>{index + 1}</td>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       <td>{als.academicYear}</td>
                       <td>{als.semType}</td>
                       <td>{als.semesterNo}</td>
@@ -2029,6 +2132,28 @@ toast.success(response.message || "File deleted successfully!");
                       <td>{als.programTypeName}</td>
                       <td>{als.programName}</td>
                       <td>{als.advanceLearnerType}</td>
+<<<<<<< HEAD
+=======
+
+                      {/* HIDDEN VALUES */}
+                      <td>{als.researchProjectDto?.projectTitle ?? "N/A"}</td>
+                      <td>{als.researchProjectDto?.duration ?? "N/A"}</td>
+                      <td>{als.researchProjectDto?.typeOfProject ?? "N/A"}</td>
+                      <td>{als.researchProjectDto?.guideName ?? "N/A"}</td>
+                      <td>{als.researchProjectDto?.fundType ?? "N/A"}</td>
+                      <td>{als.researchProjectDto?.amount ?? "N/A"}</td>
+
+                      <td>{als.filePath?.projectSanctionLetter ?? "N/A"}</td>
+                      <td>{als.filePath?.synopsisReport ?? "N/A"}</td>
+
+                      <td>{als.peerTeachingDto?.courseTitle ?? "N/A"}</td>
+                      <td>{als.peerTeachingDto?.mentorship ?? "N/A"}</td>
+                      <td>{als.peerTeachingDto?.registerNo ?? "N/A"}</td>
+                      <td>{als.teacherCordinator ?? "N/A"}</td>
+                      <td>{als.filePath?.peerTeaching ?? "N/A"}</td>
+
+                      {/* ACTIONS */}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
@@ -2049,13 +2174,19 @@ toast.success(response.message || "File deleted successfully!");
                   ))
                 ) : (
                   <tr>
+<<<<<<< HEAD
                     <td colSpan={11} className="text-center">
                       No Advanced Learners data available.
+=======
+                    <td colSpan={22} className="text-center">
+                      No Advanced Learners data available
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                     </td>
                   </tr>
                 )}
               </tbody>
             </Table>
+<<<<<<< HEAD
             {/* Pagination Controls */}
             <div className="d-flex justify-content-between align-items-center mt-3">
               <Button
@@ -2076,10 +2207,16 @@ toast.success(response.message || "File deleted successfully!");
                 Next
               </Button>
             </div>
+=======
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           </ModalBody>
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

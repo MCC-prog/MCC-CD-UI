@@ -396,12 +396,22 @@ const Exam_Action_Taken: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+<<<<<<< HEAD
+=======
+          filename: "Exam_Action_Taken_Data",
+          title: "Exam Action Taken Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+<<<<<<< HEAD
+=======
+          filename: "Exam_Action_Taken_Data",
+          title: "Exam Action Taken Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)",
           },
@@ -605,6 +615,11 @@ const Exam_Action_Taken: React.FC = () => {
                     <div className="mb-3">
                       <Label>Program</Label>
                       <ProgramDropdown
+<<<<<<< HEAD
+=======
+                      programTypeId={selectedProgramType?.value}
+                        deptId={selectedDepartment?.value || null}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                         degreeId={selectedDegree?.value}
                         value={validation.values.program}
                         onChange={(selectedOptions) =>
@@ -694,14 +709,23 @@ const Exam_Action_Taken: React.FC = () => {
                   <th>Program Type</th>
                   <th>Program</th>
                   <th>Degree</th>
+<<<<<<< HEAD
                   <th className="d-none">Remarks</th>
+=======
+                  <th>Remarks</th>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
 
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
+<<<<<<< HEAD
                 {currentRows.length > 0 ? (
                   currentRows.map((eat, index) => (
+=======
+                {eatData.length > 0 ? (
+                  eatData.map((eat, index) => (
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                     <tr key={eat.id}>
                       <td>{indexOfFirstRow + index + 1}</td>
                       <td>{eat.academicYear}</td>
@@ -721,7 +745,11 @@ const Exam_Action_Taken: React.FC = () => {
                           ))}
                         </ul>
                       </td>
+<<<<<<< HEAD
                       <td className="d-none">{eat.remarks || "N/A"}</td>
+=======
+                      <td>{eat.remarks}</td>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
 
                       <td>
                         <div className="d-flex justify-content-center gap-2">
@@ -755,6 +783,10 @@ const Exam_Action_Taken: React.FC = () => {
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

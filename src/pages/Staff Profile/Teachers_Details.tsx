@@ -191,16 +191,28 @@ const Teachers_Details: React.FC = () => {
   };
 
   const facultyType = [
+<<<<<<< HEAD
     { value: "FT", label: "Full-Time" },
     { value: "POP", label: "Proffessor of Practice" },
     { value: "GF", label: "Guest Faculty" },
     { value: "VF", label: "Visiting Faculty" },
+=======
+    { value: "Full-Time", label: "Full-Time" },
+    { value: "Professor of Practice", label: "Professor of Practice" },
+    { value: "Guest Faculty", label: "Guest Faculty" },
+    { value: "Visiting Faculty", label: "Visiting Faculty" },
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
   ];
 
   const designationType = [
     { value: "Lecturer", label: "Lecturer" },
+<<<<<<< HEAD
     { value: "Assistant Proffessor", label: "Assistant Proffessor" },
     { value: "Associate Proffessor", label: "Associate Proffessor" },
+=======
+    { value: "Assistant Professor", label: "Assistant Professor" },
+    { value: "Associate Professor", label: "Associate Professor" },
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
   ];
 
   const validation = useFormik({
@@ -316,12 +328,22 @@ const Teachers_Details: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+<<<<<<< HEAD
+=======
+          filename: "Teachers_Details_Data",
+          title: "Teachers Details Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+<<<<<<< HEAD
+=======
+          filename: "Teachers_Details_Data",
+          title: "Teachers Details Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)",
           },
@@ -351,7 +373,11 @@ const Teachers_Details: React.FC = () => {
       <div className="page-content">
         <Container fluid>
           <Breadcrumb
+<<<<<<< HEAD
             title="Staff Profile"
+=======
+            title="FACULTY DETAILS"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             breadcrumbItem="Teacher's Details"
           />
           <Card>
@@ -597,6 +623,10 @@ const Teachers_Details: React.FC = () => {
                       <Label>Academic Experience</Label>
                       <Input
                         type="number"
+<<<<<<< HEAD
+=======
+                        step="0.01"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                         className={`form-control ${
                           validation.touched.academicExp &&
                           validation.errors.academicExp
@@ -607,7 +637,11 @@ const Teachers_Details: React.FC = () => {
                         onChange={(e) =>
                           validation.setFieldValue(
                             "academicExp",
+<<<<<<< HEAD
                             e.target.value
+=======
+                            parseFloat(e.target.value)
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                           )
                         }
                         placeholder="Enter in Years"
@@ -625,6 +659,10 @@ const Teachers_Details: React.FC = () => {
                       <Label>Academic Experience in MCC</Label>
                       <Input
                         type="number"
+<<<<<<< HEAD
+=======
+                        step="0.01"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                         className={`form-control ${
                           validation.touched.industryExp &&
                           validation.errors.industryExp
@@ -635,7 +673,11 @@ const Teachers_Details: React.FC = () => {
                         onChange={(e) =>
                           validation.setFieldValue(
                             "industryExp",
+<<<<<<< HEAD
                             e.target.value
+=======
+                            parseFloat(e.target.value)
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                           )
                         }
                         placeholder="Enter industry experience"
@@ -653,6 +695,10 @@ const Teachers_Details: React.FC = () => {
                       <Label>Academic Experience in NON MCC</Label>
                       <Input
                         type="number"
+<<<<<<< HEAD
+=======
+                        step="0.01"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                         className={`form-control ${
                           validation.touched.industryExpNonMcc &&
                           validation.errors.industryExpNonMcc
@@ -663,7 +709,11 @@ const Teachers_Details: React.FC = () => {
                         onChange={(e) =>
                           validation.setFieldValue(
                             "industryExpNonMcc",
+<<<<<<< HEAD
                             e.target.value
+=======
+                            parseFloat(e.target.value)
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                           )
                         }
                         placeholder="Academic Experience in NON MCC"
@@ -742,15 +792,27 @@ const Teachers_Details: React.FC = () => {
                   <th>Designation</th>
                   <th>Qualification</th>
                   <th>VIDWAAN ID</th>
+<<<<<<< HEAD
                   <th className="d-none">Date of Joining</th>
                   <th className="d-none">Academic Exp (%)</th>
                   <th className="d-none">Industry Exp (%)</th>
+=======
+                  <th>Date of Joining</th>
+                  <th>Academic Experience</th>
+                  <th>Academic Experience in Non MCC</th>
+                  <th>Academic Experience in MCC</th>                 
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
+<<<<<<< HEAD
                 {currentRows.length > 0 ? (
                   currentRows.map((bos, index) => (
+=======
+                {bosData.length > 0 ? (
+                  bosData.map((bos, index) => (
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                     <tr key={bos.teacherDetailsId}>
                       <td>{index + 1}</td>
                       <td>{bos.facultyType}</td>
@@ -760,9 +822,16 @@ const Teachers_Details: React.FC = () => {
                       <td>{bos.designation}</td>
                       <td>{bos.qualification}</td>
                       <td>{bos.vidwanId}</td>
+<<<<<<< HEAD
                       <td className="d-none">{bos.joiningDate} </td>
                       <td className="d-none">{bos.academicExperience}</td>
                       <td className="d-none">{bos.industrialExperience}</td>
+=======
+                      <td>{bos.joiningDate} </td>
+                      <td>{bos.academicExperience}</td>
+                      <td>{bos.industrialExperienceNonMcc}</td>
+                      <td>{bos.industrialExperience}</td>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
@@ -793,6 +862,10 @@ const Teachers_Details: React.FC = () => {
           </ModalBody>
         </Modal>
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

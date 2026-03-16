@@ -272,12 +272,22 @@ const Number_OfBooks_Dept: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+<<<<<<< HEAD
+=======
+          filename: "Number_OfBooks_Dept_Data",
+          title: "Number of Books in Department Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+<<<<<<< HEAD
+=======
+          filename: "Number_OfBooks_Dept_Data",
+          title: "Number of Books in Department Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)",
           },
@@ -310,7 +320,11 @@ const Number_OfBooks_Dept: React.FC = () => {
             title="Department Profile"
             breadcrumbItem="Number of books in the department library"
           />
+<<<<<<< HEAD
           <Card style={{ minHeight: "300px", overflow: "visible" }}>
+=======
+          <Card style={{ minHeight: "350px", overflow: "visible" }}>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             <CardBody style={{ overflow: "visible" }}>
               <form onSubmit={validation.handleSubmit}>
                 <Row>
@@ -500,6 +514,10 @@ const Number_OfBooks_Dept: React.FC = () => {
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

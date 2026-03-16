@@ -263,7 +263,11 @@ toast.success(response.message || "File deleted successfully!");
         .test("fileSize", "File size is too large", (value: any) => {
           // Skip size validation if file is a string (from existing data)
           if (typeof value === "string") return true;
+<<<<<<< HEAD
           return value && value.size <= 10 * 1024 * 1024; // 10MB
+=======
+          return value && value.size <= 500 * 1024 * 1024; // 10MB
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         })
         .test("fileType", "Unsupported file format", (value: any) => {
           // Skip type validation if file is a string
@@ -345,6 +349,7 @@ toast.success(response.message || "File deleted successfully!");
       scrollX: true,
       autoWidth: false,
       dom: "Bfrtip",
+<<<<<<< HEAD
       buttons: [
         {
           extend: "copy",
@@ -360,6 +365,37 @@ toast.success(response.message || "File deleted successfully!");
         },
       ],
     });
+=======
+      paging: true,
+        pageLength: 10,
+        info: true,
+        searching: false,
+
+        buttons: [
+          { extend: "copy",
+            filename: "Total_Students_Strength_Data",
+            title: "Total Students Strength Data Export",
+            exportOptions: {
+              modifier: { page: "all" }, 
+              columns: function (idx) {
+                return idx !== 5; 
+              },
+            },
+           },
+          {
+            extend: "csv",
+            filename: "Total_Students_Strength_Data",
+            title: "Total Students Strength Data Export",
+            exportOptions: {
+              modifier: { page: "all" }, 
+              columns: function (idx) {
+                return idx !== 5; 
+              },
+            },
+          },
+        ],
+      });
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
     $(".dt-buttons").addClass("mb-3 gap-2");
     $(".buttons-copy").addClass("btn btn-success");
     $(".buttons-csv").addClass("btn btn-info");
@@ -540,8 +576,13 @@ toast.success(response.message || "File deleted successfully!");
                 </tr>
               </thead>
               <tbody>
+<<<<<<< HEAD
                 {currentRows.length > 0 ? (
                   currentRows.map((bos, index) => (
+=======
+                {bosData.length > 0 ? (
+                  bosData.map((bos, index) => (
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                     <tr key={bos.totalStudentStrengthId}>
                       <td>{index + 1}</td>
                       <td>{bos.academicYear}</td>
@@ -577,6 +618,10 @@ toast.success(response.message || "File deleted successfully!");
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

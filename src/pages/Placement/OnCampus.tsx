@@ -35,6 +35,10 @@ import "datatables.net-buttons/js/buttons.html5.js";
 import "jszip";
 import "pdfmake/build/pdfmake";
 import "pdfmake/build/vfs_fonts";
+<<<<<<< HEAD
+=======
+import ProgramDropdown from "Components/DropDowns/ProgramDropdown";
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
 
 const api = new APIClient();
 
@@ -47,6 +51,10 @@ const OnCampus: React.FC = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   // State variable for managing file upload status
   const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
+<<<<<<< HEAD
+=======
+  const [isExcelUploadDisabled, setIsExcelUploadDisabled] = useState(false);
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
   // State variable for managing the modal for listing On-Campus placement
   const [isModalOpen, setIsModalOpen] = useState(false);
   // State variable for managing the list of On-Campus placement data
@@ -65,6 +73,10 @@ const OnCampus: React.FC = () => {
   const [filteredData, setFilteredData] = useState(campusData);
   const tableRef = useRef<HTMLTableElement>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
+<<<<<<< HEAD
+=======
+  const fileRef1 = useRef<HTMLInputElement | null>(null);
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
 
   // Toggle the modal for listing On-Campus placement
   const toggleModal = () => {
@@ -128,6 +140,7 @@ const OnCampus: React.FC = () => {
           : null,
         department: response.departmentId
           ? {
+<<<<<<< HEAD
             value: response.departmentId.toString(),
             label: response.departmentName,
           }
@@ -137,6 +150,17 @@ const OnCampus: React.FC = () => {
             value: response.programTypeId.toString(),
             label: response.programTypeName,
           }
+=======
+              value: response.departmentId.toString(),
+              label: response.departmentName,
+            }
+          : null,
+        programType: response.programTypeId
+          ? {
+              value: response.programTypeId.toString(),
+              label: response.programTypeName,
+            }
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           : null,
 
         otherDepartment: "",
@@ -146,6 +170,7 @@ const OnCampus: React.FC = () => {
       validation.setValues({
         ...mappedValues,
         file: response.documents?.file || null,
+<<<<<<< HEAD
         academicYear: mappedValues.academicYear
           ? {
             ...mappedValues.academicYear,
@@ -157,6 +182,20 @@ const OnCampus: React.FC = () => {
             value: response.programId.toString(),
             label: response.programName,
           }
+=======
+        excel: response.documents?.excel || null,
+        academicYear: mappedValues.academicYear
+          ? {
+              ...mappedValues.academicYear,
+              value: String(mappedValues.academicYear.value),
+            }
+          : null,
+        degree: response.programId
+          ? {
+              value: response.programId.toString(),
+              label: response.programName,
+            }
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           : null,
       });
       // In your handleEdit, after setting Formik values:
@@ -167,6 +206,16 @@ const OnCampus: React.FC = () => {
         validation.setFieldValue("file", null);
         setIsFileUploadDisabled(false);
       }
+<<<<<<< HEAD
+=======
+      if (response.file?.excel) {
+        validation.setFieldValue("excel", response.file.excel);
+        setIsExcelUploadDisabled(true);
+      } else {
+        validation.setFieldValue("excel", null);
+        setIsExcelUploadDisabled(false);
+      }
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       setIsEditMode(true);
       setEditId(id);
       toggleModal();
@@ -194,7 +243,11 @@ const OnCampus: React.FC = () => {
         setIsModalOpen(false);
 
         toast.success(
+<<<<<<< HEAD
           response.message || "On-Campus placement removed successfully!"
+=======
+         "On-Campus placement removed successfully!"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         );
         fetchOnCampusPlacementData();
       } catch (error) {
@@ -248,7 +301,11 @@ const OnCampus: React.FC = () => {
 
   // Handle file deletion
   // Clear the file from the form and show success message
+<<<<<<< HEAD
   const handleDeleteFile = async (fileName: string) => {
+=======
+  const handleDeleteFile = async (fileName: string, fieldType?: string) => {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
     try {
       // Call the delete API
       const response = await api.delete(
@@ -256,12 +313,23 @@ const OnCampus: React.FC = () => {
         ""
       );
       // Show success message
+<<<<<<< HEAD
 toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
       validation.setFieldValue("file", null); // Clear the file from Formik state
       setIsFileUploadDisabled(false); // Enable the file upload button
       validation.setFieldValue("file", null);
       setIsFileUploadDisabled(false);
+=======
+      toast.success(response.message || "File deleted successfully!");
+      if (fieldType === "excel") {
+        validation.setFieldValue("excel", null); // Clear the excel file from Formik state
+        setIsExcelUploadDisabled(false); // Enable the excel upload button
+      } else {
+        validation.setFieldValue("file", null); // Clear the file from Formik state
+        setIsFileUploadDisabled(false); // Enable the file upload button
+      }
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
     } catch (error) {
       // Show error message
       toast.error("Failed to delete the file. Please try again.");
@@ -277,9 +345,18 @@ toast.success(response.message || "File deleted successfully!");
       stream: null as { value: string; label: string } | null,
       department: null as { value: string; label: string } | null,
       otherDepartment: "",
+<<<<<<< HEAD
       file: null as File | string | null,
       programType: null as { value: string; label: string } | null,
       program: null as { value: string; label: string } | null,
+=======
+      // file: null as File | string | null,
+      file: null as FileList | File | string | null,
+      excel: null as File | string | null,
+
+      programType: null as { value: string; label: string } | null,
+      degree: null as { value: string; label: string } | null,
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
     },
     validationSchema: Yup.object({
       academicYear: Yup.object<{ value: string; label: string }>()
@@ -291,9 +368,15 @@ toast.success(response.message || "File deleted successfully!");
       programType: Yup.object<{ value: string; label: string }>()
         .nullable()
         .required("Please select program type"),
+<<<<<<< HEAD
       program: Yup.object<{ value: string; label: string }>()
         .nullable()
         .required("Please select programs"),
+=======
+      degree: Yup.object<{ value: string; label: string }>()
+        .nullable()
+        .required("Please select degree"),
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       department: Yup.object<{ value: string; label: string }>()
         .nullable()
         .required("Please select department"),
@@ -305,7 +388,11 @@ toast.success(response.message || "File deleted successfully!");
             : schema;
         }
       ),
+<<<<<<< HEAD
       file: Yup.mixed()
+=======
+      excel: Yup.mixed()
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         .required("Please upload a file")
         .test(
           "fileType",
@@ -320,18 +407,30 @@ toast.success(response.message || "File deleted successfully!");
             if (typeof value === "string") {
               return true;
             }
+<<<<<<< HEAD
             if (value instanceof File && value.size > 2 * 1024 * 1024) {
+=======
+            if (value instanceof File && value.size > 10 * 1024 * 1024) {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
               return this.createError({ message: "File size is too large" });
             }
             const allowedTypes = [
               "application/vnd.ms-excel",
               "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
               "text/csv",
+<<<<<<< HEAD
               "application/csv"
             ];
             const allowedExtensions = [".xls", ".xlsx", ".csv"];
             const fileName = value instanceof File ? value.name : "";
             const hasValidExtension = allowedExtensions.some(ext =>
+=======
+              "application/csv",
+            ];
+            const allowedExtensions = [".xls", ".xlsx", ".csv"];
+            const fileName = value instanceof File ? value.name : "";
+            const hasValidExtension = allowedExtensions.some((ext) =>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
               fileName.toLowerCase().endsWith(ext)
             );
             if (
@@ -340,12 +439,39 @@ toast.success(response.message || "File deleted successfully!");
               !hasValidExtension
             ) {
               return this.createError({
+<<<<<<< HEAD
                 message: "Only Excel files (.xls, .xlsx) or CSV files (.csv) are allowed"
+=======
+                message:
+                  "Only Excel files (.xls, .xlsx) or CSV files (.csv) are allowed",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
               });
             }
             return true;
           }
+<<<<<<< HEAD
         )
+=======
+        ),
+
+ file: Yup.mixed()
+  .required("Please upload a ZIP file")
+  .test("fileExtension", "Only .zip file allowed", (value) => {
+    if (!value || typeof value === "string") return true;
+    if (value instanceof File) {
+      return value.name.toLowerCase().endsWith(".zip");
+    }
+    return true;
+  })
+  .test("fileSize", "File size must be less than 500 MB", (value) => {
+    if (!value || typeof value === "string") return true;
+    if (value instanceof File) {
+      return value.size <= 500 * 1024 * 1024; // ⬅️ 500 MB limit
+    }
+    return true;
+  }),
+
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
     }),
     onSubmit: async (values, { resetForm }) => {
       // Create FormData object
@@ -356,11 +482,16 @@ toast.success(response.message || "File deleted successfully!");
       formData.append("departmentId", values.department?.value || "");
       formData.append("programTypeId", values.programType?.value || "");
       formData.append("streamId", values.stream?.value || "");
+<<<<<<< HEAD
       formData.append("programId", values.program?.value || "");
+=======
+      formData.append("programId", values.degree?.value || "");
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       formData.append("id", editId || "");
       formData.append("otherDepartment", values.otherDepartment || "");
       formData.append("screenType", "on");
 
+<<<<<<< HEAD
       if (isEditMode && typeof values.file === "string") {
         formData.append(
           "file",
@@ -375,6 +506,47 @@ toast.success(response.message || "File deleted successfully!");
         );
       } else if (values.file) {
         formData.append("file", values.file);
+=======
+      if (isEditMode && typeof values.excel === "string") {
+        formData.append(
+          "excel",
+          new Blob([], { type: "application/pdf" }),
+          "empty.pdf"
+        );
+      } else if (isEditMode && values.excel === null) {
+        formData.append(
+          "excel",
+          new Blob([], { type: "application/pdf" }),
+          "empty.pdf"
+        );
+      } else if (values.excel) {
+        formData.append("excel", values.excel);
+      }
+      if (isEditMode && typeof values.file === "string") {
+        // Existing file in DB → keep empty placeholder
+        formData.append(
+          "file",
+          new Blob([], { type: "application/octet-stream" }),
+          "empty.zip"
+        );
+      } else if (isEditMode && values.file === null) {
+        // No new file chosen in edit mode → send empty placeholder
+        formData.append(
+          "file",
+          new Blob([], { type: "application/octet-stream" }),
+          "empty.zip"
+        );
+      } else if (values.file instanceof File) {
+        // User uploaded a ZIP file
+        formData.append("file", values.file);
+      } else {
+        // Fallback
+        formData.append(
+          "file",
+          new Blob([], { type: "application/octet-stream" }),
+          "empty.zip"
+        );
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       }
 
       try {
@@ -382,7 +554,11 @@ toast.success(response.message || "File deleted successfully!");
           // Call the update API
           const response = await api.put(`/onOffCampusPlacementData`, formData);
           toast.success(
+<<<<<<< HEAD
             response.message || "On-Campus placement updated successfully!"
+=======
+              "On-Campus placement updated successfully!"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           );
         } else {
           // Call the save API
@@ -391,7 +567,11 @@ toast.success(response.message || "File deleted successfully!");
             formData
           );
           toast.success(
+<<<<<<< HEAD
             response.message || "On-Campus placement added successfully!"
+=======
+           "On-Campus placement added successfully!"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           );
         }
         // Reset the form fields
@@ -399,7 +579,15 @@ toast.success(response.message || "File deleted successfully!");
         if (fileRef.current) {
           fileRef.current.value = "";
         }
+<<<<<<< HEAD
         setIsFileUploadDisabled(false); 
+=======
+        if (fileRef1.current) {
+          fileRef1.current.value = "";
+        }
+        setIsFileUploadDisabled(false);
+        setIsExcelUploadDisabled(false);
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         setIsEditMode(false); // Reset edit mode
         setEditId(null); // Clear the edit ID
         // display the On-Campus placement List
@@ -412,6 +600,7 @@ toast.success(response.message || "File deleted successfully!");
     },
   });
 
+<<<<<<< HEAD
   // Fetch programs when programType changes
   useEffect(() => {
     const fetchPrograms = async () => {
@@ -439,6 +628,8 @@ toast.success(response.message || "File deleted successfully!");
     fetchPrograms();
   }, [validation.values.programType]);
 
+=======
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
   useEffect(() => {
     if (campusData.length === 0) return; // wait until data is loaded
 
@@ -450,12 +641,22 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+<<<<<<< HEAD
+=======
+          filename: "On_Campus_Placement_Data",
+          title: "On Campus Placement Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+<<<<<<< HEAD
+=======
+          filename: "On_Campus_Placement_Data",
+          title: "On Campus Placement Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)",
           },
@@ -579,11 +780,20 @@ toast.success(response.message || "File deleted successfully!");
                         <Label>Specify Department</Label>
                         <Input
                           type="text"
+<<<<<<< HEAD
                           className={`form-control ${validation.touched.otherDepartment &&
                             validation.errors.otherDepartment
                             ? "is-invalid"
                             : ""
                             }`}
+=======
+                          className={`form-control ${
+                            validation.touched.otherDepartment &&
+                            validation.errors.otherDepartment
+                              ? "is-invalid"
+                              : ""
+                          }`}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                           value={validation.values.otherDepartment}
                           onChange={(e) =>
                             validation.setFieldValue(
@@ -632,6 +842,7 @@ toast.success(response.message || "File deleted successfully!");
                   </Col>
                   <Col lg={4}>
                     <div className="mb-3">
+<<<<<<< HEAD
                       <Label>Program</Label>
                       <Input
                         type="select"
@@ -663,6 +874,27 @@ toast.success(response.message || "File deleted successfully!");
                             {typeof validation.errors.program === "string"
                               ? validation.errors.program
                               : ""}
+=======
+                      <Label>Degree</Label>
+                      <DegreeDropdown
+                        programTypeId={selectedProgramType?.value}
+                        deptId={selectedDepartment?.value || null}
+                        value={validation.values.degree}
+                        onChange={(selectedOption) => {
+                          validation.setFieldValue("degree", selectedOption);
+                          setSelectedDegree(selectedOption);
+                          validation.setFieldValue("program", null);
+                        }}
+                        isInvalid={
+                          validation.touched.degree &&
+                          !!validation.errors.degree
+                        }
+                      />
+                      {validation.touched.degree &&
+                        validation.errors.degree && (
+                          <div className="text-danger">
+                            {validation.errors.degree}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                           </div>
                         )}
                     </div>
@@ -670,6 +902,7 @@ toast.success(response.message || "File deleted successfully!");
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
+<<<<<<< HEAD
                         Upload Placement Details
                       </Label>
                       <Input
@@ -692,6 +925,21 @@ toast.success(response.message || "File deleted successfully!");
                         }}
                         disabled={isFileUploadDisabled}
                       />
+=======
+                        Upload  Upload Proof (compiled Pdf in .zip format)
+                      </Label>
+                      <Input
+                        type="file"
+                        accept=".zip"
+                        innerRef={fileRef}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                          const file = e.target.files?.[0] ?? null;
+                          validation.setFieldValue("file", file);
+                        }}
+                        disabled={isFileUploadDisabled}
+                      />
+
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       {validation.touched.file && validation.errors.file && (
                         <div className="text-danger">
                           {validation.errors.file}
@@ -740,12 +988,94 @@ toast.success(response.message || "File deleted successfully!");
                         )}
                     </div>
                   </Col>
+<<<<<<< HEAD
+=======
+                  <Col sm={4}>
+                    <div className="mb-3">
+                      <Label htmlFor="formFile" className="form-label">
+                        Upload Off Campus Excel
+                      </Label>
+                      <Input
+                        className={`form-control ${
+                          validation.touched.excel && validation.errors.excel
+                            ? "is-invalid"
+                            : ""
+                        }`}
+                        type="file"
+                        id="formFile"
+                        innerRef={fileRef1}
+                        accept=".xls, .xlsx"
+                        onChange={(event) => {
+                          validation.setFieldValue(
+                            "excel",
+                            event.currentTarget.files
+                              ? event.currentTarget.files[0]
+                              : null
+                          );
+                        }}
+                        disabled={isExcelUploadDisabled} // Disable the button if a file exists
+                      />
+                      {validation.touched.excel && validation.errors.excel && (
+                        <div className="text-danger">
+                          {validation.errors.excel}
+                        </div>
+                      )}
+                      {/* Show a message if the file upload button is disabled */}
+                      {isExcelUploadDisabled &&
+                        typeof validation.values.excel === "string" && (
+                          <div className="text-warning mt-2">
+                            Please remove the existing file to upload a new one.
+                          </div>
+                        )}
+                      {/* Only show the file name if it is a string (from the edit API) */}
+                      {typeof validation.values.excel === "string" && (
+                        <div className="mt-2 d-flex align-items-center">
+                          <span
+                            className="me-2"
+                            style={{ fontWeight: "bold", color: "green" }}
+                          >
+                            {validation.values.excel}
+                          </span>
+                          <Button
+                            color="link"
+                            className="text-primary"
+                            onClick={() =>
+                              handleDownloadFile(
+                                validation.values.excel as string
+                              )
+                            }
+                            title="Download File"
+                          >
+                            <i className="bi bi-download"></i>
+                          </Button>
+                          <Button
+                            color="link"
+                            className="text-danger"
+                            onClick={() =>
+                              handleDeleteFile(
+                                validation.values.excel as string,
+                                "excel"
+                              )
+                            }
+                            title="Delete File"
+                          >
+                            <i className="bi bi-trash"></i>
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </Col>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                   <Col lg={4}>
                     <div className="mb-3">
                       <Label>Download Template</Label>
                       <div>
                         <a
+<<<<<<< HEAD
                           href="/templateFiles/bos.pdf"
+=======
+                           href={`${process.env.PUBLIC_URL}/templateFiles/YEAR_DEPT_ON CAMPUS.xlsx`}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                           download
                           className="btn btn-primary btn-sm"
                         >
@@ -786,6 +1116,7 @@ toast.success(response.message || "File deleted successfully!");
             List On-Campus placement
           </ModalHeader>
           <ModalBody>
+<<<<<<< HEAD
             <Table
               striped
               bordered
@@ -793,11 +1124,18 @@ toast.success(response.message || "File deleted successfully!");
               id="id"
               innerRef={tableRef}
             >
+=======
+            <Table striped bordered hover id="id" innerRef={tableRef}>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
               <thead className="table-dark">
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
+<<<<<<< HEAD
                   <th>Stream</th>
+=======
+                  <th>School</th>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                   <th>Department</th>
                   <th>Program Type</th>
                   <th>Program</th>
@@ -815,7 +1153,14 @@ toast.success(response.message || "File deleted successfully!");
                       <td>{campus.departmentName}</td>
                       <td>{campus.programTypeName}</td>
                       <td>{campus.programName}</td>
+<<<<<<< HEAD
                       <td className="d-none">{campus?.filePath?.file || "N/A"}</td> {/* Hidden */}
+=======
+                      <td className="d-none">
+                        {campus?.filePath?.file || "N/A"}
+                      </td>{" "}
+                      {/* Hidden */}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       <td>
                         <div className="d-flex justify-content-center gap-2">
                           <button
@@ -847,6 +1192,10 @@ toast.success(response.message || "File deleted successfully!");
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+<<<<<<< HEAD
+=======
+          className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

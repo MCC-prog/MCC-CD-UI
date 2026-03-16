@@ -352,7 +352,11 @@ const Skill_Development_Workshop: React.FC = () => {
             return this.createError({ message: "Please upload a file" });
           }
           // Check file size (2MB limit)
+<<<<<<< HEAD
           if (value instanceof File && value.size > 2 * 1024 * 1024) {
+=======
+          if (value instanceof File && value.size > 10 * 1024 * 1024) {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             return this.createError({ message: "File size is too large" });
           }
           // Check file type
@@ -456,7 +460,11 @@ const Skill_Development_Workshop: React.FC = () => {
   useEffect(() => {
     if (skillDevelopmentData.length === 0) return; // wait until data is loaded
 
+<<<<<<< HEAD
     const table = $("#id").DataTable({
+=======
+    const table = $("#skillDevelopmentDataId").DataTable({
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       destroy: true, // destroy existing instance if re-rendered
       scrollX: true,
       autoWidth: false,
@@ -464,12 +472,22 @@ const Skill_Development_Workshop: React.FC = () => {
       buttons: [
         {
           extend: "copy",
+<<<<<<< HEAD
+=======
+          filename: "Skill_Development_Workshop_Data",
+          title: "Skill Development Workshop Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+<<<<<<< HEAD
+=======
+          filename: "Skill_Development_Workshop_Data",
+          title: "Skill Development Workshop Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)",
           },
@@ -767,7 +785,11 @@ const Skill_Development_Workshop: React.FC = () => {
                   <Col sm={4}>
                     <div className="mb-3">
                       <Label htmlFor="formFile" className="form-label">
+<<<<<<< HEAD
                         Upload Certificate
+=======
+                        Upload Report
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                         <i
                           id="infoIcon"
                           className="bi bi-info-circle ms-2"
@@ -848,12 +870,20 @@ const Skill_Development_Workshop: React.FC = () => {
                     </div>
                   </Col>
                   
+<<<<<<< HEAD
                   <Col lg={4}>
+=======
+                  {/* <Col lg={4}>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                     <div className="mb-3">
                       <Label>Report Template</Label>
                       <div>
                         <a
+<<<<<<< HEAD
                           href={`${process.env.PUBLIC_URL}/templateFiles/BOS_MoM_DeptName_Aug24.docx`}
+=======
+                          href={`${process.env.PUBLIC_URL}/templateFiles/Industry_collaboration _ skill_enhancement.docx`}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                           download
                           className="btn btn-primary btn-sm"
                         >
@@ -861,7 +891,11 @@ const Skill_Development_Workshop: React.FC = () => {
                         </a>
                       </div>
                     </div>
+<<<<<<< HEAD
                   </Col>
+=======
+                  </Col> */}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                 </Row>
                 <Row>
                   <Col lg={12}>
@@ -901,7 +935,11 @@ const Skill_Development_Workshop: React.FC = () => {
               id="skillDevelopmentDataId"
               innerRef={tableRef}
             >
+<<<<<<< HEAD
               <thead className="table-dark">
+=======
+              <thead>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                 <tr>
                   <th>#</th>
                   <th>Academic Year</th>
@@ -913,6 +951,11 @@ const Skill_Development_Workshop: React.FC = () => {
                   <th>Collaborating Organization / Department</th>
                   <th>From Date</th>
                   <th>To Date</th>
+<<<<<<< HEAD
+=======
+                  <th>Mode Type</th>
+                   <th className="d-none">Report File Path</th> {/* Hidden */}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -930,7 +973,14 @@ const Skill_Development_Workshop: React.FC = () => {
                       <td>{skillDevelopment.organizedBy}</td>
                       <td>{skillDevelopment.fromDate}</td>
                       <td>{skillDevelopment.toDate}</td>
+<<<<<<< HEAD
                       <td>
+=======
+                      <td>{skillDevelopment.mode}</td>
+                      <td className="d-none">{skillDevelopment?.filePath?.SkillDevelopment || "N/A"}</td> {/* Hidden */}
+                      <td>
+                        <div className="d-flex justify-content-center gap-2">
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                         <button
                           className="btn btn-sm btn-warning me-2"
                           onClick={() => handleEdit(skillDevelopment.id)}
@@ -943,6 +993,10 @@ const Skill_Development_Workshop: React.FC = () => {
                         >
                           Delete
                         </button>
+<<<<<<< HEAD
+=======
+                        </div>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       </td>
                     </tr>
                   ))
@@ -959,6 +1013,10 @@ const Skill_Development_Workshop: React.FC = () => {
         </Modal>
         {/* Confirmation Modal */}
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >

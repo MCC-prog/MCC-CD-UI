@@ -394,7 +394,11 @@ toast.success(response.message || "File deleted successfully!");
             return this.createError({ message: "Please upload a file" });
           }
           // Check file size (2MB limit)
+<<<<<<< HEAD
           if (value instanceof File && value.size > 2 * 1024 * 1024) {
+=======
+          if (value instanceof File && value.size > 10 * 1024 * 1024) {
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
             return this.createError({ message: "File size is too large" });
           }
           // Check file type
@@ -535,12 +539,22 @@ toast.success(response.message || "File deleted successfully!");
       buttons: [
         {
           extend: "copy",
+<<<<<<< HEAD
+=======
+          filename: "Conference_Seminars_Workshops_Data",
+          title: "Conference, Seminars & Workshops Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)", // skip Actions column
           },
         },
         {
           extend: "csv",
+<<<<<<< HEAD
+=======
+          filename: "Conference_Seminars_Workshops_Data",
+          title: "Conference, Seminars & Workshops Data Export",
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           exportOptions: {
             columns: ":not(:last-child)",
           },
@@ -619,7 +633,11 @@ toast.success(response.message || "File deleted successfully!");
                         target="infoIconLevel" // ✅ match unique ID
                         toggle={toggleTooltipLevel}
                       >
+<<<<<<< HEAD
                         Institutional only for workshops.
+=======
+                        Institutional is only for workshops.
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                       </Tooltip>
 
                       <Select
@@ -1093,7 +1111,11 @@ toast.success(response.message || "File deleted successfully!");
                       <Label>Report Template</Label>
                       <div>
                         <a
+<<<<<<< HEAD
                           href={`${process.env.PUBLIC_URL}/templateFiles/REPORT_DEPT_YEAR(1).docx`}
+=======
+                          href={`${process.env.PUBLIC_URL}/templateFiles/REPORT_DEPT_YEAR.docx`}
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                           download
                           className="btn btn-primary btn-sm"
                         >
@@ -1155,7 +1177,11 @@ toast.success(response.message || "File deleted successfully!");
                   <th>#</th>
                   <th>Academic Year</th>
                   <th>Level</th>
+<<<<<<< HEAD
                   <th>Stream</th>
+=======
+                  <th>School</th>
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                   <th>Department</th>
                   <th>Conference Title</th>
                   <th>From Date</th>
@@ -1170,8 +1196,13 @@ toast.success(response.message || "File deleted successfully!");
                 </tr>
               </thead>
               <tbody>
+<<<<<<< HEAD
                 {currentRows.length > 0 ? (
                   currentRows.map((cds, index) => (
+=======
+                {cswData.length > 0 ? (
+                  cswData.map((cds, index) => (
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                     <tr key={cds.conferenceId}>
                       <td>{index + 1}</td>
                       <td>{cds.academicYear}</td>
@@ -1222,6 +1253,10 @@ toast.success(response.message || "File deleted successfully!");
         </Modal>
 
         <Modal
+<<<<<<< HEAD
+=======
+        className="delete-popup"
+>>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >
