@@ -42,15 +42,9 @@ import "pdfmake/build/vfs_fonts";
 const api = new APIClient();
 
 const courseType = [
-<<<<<<< HEAD
-  { value: "T", label: "Core" },
-  { value: "P", label: "Elective" },
-  { value: "A", label: "Allied" },
-=======
   { value: "Core", label: "Core" },
   { value: "Elective", label: "Elective" },
   { value: "Allied", label: "Allied" },
->>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
 ];
 
 const dropdownStyles = {
@@ -131,11 +125,7 @@ const getTabValidationSchema = (tab: number | null) => {
           .test("fileSize", "File size is too large", (value: any) => {
             // Only check size if value is a File
             if (!value || typeof value === "string") return true;
-<<<<<<< HEAD
-            return value.size <= 2 * 1024 * 1024;
-=======
             return value.size <= 10 * 1024 * 1024;
->>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           })
           .test("fileType", "Unsupported file format", (value: any) => {
             // Only check type if value is a File
@@ -280,50 +270,6 @@ const isTabFilled = (validation: any, tab: number | null) => {
 };
 
 // Helper: Clear fields for a tab
-<<<<<<< HEAD
-const clearTabFields = (validation: any, tab: number | null) => {
-  switch (tab) {
-    case 1:
-      validation.setFieldValue("courseTitileG", "");
-      validation.setFieldValue("courseTypeG", null);
-      validation.setFieldValue("fileG", null);
-      break;
-    case 2:
-      validation.setFieldValue("courseTitileES", "");
-      validation.setFieldValue("courseTypeES", null);
-      validation.setFieldValue("fileES", null);
-      break;
-    case 3:
-      validation.setFieldValue("courseTitileIK", "");
-      validation.setFieldValue("courseTypeIK", null);
-      validation.setFieldValue("fileIK", null);
-      break;
-    case 4:
-      validation.setFieldValue("courseTitileEM", "");
-      validation.setFieldValue("courseTypeEM", null);
-      validation.setFieldValue("fileEM", null);
-      break;
-    case 5:
-      validation.setFieldValue("courseTitileSE", "");
-      validation.setFieldValue("courseTypeSE", null);
-      validation.setFieldValue("fileSE", null);
-      break;
-    case 6:
-      validation.setFieldValue("courseTitileEN", "");
-      validation.setFieldValue("courseTypeEN", null);
-      validation.setFieldValue("fileEN", null);
-      break;
-    case 7:
-      validation.setFieldValue("courseTitileET", "");
-      validation.setFieldValue("courseTypeET", null);
-      validation.setFieldValue("fileET", null);
-      break;
-    default:
-      break;
-  }
-};
-=======
->>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
 
 const Courses_With_Focus: React.FC = () => {
   // State
@@ -356,11 +302,6 @@ const Courses_With_Focus: React.FC = () => {
     yearOfIntroduction: "",
     percentage: "",
   });
-<<<<<<< HEAD
-
-  const tableRef = useRef<HTMLTableElement>(null);
-
-=======
   const fileRef = useRef<HTMLInputElement>(null);
   const file2Ref = useRef<HTMLInputElement>(null);
   const file3Ref = useRef<HTMLInputElement>(null);
@@ -486,7 +427,6 @@ const Courses_With_Focus: React.FC = () => {
     }
   };
 
->>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
   // Utility
   const mapValueToLabel = (
     value: string | number | null,
@@ -529,27 +469,6 @@ const Courses_With_Focus: React.FC = () => {
     setIsModalOpen(!isModalOpen);
   };
 
-<<<<<<< HEAD
-  const handleFilterChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    column: string
-  ) => {
-    const value = e.target.value.toLowerCase();
-    const updatedFilters = { ...filters, [column]: value };
-    setFilters(updatedFilters);
-
-    const filtered = CWFData.filter((row) =>
-      Object.values(row).some((val) =>
-        String(val || "")
-          .toLowerCase()
-          .includes(value)
-      )
-    );
-    setFilteredData(filtered);
-  };
-
-=======
->>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
   const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
@@ -585,10 +504,7 @@ const Courses_With_Focus: React.FC = () => {
       );
 
       const academicYearOptions = await api.get("/getAllAcademicYear", "");
-<<<<<<< HEAD
-=======
       setEditResData(response);
->>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       // Filter the response where isCurrent or isCurrentForAdmission is true
       const filteredAcademicYearList = academicYearOptions.filter(
         (year: any) => year.isCurrent || year.isCurrentForAdmission
@@ -722,11 +638,7 @@ const Courses_With_Focus: React.FC = () => {
         );
         validation.setFieldValue(
           "courseTypeES",
-<<<<<<< HEAD
-          getCourseTypeOption(response.ecoEnvironmentalC.courseTypeES)
-=======
           getCourseTypeOption(response.ecoEnvironmentalC.courseType)
->>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         );
         validation.setFieldValue(
           "fileES",
@@ -932,17 +844,10 @@ const Courses_With_Focus: React.FC = () => {
         ""
       );
       // Show success message
-<<<<<<< HEAD
-toast.success(response.message || "File deleted successfully!");
-      // Remove the file from the form
-      validation.setFieldValue(tabKey, null); // Clear the file from Formik state
-      validation.setFieldValue(tabKey + "Id", null);
-=======
       toast.success(response.message || "File deleted successfully!");
       // Remove the file from the form
       validation.setFieldValue(tabKey, null); // Clear the file from Formik state
       // validation.setFieldValue(tabKey + "Id", null);
->>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
     } catch (error) {
       // Show error message
       toast.error("Failed to delete the file. Please try again.");
@@ -1018,13 +923,8 @@ toast.success(response.message || "File deleted successfully!");
     },
     validationSchema: getTabValidationSchema(activeTab),
     enableReinitialize: true,
-<<<<<<< HEAD
-    onSubmit: async (values, { resetForm, setErrors, setSubmitting }) => {
-      // Block submit if no Focus Area tab is active
-=======
 
     onSubmit: async (values, { resetForm, setErrors, setSubmitting }) => {
->>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       if (!activeTab) {
         validation.setStatus(
           "Please select a Focus Area and fill at least one focus area type."
@@ -1033,43 +933,11 @@ toast.success(response.message || "File deleted successfully!");
         return;
       }
 
-<<<<<<< HEAD
-      const formData = new FormData();
-      // Determine focusArea based on activeTab
-      let focusArea = "";
-      switch (activeTab) {
-        case 1:
-          focusArea = "Gender";
-          break;
-        case 2:
-          focusArea = "Environment & Sustainability";
-          break;
-        case 3:
-          focusArea = "Indian Knowledge System";
-          break;
-        case 4:
-          focusArea = "Employability";
-          break;
-        case 5:
-          focusArea = "Skill Enhancement";
-          break;
-        case 6:
-          focusArea = "Entrepreneurship";
-          break;
-        case 7:
-          focusArea = "Ethics";
-          break;
-        default:
-          focusArea = "";
-      }
-      const coursesWithFocusRequestDto: any = {
-=======
       console.log("Submit triggered with values:", values);
       const formData = new FormData();
 
       const coursesWithFocusRequestDto = {
         coursesWithFocusId: isEditMode && editId ? Number(editId) : null,
->>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
         academicYear: Number(values.academicYear?.value) || null,
         semType: values.semesterType?.value || null,
         semNumber: Number(values.semesterNo?.value) || null,
@@ -1077,50 +945,6 @@ toast.success(response.message || "File deleted successfully!");
         departmentId: Number(values.department?.value) || null,
         programTypeId: Number(values.programType?.value) || null,
         programId: Number(values.degree?.value) || null,
-<<<<<<< HEAD
-        focusArea: focusArea,
-        courseId: Array.isArray(values.program)
-          ? values.program.map((option: any) => Number(option.value))
-          : [],
-        ecoEntreC: {
-          coursesWithFocusAddOnFieldsId: values.fileENId || null,
-          courseTitle: values.courseTitileEN || null,
-          courseType: values.courseTypeEN?.value || null,
-        },
-        ecoEmployC: {
-          coursesWithFocusAddOnFieldsId: values.fileEMId || null,
-          courseTitle: values.courseTitileEM || null,
-          courseType: values.courseTypeEM?.value || null,
-        },
-        ecoSkillC: {
-          coursesWithFocusAddOnFieldsId: values.fileSEId || null,
-          courseTitle: values.courseTitileSE || null,
-          courseType: values.courseTypeSE?.value || null,
-        },
-        ecoGenderC: {
-          coursesWithFocusAddOnFieldsId: values.fileGId || null,
-          courseTitle: values.courseTitileG || null,
-          courseType: values.courseTypeG?.value || null,
-        },
-        ecoEnvironmentalC: {
-          coursesWithFocusAddOnFieldsId: values.fileESId || null,
-          courseTitle: values.courseTitileES || null,
-          courseType: values.courseTypeES?.value || null,
-        },
-        ecoIKSC: {
-          coursesWithFocusAddOnFieldsId: values.fileIKId || null,
-          courseTitle: values.courseTitileIK || null,
-          courseType: values.courseTypeIK?.value || null,
-        },
-        ecoEthicsC: {
-          coursesWithFocusAddOnFieldsId: values.fileETId || null,
-          courseTitle: values.courseTitileET || null,
-          courseType: values.courseTypeET?.value || null,
-        },
-        coursesWithFocusId: isEditMode && editId ? Number(editId) : null,
-      };
-
-=======
         courseId: Array.isArray(values.program)
           ? values.program.map((option: any) => Number(option.value))
           : [],
@@ -1207,7 +1031,6 @@ toast.success(response.message || "File deleted successfully!");
 
       console.log("Request DTO:", coursesWithFocusRequestDto);
 
->>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       formData.append(
         "coursesWithFocusRequestDto",
         new Blob([JSON.stringify(coursesWithFocusRequestDto)], {
@@ -1215,35 +1038,6 @@ toast.success(response.message || "File deleted successfully!");
         })
       );
 
-<<<<<<< HEAD
-      formData.append("ecoGenderC", values.fileG || new Blob());
-      formData.append("ecoIKSC", values.fileIK || new Blob());
-      formData.append("ecoEmployC", values.fileEM || new Blob());
-      formData.append("ecoSkillC", values.fileSE || new Blob());
-      formData.append("ecoEntreC", values.fileEN || new Blob());
-
-      try {
-        if (isEditMode && editId) {
-          const response = await api.put(`/CoursesWithFocus`, formData, {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          });
-          toast.success(
-            response.message || "Courses With Focus updated successfully!"
-          );
-        } else {
-          const response = await api.create("/CoursesWithFocus", formData, {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          });
-          toast.success(
-            response.message || "Courses With Focus added successfully!"
-          );
-        }
-        resetForm();
-=======
       // Helper for file appending (only active tab sends file)
       const appendFile = (key: string, file: any, tabNumber: number) => {
         if (activeTab === tabNumber) {
@@ -1325,20 +1119,15 @@ toast.success(response.message || "File deleted successfully!");
         if (file7Ref.current) {
           file7Ref.current.value = "";
         }
->>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
 
         setIsEditMode(false);
         setEditId(null);
         handleListCWFClick();
       } catch (error) {
-<<<<<<< HEAD
-        toast.error("Failed to save Courses With Focus. Please try again.");
-=======
         toast.error(
           "Failed to save/update Courses With Focus. Please try again."
         );
         console.error("Form submission error:", error);
->>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
       }
     },
   });
@@ -1349,63 +1138,6 @@ toast.success(response.message || "File deleted successfully!");
       <div className="text-danger">{error}</div>
     ) : null;
 
-<<<<<<< HEAD
-  useEffect(() => {
-    if (CWFData.length === 0) return;
-
-    const initializeDataTable = () => {
-      const table = $("#exportId").DataTable({
-        destroy: true,
-        dom: "Bfrtip",
-        buttons: [
-          {
-            extend: "copy",
-          },
-          {
-            extend: "csv",
-          },
-        ],
-        columnDefs: [
-          {
-            targets: [3, 4], // Make sure indexes match actual column positions
-            visible: false,
-          },
-        ],
-        searching: false,
-        paging: false,
-      });
-
-      $(".dt-buttons").addClass("mb-3 gap-2");
-      $(".buttons-copy").addClass("btn btn-success");
-      $(".buttons-csv").addClass("btn btn-info");
-
-      // Prevent duplicate toast triggers
-      $("#exportId")
-        .off("buttons-action.dt")
-        .on("buttons-action.dt", function (e, buttonApi) {
-          if (buttonApi.text() === "Copy") {
-            toast.success("Copied to clipboard!");
-          }
-        });
-
-      return table;
-    };
-
-    // Delay DataTable init slightly to allow DOM updates
-    const timeout = setTimeout(() => {
-      const table = initializeDataTable();
-    }, 0);
-
-    return () => {
-      clearTimeout(timeout);
-      const existingTable = $.fn.DataTable.isDataTable("#exportId");
-      if (existingTable) {
-        $("#exportId").DataTable().destroy();
-      }
-      $("#exportId").off("buttons-action.dt");
-    };
-  }, [CWFData]);
-=======
 useEffect(() => {
    if (CWFData.length === 0) return;
 
@@ -1481,7 +1213,6 @@ useEffect(() => {
   };
 }, [CWFData]);
 
->>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
 
   return (
     <React.Fragment>
@@ -1688,11 +1419,8 @@ useEffect(() => {
                     <div className="mb-3">
                       <Label>Program</Label>
                       <ProgramDropdown
-<<<<<<< HEAD
-=======
                       programTypeId={selectedProgramType?.value}
                         deptId={selectedDepartment?.value || null}
->>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                         degreeId={selectedDegree?.value}
                         value={validation.values.program}
                         onChange={(selectedOption) =>
@@ -1863,10 +1591,7 @@ useEffect(() => {
                                         : null
                                     );
                                   }}
-<<<<<<< HEAD
-=======
                                   innerRef={fileRef}
->>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                                   disabled={
                                     typeof validation.values.fileG ===
                                       "string" && validation.values.fileG
@@ -2014,10 +1739,7 @@ useEffect(() => {
                                         : null
                                     );
                                   }}
-<<<<<<< HEAD
-=======
                                   innerRef={file2Ref}
->>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                                   disabled={
                                     typeof validation.values.fileES ===
                                       "string" && validation.values.fileES
@@ -2165,10 +1887,7 @@ useEffect(() => {
                                         : null
                                     );
                                   }}
-<<<<<<< HEAD
-=======
                                   innerRef={file3Ref}
->>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                                   disabled={
                                     typeof validation.values.fileIK ===
                                       "string" && validation.values.fileIK
@@ -2316,10 +2035,7 @@ useEffect(() => {
                                         : null
                                     );
                                   }}
-<<<<<<< HEAD
-=======
                                   innerRef={file4Ref}
->>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                                   disabled={
                                     typeof validation.values.fileEM ===
                                       "string" && validation.values.fileEM
@@ -2467,10 +2183,7 @@ useEffect(() => {
                                         : null
                                     );
                                   }}
-<<<<<<< HEAD
-=======
                                   innerRef={file5Ref}
->>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                                   disabled={
                                     typeof validation.values.fileSE ===
                                       "string" && validation.values.fileSE
@@ -2618,10 +2331,7 @@ useEffect(() => {
                                         : null
                                     );
                                   }}
-<<<<<<< HEAD
-=======
                                   innerRef={file6Ref}
->>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                                   disabled={
                                     typeof validation.values.fileEN ===
                                       "string" && validation.values.fileEN
@@ -2769,10 +2479,7 @@ useEffect(() => {
                                         : null
                                     );
                                   }}
-<<<<<<< HEAD
-=======
                                   innerRef={file7Ref}
->>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
                                   disabled={
                                     typeof validation.values.fileET ===
                                       "string" && validation.values.fileET
@@ -2886,198 +2593,6 @@ useEffect(() => {
                 onChange={handleSearch}
               />
             </div>
-<<<<<<< HEAD
-            <Table
-              striped
-              bordered
-              hover
-              responsive
-              className="align-middle text-center"
-              id="exportId"
-              innerRef={tableRef}
-              style={{ display: "none" }}
-            >
-              <thead className="table-dark">
-                <tr>
-                  <th>#</th>
-                  <th>Academic Year</th>
-                  <th>Semester Type</th>
-                  <th>Semester No</th>
-                  <th>Stream</th>
-                  <th>Department</th>
-                  <th>Program Type</th>
-                  <th>Program</th>
-                  <th>Focus Area</th>
-                  <th>Course Title(Gender)</th>
-                  <th>Course Type(Gender)</th>
-                  <th>File Path(Gender)</th>
-
-                  <th>Course Title(Sustainability)</th>
-                  <th>Course Type(Sustainability)</th>
-                  <th>File Path(Sustainability)</th>
-
-                   <th>Course Title(Indian Knowledge System)</th>
-                  <th>Course Type(Indian Knowledge System)</th>
-                  <th>File Path(Indian Knowledge System)</th>
-
-                  <th>Course Title(Employability)</th>
-                  <th>Course Type(Employability)</th>
-                  <th>File Path(Employability)</th>
-
-                  <th>Course Title(Skill Enhancement)</th>
-                  <th>Course Type(Skill Enhancement)</th>
-                  <th>File Path(Skill Enhancement)</th>
-
-                  <th>Course Title(Entrepreneurship)</th>
-                  <th>Course Type(Entrepreneurship)</th>
-                  <th>File Path(Entrepreneurship)</th>
-
-                  {/* <th>Course Title(Ethics)</th>
-                  <th>Course Type(Ethics)</th>
-                  <th>File Path(Ethics)</th> */}
-                </tr>
-              </thead>
-              <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((cwf, index) => (
-                    <tr key={cwf.coursesWithFocusId}>
-                      <td>{indexOfFirstRow + index + 1}</td>
-                      <td>{cwf.academicYear}</td>
-                      <td>{cwf.semType}</td>
-                      <td>{cwf.semNumber}</td>
-                      <td>{cwf.streamName}</td>
-                      <td>{cwf.departmentName}</td>
-                      <td>{cwf.programTypeName}</td>
-                      <td>{cwf.programName}</td>
-                      <td>{cwf.focusArea}</td>
-
-                      {/* Gender */}
-                      <td>{cwf.ecoGenderC?.courseTitle || "N/A"}</td>
-                      <td>{cwf.ecoGenderC?.courseType || "N/A"}</td>
-                      <td>{cwf.ecoGenderC?.filePath?.EcoGenderC || "N/A"}</td>
-
-                      {/* Employability */}
-                      <td>{cwf.ecoEmployC?.courseTitle || "N/A"}</td>
-                      <td>{cwf.ecoEmployC?.courseType || "N/A"}</td>
-                      <td>{cwf.ecoEmployC?.filePath?.EcoEmployC || "N/A"}</td>
-
-                      {/* Skill Enhancement */}
-                      <td>{cwf.ecoSkillC?.courseTitle || "N/A"}</td>
-                      <td>{cwf.ecoSkillC?.courseType || "N/A"}</td>
-                      <td>{cwf.ecoSkillC?.filePath?.EcoSkillC || "N/A"}</td>
-
-                      {/* Entrepreneurship */}
-                      <td>{cwf.ecoEntreC?.courseTitle || "N/A"}</td>
-                      <td>{cwf.ecoEntreC?.courseType || "N/A"}</td>
-                      <td>{cwf.ecoEntreC?.filePath?.EcoEntreC || "N/A"}</td>
-
-                      {/* Ethics (assuming ecoIKSC is for ethics) */}
-                      <td>{cwf.ecoIKSC?.courseTitle || "N/A"}</td>
-                      <td>{cwf.ecoIKSC?.courseType || "N/A"}</td>
-                      <td>{cwf.ecoIKSC?.filePath?.EcoIKSC || "N/A"}</td>
-
-                      {/* Sustainability */}
-                      <td>{cwf.ecoEnvironmentalC?.courseTitle || "N/A"}</td>
-                      <td>{cwf.ecoEnvironmentalC?.courseType || "N/A"}</td>
-                      <td>
-                        {cwf.ecoEnvironmentalC?.filePath?.EcoEnvironmentalC ||
-                          "N/A"}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={27} className="text-center">
-                      No Courses With Focus available.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </Table>
-            <Table
-              striped
-              bordered
-              hover
-              responsive
-              className="align-middle text-center"
-            >
-              <thead className="table-dark">
-                <tr>
-                  <th>#</th>
-                  <th>Academic Year</th>
-                  <th>Semester Type</th>
-                  <th>Semester No</th>
-                  <th>Stream</th>
-                  <th>Department</th>
-                  <th>Program Type</th>
-                  <th>Program</th>
-                  <th>Focus Area</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentRows.length > 0 ? (
-                  currentRows.map((cwf, index) => (
-                    <tr key={cwf.coursesWithFocusId}>
-                      <td>{indexOfFirstRow + index + 1}</td>
-                      <td>{cwf.academicYear}</td>
-                      <td>{cwf.semType}</td>
-                      <td>{cwf.semNumber}</td>
-                      <td>{cwf.streamName}</td>
-                      <td>{cwf.departmentName}</td>
-                      <td>{cwf.programTypeName}</td>
-                      <td>{cwf.programName}</td>
-                      <td>{cwf.focusArea}</td>
-                      <td>
-                        <div className="d-flex justify-content-center gap-2">
-                          <button
-                            className="btn btn-sm btn-warning"
-                            onClick={() => handleEdit(cwf.coursesWithFocusId)}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            className="btn btn-sm btn-danger"
-                            onClick={() => handleDelete(cwf.coursesWithFocusId)}
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={11} className="text-center">
-                      No Courses With Focus available.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </Table>
-            <div className="d-flex justify-content-between align-items-center mt-3">
-              <Button
-                color="primary"
-                disabled={currentPage === 1}
-                onClick={() => handlePageChange(currentPage - 1)}
-              >
-                Previous
-              </Button>
-              <div>
-                Page {currentPage} of {totalPages}
-              </div>
-              <Button
-                color="primary"
-                disabled={currentPage === totalPages}
-                onClick={() => handlePageChange(currentPage + 1)}
-              >
-                Next
-              </Button>
-            </div>
-          </ModalBody>
-        </Modal>
-        <Modal
-=======
        <Table
   striped
   bordered
@@ -3200,7 +2715,6 @@ useEffect(() => {
         </Modal>
         <Modal
         className="delete-popup"
->>>>>>> 784635961ca4a9f5a0cb85a286fe0f6eec62a181
           isOpen={isDeleteModalOpen}
           toggle={() => setIsDeleteModalOpen(false)}
         >
